@@ -1,0 +1,12 @@
+\.pyc$
+\.project$
+\.pydevproject$
+\.settings$
+\.orig$
+^build/
+^dist/
+^PyQtShell.egg-info/
+\pypi.txt
+\.bat$
+\makepyqt.pyw
+\Thumbs.db
