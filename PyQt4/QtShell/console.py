@@ -29,12 +29,15 @@ def get_initcommands(options):
     """
     commands = []
     message = ''
+    optnb = 0
     for arg in options:
         if OPTIONS.has_key(arg):
+            optnb += 1
             commands.extend(OPTIONS[arg])
-            if not message:
-                message = 'Options:'
             message += ' '+arg
+    if optnb>0:
+        prefix = 'Option%s:' % ('s' if optnb>1 else '')
+        message = prefix + message
     return (commands, message)
 
 

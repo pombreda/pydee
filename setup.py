@@ -28,35 +28,49 @@ This software is licensed under the terms of the GNU General Public
 License version 3 as published by the Free Software Foundation.
 """
 
+name = 'PyQtShell'
+version = '0.0.2'
+py_modules = ['xyinstall']
+packages = ['PyQt4.QtShell']
+package_data={'PyQt4.QtShell': ['images/*.png']}
+scripts = ['qons.pyw']
+import os
+if os.name == 'posix':
+    scripts = ['qons']
+description = 'Interactive Python shell and related widgets based on PyQt4'
+keywords = 'PyQt4 shell console widgets'
+classifiers = ['Development Status :: 4 - Beta',
+               'Topic :: Scientific/Engineering',
+               'Topic :: Software Development :: Widget Sets',
+               ]
+
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
-version = '0.0.1'
-
 setup(
-      name = 'PyQtShell',
+      name = name,
       version = version,
-      description = 'Interactive Python shell and related widgets based on PyQt4',
+      description = description,
+      download_url = 'http://%s.googlecode.com/files/%s-%s-py2.5.egg' % (name, name, version),
       author = "Pierre Raybaut",
       author_email = 'contact@pythonxy.com',
-      url = 'http://code.google.com/p/pyqtshell/',
+      url = 'http://code.google.com/p/%s/' % name,
       license = 'GPLv3',
-      keywords = 'PyQt4 shell console widgets',
+      keywords = keywords,
       platforms = ['any'],
-      packages = ['PyQt4.QtShell'],
-      package_data={'PyQt4.QtShell': ['images/*.png']},
-      classifiers = ['Development Status :: 4 - Beta',
+      py_modules = py_modules,
+      packages = packages,
+      package_data = package_data,
+      scripts = scripts,
+      classifiers = classifiers + [
         'License :: OSI Approved :: GNU General Public License (GPL)',
-        'Intended Audience :: Science/Research',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: OS Independent',
         'Operating System :: POSIX',
         'Operating System :: Unix',
         'Programming Language :: Python :: 2.5',
-        'Topic :: Scientific/Engineering',
-        'Topic :: Software Development :: Widget Sets',
         ],
     )
