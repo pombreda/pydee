@@ -169,6 +169,7 @@ class QsciShell(QsciScintilla, Shell):
             return
 
         # Execute command
+        #TODO: emits a signal to refresh satellite widgets
         self.execlines.append(str(cmd))
         source = '\n'.join(self.execlines)
         self.more = self.interpreter.runsource(source)
@@ -178,6 +179,8 @@ class QsciShell(QsciScintilla, Shell):
         else:
             self.write(self.prompt)
             self.execlines = []
+            
+        self.emit(SIGNAL("refresh()"))
         
     
     #------ Text Insertion

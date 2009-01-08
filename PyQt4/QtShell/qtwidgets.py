@@ -4,7 +4,7 @@ Widgets used only if QScintilla is not installed
 """
 
 from PyQt4.QtGui import QTextEdit, QTextCursor, qApp, QColor, QBrush
-from PyQt4.QtCore import Qt, QString
+from PyQt4.QtCore import Qt, QString, SIGNAL
 
 # Local import
 import config
@@ -158,7 +158,8 @@ class QSimpleShell(QTextEdit, Shell):
             self.write(self.prompt)
             self.lines = []
         self.__clear_line()
-
+        
+        self.emit(SIGNAL("refresh()"))
         
     def __clear_line(self):
         """

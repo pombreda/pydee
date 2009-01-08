@@ -34,6 +34,7 @@ class Shell(object):
         self.interpreter = interpreter
         
         # capture all interactive input/output 
+        self.save_stds()
         sys.stdout   = self
         sys.stderr   = MultipleRedirection((sys.stderr, self))
         sys.stdin    = self
@@ -53,6 +54,16 @@ class Shell(object):
                       
         for command in initcommands:
             self.interpreter.runsource(command)
+        
+    def save_stds(self):
+        self.initial_stdout = sys.stdout
+        self.initial_stderr = sys.stderr
+        self.initial_stdin = sys.stdin
+        
+    def restore_stds(self):
+        sys.stdout = self.initial_stdout
+        sys.stderr = self.initial_stderr
+        sys.stdin = self.initial_stdin
         
     def get_interpreter(self):
         """Return the interpreter object"""

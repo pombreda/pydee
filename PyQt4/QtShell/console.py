@@ -4,11 +4,11 @@ PyQtShell demo
 """
 
 import sys
-from PyQt4.QtGui import QDialog, QApplication, QHBoxLayout
-from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QDialog, QApplication, QVBoxLayout
+from PyQt4.QtCore import Qt, QObject, SIGNAL
 
 # Local import
-from widgets import QShell
+from widgets import QShell, CurrentDirChanger
 import config
 
 OPTIONS = {
@@ -45,17 +45,23 @@ class ConsoleDialog(QDialog):
     """Console QDialog"""
     def __init__(self, parent=None, options=[]):
         QDialog.__init__(self, parent)
-        layout = QHBoxLayout()
+        layout = QVBoxLayout()
         initcommands, message = get_initcommands(options)
-        self.console = QShell( initcommands=initcommands,
-                                     message=message )
-        layout.addWidget(self.console)
+        self.shell = QShell( initcommands=initcommands,
+                             message=message )
+        self.curdir = CurrentDirChanger( self.shell )
+        layout.addWidget(self.shell)
+        layout.addWidget(self.curdir)
+        QObject.connect(self.shell, SIGNAL("refresh()"), self.curdir.refresh)
         self.setLayout(layout)
         self.setWindowIcon(config.icon('qtshell.png'))
         self.setWindowTitle('PyQtShell demo')
         self.setWindowFlags(Qt.Window)
         self.setModal(False)
         self.resize(700, 450)
+        
+    def refresh(self):
+        pass
 
         
 def main(*argv):
