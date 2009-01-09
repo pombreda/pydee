@@ -5,30 +5,38 @@ Qt-based array editor
 
 from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
 from PyQt4.QtCore import SIGNAL, SLOT
-from PyQt4.QtGui import QFont, QColor, QLabel, QTableView, QLineEdit
-from PyQt4.QtGui import QDialog, QDialogButtonBox, QMessageBox, QGridLayout
-import numpy
+from PyQt4.QtGui import QHBoxLayout, QColor, QLabel, QTableView
+from PyQt4.QtGui import QLineEdit, QCheckBox, QGridLayout, QPushButton
+from PyQt4.QtGui import QDialog, QDialogButtonBox, QMessageBox
+import numpy as np
 import config
 
+#FIXME: How to show cell value during edition?!
 
 class FloatArrayModel(QAbstractTableModel):
     """Model for numpy array"""
     def __init__(self, data, fmt="%.3f", xy_mode=False):
         super(FloatArrayModel, self).__init__()
+
+        # Backgroundcolor settings
+        huerange = [.66, .99] # Hue
+        self.sat = .7 # Saturation
+        self.val = 1. # Value
+        self.alp = .6 # Alpha-channel
+
         self._data = data
         self._fmt = fmt
         self._xy = xy_mode
-        vmin = data.min()
-        vmax = data.max()
-        if vmax == vmin:
-            vmin -= 1
-        self.interval = [vmin, vmax]
-        font = QFont("courier")
-        font.setStyleHint(font.TypeWriter)
-        font.setFixedPitch(True)
-        font.setPointSize(8)
-        self.font = QVariant(font)
-    
+        
+        self.vmin = data.min()
+        self.vmax = data.max()
+        if self.vmax == self.vmin:
+            self.vmin -= 1
+        self.hue0 = huerange[0]
+        self.dhue = huerange[1] - huerange[0]
+        
+        self.bgcolor_enabled = True
+        
     def set_format(self, fmt):
         """Change display format"""
         self._fmt = fmt
@@ -42,6 +50,10 @@ class FloatArrayModel(QAbstractTableModel):
         """Array row number"""
         return self._data.shape[0]
 
+    def bgcolor(self, state):
+        self.bgcolor_enabled = state>0
+        self.reset()
+
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
         if not index.isValid():
@@ -51,16 +63,15 @@ class FloatArrayModel(QAbstractTableModel):
         value = self._data[i, j]
         if role == Qt.DisplayRole:
             return QVariant( self._fmt % value )
-        elif role == Qt.BackgroundColorRole:
-            hueint = [.66, .99]
-            hue = numpy.interp(value, self.interval, hueint,
-                               left = hueint[0], right = hueint[1])
-            color = QColor.fromHsvF(hue, .7, 1., .6)
+        elif role == Qt.TextAlignmentRole:
+            return QVariant(int(Qt.AlignCenter|Qt.AlignVCenter))
+        elif role == Qt.BackgroundColorRole and self.bgcolor_enabled:
+            hue = self.hue0+self.dhue*(self.vmax-value)/(self.vmax-self.vmin)
+            color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
             return QVariant(color)
         elif role == Qt.FontRole:
-            return self.font
-        else:
-            return QVariant()
+            return QVariant(config.get_font())
+        return QVariant()
 
     def setData(self, index, value, role=Qt.EditRole):
         """Cell content change"""
@@ -68,9 +79,15 @@ class FloatArrayModel(QAbstractTableModel):
             return False
         i = index.row()
         j = index.column()
-        val, ok = value.toDouble()
-        if ok:
+        val, isok = value.toDouble()
+        if isok:
             self._data[i, j] = val
+            self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                      index, index)
+            if val > self.vmax:
+                self.vmax = val
+            if val < self.vmin:
+                self.vmin = val
             return True
         return False
     
@@ -92,7 +109,7 @@ class FloatArrayModel(QAbstractTableModel):
                 elif self.rowCount() == 2:
                     return QVariant('y')
                 else:
-                    return QVariant('y (channel='+str(section-1)+')')
+                    return QVariant('y ('+str(section-1)+')')
             else:
                 return QVariant(int(section))
 
@@ -100,7 +117,7 @@ class FloatArrayModel(QAbstractTableModel):
 class ArrayEditor(QDialog):
     def __init__(self, title, data, format="%.3f", xy=False):
         super(ArrayEditor, self).__init__()
-        self.source = numpy.array(data, dtype=float, copy=True)
+        self.source = np.array(data, dtype=float, copy=True)
         self.data = self.source.view()
         if len(self.data.shape)==1:
             self.data.shape = (self.data.shape[0], 1)
@@ -112,12 +129,12 @@ class ArrayEditor(QDialog):
         self.setLayout(self.layout)
         self.setWindowIcon(config.icon('arredit.png'))
         self.setWindowTitle(u"Array editor%s" % (" - "+title if title else ""))
+        self.resize(600,500)
 
         # Table configuration
         self.view = QTableView()
         self.model = FloatArrayModel(self.data, fmt=format, xy_mode=xy)
         self.view.setModel(self.model)
-        self.resize_to_contents()
         total_width = 0
         for k in xrange(self.data.shape[1]):
             total_width += self.view.columnWidth(k)
@@ -126,24 +143,33 @@ class ArrayEditor(QDialog):
         self.view.viewport().resize( total_width, view_size.height() )
         self.layout.addWidget(self.view, 0, 0)
 
+        layout = QHBoxLayout()
+        btn = QPushButton("Format")
+        layout.addWidget( btn )
+        self.connect(btn, SIGNAL("clicked()"), self.change_format )
+        btn = QPushButton("Resize")
+        layout.addWidget( btn )
+        self.connect(btn, SIGNAL("clicked()"), self.resize_to_contents )
+        bgcolor = QCheckBox('Background color')
+        bgcolor.setChecked(True)
+        self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.model.bgcolor)
+        layout.addWidget( bgcolor )
+        
         # Buttons configuration
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel )
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        layout.addWidget(bbox)
+        self.layout.addLayout(layout, 2, 0)
         
-        btn = bbox.addButton("Format", QDialogButtonBox.ActionRole)
-        self.connect(btn, SIGNAL("clicked()"), self.change_format )
-        self.layout.addWidget(bbox, 1, 0)
         self.setMinimumSize(400, 300)
         
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         
     def resize_to_contents(self):
-        if self.data.shape[0]*self.data.shape[1] <= 1000:
-            # Do not resize columns and rows if data are too big
-            self.view.resizeColumnsToContents()
-            self.view.resizeRowsToContents()
+        self.view.resizeColumnsToContents()
+        self.view.resizeRowsToContents()
         
     def change_format(self):
         dlg = QDialog()
@@ -157,6 +183,8 @@ class ArrayEditor(QDialog):
         layout.addWidget(lbl, 0, 0)
         layout.addWidget(edt, 0, 1)
         layout.addWidget(bbox, 1, 0, 1, 2)
+        dlg.setWindowTitle('Format')
+        dlg.setWindowIcon(self.windowIcon())
         res = dlg.exec_()
         if res:
             new_fmt = str(edt.text())
@@ -167,7 +195,6 @@ class ArrayEditor(QDialog):
                                       u"Format (%s) is incorrect" % new_fmt)
                 return
             self.model.set_format(new_fmt)
-            self.resize_to_contents()
 
     def get_array(self):
         return self.source
@@ -179,8 +206,7 @@ def main():
     """
     import sys
     from PyQt4.QtGui import QApplication
-    from numpy import random
-    arr = random.rand(30,30)
+    arr = np.random.rand(20,20)
     app = QApplication([])
     dialog = ArrayEditor( '', arr )
     dialog.show()
