@@ -128,7 +128,8 @@ class ArrayEditor(QDialog):
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.setWindowIcon(config.icon('arredit.png'))
-        self.setWindowTitle(u"Array editor%s" % (" - "+title if title else ""))
+        title = self.tr("Array editor")
+        self.setWindowTitle(title + "%s" % (" - "+title if title else ""))
         self.resize(600,500)
 
         # Table configuration
@@ -144,13 +145,13 @@ class ArrayEditor(QDialog):
         self.layout.addWidget(self.view, 0, 0)
 
         layout = QHBoxLayout()
-        btn = QPushButton("Format")
+        btn = QPushButton(self.tr("Format"))
         layout.addWidget( btn )
         self.connect(btn, SIGNAL("clicked()"), self.change_format )
-        btn = QPushButton("Resize")
+        btn = QPushButton(self.tr("Resize"))
         layout.addWidget( btn )
         self.connect(btn, SIGNAL("clicked()"), self.resize_to_contents )
-        bgcolor = QCheckBox('Background color')
+        bgcolor = QCheckBox(self.tr('Background color'))
         bgcolor.setChecked(True)
         self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.model.bgcolor)
         layout.addWidget( bgcolor )
@@ -178,12 +179,12 @@ class ArrayEditor(QDialog):
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel )
         self.connect(bbox, SIGNAL("accepted()"), dlg, SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), dlg, SLOT("reject()"))
-        lbl = QLabel(u"Float formatting")
+        lbl = QLabel(self.tr("Float formatting"))
         edt = QLineEdit(self.model._fmt)
         layout.addWidget(lbl, 0, 0)
         layout.addWidget(edt, 0, 1)
         layout.addWidget(bbox, 1, 0, 1, 2)
-        dlg.setWindowTitle('Format')
+        dlg.setWindowTitle(self.tr('Format'))
         dlg.setWindowIcon(self.windowIcon())
         res = dlg.exec_()
         if res:
@@ -191,8 +192,8 @@ class ArrayEditor(QDialog):
             try:
                 new_fmt % 1.1
             except:
-                QMessageBox.critical(self, u"Error",
-                                      u"Format (%s) is incorrect" % new_fmt)
+                QMessageBox.critical(self, self.tr("Error"),
+                                      self.tr("Format (%s) is incorrect") % new_fmt)
                 return
             self.model.set_format(new_fmt)
 
