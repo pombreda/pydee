@@ -13,6 +13,10 @@ USER_PATH = osp.expanduser('~')
 IMG_PATH = osp.join(APP_PATH,'images')
 
 DEFAULTS = [
+            ('History',
+             {
+              'max_entries' : 30,
+              }),
             ('Font',
              {
               'family/nt' : ['Consolas', 'Courier New'],
@@ -24,7 +28,7 @@ DEFAULTS = [
             ]
 
 from userconfig import UserConfig
-CONFIG = UserConfig('PyQtShell', DEFAULTS, load=False)
+CONFIG = UserConfig('PyQtShell', DEFAULTS)
 
 def imagepath( name, default="not_found.png" ):
     """
