@@ -32,7 +32,7 @@ name = 'PyQtShell'
 version = '0.0.3'
 py_modules = ['xyinstall']
 packages = ['PyQt4.QtShell']
-package_data={'PyQt4.QtShell': ['images/*.png']}
+package_data={'PyQt4.QtShell': ['images/*.png', '*.qm']}
 scripts = ['qons.pyw']
 import os
 if os.name == 'posix':
