@@ -29,7 +29,7 @@ License version 3 as published by the Free Software Foundation.
 """
 
 name = 'PyQtShell'
-version = '0.0.2'
+version = '0.0.3'
 py_modules = ['xyinstall']
 packages = ['PyQt4.QtShell']
 package_data={'PyQt4.QtShell': ['images/*.png']}
@@ -39,7 +39,7 @@ if os.name == 'posix':
     scripts = ['qons']
 description = 'Interactive Python shell and related widgets based on PyQt4'
 keywords = 'PyQt4 shell console widgets'
-classifiers = ['Development Status :: 4 - Beta',
+classifiers = ['Development Status :: 3 - Alpha',
                'Topic :: Scientific/Engineering',
                'Topic :: Software Development :: Widget Sets',
                ]
@@ -53,10 +53,10 @@ setup(
       name = name,
       version = version,
       description = description,
-      download_url = 'http://%s.googlecode.com/files/%s-%s-py2.5.egg' % (name, name, version),
+      download_url = 'http://%s.googlecode.com/files/%s-%s-py2.5.egg' % (name.lower(), name, version),
       author = "Pierre Raybaut",
       author_email = 'contact@pythonxy.com',
-      url = 'http://code.google.com/p/%s/' % name,
+      url = 'http://code.google.com/p/%s/' % name.lower(),
       license = 'GPLv3',
       keywords = keywords,
       platforms = ['any'],
