@@ -8,7 +8,7 @@ from PyQt4.QtCore import Qt, QString, SIGNAL
 
 # Local import
 import config
-from shell import Shell
+from shell import Shell, create_banner
 
 
 def is_python_string(text):
@@ -54,8 +54,10 @@ class QSimpleShell(QTextEdit, Shell):
         parent: specifies the parent widget (if no parent widget
         has been specified, it is possible to exit the interpreter by Ctrl-D)
         """
-        Shell.__init__(self, interpreter, initcommands, message, log)       
+        Shell.__init__(self, interpreter, initcommands, log)       
         QTextEdit.__init__(self, parent)
+        
+        self.font = config.get_font()
                 
         # session log
         self.log = log or ''
@@ -80,11 +82,18 @@ class QSimpleShell(QTextEdit, Shell):
         #self.setLineWrapMode(QTextEdit.NoWrap)
 
         # interpreter banner
-        self.write(self.banner)
-        self.write('Please install QScintilla to enable autocompletion:\n'+
-                   'http://www.riverbankcomputing.co.uk/qscintilla\n\n')
+        moreinfo = self.tr('Type "copyright", "credits" or "license" for more information.')
+        self.write( create_banner(moreinfo) )
+        self.write(self.tr('Please install QScintilla to enable autocompletion')+':'+
+                   '\n'+'http://www.riverbankcomputing.co.uk/qscintilla\n\n')
         self.write(self.prompt)
+        self.emit(SIGNAL("status(QString)"), QString())
+        
                 
+    def set_font(self, font):
+        """Set shell font"""
+        self.font = font
+    
 
     def readline(self):
         """
@@ -123,7 +132,7 @@ class QSimpleShell(QTextEdit, Shell):
         cursor.setPosition(pos1, QTextCursor.KeepAnchor)
         format = cursor.charFormat()
         format.setForeground(QBrush(Qt.black))
-        format.setFont(config.get_font())
+        format.setFont(self.font)
         cursor.setCharFormat(format)
 
 
@@ -142,13 +151,15 @@ class QSimpleShell(QTextEdit, Shell):
         (2) the interpreter fails, finds no errors and wants more line(s)
         (3) the interpreter fails, finds errors and writes them to sys.stderr
         """
+        self.add_to_history(self.line)
         self.pointer = 0
-        self.history.append(QString(self.line))
         try:
             self.lines.append(str(self.line))
         except Exception,e:
             print e
 
+        self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
+        
         source = '\n'.join(self.lines)
         self.more = self.interpreter.runsource(source)
 
@@ -159,6 +170,7 @@ class QSimpleShell(QTextEdit, Shell):
             self.lines = []
         self.__clear_line()
         
+        self.emit(SIGNAL("status(QString)"), QString())
         self.emit(SIGNAL("refresh()"))
         
     def __clear_line(self):
@@ -238,7 +250,6 @@ class QSimpleShell(QTextEdit, Shell):
             self.point = self.line.length() 
 
         elif key == Qt.Key_Up:
-
             if len(self.history):
                 if self.pointer == 0:
                     self.pointer = len(self.history)
@@ -274,7 +285,7 @@ class QSimpleShell(QTextEdit, Shell):
             self.write(self.prompt)
             
         self.__clear_line()
-        self.__insert_text(self.history[self.pointer])
+        self.__insert_text( QString(self.history[self.pointer]) )
 
 
     def mousePressEvent(self, e):

@@ -11,7 +11,7 @@ from PyQt4.Qsci import QsciScintilla, QsciLexerPython
 
 # Local import
 import config
-from shell import Shell
+from shell import Shell, create_banner
 
 
 class QsciShell(QsciScintilla, Shell):
@@ -31,7 +31,7 @@ class QsciShell(QsciScintilla, Shell):
         If no parent widget has been specified, it is possible to
         exit the interpreter by Ctrl-D.
         """
-        Shell.__init__(self, interpreter, initcommands, message, log)       
+        Shell.__init__(self, interpreter, initcommands, log)       
         QsciScintilla.__init__(self, parent)
 
         # user interface setup
@@ -41,17 +41,14 @@ class QsciShell(QsciScintilla, Shell):
         self.setWrapMode(QsciScintilla.WrapWord)
 
         # Lexer
-        lexer = QsciLexerPython(self)
-        lexer.setFont(config.get_font())
-        self.setLexer(lexer)
+        self.lexer = QsciLexerPython(self)
+        self.set_font( config.get_font() )
 
         # Search
         self.incremental_search_string = ""
         self.incremental_search_active = False
             
         # Initialize history
-        self.max_history_entries = 30
-        self.history = []
         self.histidx = -1
         
         #self.completionText = ""
@@ -61,8 +58,9 @@ class QsciShell(QsciScintilla, Shell):
         self.execlines = []
 
         # interpreter banner
-        self.write(self.banner)
-        self.write('Type "object?" for details on "object"\n\n')
+        moreinfo = self.tr('Type "copyright", "credits" or "license" for more information.')
+        self.write( create_banner(moreinfo) )
+        self.write(self.tr('Type "object?" for details on "object"')+'\n\n')
         self.write(self.prompt)
 
         #self.standardCommands().clearKeys()
@@ -82,7 +80,13 @@ class QsciShell(QsciScintilla, Shell):
         self.connect(self, SIGNAL('userListActivated(int, const QString)'),
                      self.__completion_list_selected)
         self.setFocus()
+        self.emit(SIGNAL("status(QString)"), QString())
 
+
+    def set_font(self, font):
+        """Set shell font"""
+        self.lexer.setFont(font)
+        self.setLexer(self.lexer)
 
     #------ Utilities
     def __extract_from_text(self, line_nb):
@@ -159,17 +163,17 @@ class QsciShell(QsciScintilla, Shell):
         if not cmd:
             cmd = ''
         else:
-            if len(self.history) == self.max_history_entries:
-                del self.history[0]
-            self.history.append(QString(cmd))
+            self.add_to_history(cmd)
             self.histidx = -1
 
         if(cmd.endswith('?')):
             self.__show_help(cmd)
             return
+        
+        # Before running command
+        self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
 
         # Execute command
-        #TODO: emits a signal to refresh satellite widgets
         self.execlines.append(str(cmd))
         source = '\n'.join(self.execlines)
         self.more = self.interpreter.runsource(source)
@@ -180,6 +184,9 @@ class QsciShell(QsciScintilla, Shell):
             self.write(self.prompt)
             self.execlines = []
             
+        self.emit(SIGNAL("status(QString)"), QString())
+        
+        # The following signal must be connected to any other related widget:
         self.emit(SIGNAL("refresh()"))
         
     
@@ -477,7 +484,7 @@ class QsciShell(QsciScintilla, Shell):
         Private method to display a command from the history
         """
         if self.histidx < len(self.history):
-            cmd = self.history[self.histidx]
+            cmd = QString( self.history[self.histidx] )
         else:
             cmd = QString()
             self.incremental_search_string = ""
