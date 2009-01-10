@@ -28,12 +28,13 @@ This software is licensed under the terms of the GNU General Public
 License version 3 as published by the Free Software Foundation.
 """
 
+__version__ = '1.0.2'
+
 import os
 import os.path as osp
 from ConfigParser import ConfigParser, MissingSectionHeaderError
 
-__version__ = '1.0.0'
-
+        
 class NoDefault:
     pass
 
@@ -92,25 +93,35 @@ class UserConfig(ConfigParser):
         """
         os.remove(self.filename())
 
-    def reset_to_defaults(self, save=True):
+    def reset_to_defaults(self, save=True, verbose=False):
         """
         Reset config to Default values
         """
         for section, options in self.defaults:
-            self.add_section( section )
             for option in options:
                 value = options[ option ]
-                if not isinstance(value, (str, unicode)):
-                    value = repr( value )
-                ConfigParser.set(self, section, option, value)
+                self.__set(section, option, value, verbose)
         if save:
             self.__save()
         
-    def __get_default(self, section, option):
+    def __check_section_option(self, section, option):
+        """
+        Private method to check section and option types
+        """
+        if section is None:
+            section = self.default_section_name
+        elif not isinstance(section, (str, unicode)):
+            raise RuntimeError, "Argument 'section' must be a string"
+        if not isinstance(option, (str, unicode)):
+            raise RuntimeError, "Argument 'option' must be a string"
+        return section
+
+    def get_default(self, section, option):
         """
         Get Default value for a given (option, section)
         -> useful for type checking in 'get' method
         """
+        section = self.__check_section_option(section, option)
         for sec, options in self.defaults:
             if sec == section:
                 return options[ option ]
@@ -122,8 +133,7 @@ class UserConfig(ConfigParser):
         default: default value (if not specified, an exception
         will be raised if option doesn't exist)
         """
-        if section is None:
-            section = self.default_section_name
+        section = self.__check_section_option(section, option)
 
         if not self.has_section(section):
             raise RuntimeError, "Unknown section"
@@ -135,9 +145,9 @@ class UserConfig(ConfigParser):
                 return default
             
         value = ConfigParser.get(self, section, option)
-        default_value = self.__get_default(section, option)
+        default_value = self.get_default(section, option)
         if isinstance(default_value, bool):
-            value = bool(value)
+            value = eval(value)
         elif isinstance(default_value, float):
             value = float(value)
         elif isinstance(default_value, int):
@@ -150,17 +160,32 @@ class UserConfig(ConfigParser):
                 pass
         return value
 
-    def set(self, section, option, value):
+    def __set(self, section, option, value, verbose):
+        """
+        Private set method
+        """
+        if not self.has_section(section):
+            self.add_section( section )
+        if not isinstance(value, (str, unicode)):
+            value = repr( value )
+        if verbose:
+            print '%s[ %s ] = %s' % (section, option, value)
+        ConfigParser.set(self, section, option, value)
+
+    def set(self, section, option, value, verbose=False):
         """
         Set an option
         section=None: attribute a default section name
         """
-        if section is None:
-            section = self.default_section_name
-        if not isinstance(section, (str, unicode)) \
-           or not isinstance(option, (str, unicode)):
-            raise RuntimeError, "'section' and 'option' must be strings"
-        if section is None:
-            section = self.default_section_name
-        ConfigParser.set(self, section, option, value)
+        section = self.__check_section_option(section, option)
+        default_value = self.get_default(section, option)
+        if isinstance(default_value, bool):
+            value = bool(value)
+        elif isinstance(default_value, float):
+            value = float(value)
+        elif isinstance(default_value, int):
+            value = int(value)
+        elif not isinstance(default_value, (str, unicode)):
+            value = repr(value)
+        self.__set(section, option, value, verbose)
         self.__save()
