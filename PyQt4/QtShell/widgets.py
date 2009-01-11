@@ -61,10 +61,10 @@ class QShell(QShellBase):
                 self.run_script, self.tr("Ctrl+R"), 'run.png',
                 self.tr("Run a Python script"))
         font_action = create_action(self, self.tr("&Font..."),
-                self.change_font, None, None,
+                self.change_font, None, 'font.png',
                 self.tr("Set shell font style"))
         history_action = create_action(self, self.tr("History..."),
-                self.change_history_depth, None, None,
+                self.change_history_depth, None, 'history.png',
                 self.tr("Set history max entries"))
         if toolbar:
             return (run_action,)
