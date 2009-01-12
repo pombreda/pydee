@@ -6,16 +6,15 @@ PyQtShell demo
 #TODO: Toolbar: 'start logging' and 'stop logging' buttons
 
 import sys, os
-from PyQt4.QtGui import QApplication, QMainWindow, QWidget, QVBoxLayout
-from PyQt4.QtGui import QMessageBox, QFrame, QLabel
-from PyQt4.QtCore import QObject, SIGNAL
+from PyQt4.QtGui import QApplication, QMainWindow
+from PyQt4.QtGui import QMessageBox, QMenu
+from PyQt4.QtCore import Qt, QObject, SIGNAL
 from PyQt4.QtCore import QLibraryInfo, QLocale, QTranslator
 
 # Local import
-from widgets import QShell, CurrentDirChanger
-from widgets import add_actions
-import config
-CONFIG = config.CONFIG
+from widgets import QShell, WorkingDirChanger
+from widgets import create_action, add_actions
+from config import icon, CONF
 
 OPTIONS = {
            '-os': ['import os',
@@ -41,7 +40,7 @@ def get_initcommands(options):
             optnb += 1
             commands.extend(OPTIONS[arg])
             message += ' '+arg
-    if optnb>0:
+    if optnb > 0:
         prefix = 'Option%s:' % ('s' if optnb>1 else '')
         message = prefix + message
     return (commands, message)
@@ -54,11 +53,6 @@ class ConsoleWindow(QMainWindow):
 
         self.filename = None
 
-        # Main window's central widget
-        layout = QVBoxLayout()
-        self.setCentralWidget(QWidget())
-        self.centralWidget().setLayout(layout)
-        
         # Status bar
         status = self.statusBar()
         status.setSizeGripEnabled(False)
@@ -66,36 +60,52 @@ class ConsoleWindow(QMainWindow):
         
         # Toolbar
         self.toolbar = self.addToolBar("Console")
+        self.toolbar.setObjectName('toolbar')
         # Hiding toolbar until the day there will be more than 1 icon to show :)
         self.toolbar.hide()
         
-        # Shell widget
+        # Shell widget: window's central widget
         self.initcommands, self.message = get_initcommands(options)
         self.shell = QShell( initcommands = self.initcommands,
                              message = self.message,
                              parent = self )
-        layout.addWidget(self.shell)
+        self.setCentralWidget(self.shell)
         self.shell.set_menu(parent = self)
         add_actions( self.toolbar,
                      self.shell.get_actions(toolbar=True))
-        QObject.connect(self.shell, SIGNAL("status(QString)"), self.send_to_statusbar)
+        QObject.connect(self.shell, SIGNAL("status(QString)"),
+                        self.send_to_statusbar)
         
-        # Current directory changer widget
-        self.curdir = CurrentDirChanger( self )
-        QObject.connect(self.shell, SIGNAL("refresh()"), self.curdir.refresh)
-        layout.addWidget(self.curdir)
-#        status.addPermanentWidget(self.curdir)
+        # Working directory changer widget
+        self.workdir = WorkingDirChanger( self )
+        self.workdir.add_dockwidget()
+        QObject.connect(self.shell, SIGNAL("refresh()"), self.workdir.refresh)
+        
+        # ? menu
+        about = self.menuBar().addMenu("?")
+        about.addAction(create_action(self, self.tr("About..."),
+                                      triggered=self.about))
         
         # Window set-up
-        self.setWindowIcon(config.icon('qtshell.png'))
+        self.setWindowIcon(icon('qtshell.png'))
         self.setWindowTitle(self.tr('PyQtShell Console'))
-        self.resize(700, 450)
+        import PyQt4 # in order to eval the following settings:
+        self.resize( eval(CONF.get('shell', 'window/size')) )
+        self.move( eval(CONF.get('shell', 'window/position')) )
+        self.restoreState( eval(CONF.get('shell', 'window/state')) )
+        
+    def about(self):
+        pass
         
     def closeEvent(self, event):
         """Exit confirmation"""
         if QMessageBox.question(self, self.tr("Quit"),
-                                       self.tr("Are you sure you want to quit?"),
-                                       QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
+               self.tr("Are you sure you want to quit?"),
+               QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
+            # Saving window settings
+            CONF.set( 'shell', 'window/size', self.size() )
+            CONF.set( 'shell', 'window/position', self.pos() )
+            CONF.set( 'shell', 'window/state', self.saveState() )
             #TODO: make the children widget handle their own destruction
             # instead of doing the following tasks here:
             self.shell.save_history()
@@ -115,14 +125,14 @@ def main(*args):
     """
     app = QApplication(sys.argv)
     locale = QLocale.system().name()
-    qtTranslator = QTranslator()
+    qt_translator = QTranslator()
     qt_trpath = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
-    if qtTranslator.load("qt_" + locale, qt_trpath):
-        app.installTranslator(qtTranslator)
-    appTranslator = QTranslator()
+    if qt_translator.load("qt_" + locale, qt_trpath):
+        app.installTranslator(qt_translator)
+    app_translator = QTranslator()
     app_path = os.path.dirname(__file__)
-    if appTranslator.load("console_" + locale, app_path):
-        app.installTranslator(appTranslator)
+    if app_translator.load("console_" + locale, app_path):
+        app.installTranslator(app_translator)
     dialog = ConsoleWindow( options = args )
     dialog.show()
     sys.exit(app.exec_())
