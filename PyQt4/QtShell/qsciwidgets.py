@@ -11,6 +11,7 @@ from PyQt4.Qsci import QsciScintilla, QsciLexerPython
 
 # Local import
 import config
+from config import CONF
 from shell import Shell, create_banner
 
 
@@ -38,7 +39,7 @@ class QsciShell(QsciScintilla, Shell):
         self.setAutoIndent(True)
         self.setAutoCompletionThreshold(4)
         self.setAutoCompletionSource(QsciScintilla.AcsDocument)
-        self.setWrapMode(QsciScintilla.WrapWord)
+        self.set_wrap_mode( CONF.get('shell', 'scintilla/wrap') )
 
         # Lexer
         self.lexer = QsciLexerPython(self)
@@ -87,7 +88,12 @@ class QsciShell(QsciScintilla, Shell):
         """Set shell font"""
         self.lexer.setFont(font)
         self.setLexer(self.lexer)
-
+        
+    def set_wrap_mode(self, enable):
+        """Set wrap mode"""
+        self.setWrapMode(QsciScintilla.WrapWord if enable
+                         else QsciScintilla.WrapNone)
+        
     #------ Utilities
     def __extract_from_text(self, line_nb):
         """Extract clean text from line number 'line_nb'"""
