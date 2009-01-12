@@ -28,7 +28,7 @@ This software is licensed under the terms of the GNU General Public
 License version 3 as published by the Free Software Foundation.
 """
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 import os
 import os.path as osp
@@ -49,20 +49,38 @@ class UserConfig(ConfigParser):
     differ from the overriden methods
     """
     
-    default_section_name = 'Default'
+    default_section_name = 'default'
     
-    def __init__(self, name, defaults = None, load = True):
+    def __init__(self, name, defaults=None, load=True, version=None):
         ConfigParser.__init__(self)
         self.name = name
-        if not isinstance(defaults, list):
+        if isinstance(defaults, dict):
             defaults = [ (self.default_section_name, defaults) ]
         self.defaults = defaults
-        self.reset_to_defaults(save=False)
-        # If config file already exists, it overrides Default options:
+        if defaults is not None:
+            self.reset_to_defaults(save=False)
         if load:
+            # If config file already exists, it overrides Default options:
             self.__load()
+            if version != self.get_version(version):
+                # Version has changed -> overwriting .ini file
+                self.reset_to_defaults(save=False)
+                self.__remove_deprecated_options()
+                # Set new version number
+                self.set_version(version, save=False)
+            if defaults is None:
+                # If no defaults are defined, set .ini file settings as default
+                self.set_as_defaults()
         # In any case, the resulting config is saved in config file:
         self.__save()
+        
+    def get_version(self, version='0.0.0'):
+        """Return configuration (not application!) version"""
+        return self.get(self.default_section_name, 'version', version)
+        
+    def set_version(self, version='0.0.0', save=True):
+        """Set configuration (not application!) version"""
+        self.set(self.default_section_name, 'version', version, save=save)
 
     def __load(self):
         """
@@ -72,6 +90,17 @@ class UserConfig(ConfigParser):
             self.read(self.filename())
         except MissingSectionHeaderError:
             print "Warning: File contains no section headers."
+        
+    def __remove_deprecated_options(self):
+        """
+        Remove options which are present in the .ini file but not in defaults
+        """
+        for section in self.sections():
+            for option, _ in self.items(section):
+                if self.get_default(section, option) is NoDefault:
+                    self.remove_option(section, option)
+                    if len(self.items(section)) == 0:
+                        self.remove_section(section)
         
     def __save(self):
         """
@@ -92,6 +121,17 @@ class UserConfig(ConfigParser):
         Remove .ini file associated to config
         """
         os.remove(self.filename())
+
+    def set_as_defaults(self):
+        """
+        Set defaults from the current config
+        """
+        self.defaults = []
+        for section in self.sections():
+            secdict = {}
+            for option, value in self.items(section):
+                secdict[option] = value
+            self.defaults.append( (section, secdict) )
 
     def reset_to_defaults(self, save=True, verbose=False):
         """
@@ -118,13 +158,16 @@ class UserConfig(ConfigParser):
 
     def get_default(self, section, option):
         """
-        Get Default value for a given (option, section)
+        Get Default value for a given (section, option)
         -> useful for type checking in 'get' method
         """
         section = self.__check_section_option(section, option)
         for sec, options in self.defaults:
             if sec == section:
-                return options[ option ]
+                if option in options:
+                    return options[ option ]
+        else:
+            return NoDefault
                 
     def get(self, section, option, default=NoDefault):
         """
@@ -136,12 +179,16 @@ class UserConfig(ConfigParser):
         section = self.__check_section_option(section, option)
 
         if not self.has_section(section):
-            raise RuntimeError, "Unknown section"
+            if default is NoDefault:
+                raise RuntimeError, "Unknown section"
+            else:
+                self.add_section(section)
         
         if not self.has_option(section, option):
             if default is NoDefault:
                 raise RuntimeError, "Unknown option"
             else:
+                self.set(section, option, default)
                 return default
             
         value = ConfigParser.get(self, section, option)
@@ -172,13 +219,26 @@ class UserConfig(ConfigParser):
             print '%s[ %s ] = %s' % (section, option, value)
         ConfigParser.set(self, section, option, value)
 
-    def set(self, section, option, value, verbose=False):
+    def set_default(self, section, option, default_value):
+        """
+        Set Default value for a given (section, option)
+        -> called when a new (section, option) is set and no default exists
+        """
+        section = self.__check_section_option(section, option)
+        for sec, options in self.defaults:
+            if sec == section:
+                options[ option ] = default_value
+
+    def set(self, section, option, value, verbose=False, save=True):
         """
         Set an option
         section=None: attribute a default section name
         """
         section = self.__check_section_option(section, option)
         default_value = self.get_default(section, option)
+        if default_value is NoDefault:
+            default_value = value
+            self.set_default(section, option, default_value)
         if isinstance(default_value, bool):
             value = bool(value)
         elif isinstance(default_value, float):
@@ -188,4 +248,5 @@ class UserConfig(ConfigParser):
         elif not isinstance(default_value, (str, unicode)):
             value = repr(value)
         self.__set(section, option, value, verbose)
-        self.__save()
+        if save:
+            self.__save()

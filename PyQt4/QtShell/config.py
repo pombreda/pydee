@@ -8,36 +8,34 @@ import os.path as osp
 from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont
 from PyQt4.QtGui import QFontDatabase
 
-APP_PATH = osp.dirname(__file__)
-USER_PATH = osp.expanduser('~')
-IMG_PATH = osp.join(APP_PATH,'images')
-
 DEFAULTS = [
-            ('History',
+            ('shell',
              {
-              'max_entries' : 30,
-              }),
-            ('Font',
-             {
-              'family/nt' : ['Consolas', 'Courier New'],
-              'family/posix' : 'Bitstream Vera Sans Mono',
-              'family/mac' : 'Monaco',
-              'pointSize' : 10,
-              'weight' : 50,
+              'window/size' : 'PyQt4.QtCore.QSize(700, 450)',
+              'window/position' : 'PyQt4.QtCore.QPoint(30, 30)',
+              'window/state' : 'PyQt4.QtCore.QByteArray("")',
+              'font/family/nt' : ['Consolas', 'Courier New'],
+              'font/family/posix' : 'Bitstream Vera Sans Mono',
+              'font/family/mac' : 'Monaco',
+              'font/size' : 10,
+              'font/weight' : 50,
+              'history/max_entries' : 30,
+              'scintilla/wrap' : True,
               }),
             ]
 
 from userconfig import UserConfig
-CONFIG = UserConfig('PyQtShell', DEFAULTS)
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.0')
 
 def imagepath( name, default="not_found.png" ):
     """
     Return image absolute path
     """
-    full_path = osp.join(IMG_PATH, name)
-    if osp.isfile( full_path ):
+    img_path = osp.join(osp.dirname(__file__), 'images')
+    full_path = osp.join(img_path, name)
+    if osp.isfile(full_path):
         return osp.abspath(full_path)
-    return osp.abspath( osp.join(IMG_PATH, default ) )
+    return osp.abspath(osp.join(img_path, default))
 
 def icon( name, default="not_found.png" ):
     """
@@ -63,7 +61,7 @@ def get_font():
     """
     Get console font properties depending on OS and user options
     """
-    families = CONFIG.get('Font', 'family/'+os.name)
+    families = CONF.get('shell', 'font/family/'+os.name)
     if not isinstance(families, list):
         families = [ families ]
     family = None
@@ -73,5 +71,5 @@ def get_font():
     else:
         print "Warning: font '%s' is not installed\n" % family
     return QFont(family, 
-                 CONFIG.get('Font', 'pointSize'),
-                 CONFIG.get('Font', 'weight'))
+                 CONF.get('shell', 'font/size'),
+                 CONF.get('shell', 'font/weight'))
