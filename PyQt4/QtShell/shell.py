@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
 #TODO: log? -> save log in a .py file separate from the one containing history
+#TODO: add an argument 'namespace' to Shell class
+#TODO: add actions save/restore namespace
 
-import sys, os
+import sys
 import os.path as osp
-from config import CONFIG
+from config import CONF
+from PyQt4.QtCore import QString
 
 def create_banner(moreinfo, message=''):
     """Create shell banner"""
@@ -53,38 +56,43 @@ class Shell(object):
         self.reading = 0
         
         # history
-        self.max_history_entries = CONFIG.get('History', 'max_entries')
+        self.max_history_entries = CONF.get('shell', 'history/max_entries')
         self.history = self.load_history()
         
         for command in initcommands:
             self.interpreter.runsource(command)
         
     def redirect_stds(self):
+        """Redirects stds"""
         sys.stdout   = self
         sys.stderr   = MultipleRedirection((sys.stderr, self))
         sys.stdin    = self
         
     def restore_stds(self):
+        """Restore stds"""
         sys.stdout = self.initial_stdout
         sys.stderr = self.initial_stderr
         sys.stdin = self.initial_stdin
         
     def load_history(self):
+        """Load history from a .py file in user home directory"""
         if osp.isfile(self.hlog):
-            file = open(self.hlog, 'r')
-            history = [line.replace('\n','') for line in file.readlines()
+            fileobj = open(self.hlog, 'r')
+            history = [line.replace('\n','') for line in fileobj.readlines()
                        if not line.startswith('#')]
-            file.close()
+            fileobj.close()
         else:
             history = []
         return history
     
     def save_history(self):
-        file = open(self.hlog, 'w')
-        file.writelines([line+"\n" for line in self.history])
-        file.close()
+        """Save history to a .py file in user home directory"""
+        fileobj = open(self.hlog, 'w')
+        fileobj.writelines([line+"\n" for line in self.history])
+        fileobj.close()
         
     def add_to_history(self, command):
+        """Add command to history"""
         if len(self.history) == self.max_history_entries:
             del self.history[0]
         self.history.append( unicode(command) )
