@@ -7,7 +7,6 @@
 import sys
 import os.path as osp
 from config import CONF
-from PyQt4.QtCore import QString
 
 def create_banner(moreinfo, message=''):
     """Create shell banner"""
@@ -30,7 +29,7 @@ class MultipleRedirection:
 
 class Shell(object):
     """Generic shell interface (to be continued...)"""
-    hlog = osp.join(osp.expanduser('~'), '.history.py')
+    log_path = osp.join(osp.expanduser('~'), '.history.py')
     try:
         prompt = sys.p1
     except AttributeError:
@@ -76,8 +75,8 @@ class Shell(object):
         
     def load_history(self):
         """Load history from a .py file in user home directory"""
-        if osp.isfile(self.hlog):
-            fileobj = open(self.hlog, 'r')
+        if osp.isfile(self.log_path):
+            fileobj = open(self.log_path, 'r')
             history = [line.replace('\n','') for line in fileobj.readlines()
                        if not line.startswith('#')]
             fileobj.close()
@@ -87,7 +86,7 @@ class Shell(object):
     
     def save_history(self):
         """Save history to a .py file in user home directory"""
-        fileobj = open(self.hlog, 'w')
+        fileobj = open(self.log_path, 'w')
         fileobj.writelines([line+"\n" for line in self.history])
         fileobj.close()
         

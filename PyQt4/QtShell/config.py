@@ -20,12 +20,13 @@ DEFAULTS = [
               'font/size' : 10,
               'font/weight' : 50,
               'history/max_entries' : 30,
+              'working_dir_history' : 10,
               'scintilla/wrap' : True,
               }),
             ]
 
 from userconfig import UserConfig
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.0')
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.2')
 
 def imagepath( name, default="not_found.png" ):
     """
