@@ -1,4 +1,4 @@
 #!/usr/bin/env python
 import sys
 from PyQt4.QtShell import console
-console.main(*sys.argv)
+console.main(*sys.argv[1:])

@@ -24,10 +24,10 @@ OPTIONS = {
            '-pylab': ['from pylab import *',
                       'from matplotlib import rcParams',
                       'rcParams["interactive"]=True'],
-           '-numpy': ['from numpy import *',
-                      'import numpy'],
-           '-scipy': ['from scipy import *',
-                      'import scipy'],
+           '-np': ['from numpy import *',
+                   'import numpy as np'],
+           '-sp': ['from scipy import *',
+                   'import scipy as sp'],
            }
 
 def get_initcommands(options):
@@ -38,10 +38,19 @@ def get_initcommands(options):
     message = ''
     optnb = 0
     for arg in options:
+        if not OPTIONS.has_key(arg):
+            importcommand = 'import %s' % arg[1:]
+            try:
+                exec importcommand
+            except:
+                print "Warning: option '%s' is not supported" % arg
+                continue
+        optnb += 1
         if OPTIONS.has_key(arg):
-            optnb += 1
             commands.extend(OPTIONS[arg])
-            message += ' '+arg
+        else:
+            commands.append(importcommand)
+        message += ' '+arg
     if optnb > 0:
         prefix = 'Option%s:' % ('s' if optnb>1 else '')
         message = prefix + message
@@ -181,4 +190,4 @@ def main(*args):
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    main(*sys.argv)
+    main(*sys.argv[1:])
