@@ -168,13 +168,12 @@ class QsciShell(QsciScintilla, Shell):
         """
         if not cmd:
             cmd = ''
+        elif(cmd.endswith('?')):
+            self.__show_help(cmd)
+            return
         else:
             self.add_to_history(cmd)
             self.histidx = -1
-
-        if(cmd.endswith('?')):
-            self.__show_help(cmd)
-            return
         
         # Before running command
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
