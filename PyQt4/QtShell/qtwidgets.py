@@ -83,7 +83,7 @@ class QSimpleShell(QTextEdit, Shell):
 
         # interpreter banner
         moreinfo = self.tr('Type "copyright", "credits" or "license" for more information.')
-        self.write( create_banner(moreinfo) )
+        self.write( create_banner(moreinfo, message) )
         self.write(self.tr('Please install QScintilla to enable autocompletion')+':'+
                    '\n'+'http://www.riverbankcomputing.co.uk/qscintilla\n\n')
         self.write(self.prompt)

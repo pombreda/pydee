@@ -60,7 +60,7 @@ class QsciShell(QsciScintilla, Shell):
 
         # interpreter banner
         moreinfo = self.tr('Type "copyright", "credits" or "license" for more information.')
-        self.write( create_banner(moreinfo) )
+        self.write( create_banner(moreinfo, message) )
         self.write(self.tr('Type "object?" for details on "object"')+'\n\n')
         self.write(self.prompt)
 
