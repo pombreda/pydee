@@ -29,7 +29,7 @@ License version 3 as published by the Free Software Foundation.
 """
 
 name = 'PyQtShell'
-version = '0.0.3'
+version = '0.0.4'
 py_modules = ['xyinstall']
 packages = ['PyQt4.QtShell']
 package_data={'PyQt4.QtShell': ['images/*.png', '*.qm']}

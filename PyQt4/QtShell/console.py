@@ -5,10 +5,12 @@ PyQtShell demo
 
 #TODO: Toolbar: 'start logging' and 'stop logging' buttons
 
-import sys, os
+__version__ = '0.0.1'
+
+import sys, os, platform
 from PyQt4.QtGui import QApplication, QMainWindow
 from PyQt4.QtGui import QMessageBox, QMenu
-from PyQt4.QtCore import Qt, QObject, SIGNAL
+from PyQt4.QtCore import SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR
 from PyQt4.QtCore import QLibraryInfo, QLocale, QTranslator
 
 # Local import
@@ -53,16 +55,24 @@ class ConsoleWindow(QMainWindow):
 
         self.filename = None
 
+        # Window menu
+        self.view_menu = QMenu(self.tr("&View"))
+
+        # Toolbar
+        self.toolbar = self.addToolBar(self.tr("Toolbar"))
+        self.toolbar.setObjectName("MainToolbar")
+        self.view_menu.addAction(self.toolbar.toggleViewAction())
+
         # Status bar
         status = self.statusBar()
-        status.setSizeGripEnabled(False)
+        status.setObjectName("StatusBar")
         status.showMessage(self.tr("Welcome to PyQtShell demo!"), 5000)
-        
-        # Toolbar
-        self.toolbar = self.addToolBar("Console")
-        self.toolbar.setObjectName('toolbar')
-        # Hiding toolbar until the day there will be more than 1 icon to show :)
-        self.toolbar.hide()
+        action = create_action(self, self.tr("Status bar"),
+                               toggled=self.toggle_statusbar)
+        self.view_menu.addAction(action)
+        checked = CONF.get('shell', 'window/statusbar', True)
+        action.setChecked(checked)
+        self.toggle_statusbar(checked)
         
         # Shell widget: window's central widget
         self.initcommands, self.message = get_initcommands(options)
@@ -70,16 +80,18 @@ class ConsoleWindow(QMainWindow):
                              message = self.message,
                              parent = self )
         self.setCentralWidget(self.shell)
-        self.shell.set_menu(parent = self)
-        add_actions( self.toolbar,
-                     self.shell.get_actions(toolbar=True))
-        QObject.connect(self.shell, SIGNAL("status(QString)"),
-                        self.send_to_statusbar)
+        self.add_to_menubar(self.shell)
+        self.add_to_toolbar(self.shell)
+        self.connect(self.shell, SIGNAL("status(QString)"), 
+                     self.send_to_statusbar)
         
         # Working directory changer widget
         self.workdir = WorkingDirChanger( self )
-        self.workdir.add_dockwidget()
-        QObject.connect(self.shell, SIGNAL("refresh()"), self.workdir.refresh)
+        self.add_dockwidget(self.workdir)
+        self.connect(self.shell, SIGNAL("refresh()"), self.workdir.refresh)
+        
+        # View menu
+        self.menuBar().addMenu(self.view_menu)
         
         # ? menu
         about = self.menuBar().addMenu("?")
@@ -94,8 +106,38 @@ class ConsoleWindow(QMainWindow):
         self.move( eval(CONF.get('shell', 'window/position')) )
         self.restoreState( eval(CONF.get('shell', 'window/state')) )
         
+    def toggle_statusbar(self, checked):
+        """Toggle status bar"""
+        if checked:
+            self.statusBar().show()
+        else:
+            self.statusBar().hide()
+        
+    def add_dockwidget(self, child):
+        """Add QDockWidget and toggleViewAction"""
+        dockwidget, location = child.get_dockwidget()
+        self.addDockWidget(location, dockwidget)
+        self.view_menu.addAction(dockwidget.toggleViewAction())        
+    
+    def add_to_menubar(self, widget):
+        """Add menu and actions to menubar"""
+        menu = self.menuBar().addMenu(widget.get_name())
+        add_actions(menu, widget.get_actions())
+
+    def add_to_toolbar(self, widget):
+        """Add actions to toolbar"""
+        add_actions(self.toolbar, widget.get_actions(toolbar=True))
+        
     def about(self):
-        pass
+        """About PyQtShell console"""
+        QMessageBox.about(self,
+                self.tr("About %1").arg(self.tr('PyQtShell Console')),
+                self.tr("""<b>%1</b> v %2
+                <p>Copyright &copy; 2009 Pierre Raybaut - GPLv3
+                <p>Interactive console demo.
+                <p>Python %3 - Qt %4 - PyQt %5 on %6""").arg(self.tr('PyQtShell Console')).arg(__version__) \
+                .arg(platform.python_version()).arg(QT_VERSION_STR) \
+                .arg(PYQT_VERSION_STR).arg(platform.system()))
         
     def closeEvent(self, event):
         """Exit confirmation"""
@@ -106,9 +148,10 @@ class ConsoleWindow(QMainWindow):
             CONF.set( 'shell', 'window/size', self.size() )
             CONF.set( 'shell', 'window/position', self.pos() )
             CONF.set( 'shell', 'window/state', self.saveState() )
-            #TODO: make the children widget handle their own destruction
-            # instead of doing the following tasks here:
-            self.shell.save_history()
+            CONF.set( 'shell', 'window/statusbar',
+                      not self.statusBar().isHidden() )
+            # Warning children that their parent is closing:
+            self.emit( SIGNAL('closing()') )
             # Closing...
             event.accept()
         else:
