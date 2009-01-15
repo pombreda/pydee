@@ -9,8 +9,8 @@
 
 import os
 import os.path as osp
-from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QStyle, QIcon
-from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QFont, QFontMetricsF
+from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog
+from PyQt4.QtGui import QLabel, QComboBox, QPushButton
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
 from PyQt4.QtCore import Qt, SIGNAL
 
@@ -178,7 +178,6 @@ class PathComboBox(QComboBox):
             QComboBox.keyPressEvent(self, event)
     
 
-#FIXME: Widget Sizehint/Dockwidget properties
 class WorkingDirectory(QWidget, BaseWidget):
     """
     Working directory changer widget
@@ -202,6 +201,7 @@ class WorkingDirectory(QWidget, BaseWidget):
         # Browse button
         self.browse_btn = QPushButton(get_std_icon('DirOpenIcon'), '')
         self.browse_btn.setFixedWidth(30)
+        self.browse_btn.setToolTip(self.tr('Browse a working directory'))
         self.connect(self.browse_btn, SIGNAL('clicked()'),
                      self.select_directory)
         layout.addWidget(self.browse_btn)
@@ -209,6 +209,7 @@ class WorkingDirectory(QWidget, BaseWidget):
         # Parent dir button
         self.parent_btn = QPushButton(get_std_icon('FileDialogToParent'), '')
         self.parent_btn.setFixedWidth(30)
+        self.parent_btn.setToolTip(self.tr('Change to parent directory'))
         self.connect(self.parent_btn, SIGNAL('clicked()'),
                      self.parent_directory)
         layout.addWidget(self.parent_btn)
@@ -216,9 +217,7 @@ class WorkingDirectory(QWidget, BaseWidget):
         self.setLayout(layout)
         self.refresh()
         
-#        font = QFont(self.font())
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
-#        self.setMaximumHeight(QFontMetricsF(font).height()*2)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         
     def get_name(self):
         """Return widget name"""
@@ -311,7 +310,7 @@ class Editor(EditorBaseWidget, BaseWidget):
             get_std_icon('DialogSaveButton', 16),
             self.tr("Save current script"),
             triggered = self.save)
-        exec_action = create_action(self, self.tr("&Execute"), self.tr("F2"),
+        exec_action = create_action(self, self.tr("&Execute"), "F5",
             'execute.png', self.tr("Execute current script"),
             triggered=self.exec_script)
         font_action = create_action(self, self.tr("&Font..."), None,

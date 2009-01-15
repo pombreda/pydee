@@ -194,8 +194,11 @@ def get_initcommands_message():
         initcommands.extend(['from scipy import *',
                              'import scipy as sp'])
         messagelist.append('sp')
-    message = 'Option%s:' % ('s' if len(messagelist)>1 else '')
-    message += ", ".join(messagelist)
+    if messagelist:
+        message = 'Option%s:' % ('s' if len(messagelist)>1 else '')
+        message += ", ".join(messagelist)
+    else:
+        message = ""
     return initcommands, message
 
 

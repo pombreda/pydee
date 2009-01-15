@@ -115,72 +115,67 @@
 <context>
     <name>Editor</name>
     <message>
-        <location filename="widgets.py" line="302"/>
+        <location filename="widgets.py" line="301"/>
         <source>&amp;Editor</source>
         <translation>&amp;Éditeur</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="309"/>
+        <location filename="widgets.py" line="308"/>
         <source>Open...</source>
         <translation>Ouvrir...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="311"/>
+        <location filename="widgets.py" line="310"/>
         <source>Open a Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="313"/>
+        <location filename="widgets.py" line="312"/>
         <source>Save as...</source>
         <translation>Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="315"/>
+        <location filename="widgets.py" line="314"/>
         <source>Save current script</source>
         <translation>Enregistrer le script actuel</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="317"/>
+        <location filename="widgets.py" line="316"/>
         <source>&amp;Execute</source>
         <translation>&amp;Exécuter</translation>
     </message>
     <message>
         <location filename="widgets.py" line="317"/>
-        <source>F2</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="widgets.py" line="318"/>
         <source>Execute current script</source>
         <translation>Exécuter le script actuel</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="320"/>
+        <location filename="widgets.py" line="319"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="321"/>
+        <location filename="widgets.py" line="320"/>
         <source>Set editor font style</source>
         <translation>Modifier la police d&apos;écriture de l&apos;éditeur</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="353"/>
+        <location filename="widgets.py" line="352"/>
         <source>Open Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="375"/>
+        <location filename="widgets.py" line="374"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="374"/>
+        <location filename="widgets.py" line="373"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="390"/>
+        <location filename="widgets.py" line="389"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -289,7 +284,7 @@
     <message>
         <location filename="qtwidgets.py" line="118"/>
         <source>Type &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</source>
-        <translation type="unfinished"></translation>
+        <translation>Entrer &quot;copyright&quot;, &quot;credits&quot; ou &quot;license&quot; pour des informations supplémentaires.</translation>
     </message>
     <message>
         <location filename="qtwidgets.py" line="119"/>
@@ -401,9 +396,14 @@
         <translation>Aller au répertoire parent</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="268"/>
+        <location filename="widgets.py" line="267"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="229"/>
+        <source>Working directory</source>
+        <translation>Répertoire de travail</translation>
     </message>
 </context>
 <context>
@@ -411,7 +411,7 @@
     <message>
         <location filename="widgets.py" line="230"/>
         <source>Working directory</source>
-        <translation>Répertoire de travail</translation>
+        <translation type="obsolete">Répertoire de travail</translation>
     </message>
 </context>
 </TS>
