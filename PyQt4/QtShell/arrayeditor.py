@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Qt-based array editor
+NumPy Array Editor Dialog based on PyQt4
 """
 
 from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
 from PyQt4.QtCore import SIGNAL, SLOT
-from PyQt4.QtGui import QHBoxLayout, QColor, QLabel, QTableView
+from PyQt4.QtGui import QHBoxLayout, QColor, QLabel, QTableView, QItemDelegate
 from PyQt4.QtGui import QLineEdit, QCheckBox, QGridLayout, QPushButton
-from PyQt4.QtGui import QDialog, QDialogButtonBox, QMessageBox
+from PyQt4.QtGui import QDialog, QDialogButtonBox, QMessageBox, QDoubleValidator
 import numpy as np
-import config
 
-#FIXME: How to show cell value during edition?!
+# Local import
+from config import get_icon, get_font
 
-class FloatArrayModel(QAbstractTableModel):
-    """Model for numpy array"""
+
+class ArrayModel(QAbstractTableModel):
+    """Array Editor Table Model"""
     def __init__(self, data, fmt="%.3f", xy_mode=False):
-        super(FloatArrayModel, self).__init__()
+        super(ArrayModel, self).__init__()
 
         # Backgroundcolor settings
         huerange = [.66, .99] # Hue
@@ -70,7 +71,7 @@ class FloatArrayModel(QAbstractTableModel):
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
             return QVariant(color)
         elif role == Qt.FontRole:
-            return QVariant(config.get_font())
+            return QVariant(get_font('arrayeditor'))
         return QVariant()
 
     def setData(self, index, value, role=Qt.EditRole):
@@ -114,7 +115,33 @@ class FloatArrayModel(QAbstractTableModel):
                 return QVariant(int(section))
 
 
+class ArrayDelegate(QItemDelegate):
+    """Array Editor Item Delegate"""
+    def __init__(self, parent=None):
+        super(ArrayDelegate, self).__init__(parent)
+
+    def createEditor(self, parent, option, index):
+        editor = QLineEdit(parent)
+        editor.setFont(get_font('arrayeditor'))
+        editor.setAlignment(Qt.AlignCenter)
+        editor.setValidator(QDoubleValidator(editor))
+        self.connect(editor, SIGNAL("returnPressed()"),
+                     self.commitAndCloseEditor)
+        return editor
+
+    def commitAndCloseEditor(self):
+        editor = self.sender()
+        self.emit(SIGNAL("commitData(QWidget*)"), editor)
+        self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
+
+    def setEditorData(self, editor, index):
+        text = index.model().data(index, Qt.DisplayRole).toString()
+        value = str(float(text))
+        editor.setText(value)
+
+
 class ArrayEditor(QDialog):
+    """Array Editor Dialog"""
     def __init__(self, title, data, format="%.3f", xy=False):
         super(ArrayEditor, self).__init__()
         self.source = np.array(data, dtype=float, copy=True)
@@ -127,15 +154,16 @@ class ArrayEditor(QDialog):
         
         self.layout = QGridLayout()
         self.setLayout(self.layout)
-        self.setWindowIcon(config.icon('arredit.png'))
+        self.setWindowIcon(get_icon('arredit.png'))
         title = self.tr("Array editor")
         self.setWindowTitle(title + "%s" % (" - "+title if title else ""))
-        self.resize(600,500)
+        self.resize(600, 500)
 
         # Table configuration
         self.view = QTableView()
-        self.model = FloatArrayModel(self.data, fmt=format, xy_mode=xy)
+        self.model = ArrayModel(self.data, fmt=format, xy_mode=xy)
         self.view.setModel(self.model)
+        self.view.setItemDelegate(ArrayDelegate(self))
         total_width = 0
         for k in xrange(self.data.shape[1]):
             total_width += self.view.columnWidth(k)
@@ -193,7 +221,7 @@ class ArrayEditor(QDialog):
                 new_fmt % 1.1
             except:
                 QMessageBox.critical(self, self.tr("Error"),
-                                      self.tr("Format (%s) is incorrect") % new_fmt)
+                      self.tr("Format (%s) is incorrect") % new_fmt)
                 return
             self.model.set_format(new_fmt)
 
@@ -202,14 +230,11 @@ class ArrayEditor(QDialog):
     
     
 def main():
-    """
-    Array editor demo
-    """
+    """Array editor demo"""
     import sys
     from PyQt4.QtGui import QApplication
-    arr = np.random.rand(20,20)
     app = QApplication([])
-    dialog = ArrayEditor( '', arr )
+    dialog = ArrayEditor('', np.random.rand(20, 20))
     dialog.show()
     sys.exit(app.exec_())
 
