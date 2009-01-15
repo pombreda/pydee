@@ -214,8 +214,8 @@ def main():
     if app_translator.load("console_" + locale, app_path):
         app.installTranslator(app_translator)
     initcommands, message = get_initcommands_message()
-    dialog = ConsoleWindow(initcommands, message)
-    dialog.show()
+    window = ConsoleWindow(initcommands, message)
+    window.show()
     sys.exit(app.exec_())
 
 
