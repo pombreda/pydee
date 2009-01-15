@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
-#TODO: multiple line QTextEdit/QScintilla editor
-#TODO: globals explorer widget
+#TODO: Workspace
+#TODO: Before Workspace: DictEditor (dictionnary editor)
+#      (Workspace will be derived from DictEditor, as well as a ListEditor and
+#      a TupleShow)
+#TODO: history editor widget derived from Editor (reloaded at each 'refresh()'
+#      signal! -->read-only?<-- treeview?)
 
 import os
 import os.path as osp
@@ -116,6 +120,7 @@ class Shell(ShellBaseWidget, BaseWidget):
         command = "execfile('%s')" % filename
         self.setFocus()
         if silent:
+            self.write(command+'\n')
             self.interpreter.runsource(command)
             self.write(self.prompt)
         else:
@@ -188,9 +193,9 @@ class WorkingDirectory(QWidget, BaseWidget):
             layout.addWidget( QLabel(self.get_name()+':') )
         
         # Path combo box
-        self.max_history_entries = CONF.get('shell', 'working_dir_history')
+        self.max_wdhistory_entries = CONF.get('shell', 'working_dir_history')
         self.pathedit = PathComboBox(self)
-        self.pathedit.addItems( self.load_history() )
+        self.pathedit.addItems( self.load_wdhistory() )
         layout.addWidget(self.pathedit)
         
         # Browse button
@@ -224,19 +229,19 @@ class WorkingDirectory(QWidget, BaseWidget):
         
     def closing(self):
         """Perform actions before parent main window is closed"""
-        self.save_history()
+        self.save_wdhistory()
         
-    def load_history(self):
+    def load_wdhistory(self):
         """Load history from a text file in user home directory"""
         if osp.isfile(self.log_path):
             fileobj = open(self.log_path, 'r')
-            history = [line.replace('\n','') for line in fileobj.readlines()]
+            wdhistory = [line.replace('\n','') for line in fileobj.readlines()]
             fileobj.close()
         else:
-            history = [ os.getcwd() ]
-        return history
+            wdhistory = [ os.getcwd() ]
+        return wdhistory
     
-    def save_history(self, qobj=None):
+    def save_wdhistory(self, qobj=None):
         """Save history to a text file in user home directory"""
         fileobj = open(self.log_path, 'w')
         fileobj.write("\n".join( [ unicode( self.pathedit.itemText(index) )
@@ -272,6 +277,9 @@ class WorkingDirectory(QWidget, BaseWidget):
         self.refresh()
 
 
+#TODO: add the filename somewhere in the widget (custom DockWidget title bar?)
+#TODO: TabWidget to open more than one script at a time
+#TODO: Link: edit with external editor
 class Editor(EditorBaseWidget, BaseWidget):
     """
     Editor widget

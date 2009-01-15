@@ -44,7 +44,7 @@ DEFAULTS = [
             ]
 
 dev_mode = osp.isfile(osp.join(osp.join(osp.join(APP_PATH, osp.pardir), osp.pardir), 'setup.py'))
-dev_mode = False
+#dev_mode = False
 from userconfig import UserConfig
 CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.2', load=(not dev_mode))
 

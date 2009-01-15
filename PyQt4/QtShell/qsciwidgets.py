@@ -206,7 +206,7 @@ class QsciShell(QsciScintilla, ShellInterface):
             else:
                 fullline = False
             
-            self.__insert_text_at_end(line)
+            self.__insert_text(line, at_end=True)
             if fullline:
                 self.__execute_command(cmd)
 
@@ -245,23 +245,23 @@ class QsciShell(QsciScintilla, ShellInterface):
         
     
     #------ Text Insertion
-    def __insert_text(self, text):
+    def __insert_text(self, text, at_end=False):
         """
-        Insert text at the current cursor position.
+        Insert text at the current cursor position
+        or at the end of the command line
         """
-        line, col = self.getCursorPosition()
-        self.insertAt(text, line, col)
-        self.setCursorPosition(line, col + len(str(text)))
-
-    def __insert_text_at_end(self, text):
-        """
-        Private method to insert some text at the end of the command line.
-        """
-        line, col = self.__get_end_pos()
-        self.setCursorPosition(line, col)
-        self.insert(text)
-        self.prline, self.prcol = self.__get_end_pos()
-        self.setCursorPosition(self.prline, self.prcol)
+        if at_end:
+            # Insert text at the end of the command line
+            line, col = self.__get_end_pos()
+            self.setCursorPosition(line, col)
+            self.insert(text)
+            self.prline, self.prcol = self.__get_end_pos()
+            self.setCursorPosition(self.prline, self.prcol)
+        else:
+            # Insert text at current cursor position
+            line, col = self.getCursorPosition()
+            self.insertAt(text, line, col)
+            self.setCursorPosition(line, col + len(str(text)))
         
 
     #------ Re-implemented Qt Methods
@@ -333,8 +333,8 @@ class QsciShell(QsciScintilla, ShellInterface):
     def dropEvent(self, event):
         """Drag and Drop - Drop event"""
         if(event.mimeData().hasFormat("text/plain")):
-            line = event.mimeData().text()
-            self.__insert_text_at_end(line)
+            text = event.mimeData().text()
+            self.__insert_text(text)
             self.setFocus()
             event.setDropAction(Qt.MoveAction)
             event.accept()
@@ -346,7 +346,12 @@ class QsciShell(QsciScintilla, ShellInterface):
     def paste(self):
         """Reimplemented slot to handle the paste action"""
         lines = unicode(QApplication.clipboard().text())
-        self.__execute_lines(lines)
+        if self.__is_cursor_on_last_line():
+            #TODO: Handle multiline paste if cursor is not at the end of the
+            #      last line of the shell
+            self.__insert_text(lines)
+        else:
+            self.__execute_lines(lines)
         
         
     def __middle_mouse_button(self):
@@ -426,7 +431,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         # add and run selection
         else:
             text = self.selectedText()
-            self.__insert_text_at_end(text)
+            self.__insert_text(text, at_end=True)
 
     def __qsci_char_left(self, all_lines_allowed = False):
         """
@@ -562,7 +567,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         else:
             idx = start_index + 1
         while idx < len(self.history) and \
-              not self.history[idx].startsWith(txt):
+              not self.history[idx].startswith(txt):
             idx += 1
         return idx
     
@@ -578,7 +583,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         else:
             idx = start_index - 1
         while idx >= 0 and \
-              not self.history[idx].startsWith(txt):
+              not self.history[idx].startswith(txt):
             idx -= 1
         return idx
 
@@ -597,7 +602,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         #text = self.__get_current_line()
         self.__execute_command('help(%s)'%(text[:-1],))
         #self.__qsci_newline()
-        #self.__insert_text_at_end(text)
+        #self.__insert_text(text, at_end=True)
 
         
     #------ Code Completion Management
