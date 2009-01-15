@@ -8,48 +8,68 @@ import os.path as osp
 from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont
 from PyQt4.QtGui import QFontDatabase
 
+APP_PATH = osp.dirname(__file__)
 DEFAULTS = [
             ('shell',
              {
-              'window/size' : 'PyQt4.QtCore.QSize(700, 450)',
-              'window/position' : 'PyQt4.QtCore.QPoint(30, 30)',
-              'window/state' : 'PyQt4.QtCore.QByteArray("")',
+              'window/size' : (750, 450),
+              'window/position' : (30, 30),
+              'window/state' : '',
+              'history/max_entries' : 30,
+              'working_dir_history' : 10,
               'font/family/nt' : ['Consolas', 'Courier New'],
               'font/family/posix' : 'Bitstream Vera Sans Mono',
               'font/family/mac' : 'Monaco',
               'font/size' : 10,
               'font/weight' : 50,
-              'history/max_entries' : 30,
-              'working_dir_history' : 10,
-              'scintilla/wrap' : True,
+              'wrap' : True,
+              }),
+            ('editor',
+             {
+              'font/family/nt' : ['Consolas', 'Courier New'],
+              'font/family/posix' : 'Bitstream Vera Sans Mono',
+              'font/family/mac' : 'Monaco',
+              'font/size' : 10,
+              'font/weight' : 50,
+              'wrap' : True,
+              }),
+            ('arrayeditor',
+             {
+              'font/family/nt' : 'Courier New',
+              'font/family/posix' : 'Bitstream Vera Sans Mono',
+              'font/family/mac' : 'Monaco',
+              'font/size' : 9,
+              'font/weight' : 50,
               }),
             ]
 
+dev_mode = osp.isfile(osp.join(osp.join(osp.join(APP_PATH, osp.pardir), osp.pardir), 'setup.py'))
+dev_mode = False
 from userconfig import UserConfig
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.2')
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.2', load=(not dev_mode))
 
-def imagepath( name, default="not_found.png" ):
+def get_image_path( name, default="not_found.png" ):
     """
     Return image absolute path
     """
-    img_path = osp.join(osp.dirname(__file__), 'images')
+    img_path = osp.join(APP_PATH, 'images')
     full_path = osp.join(img_path, name)
     if osp.isfile(full_path):
         return osp.abspath(full_path)
     return osp.abspath(osp.join(img_path, default))
 
-def icon( name, default="not_found.png" ):
+def get_icon( name, default="not_found.png" ):
     """
     Return image inside a QIcon object
     """
-    return QIcon(imagepath(name, default))
+    return QIcon(get_image_path(name, default))
 
-def imagelabel( name, default="not_found.png" ):
+def get_image_label( name, default="not_found.png" ):
     """
     Return image inside a QLabel object
     """
     label = QLabel()
-    label.setPixmap(QPixmap(imagepath(name, default)))
+    label.setPixmap(QPixmap(get_image_path(name, default)))
     return label
 
 def font_is_installed(font):
@@ -58,11 +78,11 @@ def font_is_installed(font):
     """
     return [fam for fam in QFontDatabase().families() if str(fam)==font]
     
-def get_font():
+def get_font(section):
     """
     Get console font properties depending on OS and user options
     """
-    families = CONF.get('shell', 'font/family/'+os.name)
+    families = CONF.get(section, 'font/family/'+os.name)
     if not isinstance(families, list):
         families = [ families ]
     family = None
@@ -72,5 +92,5 @@ def get_font():
     else:
         print "Warning: font '%s' is not installed\n" % family
     return QFont(family, 
-                 CONF.get('shell', 'font/size'),
-                 CONF.get('shell', 'font/weight'))
+                 CONF.get(section, 'font/size'),
+                 CONF.get(section, 'font/weight'))
