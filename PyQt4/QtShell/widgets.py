@@ -178,6 +178,7 @@ class PathComboBox(QComboBox):
             QComboBox.keyPressEvent(self, event)
     
 
+#FIXME: Widget Sizehint/Dockwidget properties
 class WorkingDirectory(QWidget, BaseWidget):
     """
     Working directory changer widget
