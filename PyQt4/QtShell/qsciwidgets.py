@@ -1,26 +1,70 @@
 # -*- coding: utf-8 -*-
 """
-Widgets which depend on QScintilla
+Widgets based on QScintilla
 """
-
-#TODO: multiple line QScintilla editor
 
 from PyQt4.QtGui import QKeySequence, QApplication, QClipboard
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
-from PyQt4.Qsci import QsciScintilla, QsciLexerPython
+from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
 # Local import
-import config
-from config import CONF
-from shell import Shell, create_banner
+from config import CONF, get_font
+from shell import ShellInterface, create_banner
 
 
-class QsciShell(QsciScintilla, Shell):
+class QsciEditor(QsciScintilla):
+    """
+    QScintilla Editor Widget
+    """
+    def __init__(self, parent=None):
+        super(QsciEditor, self).__init__(parent)
+        
+        self.setAutoIndent(True)
+        self.setIndentationsUseTabs(False)
+        self.setIndentationWidth(4)
+        self.setAutoCompletionThreshold(4)
+        self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+        self.set_wrap_mode( CONF.get('editor', 'wrap') )
+        
+        # API
+        self.lex = QsciLexerPython(self)
+        self.lex.setFont( get_font('editor') )
+        self.setLexer(self.lex)
+        apis = QsciAPIs(self.lex)
+        apis.prepare()
+        
+        self.setMinimumWidth(200)
+        self.setMinimumHeight(150)
+
+    def set_font(self, font):
+        """Set shell font"""
+        self.lex.setFont(font)
+        self.setLexer(self.lex)
+        
+    def set_wrap_mode(self, enable):
+        """Set wrap mode"""
+        self.setWrapMode(QsciScintilla.WrapWord if enable
+                         else QsciScintilla.WrapNone)
+        
+    def go_to_line(self, linenb):
+        """Go to line number"""
+        self.ensureLineVisible(linenb)
+        
+    def set_text(self, text):
+        """Set the text of the editor"""
+        self.setText(text)
+
+    def get_text(self):
+        """Return editor text"""
+        return self.text()
+
+
+class QsciShell(QsciScintilla, ShellInterface):
     """
     Python shell based on QScintilla
     Derived from:
-        PyCute (pycute.py) : http://gerard.vermeulen.free.fr (GPL)
-        Eric4 shell (shell.py) : http://www.die-offenbachs.de/eric/index.html (GPL)
+        PyCute (pycute.py): http://gerard.vermeulen.free.fr (GPL)
+        Eric4 shell (shell.py): http://www.die-offenbachs.de/eric/index.html (GPL)
     """
     def __init__(self, interpreter=None, initcommands=None,
                  message="", log='', parent=None):
@@ -32,18 +76,23 @@ class QsciShell(QsciScintilla, Shell):
         If no parent widget has been specified, it is possible to
         exit the interpreter by Ctrl-D.
         """
-        Shell.__init__(self, interpreter, initcommands, log)       
+        ShellInterface.__init__(self, interpreter, initcommands, log)       
         QsciScintilla.__init__(self, parent)
 
         # user interface setup
         self.setAutoIndent(True)
+        self.setIndentationsUseTabs(False)
+        self.setIndentationWidth(4)
         self.setAutoCompletionThreshold(4)
         self.setAutoCompletionSource(QsciScintilla.AcsDocument)
-        self.set_wrap_mode( CONF.get('shell', 'scintilla/wrap') )
+        self.set_wrap_mode( CONF.get('shell', 'wrap') )
 
+        self.setMinimumWidth(400)
+        self.setMinimumHeight(150)
+        
         # Lexer
         self.lexer = QsciLexerPython(self)
-        self.set_font( config.get_font() )
+        self.set_font( get_font('shell') )
 
         # Search
         self.incremental_search_string = ""
@@ -604,4 +653,3 @@ class QsciShell(QsciScintilla, Shell):
             #   txt = txt.replace(self.completionText, "")
             self.__insert_text(txt)
             #self.completionText = ""
-

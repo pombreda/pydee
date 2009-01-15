@@ -7,8 +7,8 @@ from PyQt4.QtGui import QTextEdit, QTextCursor, qApp, QColor, QBrush
 from PyQt4.QtCore import Qt, QString, SIGNAL
 
 # Local import
-import config
-from shell import Shell, create_banner
+from config import get_font, CONF
+from shell import ShellInterface, create_banner
 
 
 def is_python_string(text):
@@ -39,11 +39,42 @@ def get_color(word):
         return Qt.black
 
 
-class QSimpleShell(QTextEdit, Shell):
+class QtEditor(QTextEdit):
+    """
+    Qt-based Editor Widget
+    """
+    def __init__(self, parent=None):
+        super(QtEditor, self).__init__(parent)
+        self.set_wrap_mode( CONF.get('editor', 'wrap') )
+
+    def set_wrap_mode(self, enable):
+        """Set wrap mode"""
+        if enable:
+            self.setLineWrapMode(QTextEdit.WidgetWidth)
+        else:
+            self.setLineWrapMode(QTextEdit.NoWrap)
+
+    def set_font(self, font):
+        pass
+       
+    def go_to_line(self, linenb):
+        """Go to line number"""
+        pass
+        
+    def set_text(self, str):
+        """Set the text of the editor"""
+        self.setPlainText(str)
+
+    def get_text(self):
+        """Return editor text"""
+        return self.toPlainText()
+
+
+class QtShell(QTextEdit, ShellInterface):
     """
     Python shell based on Qt only
     Derived from:
-        PyCute (pycute.py) : http://gerard.vermeulen.free.fr (GPL)
+        PyCute (pycute.py): http://gerard.vermeulen.free.fr (GPL)
     """    
     def __init__(self, interpreter=None, initcommands=None,
                  message="", log='', parent=None):
@@ -54,10 +85,11 @@ class QSimpleShell(QTextEdit, Shell):
         parent: specifies the parent widget (if no parent widget
         has been specified, it is possible to exit the interpreter by Ctrl-D)
         """
-        Shell.__init__(self, interpreter, initcommands, log)       
+        ShellInterface.__init__(self, interpreter, initcommands, log)       
         QTextEdit.__init__(self, parent)
         
-        self.font = config.get_font()
+        self.set_wrap_mode( CONF.get('editor', 'wrap') )
+        self.font = get_font('shell')
                 
         # session log
         self.log = log or ''
@@ -89,6 +121,13 @@ class QSimpleShell(QTextEdit, Shell):
         self.write(self.prompt)
         self.emit(SIGNAL("status(QString)"), QString())
         
+
+    def set_wrap_mode(self, enable):
+        """Set wrap mode"""
+        if enable:
+            self.setLineWrapMode(QTextEdit.WidgetWidth)
+        else:
+            self.setLineWrapMode(QTextEdit.NoWrap)
                 
     def set_font(self, font):
         """Set shell font"""

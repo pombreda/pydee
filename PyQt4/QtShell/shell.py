@@ -6,6 +6,8 @@
 
 import sys
 import os.path as osp
+
+# Local import
 from config import CONF
 
 def create_banner(moreinfo, message=''):
@@ -27,7 +29,7 @@ class MultipleRedirection:
             fileobj.write(str)
             
 
-class Shell(object):
+class ShellInterface(object):
     """Generic shell interface (to be continued...)"""
     log_path = osp.join(osp.expanduser('~'), '.history.py')
     try:

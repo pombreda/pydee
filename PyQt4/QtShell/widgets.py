@@ -5,52 +5,15 @@
 
 import os
 import os.path as osp
-from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QStyle
-from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QAction
-from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget
+from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QStyle, QIcon
+from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QFont, QFontMetricsF
+from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
-import config
+from qthelpers import create_action, get_std_icon
+from config import get_icon, get_font
 from config import CONF
-
-
-def create_action(parent, text, shortcut=None, icon=None, tip=None,
-                  toggled=None, triggered=None):
-    """Create a QAction"""
-    action = QAction(text, parent)
-    if triggered is not None:
-        parent.connect(action, SIGNAL("triggered()"), triggered)
-    if toggled is not None:
-        parent.connect(action, SIGNAL("toggled(bool)"), toggled)
-        action.setCheckable(True)
-    if icon is not None:
-        if isinstance(icon, (str, unicode)):
-            icon = config.icon(icon)
-        action.setIcon( icon )
-    if shortcut is not None:
-        action.setShortcut(shortcut)
-    if tip is not None:
-        action.setToolTip(tip)
-        action.setStatusTip(tip)
-    return action
-
-def add_actions(target, actions):
-    """Add actions to a menu"""
-    for action in actions:
-        if action is None:
-            target.addSeparator()
-        else:
-            target.addAction(action)
-
-
-# QShell widget
-try:
-    from qsciwidgets import QsciShell as QShellBase
-    # from qsciwidgets import QsciEditor as QEditor
-except ImportError:
-    from qtwidgets import QSimpleShell as QShellBase
-    # from qtwidgets import QSimpleEditor as QEditor
 
 
 class BaseWidget(object):
@@ -79,17 +42,30 @@ class BaseWidget(object):
     def get_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
         allowed_areas, location = self.get_dockwidget_properties()
-        dock = QDockWidget(self.get_name(), self.mainwindow)
+        dock = QDockWidget(self.get_name().replace('&',''),
+                           self.mainwindow)
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(allowed_areas)
+#        dock.setTitleBarWidget(QWidget())
         dock.setWidget(self)
         return (dock, location)
 
 
-class QShell(QShellBase, BaseWidget):
+try:
+    from qsciwidgets import QsciShell as ShellBaseWidget
+    from qsciwidgets import QsciEditor as EditorBaseWidget
+except ImportError:
+    from qtwidgets import QtShell as ShellBaseWidget
+    from qtwidgets import QtEditor as EditorBaseWidget
+
+
+class Shell(ShellBaseWidget, BaseWidget):
+    """
+    Shell widget
+    """
     def __init__(self, interpreter=None, initcommands=None,
                  message="", log='', parent=None):
-        super(QShell, self).__init__(interpreter, initcommands,
+        super(Shell, self).__init__(interpreter, initcommands,
                                      message, log, parent)
         self.bind(parent)
         
@@ -100,6 +76,11 @@ class QShell(QShellBase, BaseWidget):
     def closing(self):
         """Perform actions before parent main window is closed"""
         self.save_history()
+    
+    def get_dockwidget_properties(self):
+        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
+                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
+                Qt.TopDockWidgetArea)
     
     def get_actions(self, toolbar=False):
         """Get widget actions"""
@@ -117,24 +98,32 @@ class QShell(QShellBase, BaseWidget):
         else:
             return (run_action, None, font_action, history_action)
         
-    def run_script(self):
+    def run_script(self, filename=None, silent=False):
         """Run a Python script"""
-        self.restore_stds()
-        fname = QFileDialog.getOpenFileName(self,
-                    self.tr("Run Python script"), os.getcwd(),
-                    self.tr("Python scripts")+" (*.py ; *.pyw)")
-        if fname:
-            fname = unicode(fname)
-            os.chdir( os.path.dirname(fname) )
-            self.emit(SIGNAL("refresh()"))
-            command = "execfile('%s')" % os.path.basename(fname)
+        if filename is None:
+            self.restore_stds()
+            filename = QFileDialog.getOpenFileName(self,
+                          self.tr("Run Python script"), os.getcwd(),
+                          self.tr("Python scripts")+" (*.py ; *.pyw)")
+            self.redirect_stds()
+            if filename:
+                filename = unicode(filename)
+                os.chdir( os.path.dirname(filename) )
+                filename = os.path.basename(filename)
+                self.emit(SIGNAL("refresh()"))
+            else:
+                return
+        command = "execfile('%s')" % filename
+        self.setFocus()
+        if silent:
+            self.interpreter.runsource(command)
+            self.write(self.prompt)
+        else:
             self.write(command)
-            self.setFocus()
-        self.redirect_stds()
         
     def change_font(self):
         """Change console font"""
-        font, ok = QFontDialog.getFont(config.get_font(),
+        font, ok = QFontDialog.getFont(get_font('shell'),
                        self, self.tr("Select a new font"))
         if ok:
             self.set_font(font)
@@ -152,6 +141,9 @@ class QShell(QShellBase, BaseWidget):
 
 
 class PathComboBox(QComboBox):
+    """
+    QComboBox handling path locations
+    """
     def __init__(self, parent):
         super(PathComboBox, self).__init__(parent)
         self.setEditable(True)
@@ -181,13 +173,13 @@ class PathComboBox(QComboBox):
             QComboBox.keyPressEvent(self, event)
     
 
-class WorkingDirChanger(QWidget, BaseWidget):
+class WorkingDirectory(QWidget, BaseWidget):
     """
     Working directory changer widget
     """
     log_path = osp.join(osp.expanduser('~'), '.workingdir')
     def __init__(self, parent):
-        super(WorkingDirChanger, self).__init__(parent)
+        super(WorkingDirectory, self).__init__(parent)
         self.bind(parent)
         
         layout = QHBoxLayout()
@@ -200,17 +192,16 @@ class WorkingDirChanger(QWidget, BaseWidget):
         self.pathedit = PathComboBox(self)
         self.pathedit.addItems( self.load_history() )
         layout.addWidget(self.pathedit)
-        icon = self.style().standardIcon(QStyle.SP_DirOpenIcon)
         
         # Browse button
-        self.browse_btn = QPushButton(icon, '')
+        self.browse_btn = QPushButton(get_std_icon('DirOpenIcon'), '')
         self.browse_btn.setFixedWidth(30)
         self.connect(self.browse_btn, SIGNAL('clicked()'),
                      self.select_directory)
         layout.addWidget(self.browse_btn)
         
         # Parent dir button
-        self.parent_btn = QPushButton(config.icon('parent.png'), '')
+        self.parent_btn = QPushButton(get_std_icon('FileDialogToParent'), '')
         self.parent_btn.setFixedWidth(30)
         self.connect(self.parent_btn, SIGNAL('clicked()'),
                      self.parent_directory)
@@ -218,6 +209,10 @@ class WorkingDirChanger(QWidget, BaseWidget):
         
         self.setLayout(layout)
         self.refresh()
+        
+#        font = QFont(self.font())
+        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+#        self.setMaximumHeight(QFontMetricsF(font).height()*2)
         
     def get_name(self):
         """Return widget name"""
@@ -277,6 +272,117 @@ class WorkingDirChanger(QWidget, BaseWidget):
         self.refresh()
 
 
+class Editor(EditorBaseWidget, BaseWidget):
+    """
+    Editor widget
+    """
+    file_path = osp.join(osp.expanduser('~'), '.QtShell_tempfile')
+    def __init__(self, parent):
+        super(Editor, self).__init__(parent)
+        self.bind(parent)
+        self.filename = self.file_path
+        self.load_temp_file()
+        
+    def get_name(self):
+        """Return widget name"""
+        return self.tr('&Editor')
+    
+    def get_dockwidget_properties(self):
+        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
+                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
+                Qt.TopDockWidgetArea)
+    
+    def get_actions(self, toolbar=False):
+        """Get widget actions"""
+        open_action = create_action(self, self.tr("Open..."), None,
+            get_std_icon('DialogOpenButton', 16),
+            self.tr("Open a Python script"),
+            triggered = self.open)
+        save_action = create_action(self, self.tr("Save as..."), None,
+            get_std_icon('DialogSaveButton', 16),
+            self.tr("Save current script"),
+            triggered = self.save)
+        exec_action = create_action(self, self.tr("&Execute"), self.tr("F2"),
+            'execute.png', self.tr("Execute current script"),
+            triggered=self.exec_script)
+        font_action = create_action(self, self.tr("&Font..."), None,
+            'font.png', self.tr("Set editor font style"),
+            triggered=self.change_font)
+        if toolbar:
+            return (open_action, save_action, exec_action,)
+        else:
+            return (open_action, save_action, exec_action, None, font_action)
+        
+    def closing(self):
+        """Perform actions before parent main window is closed"""
+        self.save_temp_file()
+        
+    def load_temp_file(self):
+        """Load temporary file from a text file in user home directory"""
+        if osp.isfile(self.filename):
+            self.open(self.filename)
+    
+    def save_temp_file(self):
+        """Save temporary file to a text file in user home directory"""
+        self.save(prompt=False)
+        
+    def exec_script(self):
+        """Execute current script"""
+        self.save_temp_file()
+        self.mainwindow.shell.run_script(self.file_path, silent=True)
+        
+    def open(self, filename=None):
+        if filename is None:
+            self.mainwindow.shell.restore_stds()
+            basedir = os.getcwd()
+            if self.filename != self.file_path:
+                basedir = osp.dirname(self.filename)
+            filename = QFileDialog.getOpenFileName(self,
+                          self.tr("Open Python script"), basedir,
+                          self.tr("Python scripts")+" (*.py ; *.pyw)")
+            self.mainwindow.shell.redirect_stds()
+            if filename:
+                filename = unicode(filename)
+                os.chdir( os.path.dirname(filename) )
+                filename = os.path.basename(filename)
+                self.mainwindow.shell.emit(SIGNAL("refresh()"))
+            else:
+                return
+        self.setFocus()
+        fileobj = open(filename, 'r')
+        lines = fileobj.read()
+        fileobj.close()
+        self.set_text(lines)
+        self.filename = filename
+    
+    def save(self, prompt=False):
+        if prompt:
+            self.mainwindow.shell.restore_stds()
+            filename = QFileDialog.getSaveFileName(self,
+                          self.tr("Save Python script"), self.filename,
+                          self.tr("Python scripts")+" (*.py ; *.pyw)")
+            self.mainwindow.shell.redirect_stds()
+            if filename:
+                self.filename = unicode(filename)
+                os.chdir( os.path.dirname(self.filename) )
+                self.mainwindow.shell.emit(SIGNAL("refresh()"))
+            else:
+                return
+        fileobj = open(self.filename, 'w')
+        fileobj.writelines(self.get_text())
+        fileobj.close()
+        
+    def change_font(self):
+        """Change editor font"""
+        font, ok = QFontDialog.getFont(get_font('editor'),
+                       self, self.tr("Select a new font"))
+        if ok:
+            self.set_font(font)
+            CONF.set('editor', 'font/family/%s' % os.name, str(font.family()))
+            CONF.set('editor', 'font/size', float(font.pointSize()))
+            CONF.set('editor', 'font/weight', int(font.weight()))
+
+
 def tests():
     """
     Testing all widgets
@@ -286,7 +392,7 @@ def tests():
     app = QApplication([])
     
     # Working directory changer test:
-    dialog = WorkingDirChanger(None)
+    dialog = WorkingDirectory(None)
     dialog.show()
     sys.exit(app.exec_())
 
