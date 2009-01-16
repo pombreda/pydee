@@ -24,6 +24,8 @@ class QsciEditor(QsciScintilla):
         self.setIndentationWidth(4)
         self.setAutoCompletionThreshold(4)
         self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+        self.setMarginLineNumbers(1, True)
+        self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
         self.set_wrap_mode( CONF.get('editor', 'wrap') )
         
         # API
@@ -144,10 +146,13 @@ class QsciShell(QsciScintilla, ShellInterface):
                          else QsciScintilla.WrapNone)
         
     #------ Utilities
+    def __remove_prompts(self, text):
+        """Remove prompts from text"""
+        return text.replace(self.prompt, "").replace(self.prompt_more, "")
+    
     def __extract_from_text(self, line_nb):
         """Extract clean text from line number 'line_nb'"""
-        return unicode(self.text(line_nb)).replace(self.prompt, "") \
-                                          .replace(self.prompt_more, "")
+        return self.__remove_prompts( unicode(self.text(line_nb)) )
                                           
     def __get_end_pos(self):
         """
@@ -347,13 +352,21 @@ class QsciShell(QsciScintilla, ShellInterface):
         """Reimplemented slot to handle the paste action"""
         lines = unicode(QApplication.clipboard().text())
         if self.__is_cursor_on_last_line():
-            #TODO: Handle multiline paste if cursor is not at the end of the
-            #      last line of the shell
-            self.__insert_text(lines)
+            # Paste at cursor position
+            cline, cindex = self.getCursorPosition()
+            linetext = unicode(self.text(cline))
+            lines = linetext[:cindex] + lines + linetext[cindex:]
+            self.setSelection(cline, len(self.prompt),
+                              cline, self.lineLength(cline))
+            self.removeSelectedText()
+            lines = self.__remove_prompts(lines)
+            self.__execute_lines(lines)
+            cline2, _ = self.getCursorPosition()
+            self.setCursorPosition(cline2,
+               self.lineLength(cline2)-len(linetext[cindex:]) )
         else:
             self.__execute_lines(lines)
-        
-        
+            
     def __middle_mouse_button(self):
         """Private method to handle the middle mouse button press"""
         lines = unicode(QApplication.clipboard().text(
