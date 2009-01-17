@@ -41,52 +41,52 @@
 <context>
     <name>ConsoleWindow</name>
     <message>
-        <location filename="console.py" line="139"/>
+        <location filename="console.py" line="177"/>
         <source>PyQtShell Console</source>
         <translation>Console PyQtShell</translation>
     </message>
     <message>
-        <location filename="console.py" line="90"/>
+        <location filename="console.py" line="115"/>
         <source>Quit</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="console.py" line="91"/>
+        <location filename="console.py" line="116"/>
         <source>Are you sure you want to quit?</source>
         <translation>Souhaitez-vous réellement quitter ?</translation>
     </message>
     <message>
-        <location filename="console.py" line="40"/>
+        <location filename="console.py" line="38"/>
         <source>Welcome to PyQtShell demo!</source>
         <translation>Bienvenue dans la console de démontration de PyQtShell !</translation>
     </message>
     <message>
-        <location filename="console.py" line="30"/>
+        <location filename="console.py" line="28"/>
         <source>&amp;View</source>
         <translation>&amp;Affichage</translation>
     </message>
     <message>
-        <location filename="console.py" line="33"/>
+        <location filename="console.py" line="31"/>
         <source>Toolbar</source>
         <translation>Barre d&apos;outils</translation>
     </message>
     <message>
-        <location filename="console.py" line="41"/>
+        <location filename="console.py" line="39"/>
         <source>Status bar</source>
         <translation>Barre de status</translation>
     </message>
     <message>
-        <location filename="console.py" line="74"/>
+        <location filename="console.py" line="98"/>
         <source>About...</source>
         <translation>À propos de...</translation>
     </message>
     <message>
-        <location filename="console.py" line="134"/>
+        <location filename="console.py" line="172"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
     <message>
-        <location filename="console.py" line="139"/>
+        <location filename="console.py" line="177"/>
         <source>&lt;b&gt;%1&lt;/b&gt; v %2
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut - GPLv3
             &lt;p&gt;Interactive console demo.
@@ -115,69 +115,87 @@
 <context>
     <name>Editor</name>
     <message>
-        <location filename="widgets.py" line="301"/>
+        <location filename="widgets.py" line="330"/>
         <source>&amp;Editor</source>
         <translation>&amp;Éditeur</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="308"/>
+        <location filename="widgets.py" line="337"/>
         <source>Open...</source>
         <translation>Ouvrir...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="310"/>
+        <location filename="widgets.py" line="339"/>
         <source>Open a Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="312"/>
+        <location filename="widgets.py" line="341"/>
         <source>Save as...</source>
         <translation>Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="314"/>
+        <location filename="widgets.py" line="343"/>
         <source>Save current script</source>
         <translation>Enregistrer le script actuel</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="316"/>
+        <location filename="widgets.py" line="345"/>
         <source>&amp;Execute</source>
         <translation>&amp;Exécuter</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="317"/>
+        <location filename="widgets.py" line="346"/>
         <source>Execute current script</source>
         <translation>Exécuter le script actuel</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="319"/>
+        <location filename="widgets.py" line="348"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="320"/>
+        <location filename="widgets.py" line="349"/>
         <source>Set editor font style</source>
         <translation>Modifier la police d&apos;écriture de l&apos;éditeur</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="352"/>
+        <location filename="widgets.py" line="386"/>
         <source>Open Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="374"/>
+        <location filename="widgets.py" line="410"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="373"/>
+        <location filename="widgets.py" line="409"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="389"/>
+        <location filename="widgets.py" line="422"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="351"/>
+        <source>Wrap lines</source>
+        <translation>Retour à la ligne</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="402"/>
+        <source>temporary file</source>
+        <translation>fichier temporaire</translation>
+    </message>
+</context>
+<context>
+    <name>HistoryLog</name>
+    <message>
+        <location filename="widgets.py" line="450"/>
+        <source>&amp;History log</source>
+        <translation>Historique</translation>
     </message>
 </context>
 <context>
@@ -264,17 +282,17 @@
 <context>
     <name>QsciShell</name>
     <message>
-        <location filename="qsciwidgets.py" line="113"/>
+        <location filename="qsciwidgets.py" line="123"/>
         <source>Type &quot;object?&quot; for details on &quot;object&quot;</source>
         <translation>Entrer &quot;objet?&quot; pour afficher des informations sur &quot;objet&quot;</translation>
     </message>
     <message>
-        <location filename="qsciwidgets.py" line="112"/>
+        <location filename="qsciwidgets.py" line="122"/>
         <source>Type &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</source>
         <translation>Entrer &quot;copyright&quot;, &quot;credits&quot; ou &quot;license&quot; pour des informations supplémentaires.</translation>
     </message>
     <message>
-        <location filename="qsciwidgets.py" line="228"/>
+        <location filename="qsciwidgets.py" line="241"/>
         <source>Busy...</source>
         <translation>Occupé...</translation>
     </message>
@@ -305,69 +323,74 @@
         <translation type="obsolete">Entrer &quot;copyright&quot;, &quot;credits&quot; ou &quot;license&quot; pour plus d&apos;informations.</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="80"/>
+        <location filename="widgets.py" line="99"/>
         <source>&amp;Console</source>
         <translation>&amp;Console</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="91"/>
+        <location filename="widgets.py" line="110"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="91"/>
+        <location filename="widgets.py" line="110"/>
         <source>Ctrl+R</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="widgets.py" line="92"/>
+        <location filename="widgets.py" line="111"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="94"/>
+        <location filename="widgets.py" line="113"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="95"/>
+        <location filename="widgets.py" line="114"/>
         <source>Set shell font style</source>
         <translation>Changer la police d&apos;écriture de la console</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="97"/>
+        <location filename="widgets.py" line="116"/>
         <source>History...</source>
         <translation>Historique...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="98"/>
+        <location filename="widgets.py" line="117"/>
         <source>Set history max entries</source>
         <translation>Modifier le nombre d&apos;entrées maximum de l&apos;historique</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="110"/>
+        <location filename="widgets.py" line="134"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="111"/>
+        <location filename="widgets.py" line="135"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="132"/>
+        <location filename="widgets.py" line="156"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="141"/>
+        <location filename="widgets.py" line="163"/>
         <source>History</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="142"/>
+        <location filename="widgets.py" line="164"/>
         <source>Maximum entries</source>
         <translation>Nombre maximum d&apos;entrées</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="119"/>
+        <source>Wrap lines</source>
+        <translation>Retour à la ligne</translation>
     </message>
 </context>
 <context>
@@ -386,24 +409,37 @@
 <context>
     <name>WorkingDirectory</name>
     <message>
-        <location filename="widgets.py" line="205"/>
+        <location filename="widgets.py" line="230"/>
         <source>Browse a working directory</source>
         <translation>Sélectionner un répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="213"/>
+        <location filename="widgets.py" line="238"/>
         <source>Change to parent directory</source>
         <translation>Aller au répertoire parent</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="267"/>
+        <location filename="widgets.py" line="292"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="229"/>
+        <location filename="widgets.py" line="252"/>
         <source>Working directory</source>
         <translation>Répertoire de travail</translation>
+    </message>
+</context>
+<context>
+    <name>Workspace</name>
+    <message>
+        <location filename="widgets.py" line="516"/>
+        <source>&amp;Workspace</source>
+        <translation>Session</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="530"/>
+        <source>Auto save</source>
+        <translation>Sauvegarde automatique</translation>
     </message>
 </context>
 <context>

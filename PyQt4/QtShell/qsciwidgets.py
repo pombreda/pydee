@@ -8,7 +8,6 @@ from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
 # Local import
-from config import CONF, get_font
 from shell import ShellInterface, create_banner
 
 
@@ -24,19 +23,30 @@ class QsciEditor(QsciScintilla):
         self.setIndentationWidth(4)
         self.setAutoCompletionThreshold(4)
         self.setAutoCompletionSource(QsciScintilla.AcsDocument)
-        self.setMarginLineNumbers(1, True)
         self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
-        self.set_wrap_mode( CONF.get('editor', 'wrap') )
+
+        # Margin
+        self.setMarginLineNumbers(1, True)
         
         # API
         self.lex = QsciLexerPython(self)
-        self.lex.setFont( get_font('editor') )
         self.setLexer(self.lex)
         apis = QsciAPIs(self.lex)
         apis.prepare()
         
         self.setMinimumWidth(200)
-        self.setMinimumHeight(150)
+        self.setMinimumHeight(100)
+
+    def setup_margin(self, font, width=None):
+        """Set margin font and width"""
+        self.setMarginsFont(font)
+        if width is None:
+            linenb = self.lines()
+            if linenb<10:
+                linenb=100
+            from math import ceil, log
+            width = ceil(log(linenb,10))+1
+        self.setMarginWidth(1, QString('0'*int(width+1)))
 
     def set_font(self, font):
         """Set shell font"""
@@ -68,17 +78,17 @@ class QsciShell(QsciScintilla, ShellInterface):
         PyCute (pycute.py): http://gerard.vermeulen.free.fr (GPL)
         Eric4 shell (shell.py): http://www.die-offenbachs.de/eric/index.html (GPL)
     """
-    def __init__(self, interpreter=None, initcommands=None,
-                 message="", log='', parent=None):
-        """Constructor.
-        @param interpreter : InteractiveInterpreter in which
-        the code will be executed
-        @param message : welcome message string
-        @param  'parent' : specifies the parent widget.
-        If no parent widget has been specified, it is possible to
-        exit the interpreter by Ctrl-D.
+    def __init__(self, namespace=None, commands=None,
+                 message="", parent=None):
         """
-        ShellInterface.__init__(self, interpreter, initcommands, log)       
+        namespace : locals send to InteractiveInterpreter object
+        commands: list of commands executed at startup
+        message : welcome message string
+        parent : specifies the parent widget
+        If no parent widget has been specified, it is possible to
+        exit the interpreter by Ctrl-D
+        """
+        ShellInterface.__init__(self, namespace, commands)       
         QsciScintilla.__init__(self, parent)
 
         # user interface setup
@@ -87,14 +97,12 @@ class QsciShell(QsciScintilla, ShellInterface):
         self.setIndentationWidth(4)
         self.setAutoCompletionThreshold(4)
         self.setAutoCompletionSource(QsciScintilla.AcsDocument)
-        self.set_wrap_mode( CONF.get('shell', 'wrap') )
 
         self.setMinimumWidth(400)
         self.setMinimumHeight(150)
         
         # Lexer
         self.lexer = QsciLexerPython(self)
-        self.set_font( get_font('shell') )
 
         # Search
         self.incremental_search_string = ""

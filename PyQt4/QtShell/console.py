@@ -3,8 +3,6 @@
 PyQtShell demo
 """
 
-#TODO: Toolbar: 'start logging' and 'stop logging' buttons
-
 __version__ = '0.0.1'
 
 import sys, os, platform
@@ -14,14 +12,14 @@ from PyQt4.QtCore import SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint
 from PyQt4.QtCore import QLibraryInfo, QLocale, QTranslator, QSize, QByteArray
 
 # Local import
-from widgets import Shell, WorkingDirectory, Editor
+from widgets import Shell, WorkingDirectory, Editor, HistoryLog, Workspace
 from qthelpers import create_action, add_actions, get_std_icon
 from config import get_icon, CONF
 
 
 class ConsoleWindow(QMainWindow):
     """Console QDialog"""
-    def __init__(self, initcommands=None, message=""):
+    def __init__(self, commands=None, message=""):
         super(ConsoleWindow, self).__init__()
 
         self.filename = None
@@ -41,31 +39,57 @@ class ConsoleWindow(QMainWindow):
         action = create_action(self, self.tr("Status bar"),
                                toggled=self.toggle_statusbar)
         self.view_menu.addAction(action)
-        checked = CONF.get('shell', 'window/statusbar', True)
+        checked = CONF.get('window', 'statusbar')
         action.setChecked(checked)
         self.toggle_statusbar(checked)
         
+        # Workspace init
+        if CONF.get('workspace', 'enable'):
+            self.workspace = Workspace(self)
+            namespace = self.workspace.namespace
+        else:
+            namespace = None
+        
         # Shell widget: window's central widget
-        self.shell = Shell(initcommands=initcommands,
-                           message=message, parent=self)
+        self.shell = Shell(namespace, commands, message, self)
         self.setCentralWidget(self.shell)
 #        self.add_dockwidget(self.shell)
         self.add_to_menubar(self.shell)
         self.add_to_toolbar(self.shell)
+        self.toolbar.addSeparator()
         self.connect(self.shell, SIGNAL("status(QString)"), 
                      self.send_to_statusbar)
         
+        # Workspace
+        if CONF.get('workspace', 'enable'):
+            self.workspace.refresh(self.shell.namespace)
+            self.add_dockwidget(self.workspace)
+            self.add_to_menubar(self.workspace)
+            self.add_to_toolbar(self.workspace)
+            self.connect(self.shell, SIGNAL("refresh()"),
+                         self.workspace.refresh)
+        
         # Editor widget
-        self.editor = Editor( self )
-        self.add_dockwidget(self.editor)
-        self.add_to_menubar(self.editor)
-        self.add_to_toolbar(self.editor)
+        if CONF.get('editor', 'enable'):
+            self.editor = Editor( self )
+            self.add_dockwidget(self.editor)
+            self.add_to_menubar(self.editor)
+            self.add_to_toolbar(self.editor)
+        
+        # History log widget
+        if CONF.get('history', 'enable'):
+            self.historylog = HistoryLog( self )
+            self.add_dockwidget(self.historylog)
+            self.connect(self.shell, SIGNAL("refresh()"),
+                         self.historylog.refresh)
         
         # Working directory changer widget
         self.workdir = WorkingDirectory( self )
-        self.add_dockwidget(self.workdir)
-        self.connect(self.shell, SIGNAL("refresh()"), self.workdir.refresh)
-        
+        self.connect(self.shell, SIGNAL("refresh()"),
+                     self.workdir.refresh)
+#        self.add_dockwidget(self.workdir)
+        self.add_toolbar(self.workdir)
+            
         # View menu
         self.menuBar().addMenu(self.view_menu)
         
@@ -78,12 +102,13 @@ class ConsoleWindow(QMainWindow):
         # Window set-up
         self.setWindowIcon(get_icon('qtshell.png'))
         self.setWindowTitle(self.tr('PyQtShell Console'))
-        width, height = CONF.get('shell', 'window/size')
+        width, height = CONF.get('window', 'size')
         self.resize( QSize(width, height) )
-        posx, posy = CONF.get('shell', 'window/position')
+        posx, posy = CONF.get('window', 'position')
         self.move( QPoint(posx, posy) )
-        hexstate = CONF.get('shell', 'window/state')
+        hexstate = CONF.get('window', 'state')
         self.restoreState( QByteArray().fromHex(hexstate) )
+        self.shell.setFocus()
         
     def closeEvent(self, event):
         """Exit confirmation"""
@@ -92,12 +117,12 @@ class ConsoleWindow(QMainWindow):
                QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
             # Saving window settings
             size = self.size()
-            CONF.set('shell', 'window/size', (size.width(), size.height()))
+            CONF.set('window', 'size', (size.width(), size.height()))
             pos = self.pos()
-            CONF.set('shell', 'window/position', (pos.x(), pos.y()))
+            CONF.set('window', 'position', (pos.x(), pos.y()))
             qba = self.saveState()
-            CONF.set('shell', 'window/state', str(qba.toHex()))
-            CONF.set('shell', 'window/statusbar',
+            CONF.set('window', 'state', str(qba.toHex()))
+            CONF.set('window', 'statusbar',
                       not self.statusBar().isHidden())
             # Warning children that their parent is closing:
             self.emit( SIGNAL('closing()') )
@@ -115,18 +140,31 @@ class ConsoleWindow(QMainWindow):
         
     def add_dockwidget(self, child):
         """Add QDockWidget and toggleViewAction"""
-        dockwidget, location = child.get_dockwidget()
+        dockwidget, location = (child.dockwidget, child.location)
         self.addDockWidget(location, dockwidget)
-        self.view_menu.addAction(dockwidget.toggleViewAction())        
+        self.view_menu.addAction(dockwidget.toggleViewAction())
+        self.connect(dockwidget, SIGNAL('visibilityChanged(bool)'),
+                     child.visibility_changed)
     
+    def add_toolbar(self, widget):
+        """Add toolbar including a widget"""
+        toolbar = self.addToolBar(widget.get_name())
+        toolbar.addWidget(widget)
+        toolbar.setObjectName(widget.get_name())
+        toolbar.setToolTip(widget.get_name())
+        
     def add_to_menubar(self, widget):
         """Add menu and actions to menubar"""
-        menu = self.menuBar().addMenu(widget.get_name())
-        add_actions(menu, widget.get_actions())
+        actions = widget.menu_actions
+        if actions is not None:
+            menu = self.menuBar().addMenu(widget.get_name())
+            add_actions(menu, actions)
 
     def add_to_toolbar(self, widget):
         """Add actions to toolbar"""
-        add_actions(self.toolbar, widget.get_actions(toolbar=True))
+        actions = widget.toolbar_actions
+        if actions is not None:
+            add_actions(self.toolbar, actions)
         
     def about(self):
         """About PyQtShell console"""
@@ -145,9 +183,10 @@ class ConsoleWindow(QMainWindow):
         self.statusBar().showMessage(message)
         
         
-def get_initcommands_message():
+def get_options():
     """
-    Convert options into initcommands
+    Convert options into commands
+    return commands, message
     """
     import optparse
     parser = optparse.OptionParser("PyQtShell Console")
@@ -176,22 +215,22 @@ def get_initcommands_message():
             except ImportError:
                 print "Warning: module '%s' was not found" % mod
                 continue
-    initcommands = []
+    commands = []
     if options.pylab:
-        initcommands.extend(['from pylab import *',
+        commands.extend(['from pylab import *',
                              'from matplotlib import rcParams',
                              'rcParams["interactive"]=True'])
         messagelist.append('pylab')
     if options.os:
-        initcommands.extend(['import os',
+        commands.extend(['import os',
                              'import os.path as osp'])
         messagelist.append('os')
     if options.np:
-        initcommands.extend(['from numpy import *',
+        commands.extend(['from numpy import *',
                              'import numpy as np'])
         messagelist.append('np')
     if options.sp:
-        initcommands.extend(['from scipy import *',
+        commands.extend(['from scipy import *',
                              'import scipy as sp'])
         messagelist.append('sp')
     if messagelist:
@@ -199,7 +238,7 @@ def get_initcommands_message():
         message += ", ".join(messagelist)
     else:
         message = ""
-    return initcommands, message
+    return commands, message
 
 
 def main():
@@ -216,8 +255,8 @@ def main():
     app_path = os.path.dirname(__file__)
     if app_translator.load("console_" + locale, app_path):
         app.installTranslator(app_translator)
-    initcommands, message = get_initcommands_message()
-    window = ConsoleWindow(initcommands, message)
+    commands, message = get_options()
+    window = ConsoleWindow(commands, message)
     window.show()
     sys.exit(app.exec_())
 

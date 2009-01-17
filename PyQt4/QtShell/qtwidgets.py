@@ -7,7 +7,6 @@ from PyQt4.QtGui import QTextEdit, QTextCursor, qApp, QColor, QBrush
 from PyQt4.QtCore import Qt, QString, SIGNAL
 
 # Local import
-from config import get_font, CONF
 from shell import ShellInterface, create_banner
 
 
@@ -45,7 +44,6 @@ class QtEditor(QTextEdit):
     """
     def __init__(self, parent=None):
         super(QtEditor, self).__init__(parent)
-        self.set_wrap_mode( CONF.get('editor', 'wrap') )
 
     def set_wrap_mode(self, enable):
         """Set wrap mode"""
@@ -56,7 +54,11 @@ class QtEditor(QTextEdit):
 
     def set_font(self, font):
         pass
-       
+    
+    def setup_margin(self, font, width):
+        """Set margin font and width"""
+        pass
+           
     def go_to_line(self, linenb):
         """Go to line number"""
         pass
@@ -76,21 +78,19 @@ class QtShell(QTextEdit, ShellInterface):
     Derived from:
         PyCute (pycute.py): http://gerard.vermeulen.free.fr (GPL)
     """    
-    def __init__(self, interpreter=None, initcommands=None,
-                 message="", log='', parent=None):
+    def __init__(self, namespace=None, commands=None,
+                 message="", parent=None):
         """
-        interpreter: InteractiveInterpreter in which the code will be executed
-        message: welcome message string
-        log: specifies the file in which the interpreter session is to be logged
-        parent: specifies the parent widget (if no parent widget
-        has been specified, it is possible to exit the interpreter by Ctrl-D)
+        namespace : locals send to InteractiveInterpreter object
+        commands: list of commands executed at startup
+        message : welcome message string
+        parent : specifies the parent widget
+        If no parent widget has been specified, it is possible to
+        exit the interpreter by Ctrl-D
         """
-        ShellInterface.__init__(self, interpreter, initcommands, log)       
+        ShellInterface.__init__(self, namespace, commands)       
         QTextEdit.__init__(self, parent)
-        
-        self.set_wrap_mode( CONF.get('editor', 'wrap') )
-        self.font = get_font('shell')
-                
+                        
         # session log
         self.log = log or ''
 
