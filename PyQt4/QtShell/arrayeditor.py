@@ -144,8 +144,8 @@ class ArrayEditor(QDialog):
     """Array Editor Dialog"""
     def __init__(self, title, data, format="%.3f", xy=False):
         super(ArrayEditor, self).__init__()
-        self.source = np.array(data, dtype=float, copy=True)
-        self.data = self.source.view()
+        self.copy = np.array(data, dtype=float, copy=True)
+        self.data = self.copy.view()
         if len(self.data.shape)==1:
             self.data.shape = (self.data.shape[0], 1)
 
@@ -225,18 +225,20 @@ class ArrayEditor(QDialog):
                 return
             self.model.set_format(new_fmt)
 
-    def get_array(self):
-        return self.source
+    def get_copy(self):
+        """Return modified copy of ndarray"""
+        return self.copy
     
     
 def main():
     """Array editor demo"""
-    import sys
     from PyQt4.QtGui import QApplication
-    app = QApplication([])
+    QApplication([])
     dialog = ArrayEditor('', np.random.rand(20, 20))
-    dialog.show()
-    sys.exit(app.exec_())
+    if dialog.exec_():
+        print "Accepted:", dialog.get_copy()
+    else:
+        print "Canceled"
 
 if __name__ == "__main__":
     main()
