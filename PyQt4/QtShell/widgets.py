@@ -528,10 +528,8 @@ class Workspace(DictEditor, BaseWidget):
     def refresh(self):
         """Refresh widget"""
         if self.shell is not None:
-            self.namespace = filter( self.shell.namespace )
-        else:
-            self.namespace = filter(self.namespace)
-        self.set_data( self.namespace )
+            self.namespace = self.shell.namespace
+        self.set_data( self.namespace, filter )
         
     def set_actions(self):
         """Setup actions"""
@@ -568,13 +566,14 @@ class Workspace(DictEditor, BaseWidget):
                 os.remove(self.file_path)
                 return
             os.remove(self.file_path)
-            self.namespace = filter(namespace)
+            self.namespace = namespace
         else:
             self.namespace = None
         
     def save_namespace(self):
         """Save current namespace"""
-        cPickle.dump(self.namespace, file(self.file_path, 'w'))
+        cPickle.dump(filter(self.namespace),
+                     file(self.file_path, 'w'))
         
     def toggle_autosave(self, checked):
         """Toggle autosave mode"""
