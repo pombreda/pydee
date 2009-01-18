@@ -81,12 +81,18 @@ def get_type(item):
 
 class DictModelRO(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
-    def __init__(self, data, sortkeys=True):
+    def __init__(self, data, filter=None, sortkeys=True):
         super(DictModelRO, self).__init__()
         if data is None:
             data = {}
-        self._data = data
         self.sortkeys = sortkeys
+        self.set_data(data, filter)
+            
+    def set_data(self, data, filter):
+        self._data = data
+        if filter is not None:
+            data = filter(data)
+        self.showndata = data
         if isinstance(data, tuple):
             self.keys = range(len(data))
             self.title = self.tr("Tuple")
@@ -199,6 +205,7 @@ class DictModel(DictModelRO):
     def set_value(self, index, value):
         """Set value"""
         self._data[ self.keys[index.row()] ] = value
+        self.showndata[ self.keys[index.row()] ] = value
         self.sizes[index.row()] = get_size(value)
         self.types[index.row()] = get_type(value)
         if self.sortkeys:
@@ -244,7 +251,7 @@ class DictDelegate(QItemDelegate):
         self.inplace = False
 
     def createEditor(self, parent, option, index):
-        if index.column()==0:
+        if index.column()<2:
             return None
         value = index.model().get_value(index)
         if isinstance(value, (list, tuple, dict)) and not self.inplace:
@@ -289,15 +296,6 @@ class DictEditor(QTableView):
         self.sort_by = sort_by
         self.model = None
         self.delegate = None
-        self.set_data(data)
-        
-    def set_inplace_editor(self, state):
-        if state:
-            self.delegate.inplace = True
-        else:
-            self.delegate.inplace = False
-        
-    def set_data(self, data):
         if self.readonly:
             self.model = DictModelRO(data)
         else:
@@ -305,10 +303,19 @@ class DictEditor(QTableView):
         self.setModel(self.model)
         self.delegate = DictDelegate(self)
         self.setItemDelegate(self.delegate)
-        for col in range(2):
-            self.resizeColumnToContents(col)
         self.horizontalHeader().setStretchLastSection(True)
-
+        
+    def set_inplace_editor(self, state):
+        if state:
+            self.delegate.inplace = True
+        else:
+            self.delegate.inplace = False
+        
+    def set_data(self, data, filter=None):
+        if data is not None:
+            self.model.set_data(data, filter)
+            for col in range(2):
+                self.resizeColumnToContents(col)
 
 class DictEditorWidget(QWidget):
     """Dictionary Editor Dialog"""
