@@ -112,6 +112,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         # Call-tips
 #        self.setCallTipsBackgroundColor( ?? )
         self.setCallTipsVisible(True)
+        self.setCallTipsStyle(QsciScintilla.CallTipsNoContext)
         
         # Create a little context menu
         self.menu = QMenu(self)
