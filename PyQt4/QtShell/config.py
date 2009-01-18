@@ -76,7 +76,7 @@ DEFAULTS = [
               }),
             ('workspace',
              {
-              'enable' : False,
+              'enable' : True,
               'filters' : type2str(FILTERS),
               'autosave' : True,
               'excluded': ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc'],
@@ -105,9 +105,7 @@ DEV = osp.isfile(osp.join(osp.join(osp.join(APP_PATH, osp.pardir), osp.pardir),
                           'setup.py'))
 #DEV = False
 from userconfig import UserConfig
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.2', load=(not DEV))
-if DEV:
-    CONF.set('workspace', 'enable', True)
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.3', load=(not DEV))
 
 def get_image_path( name, default="not_found.png" ):
     """
