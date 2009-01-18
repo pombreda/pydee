@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-PyQtShell demo
+PyQtShell Console
 """
 
-__version__ = '0.0.1'
+__version__ = '0.0.7'
 
 import sys, os, platform
 from PyQt4.QtGui import QApplication, QMainWindow
@@ -45,7 +45,7 @@ class ConsoleWindow(QMainWindow):
         
         # Workspace init
         if CONF.get('workspace', 'enable'):
-            self.workspace = Workspace(self)
+            self.workspace = Workspace(self, None)
             namespace = self.workspace.namespace
         else:
             namespace = None
@@ -62,7 +62,7 @@ class ConsoleWindow(QMainWindow):
         
         # Workspace
         if CONF.get('workspace', 'enable'):
-            self.workspace.refresh(self.shell.namespace)
+            self.workspace.set_shell(self.shell)
             self.add_dockwidget(self.workspace)
             self.add_to_menubar(self.workspace)
             self.add_to_toolbar(self.workspace)

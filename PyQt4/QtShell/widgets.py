@@ -116,9 +116,7 @@ class Shell(ShellBaseWidget, BaseWidget):
             triggered=self.change_history_depth)
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
-        checked = CONF.get('shell', 'wrap')
-        wrap_action.setChecked(checked)
-        self.toggle_wrap_mode(checked)
+        wrap_action.setChecked( CONF.get('shell', 'wrap') )
         menu_actions = (run_action, None,
                         font_action, history_action, wrap_action)
         toolbar_actions = (run_action,)
@@ -347,9 +345,7 @@ class Editor(EditorBaseWidget, BaseWidget):
             triggered=self.change_font)
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
-        checked = CONF.get('editor', 'wrap')
-        wrap_action.setChecked(checked)
-        self.toggle_wrap_mode(checked)
+        wrap_action.setChecked( CONF.get('editor', 'wrap') )
         menu_actions = (open_action, save_action, exec_action,
                         None, font_action, wrap_action)
         toolbar_actions = (open_action, save_action, exec_action,)
@@ -466,9 +462,10 @@ class HistoryLog(EditorBaseWidget, BaseWidget):
 class NoValue(object):
     pass
 
-FILTERS = str2type(CONF.get('workspace', 'filters'))
+
 def filter(obj_in, rec=0):
     """Keep only objects that can be saved"""
+    filters = str2type(CONF.get('workspace', 'filters'))
     if rec==3:
         return NoValue
     obj_out = obj_in
@@ -476,35 +473,43 @@ def filter(obj_in, rec=0):
         obj_out = {}
         for key in obj_in:
             value = obj_in[key]
-            if isinstance(value, FILTERS):
+            if rec==0:
+                # Excluded references for namespace to be saved without error
+                if key in  CONF.get('workspace', 'excluded'):
+                    continue
+                if CONF.get('workspace', 'exclude_private') and key.startswith('_'):
+                    continue
+                if CONF.get('workspace', 'exclude_upper') and key[0].isupper():
+                    continue
+            if isinstance(value, filters):
                 value = filter(value, rec+1)
                 if value is not NoValue:
                     obj_out[key] = value
-    elif isinstance(obj_in, (list, tuple)):
-        obj_out = []
-        for value in obj_in:
-            if isinstance(value, FILTERS):
-                value = filter(value, rec+1)
-                if value is not NoValue:
-                    obj_out.append(value)
-        if isinstance(obj_in, tuple):
-            obj_out = tuple(obj_out)
+#    elif isinstance(obj_in, (list, tuple)):
+#        obj_out = []
+#        for value in obj_in:
+#            if isinstance(value, filters):
+#                value = filter(value, rec+1)
+#                if value is not NoValue:
+#                    obj_out.append(value)
+#        if isinstance(obj_in, tuple):
+#            obj_out = tuple(obj_out)
     return obj_out            
 
-class Workspace(EditorBaseWidget, BaseWidget):
+from dicteditor import DictEditor
+
+class Workspace(DictEditor, BaseWidget):
     """
     Workspace widget (namespace explorer)
     """
     file_path = osp.join(osp.expanduser('~'), '.QtShell_ws')
-    def __init__(self, parent):
-        super(Workspace, self).__init__(parent)
+    def __init__(self, parent, namespace):
+        self.namespace = None
+        self.shell = None
+        super(Workspace, self).__init__(parent, namespace)
         self.bind(parent)
-        self.setReadOnly(True)
-        self.set_font( get_font('history') )
-        self.set_wrap_mode(True)
-        self.namespace = self.load_namespace()
-        if self.namespace is not None:
-            self.refresh(self.namespace)
+        self.load_namespace()
+        self.refresh()
         
     def get_name(self):
         """Return widget name"""
@@ -515,20 +520,39 @@ class Workspace(EditorBaseWidget, BaseWidget):
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
                 Qt.TopDockWidgetArea)
         
-    def refresh(self, namespace=None):
+    def set_shell(self, shell):
+        """Bind to shell widget"""
+        self.shell = shell
+        self.refresh()
+
+    def refresh(self):
         """Refresh widget"""
-        if namespace is None:
-            namespace = filter( self.mainwindow.shell.namespace )
-            self.namespace = namespace
-        self.set_text( repr(namespace) )
+        if self.shell is not None:
+            self.namespace = filter( self.shell.namespace )
+        else:
+            self.namespace = filter(self.namespace)
+        self.set_data( self.namespace )
         
     def set_actions(self):
         """Setup actions"""
+        sort_action = create_action(self, self.tr("Sort columns"),
+            toggled=self.setSortingEnabled)
+        inplace_action = create_action(self, self.tr("Always edit in-place"),
+            toggled=self.set_inplace_editor)
+        
+        exclude_private_action = create_action(self,
+            self.tr("Exclude private references"),
+            toggled=self.toggle_exclude_private)
+        checked = CONF.get('workspace', 'exclude_private')
+        exclude_private_action.setChecked(checked)
+        
         save_action = create_action(self, self.tr("Auto save"),
             toggled=self.toggle_autosave)
         checked = CONF.get('workspace', 'autosave')
         save_action.setChecked(checked)
-        return ((save_action,), None)
+        return ((sort_action, inplace_action, None,
+                 exclude_private_action,
+                 None, save_action,), None)
         
     def closing(self):
         """Perform actions before parent main window is closed"""
@@ -544,9 +568,9 @@ class Workspace(EditorBaseWidget, BaseWidget):
                 os.remove(self.file_path)
                 return
             os.remove(self.file_path)
-            return filter(namespace)
+            self.namespace = filter(namespace)
         else:
-            return None
+            self.namespace = None
         
     def save_namespace(self):
         """Save current namespace"""
@@ -555,7 +579,12 @@ class Workspace(EditorBaseWidget, BaseWidget):
     def toggle_autosave(self, checked):
         """Toggle autosave mode"""
         CONF.set('workspace', 'autosave', checked)
-    
+        
+    def toggle_exclude_private(self, checked):
+        """Toggle exclude private references"""
+        CONF.set('workspace', 'exclude_private', checked)
+        self.refresh()
+
 
 def tests():
     """
