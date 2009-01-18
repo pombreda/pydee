@@ -3,12 +3,14 @@
 Widgets based on QScintilla
 """
 
-from PyQt4.QtGui import QKeySequence, QApplication, QClipboard
+from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QMenu
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
 # Local import
 from shell import ShellInterface, create_banner
+from qthelpers import create_action, add_actions
+from config import get_icon
 
 
 class QsciEditor(QsciScintilla):
@@ -21,8 +23,15 @@ class QsciEditor(QsciScintilla):
         self.setAutoIndent(True)
         self.setIndentationsUseTabs(False)
         self.setIndentationWidth(4)
+        
+        # Auto-completion
         self.setAutoCompletionThreshold(4)
         self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+        
+        # Call-tips
+#        self.setCallTipsBackgroundColor( ?? )
+        self.setCallTipsVisible(True)
+        
         self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
 
         # Margin
@@ -91,12 +100,25 @@ class QsciShell(QsciScintilla, ShellInterface):
         ShellInterface.__init__(self, namespace, commands)       
         QsciScintilla.__init__(self, parent)
 
-        # user interface setup
+        # Indentation
         self.setAutoIndent(True)
         self.setIndentationsUseTabs(False)
         self.setIndentationWidth(4)
+        
+        # Auto-completion
         self.setAutoCompletionThreshold(4)
         self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+        
+        # Call-tips
+#        self.setCallTipsBackgroundColor( ?? )
+        self.setCallTipsVisible(True)
+        
+        # Create a little context menu
+        self.menu = QMenu(self)
+        self.menu.addAction(create_action(self, self.tr("Copy"),
+            icon=get_icon('copy.png'), triggered=self.copy))
+        self.menu.addAction(create_action(self, self.tr("Paste"),
+            icon=get_icon('paste.png'), triggered=self.paste))
 
         self.setMinimumWidth(400)
         self.setMinimumHeight(150)
@@ -136,6 +158,9 @@ class QsciShell(QsciScintilla, ShellInterface):
             Qt.Key_Down : self.__qsci_line_down,
             Qt.Key_Home : self.__qsci_vchome,
             Qt.Key_End : self.__qsci_line_end,
+            Qt.Key_PageUp : self.__qsci_pageup,
+            Qt.Key_PageDown : self.__qsci_pagedown,
+            Qt.Key_Escape : self.__qsci_cancel,
             }
         self.connect(self, SIGNAL('userListActivated(int, const QString)'),
                      self.__completion_list_selected)
@@ -282,7 +307,8 @@ class QsciShell(QsciScintilla, ShellInterface):
         """
         Re-implemented to hide context menu
         """
-        pass
+        self.menu.popup(event.globalPos())
+        event.accept()
 
     def mousePressEvent(self, event):
         """
@@ -557,6 +583,26 @@ class QsciShell(QsciScintilla, ShellInterface):
                     self.histidx += 1
                     self.__use_history()
   
+    def __qsci_pageup(self):
+        """
+        Private method to handle the PGUP key
+        """
+        if self.isListActive() or self.isCallTipActive():
+            self.SendScintilla(QsciScintilla.SCI_PAGEUP)
+  
+    def __qsci_pagedown(self):
+        """
+        Private method to handle the PGDOWN key
+        """
+        if self.isListActive() or self.isCallTipActive():
+            self.SendScintilla(QsciScintilla.SCI_PAGEDOWN)
+  
+    def __qsci_cancel(self):
+        """
+        Private method to handle the Esc key
+        """
+        if self.isListActive() or self.isCallTipActive():
+            self.SendScintilla(QsciScintilla.SCI_CANCEL)
   
     #------ History Management
     def __use_history(self):
@@ -626,7 +672,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         #self.__insert_text(text, at_end=True)
 
         
-    #------ Code Completion Management
+    #------ Code Completion Management            
     def __show_dyn_completion(self):
         """
         Display a completion list based on the last token
