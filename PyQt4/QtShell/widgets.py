@@ -8,7 +8,7 @@
 import os, cPickle
 import os.path as osp
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog
-from PyQt4.QtGui import QLabel, QComboBox, QPushButton
+from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
 from PyQt4.QtCore import Qt, SIGNAL, QString
 
@@ -457,7 +457,60 @@ class HistoryLog(EditorBaseWidget, BaseWidget):
     def closing(self):
         """Perform actions before parent main window is closed"""
         pass
+
+
+class DocViewer(QWidget, BaseWidget):
+    """
+    Docstrings viewer widget
+    """
+    def __init__(self, parent):
+        super(DocViewer, self).__init__(parent)
+        self.bind(parent)
+        self.editor = EditorBaseWidget(self)
+        self.editor.setReadOnly(True)
+        self.editor.set_font( get_font('docviewer') )
+        self.editor.set_wrap_mode( CONF.get('docviewer', 'wrap') )
+        layout_edit = QHBoxLayout()
+        layout_edit.addWidget(QLabel(self.tr("Object")))
+        self.edit = QLineEdit()
+        self.connect(self.edit, SIGNAL("textChanged(QString)"), self.set_help)
+        layout_edit.addWidget(self.edit)        
+        layout = QVBoxLayout()
+        layout.addLayout(layout_edit)
+        layout.addWidget(self.editor)
+        self.setLayout(layout)
+        
+    def get_name(self):
+        """Return widget name"""
+        return self.tr('&Doc')
     
+    def get_dockwidget_properties(self):
+        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
+                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
+                Qt.TopDockWidgetArea)
+        
+    def set_help(self, text):
+        """Refresh widget"""
+        text = unicode(text)
+        try:
+            obj = eval(text, globals(), self.mainwindow.shell.interpreter.locals)
+            self.editor.set_text(obj.__doc__)
+            self.editor.setCursorPosition(0, 0)
+        except:
+            self.editor.set_text("")
+            
+    def set_text(self, obj, doc):
+        self.edit.setText(obj)
+        self.editor.set_text(doc)
+        
+    def set_actions(self):
+        """Setup actions"""
+        return (None, None)
+        
+    def closing(self):
+        """Perform actions before parent main window is closed"""
+        pass
+
 
 class NoValue(object):
     pass

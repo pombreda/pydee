@@ -12,7 +12,8 @@ from PyQt4.QtCore import SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint
 from PyQt4.QtCore import QLibraryInfo, QLocale, QTranslator, QSize, QByteArray
 
 # Local import
-from widgets import Shell, WorkingDirectory, Editor, HistoryLog, Workspace
+from widgets import Shell, WorkingDirectory, Editor
+from widgets import HistoryLog, Workspace, DocViewer
 from qthelpers import create_action, add_actions, get_std_icon
 from config import get_icon, CONF
 
@@ -82,6 +83,12 @@ class ConsoleWindow(QMainWindow):
             self.add_dockwidget(self.historylog)
             self.connect(self.shell, SIGNAL("refresh()"),
                          self.historylog.refresh)
+        
+        # Doc viewer widget
+        if CONF.get('docviewer', 'enable'):
+            self.docviewer = DocViewer( self )
+            self.add_dockwidget(self.docviewer)
+            self.shell.set_docviewer(self.docviewer)
         
         # Working directory changer widget
         self.workdir = WorkingDirectory( self )
