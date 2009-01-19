@@ -11,7 +11,6 @@ from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 from shell import ShellInterface, create_banner
 from config import CONF, get_icon
 from qthelpers import create_action, add_actions
-from config import get_icon
 
 
 class QsciEditor(QsciScintilla):
@@ -26,12 +25,8 @@ class QsciEditor(QsciScintilla):
         self.setIndentationWidth(4)
         
         # Auto-completion
-        self.setAutoCompletionThreshold(4)
+        self.setAutoCompletionThreshold(-1)
         self.setAutoCompletionSource(QsciScintilla.AcsDocument)
-        
-        # Call-tips
-#        self.setCallTipsBackgroundColor( ?? )
-        self.setCallTipsVisible(True)
         
         self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
 
@@ -116,10 +111,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         self.setAutoCompletionSource(QsciScintilla.AcsDocument)
         
         # Call-tips
-        self.setCallTipsVisible(0)
-#        self.setCallTipsBackgroundColor( ?? )
-        self.setCallTipsVisible(True)
-        self.setCallTipsStyle(QsciScintilla.CallTipsNoContext)
+        self.docviewer = None
         
         # Create a little context menu
         self.menu = QMenu(self)
@@ -339,7 +331,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         ctrl = key_event.modifiers() & Qt.ControlModifier
         shift = key_event.modifiers() & Qt.ShiftModifier
         # See it is text to insert.
-        if(self.keymap.has_key(key) and not shift and not ctrl):
+        if (self.keymap.has_key(key) and not shift and not ctrl):
             self.keymap[key]()
         elif key_event == QKeySequence.Paste:
             self.paste()
@@ -684,17 +676,23 @@ class QsciShell(QsciScintilla, ShellInterface):
         #self.__insert_text(text, at_end=True)
 
         
+    def set_docviewer(self, docviewer):
+        """Set DocViewer DockWidget reference"""
+        self.docviewer = docviewer
+        
     def __show_docstring(self):
         text = self.__get_current_line()
         try:
             locals = self.interpreter.locals
             obj = eval(text, globals(), self.interpreter.locals)
-            from PyQt4.QtGui import QToolTip
-            from PyQt4.QtCore import QPoint
-            QToolTip.showText(QPoint(0, 0), obj.__doc__)
-            #TODO: creer une classe similaire à HistoryLog pour afficher les docstring
-            # --> QVBoxLayout contenant un champ QLineEdit (qui se remplit automatiquement depuis le shell)
-            #     et un Editor en read-only
+            if (self.docviewer is not None) and \
+               (self.docviewer.dockwidget.isVisible()):
+                self.docviewer.set_text(text, obj.__doc__)
+            else:
+                comps = QStringList()
+                for comp in obj.__doc__.split('\n'):
+                    comps.append(comp)
+                self.showUserList(10, comps)
         except:
             pass
         
