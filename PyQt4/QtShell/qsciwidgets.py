@@ -9,6 +9,7 @@ from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
 # Local import
 from shell import ShellInterface, create_banner
+from config import CONF, get_icon
 from qthelpers import create_action, add_actions
 from config import get_icon
 
@@ -105,11 +106,17 @@ class QsciShell(QsciScintilla, ShellInterface):
         self.setIndentationsUseTabs(False)
         self.setIndentationWidth(4)
         
-        # Auto-completion
-        self.setAutoCompletionThreshold(4)
+        # Auto Completion setup
+        self.setAutoCompletionThreshold( \
+            CONF.get('shell', 'autocompletion/threshold') )
+        self.setAutoCompletionCaseSensitivity( \
+            CONF.get('shell', 'autocompletion/case-sensitivity') )
+        self.setAutoCompletionShowSingle( \
+            CONF.get('shell', 'autocompletion/select-single') )
         self.setAutoCompletionSource(QsciScintilla.AcsDocument)
         
         # Call-tips
+        self.setCallTipsVisible(0)
 #        self.setCallTipsBackgroundColor( ?? )
         self.setCallTipsVisible(True)
         self.setCallTipsStyle(QsciScintilla.CallTipsNoContext)
@@ -339,9 +346,11 @@ class QsciShell(QsciScintilla, ShellInterface):
         elif self.__is_cursor_on_last_line() and txt.length() :
             QsciScintilla.keyPressEvent(self, key_event)
             self.incremental_search_active = True
-            if(txt == '.'):
-                self.__show_dyn_completion()        
-        elif(ctrl or shift):
+            if txt == '.':
+                self.__show_dyn_completion()
+            elif txt == '(':
+                self.__show_docstring()
+        elif (ctrl or shift):
             QsciScintilla.keyPressEvent(self, key_event)
         else:
             key_event.ignore()
@@ -421,6 +430,8 @@ class QsciShell(QsciScintilla, ShellInterface):
             buf = self.__extract_from_text(line)
             if self.more and not buf[:index-len(self.prompt_more)].strip():
                 self.SendScintilla(QsciScintilla.SCI_TAB)
+            else:
+                self.__show_dyn_completion()
              
     def __qsci_delete_back(self):
         """
@@ -672,6 +683,20 @@ class QsciShell(QsciScintilla, ShellInterface):
         #self.__qsci_newline()
         #self.__insert_text(text, at_end=True)
 
+        
+    def __show_docstring(self):
+        text = self.__get_current_line()
+        try:
+            locals = self.interpreter.locals
+            obj = eval(text, globals(), self.interpreter.locals)
+            from PyQt4.QtGui import QToolTip
+            from PyQt4.QtCore import QPoint
+            QToolTip.showText(QPoint(0, 0), obj.__doc__)
+            #TODO: creer une classe similaire à HistoryLog pour afficher les docstring
+            # --> QVBoxLayout contenant un champ QLineEdit (qui se remplit automatiquement depuis le shell)
+            #     et un Editor en read-only
+        except:
+            pass
         
     #------ Code Completion Management            
     def __show_dyn_completion(self):

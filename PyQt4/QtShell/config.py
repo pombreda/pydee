@@ -42,6 +42,10 @@ DEFAULTS = [
               'font/size' : 10,
               'font/bold' : False,
               'wrap' : True,
+              'autocompletion' : True,
+              'autocompletion/case-sensitivity' : True,
+              'autocompletion/threshold' : -1,
+              'autocompletion/select-single' : True,
               }),
             ('editor',
              {
