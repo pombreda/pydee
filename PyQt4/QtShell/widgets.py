@@ -7,12 +7,13 @@
 
 import os, cPickle
 import os.path as osp
-from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog
+from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
-from PyQt4.QtCore import Qt, SIGNAL, QString
+from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
+import encoding
 from qthelpers import create_action, get_std_icon
 from config import get_icon, get_font, set_font
 from config import CONF, str2type
@@ -309,14 +310,24 @@ class Editor(EditorBaseWidget, BaseWidget):
     """
     file_path = osp.join(osp.expanduser('~'), '.QtShell_tempfile')
     def __init__(self, parent):
-        super(Editor, self).__init__(parent)
+        EditorBaseWidget.__init__(self, parent)
         self.bind(parent)
-        self.filename = self.file_path
+        self.filename = None
+        self.encoding = 'utf-8'
         self.load_temp_file()
         # Parameters
         self.set_font( get_font('editor') )
         self.set_wrap_mode( CONF.get('editor', 'wrap') )
         self.setup_margin( get_font('editor', 'margin') )
+        self.connect(self, SIGNAL('modificationChanged(bool)'), self.change)
+
+    def change(self, state=None):
+        """Change DockWidget title depending on modified state"""
+        if state is None:
+            state = self.isModified()
+        title = self.dockwidget.windowTitle()
+        title = title+"*" if state else title[:-1]
+        self.dockwidget.setWindowTitle(title)
         
     def get_name(self):
         """Return widget name"""
@@ -332,7 +343,7 @@ class Editor(EditorBaseWidget, BaseWidget):
         open_action = create_action(self, self.tr("Open..."), None,
             get_std_icon('DialogOpenButton', 16),
             self.tr("Open a Python script"),
-            triggered = self.open)
+            triggered = self.load)
         save_action = create_action(self, self.tr("Save as..."), None,
             get_std_icon('DialogSaveButton', 16),
             self.tr("Save current script"),
@@ -353,23 +364,29 @@ class Editor(EditorBaseWidget, BaseWidget):
         
     def closing(self):
         """Perform actions before parent main window is closed"""
-        self.save_temp_file()
+        if self.filename == self.file_path:
+            self.save(prompt=False)
+        elif self.isModified() and QMessageBox.question(self, self.tr("Quit"),
+               osp.basename(self.filename)+' '+ \
+               self.tr(" has been modified.\nDo you want to save changes?"),
+               QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
+            self.save(prompt=False)
         
     def load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
-        if osp.isfile(self.filename):
-            self.open(self.filename)
+        self.filename = self.file_path
+        if not osp.isfile(self.filename):
+            # Creating temporary file
+            self.set_text( "# -*- coding: utf-8 -*-\n\r" )
+            self.save(prompt=False)
+        self.load(self.filename)
     
-    def save_temp_file(self):
-        """Save temporary file to a text file in user home directory"""
-        self.save(prompt=False)
-        
     def exec_script(self):
         """Execute current script"""
-        self.save_temp_file()
+        self.save(prompt=False)
         self.mainwindow.shell.run_script(self.file_path, silent=True)
         
-    def open(self, filename=None):
+    def load(self, filename=None):
         if filename is None:
             self.mainwindow.shell.restore_stds()
             basedir = os.getcwd()
@@ -385,15 +402,18 @@ class Editor(EditorBaseWidget, BaseWidget):
                 filename = os.path.basename(filename)
             else:
                 return
-        self.setFocus()
-        self.set_text( file(filename, 'r').read() )
         self.filename = filename
+        text, self.encoding = encoding.read(self.filename)
+        self.set_text( text )
+        self.setModified(False)
+        self.change()
         title = self.get_name().replace('&','')
         if self.filename != self.file_path:
             title += ' - ' + osp.basename(self.filename)
         else:
             title += ' (' + self.tr("temporary file") + ')'
         self.dockwidget.setWindowTitle(title)
+        self.setFocus()
     
     def save(self, prompt=False):
         if prompt:
@@ -407,7 +427,10 @@ class Editor(EditorBaseWidget, BaseWidget):
                 self.chdir( os.path.dirname(self.filename) )
             else:
                 return
-        file(self.filename, 'w').writelines(self.get_text())
+        self.encoding = encoding.write(unicode(self.get_text()),
+                                       self.filename, self.encoding)
+        self.setModified(False)
+        self.change()
         
     def change_font(self):
         """Change editor font"""
@@ -466,15 +489,23 @@ class DocViewer(QWidget, BaseWidget):
     def __init__(self, parent):
         super(DocViewer, self).__init__(parent)
         self.bind(parent)
+
+        # Read-only editor
         self.editor = EditorBaseWidget(self)
         self.editor.setReadOnly(True)
         self.editor.set_font( get_font('docviewer') )
         self.editor.set_wrap_mode( CONF.get('docviewer', 'wrap') )
+        self.editor.setup_margin(None)
+        
+        # Object name
         layout_edit = QHBoxLayout()
         layout_edit.addWidget(QLabel(self.tr("Object")))
         self.edit = QLineEdit()
+        self.edit.setToolTip(self.tr("Enter an object name to view the associated help"))
         self.connect(self.edit, SIGNAL("textChanged(QString)"), self.set_help)
         layout_edit.addWidget(self.edit)        
+
+        # Main layout
         layout = QVBoxLayout()
         layout.addLayout(layout_edit)
         layout.addWidget(self.editor)
