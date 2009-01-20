@@ -4,10 +4,10 @@ Dictionary Editor Widget and Dialog based on PyQt4
 """
 
 from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
-from PyQt4.QtCore import SIGNAL, SLOT, QSize
+from PyQt4.QtCore import SIGNAL, SLOT
 from PyQt4.QtGui import QHBoxLayout, QTableView, QItemDelegate
 from PyQt4.QtGui import QLineEdit, QVBoxLayout, QWidget, QColor, QCheckBox
-from PyQt4.QtGui import QDialog, QDialogButtonBox, QMessageBox, QLabel
+from PyQt4.QtGui import QDialog, QDialogButtonBox
 
 # Local import
 from config import get_icon, get_font
@@ -81,8 +81,8 @@ def get_type(item):
 
 class DictModelRO(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
-    def __init__(self, data, filter=None, sortkeys=True):
-        super(DictModelRO, self).__init__()
+    def __init__(self, parent, data, filter=None, sortkeys=True):
+        QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
         self.sortkeys = sortkeys
@@ -186,22 +186,25 @@ class DictModelRO(QAbstractTableModel):
             return QVariant(get_font('dicteditor'))
         return QVariant()
     
+    def get_header_text(self):
+        return self.tr("Type"), self.tr("Size"), self.tr("Value")
+    
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role != Qt.DisplayRole:
             return QVariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
-            if i_column == 2:
-                return QVariant( self.tr("Value") )
-            elif i_column == 1:
-                return QVariant( self.tr("Size") )
-            elif i_column == 0:
-                return QVariant( self.tr("Type") )
+            return QVariant( self.get_header_text()[i_column] )
         else:
             return QVariant( self.keys[i_column] )
 
 class DictModel(DictModelRO):
     """DictEditor Table Model"""
+    
+    def get_header_text(self):
+        # Exactly the same as above but needed for translation purpose
+        return self.tr("Type"), self.tr("Size"), self.tr("Value")
+    
     def set_value(self, index, value):
         """Set value"""
         self._data[ self.keys[index.row()] ] = value
@@ -247,7 +250,7 @@ class DictModel(DictModelRO):
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""
     def __init__(self, parent=None):
-        super(DictDelegate, self).__init__(parent)
+        QItemDelegate.__init__(self, parent)
         self.inplace = False
 
     def createEditor(self, parent, option, index):
@@ -291,15 +294,15 @@ class DictDelegate(QItemDelegate):
 
 class DictEditor(QTableView):
     def __init__(self, parent, data, readonly=False, sort_by=None):
-        super(DictEditor, self).__init__(parent)
+        QTableView.__init__(self, parent)
         self.readonly = readonly
         self.sort_by = sort_by
         self.model = None
         self.delegate = None
         if self.readonly:
-            self.model = DictModelRO(data)
+            self.model = DictModelRO(self, data)
         else:
-            self.model = DictModel(data)
+            self.model = DictModel(self, data)
         self.setModel(self.model)
         self.delegate = DictDelegate(self)
         self.setItemDelegate(self.delegate)
@@ -320,7 +323,7 @@ class DictEditor(QTableView):
 class DictEditorWidget(QWidget):
     """Dictionary Editor Dialog"""
     def __init__(self, parent, data, readonly=False, sort_by=None):
-        super(DictEditorWidget, self).__init__(parent)
+        QWidget.__init__(self, parent)
 
         # Options
         layout_opts = QHBoxLayout()
@@ -349,7 +352,7 @@ class DictEditorWidget(QWidget):
 class DictEditorDialog(QDialog):
     """Dictionary/List Editor Dialog"""
     def __init__(self, title, data, format="%.3f", xy=False):
-        super(DictEditorDialog, self).__init__()
+        QDialog.__init__(self)
         import copy
         self.copy = copy.deepcopy(data)
         self.widget = DictEditorWidget(self, self.copy, sort_by='type')

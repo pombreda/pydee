@@ -114,13 +114,16 @@ class QtShell(QTextEdit, ShellInterface):
         #self.setLineWrapMode(QTextEdit.NoWrap)
 
         # interpreter banner
-        moreinfo = self.tr('Type "copyright", "credits" or "license" for more information.')
+        moreinfo, _ = self.get_banner()
         self.write( create_banner(moreinfo, message) )
         self.write(self.tr('Please install QScintilla to enable autocompletion')+':'+
                    '\n'+'http://www.riverbankcomputing.co.uk/qscintilla\n\n')
         self.write(self.prompt)
         self.emit(SIGNAL("status(QString)"), QString())
         
+    
+    def get_banner(self):
+        return (self.tr('Type "copyright", "credits" or "license" for more information.'), )      
 
     def set_wrap_mode(self, enable):
         """Set wrap mode"""

@@ -29,7 +29,8 @@ License version 3 as published by the Free Software Foundation.
 """
 
 name = 'PyQtShell'
-version = '0.0.8'
+version = '0.0.9'
+download_url = 'http://%s.googlecode.com/files/%s-%s-py2.5.egg' % (name.lower(), name, version)
 py_modules = ['xyinstall']
 packages = ['PyQt4.QtShell']
 package_data={'PyQt4.QtShell': ['images/*.png', '*.qm']}
@@ -38,7 +39,7 @@ import os
 if os.name == 'posix':
     scripts = ['qons']
 description = 'Interactive Python shell and related widgets based on PyQt4'
-long_description = 'PyQtShell is intended to be an extension to PyQt4 (module PyQt4.QtShell) providing a console application (see screenshots below) based on independent widgets interacting with each other.'
+long_description = 'PyQtShell is intended to be an extension to PyQt4 (module PyQt4.QtShell) providing a console application (see screenshots: %s) based on independent widgets interacting with each other: workspace (globals explorer with dict/list editor and numpy arrays editor), docstring viewer (calltip), history log, multiline code editor (support drag and drop, autocompletion, syntax coloring, ...) and working directory browser.' % download_url
 keywords = 'PyQt4 shell console widgets'
 classifiers = ['Development Status :: 3 - Alpha',
                'Topic :: Scientific/Engineering',
@@ -55,7 +56,7 @@ setup(
       version = version,
       description = description,
       long_description = long_description,
-      download_url = 'http://%s.googlecode.com/files/%s-%s-py2.5.egg' % (name.lower(), name, version),
+      download_url = download_url,
       author = "Pierre Raybaut",
       author_email = 'contact@pythonxy.com',
       url = 'http://code.google.com/p/%s/' % name.lower(),

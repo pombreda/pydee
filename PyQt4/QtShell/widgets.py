@@ -90,6 +90,10 @@ class Shell(ShellBaseWidget, BaseWidget):
         # Parameters
         self.set_font( get_font('shell') )
         self.set_wrap_mode( CONF.get('shell', 'wrap') )
+
+    def get_banner(self):
+        return (self.tr('Type "copyright", "credits" or "license" for more information.'),
+                self.tr('Type "object?" for details on "object"'))
         
     def get_name(self):
         """Return widget name"""
@@ -588,9 +592,9 @@ class Workspace(DictEditor, BaseWidget):
     """
     file_path = osp.join(osp.expanduser('~'), '.QtShell_ws')
     def __init__(self, parent, namespace):
+        DictEditor.__init__(self, parent, None)
         self.namespace = None
         self.shell = None
-        super(Workspace, self).__init__(parent, namespace)
         self.bind(parent)
         self.load_namespace()
         self.refresh()
