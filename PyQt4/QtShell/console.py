@@ -119,24 +119,18 @@ class ConsoleWindow(QMainWindow):
         
     def closeEvent(self, event):
         """Exit confirmation"""
-        if QMessageBox.question(self, self.tr("Quit"),
-               self.tr("Are you sure you want to quit?"),
-               QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
-            # Saving window settings
-            size = self.size()
-            CONF.set('window', 'size', (size.width(), size.height()))
-            pos = self.pos()
-            CONF.set('window', 'position', (pos.x(), pos.y()))
-            qba = self.saveState()
-            CONF.set('window', 'state', str(qba.toHex()))
-            CONF.set('window', 'statusbar',
-                      not self.statusBar().isHidden())
-            # Warning children that their parent is closing:
-            self.emit( SIGNAL('closing()') )
-            # Closing...
-            event.accept()
-        else:
-            event.ignore()
+        size = self.size()
+        CONF.set('window', 'size', (size.width(), size.height()))
+        pos = self.pos()
+        CONF.set('window', 'position', (pos.x(), pos.y()))
+        qba = self.saveState()
+        CONF.set('window', 'state', str(qba.toHex()))
+        CONF.set('window', 'statusbar',
+                  not self.statusBar().isHidden())
+        # Warning children that their parent is closing:
+        self.emit( SIGNAL('closing()') )
+        # Closing...
+        event.accept()
         
     def toggle_statusbar(self, checked):
         """Toggle status bar"""

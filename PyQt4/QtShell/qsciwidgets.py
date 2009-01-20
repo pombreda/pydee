@@ -3,11 +3,12 @@
 Widgets based on QScintilla
 """
 
-from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QMenu
+from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QMenu, QCursor
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
 # Local import
+import encoding
 from shell import ShellInterface, create_banner
 from config import CONF, get_icon
 from qthelpers import create_action, add_actions
@@ -18,7 +19,7 @@ class QsciEditor(QsciScintilla):
     QScintilla Editor Widget
     """
     def __init__(self, parent=None):
-        super(QsciEditor, self).__init__(parent)
+        QsciScintilla.__init__(self, parent)
         
         self.setUtf8(True)
         
@@ -32,9 +33,6 @@ class QsciEditor(QsciScintilla):
         
         self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
 
-        # Margin
-        self.setMarginLineNumbers(1, True)
-        
         # API
         self.lex = QsciLexerPython(self)
         self.setLexer(self.lex)
@@ -46,14 +44,19 @@ class QsciEditor(QsciScintilla):
 
     def setup_margin(self, font, width=None):
         """Set margin font and width"""
-        self.setMarginsFont(font)
-        if width is None:
-            linenb = self.lines()
-            if linenb<10:
-                linenb=100
-            from math import ceil, log
-            width = ceil(log(linenb,10))+1
-        self.setMarginWidth(1, QString('0'*int(width+1)))
+        if font is None:
+            self.setMarginLineNumbers(1, False)
+            self.setMarginWidth(1, 0)
+        else:
+            self.setMarginLineNumbers(1, True)
+            self.setMarginsFont(font)
+            if width is None:
+                linenb = self.lines()
+                if linenb<10:
+                    linenb=100
+                from math import ceil, log
+                width = ceil(log(linenb,10))+1
+            self.setMarginWidth(1, QString('0'*int(width+1)))
 
     def set_font(self, font):
         """Set shell font"""
@@ -139,7 +142,8 @@ class QsciShell(QsciScintilla, ShellInterface):
         
         #self.completionText = ""
         # Excecution Status
-        self.more = False
+        self.more = 0
+        
         # Multi line execution Buffer
         self.execlines = []
 
@@ -223,7 +227,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         """Simulate stdin, stdout, and stderr"""
         line, col = self.__get_end_pos()
         self.setCursorPosition(line, col)
-        self.insert(text)
+        self.insert(encoding.to_unicode(text))
         line, col = self.__get_end_pos()
         self.setCursorPosition(line, col)
         self.prline, self.prcol = self.getCursorPosition()
@@ -268,20 +272,33 @@ class QsciShell(QsciScintilla, ShellInterface):
         
         # Before running command
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
         # Execute command
         self.execlines.append(unicode(cmd))
         source = '\n'.join(self.execlines)
-        self.more = self.interpreter.runsource(source)
+        more = self.interpreter.runsource(source)
+        if more:
+            cmd_ws = cmd.strip()
+            if cmd_ws:
+                for text in ['for', 'if', 'else', 'elif', 'while',
+                             'def', 'class', 'try', 'except']:
+                    if cmd_ws.startswith(text):
+                        self.more += 1
+#            else:
+#                self.more -= 1
+        else:
+            self.more = 0
 
         if self.more:
-            self.write(self.prompt_more)
+            self.write(self.prompt_more + ("    "*self.more))
         else:
             self.write(self.prompt)
             self.execlines = []
             
         self.emit(SIGNAL("status(QString)"), QString())
-        
+        QApplication.restoreOverrideCursor()
+            
         # The following signal must be connected to any other related widget:
         self.emit(SIGNAL("refresh()"))
         
@@ -387,7 +404,7 @@ class QsciShell(QsciScintilla, ShellInterface):
             event.ignore()
 
 
-    #------ Paste, middle-button, ...
+    #------ Paste, middle-button, ...    
     def paste(self):
         """Reimplemented slot to handle the paste action"""
         lines = unicode(QApplication.clipboard().text())

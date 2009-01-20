@@ -2,9 +2,10 @@
 
 import sys, time
 import os.path as osp
-from code import InteractiveInterpreter
+import code
 
 # Local import
+import encoding
 from config import CONF
 
 def create_banner(moreinfo, message=''):
@@ -25,10 +26,14 @@ class MultipleRedirection:
         for fileobj in self.files:
             fileobj.write(str)
             
+SHELL = None
+def _raw_input(prompt="", echo=1):
+    return SHELL.raw_input(prompt, echo)
 
 class ShellInterface(object):
     """Generic shell interface (to be continued...)"""
     log_path = osp.join(osp.expanduser('~'), '.history.py')
+    inithistory = [ '"# -*- coding: utf-8 -*-\n\r"' ]
     separator = '# ---(%s)---' % time.ctime()
     try:
         prompt = sys.p1
@@ -44,8 +49,11 @@ class ShellInterface(object):
         namespace: locals send to InteractiveInterpreter object
         commands: list of commands executed at startup
         """
-        self.interpreter = InteractiveInterpreter(namespace)
+        self.interpreter = code.InteractiveInterpreter(namespace)
+        global SHELL
+        SHELL = self
         self.namespace = self.interpreter.locals
+        self.namespace['raw_input'] = _raw_input
         
         # capture all interactive input/output 
         self.initial_stdout = sys.stdout
@@ -63,6 +71,9 @@ class ShellInterface(object):
         for cmd in commands:
             self.interpreter.runsource(cmd)
         
+    def raw_input(self, prompt, echo):
+        raise NotImplementedError("raw_input is not yet supported in PyQtShell")
+        
     def redirect_stds(self):
         """Redirects stds"""
         sys.stdout   = self
@@ -78,11 +89,10 @@ class ShellInterface(object):
     def load_history(self):
         """Load history from a .py file in user home directory"""
         if osp.isfile(self.log_path):
-            fileobj = open(self.log_path, 'r')
-            rawhistory = [line.replace('\n','') for line in fileobj.readlines()]
-            fileobj.close()
+            rawhistory, _ = encoding.readlines(self.log_path)
+            rawhistory = [line.replace('\n','') for line in rawhistory]
         else:
-            rawhistory = []
+            rawhistory = self.inithistory
         history = [line for line in rawhistory if not line.startswith('#')]
         rawhistory.append(self.separator)
         return rawhistory, history
@@ -91,9 +101,7 @@ class ShellInterface(object):
         """Save history to a .py file in user home directory"""
         if self.rawhistory[-1] == self.separator:
             self.rawhistory.remove(self.separator)
-        fileobj = open(self.log_path, 'w')
-        fileobj.writelines([line+"\n" for line in self.rawhistory])
-        fileobj.close()
+        encoding.writelines(self.rawhistory, self.log_path)
         
     def add_to_history(self, command):
         """Add command to history"""
