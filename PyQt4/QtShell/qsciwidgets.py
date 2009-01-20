@@ -148,9 +148,9 @@ class QsciShell(QsciScintilla, ShellInterface):
         self.execlines = []
 
         # interpreter banner
-        moreinfo = self.tr('Type "copyright", "credits" or "license" for more information.')
+        moreinfo, help = self.get_banner()
         self.write( create_banner(moreinfo, message) )
-        self.write(self.tr('Type "object?" for details on "object"')+'\n\n')
+        self.write(help + '\n\n')
         self.write(self.prompt)
 
         #self.standardCommands().clearKeys()
@@ -175,6 +175,9 @@ class QsciShell(QsciScintilla, ShellInterface):
         self.setFocus()
         self.emit(SIGNAL("status(QString)"), QString())
 
+    def get_banner(self):
+        return (self.tr('Type "copyright", "credits" or "license" for more information.'),
+                self.tr('Type "object?" for details on "object"'))
 
     def set_font(self, font):
         """Set shell font"""
