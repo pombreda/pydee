@@ -20,6 +20,8 @@ class QsciEditor(QsciScintilla):
     def __init__(self, parent=None):
         super(QsciEditor, self).__init__(parent)
         
+        self.setUtf8(True)
+        
         self.setAutoIndent(True)
         self.setIndentationsUseTabs(False)
         self.setIndentationWidth(4)
@@ -95,6 +97,8 @@ class QsciShell(QsciScintilla, ShellInterface):
         """
         ShellInterface.__init__(self, namespace, commands)       
         QsciScintilla.__init__(self, parent)
+        
+        self.setUtf8(True)
 
         # Indentation
         self.setAutoIndent(True)
@@ -266,7 +270,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
 
         # Execute command
-        self.execlines.append(str(cmd))
+        self.execlines.append(unicode(cmd))
         source = '\n'.join(self.execlines)
         self.more = self.interpreter.runsource(source)
 
