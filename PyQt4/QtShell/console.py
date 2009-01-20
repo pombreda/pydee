@@ -12,6 +12,7 @@ from PyQt4.QtCore import SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint
 from PyQt4.QtCore import QLibraryInfo, QLocale, QTranslator, QSize, QByteArray
 
 # Local import
+import encoding
 from widgets import Shell, WorkingDirectory, Editor
 from widgets import HistoryLog, Workspace, DocViewer
 from qthelpers import create_action, add_actions, get_std_icon
@@ -235,11 +236,20 @@ def get_options():
         commands.extend(['from scipy import *',
                              'import scipy as sp'])
         messagelist.append('sp')
+        
+    # Adding PYTHONSTARTUP file to initial commands
+    filename = os.environ.get('PYTHONSTARTUP')
+    if filename and os.path.isfile(filename):
+        lines, _ = encoding.readlines(filename)
+        commands.extend( lines )
+        messagelist.append('PYTHONSTARTUP (%s)' % os.path.basename(filename))
+        
     if messagelist:
         message = 'Option%s: ' % ('s' if len(messagelist)>1 else '')
         message += ", ".join(messagelist)
     else:
         message = ""
+
     return commands, message
 
 
