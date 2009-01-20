@@ -213,16 +213,17 @@ def get_options():
                       help="Import scipy as sp (and * from scipy)")
     options, _args = parser.parse_args()
     messagelist = []
+    commands = []
     if options.modules:
         for mod in options.modules.split(','):
             mod = mod.strip()
             try:
                 __import__(mod)
                 messagelist.append(mod)
+                commands.append('import '+mod)
             except ImportError:
                 print "Warning: module '%s' was not found" % mod
                 continue
-    commands = []
     if options.pylab:
         commands.extend(['from pylab import *',
                              'from matplotlib import rcParams',
