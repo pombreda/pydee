@@ -79,7 +79,7 @@ class QtShell(QTextEdit, ShellInterface):
         PyCute (pycute.py): http://gerard.vermeulen.free.fr (GPL)
     """    
     def __init__(self, namespace=None, commands=None,
-                 message="", parent=None):
+                 message="", parent=None, debug=False):
         """
         namespace : locals send to InteractiveInterpreter object
         commands: list of commands executed at startup
@@ -88,7 +88,7 @@ class QtShell(QTextEdit, ShellInterface):
         If no parent widget has been specified, it is possible to
         exit the interpreter by Ctrl-D
         """
-        ShellInterface.__init__(self, namespace, commands)       
+        ShellInterface.__init__(self, namespace, commands, debug)       
         QTextEdit.__init__(self, parent)
                         
         # session log

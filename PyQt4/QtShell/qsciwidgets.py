@@ -89,7 +89,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         Eric4 shell (shell.py): http://www.die-offenbachs.de/eric/index.html (GPL)
     """
     def __init__(self, namespace=None, commands=None,
-                 message="", parent=None):
+                 message="", parent=None, debug=False):
         """
         namespace : locals send to InteractiveInterpreter object
         commands: list of commands executed at startup
@@ -98,7 +98,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         If no parent widget has been specified, it is possible to
         exit the interpreter by Ctrl-D
         """
-        ShellInterface.__init__(self, namespace, commands)       
+        ShellInterface.__init__(self, namespace, commands, debug)       
         QsciScintilla.__init__(self, parent)
         
         self.setUtf8(True)

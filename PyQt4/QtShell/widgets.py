@@ -84,8 +84,9 @@ class Shell(ShellBaseWidget, BaseWidget):
     """
     Shell widget
     """
-    def __init__(self, namespace=None, commands=None, message="", parent=None):
-        super(Shell, self).__init__(namespace, commands, message, parent)
+    def __init__(self, namespace=None, commands=None, message="",
+                 parent=None, debug=False):
+        super(Shell, self).__init__(namespace, commands, message, parent, debug)
         self.bind(parent)
         # Parameters
         self.set_font( get_font('shell') )

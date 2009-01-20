@@ -44,11 +44,12 @@ class ShellInterface(object):
     except AttributeError:
         prompt_more = "... "
         
-    def __init__(self, namespace=None, commands=None):
+    def __init__(self, namespace=None, commands=None, debug=False):
         """
         namespace: locals send to InteractiveInterpreter object
         commands: list of commands executed at startup
         """
+        self.debug = debug
         self.interpreter = code.InteractiveInterpreter(namespace)
         global SHELL
         SHELL = self
@@ -76,15 +77,17 @@ class ShellInterface(object):
         
     def redirect_stds(self):
         """Redirects stds"""
-        sys.stdout   = self
-        sys.stderr   = MultipleRedirection((sys.stderr, self))
-        sys.stdin    = self
+        if not self.debug:
+            sys.stdout   = self
+            sys.stderr   = MultipleRedirection((sys.stderr, self))
+            sys.stdin    = self
         
     def restore_stds(self):
         """Restore stds"""
-        sys.stdout = self.initial_stdout
-        sys.stderr = self.initial_stderr
-        sys.stdin = self.initial_stdin
+        if not self.debug:
+            sys.stdout = self.initial_stdout
+            sys.stderr = self.initial_stderr
+            sys.stdin = self.initial_stdin
         
     def load_history(self):
         """Load history from a .py file in user home directory"""
