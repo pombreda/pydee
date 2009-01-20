@@ -21,7 +21,7 @@ from config import get_icon, CONF
 
 class ConsoleWindow(QMainWindow):
     """Console QDialog"""
-    def __init__(self, commands=None, message=""):
+    def __init__(self, commands=None, message="", debug=False):
         super(ConsoleWindow, self).__init__()
 
         self.filename = None
@@ -53,7 +53,7 @@ class ConsoleWindow(QMainWindow):
             namespace = None
         
         # Shell widget: window's central widget
-        self.shell = Shell(namespace, commands, message, self)
+        self.shell = Shell(namespace, commands, message, self, debug)
         self.setCentralWidget(self.shell)
 #        self.add_dockwidget(self.shell)
         self.add_to_menubar(self.shell)
@@ -206,6 +206,9 @@ def get_options():
     parser.add_option('-s', '--sp', dest="sp", action='store_true',
                       default=False,
                       help="Import scipy as sp (and * from scipy)")
+    parser.add_option('-d', '--debug', dest="debug", action='store_true',
+                      default=False,
+                      help="Debug mode (stds are not redirected)")
     options, _args = parser.parse_args()
     messagelist = []
     commands = []
@@ -250,7 +253,7 @@ def get_options():
     else:
         message = ""
 
-    return commands, message
+    return commands, message, options.debug
 
 
 def main():
@@ -267,8 +270,8 @@ def main():
     app_path = os.path.dirname(__file__)
     if app_translator.load("console_" + locale, app_path):
         app.installTranslator(app_translator)
-    commands, message = get_options()
-    window = ConsoleWindow(commands, message)
+    commands, message, debug = get_options()
+    window = ConsoleWindow(commands, message, debug)
     window.show()
     sys.exit(app.exec_())
 
