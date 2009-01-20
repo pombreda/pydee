@@ -29,7 +29,7 @@ License version 3 as published by the Free Software Foundation.
 """
 
 name = 'PyQtShell'
-version = '0.0.10'
+version = '0.0.11'
 google_url = 'http://%s.googlecode.com' % name.lower()
 download_url = '%s/files/%s-%s-py2.5.egg' % (google_url, name, version)
 py_modules = ['xyinstall']

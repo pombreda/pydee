@@ -116,6 +116,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         self.setAutoCompletionShowSingle( \
             CONF.get('shell', 'autocompletion/select-single') )
         self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+        self.completion_chars = 0
         
         # Call-tips
         self.docviewer = None
@@ -140,7 +141,6 @@ class QsciShell(QsciScintilla, ShellInterface):
         # Initialize history
         self.histidx = -1
         
-        #self.completionText = ""
         # Excecution Status
         self.more = 0
         
@@ -366,6 +366,8 @@ class QsciShell(QsciScintilla, ShellInterface):
                 self.__show_dyn_completion()
             elif txt == '(':
                 self.__show_docstring()
+            elif self.isListActive():
+                self.completion_chars += 1
         elif (ctrl or shift):
             QsciScintilla.keyPressEvent(self, key_event)
         else:
@@ -465,6 +467,8 @@ class QsciShell(QsciScintilla, ShellInterface):
                     self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
             elif col > 0:
                 self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
+            if self.isListActive():
+                self.completion_chars -= 1
 
     def __qsci_delete(self):
         """
@@ -747,29 +751,25 @@ class QsciShell(QsciScintilla, ShellInterface):
             for comp in completions:
                 comps.append(comp)
             self.showUserList(1, comps)
-            #self.completionText = text
+            self.completion_chars = 1
         else:
             txt = completions[0]
             if text != "":
                 txt = txt.replace(text, "")
             self.__insert_text(txt)
-            #self.completionText = ""
+            self.completion_chars = 0
 
-    def __completion_list_selected(self, userlist_id, txt):
+    def __completion_list_selected(self, userlist_id, seltxt):
         """
         Private slot to handle the selection from the completion list
         userlist_id: ID of the user list (should be 1) (integer)
-        txt: selected text (QString)
+        seltxt: selected text (QString)
         """
-        # Remove already written characters
-        line, col = self.__get_end_pos()
-        self.setCursorPosition(line, col)
-        buf = unicode(self.text(line))
-        ind = len(buf) - buf.rfind(".") - 1
-
         if userlist_id == 1:
-            txt = unicode(txt[ind:])
-            #if self.completionText != "":
-            #   txt = txt.replace(self.completionText, "")
-            self.__insert_text(txt)
-            #self.completionText = ""
+            cline, cindex = self.getCursorPosition()
+            self.setSelection(cline, cindex-self.completion_chars+1,
+                              cline, cindex)
+            self.removeSelectedText()
+            seltxt = unicode(seltxt)
+            self.__insert_text(seltxt)
+            self.completion_chars = 0
