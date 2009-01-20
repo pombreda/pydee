@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-QtShell
-=======
+PyQtShell
+=========
 
 Copyright © 2009 Pierre Raybaut
 This software is licensed under the terms of the GNU General Public
