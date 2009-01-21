@@ -275,7 +275,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         
         # Before running command
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+#        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
         # Execute command
         self.execlines.append(unicode(cmd))
@@ -300,7 +300,7 @@ class QsciShell(QsciScintilla, ShellInterface):
             self.execlines = []
             
         self.emit(SIGNAL("status(QString)"), QString())
-        QApplication.restoreOverrideCursor()
+#        QApplication.restoreOverrideCursor()
             
         # The following signal must be connected to any other related widget:
         self.emit(SIGNAL("refresh()"))
