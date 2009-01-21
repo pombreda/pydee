@@ -364,7 +364,7 @@ class QsciShell(QsciScintilla, ShellInterface):
             self.incremental_search_active = True
             if txt == '.':
                 self.__show_dyn_completion()
-            elif txt == '(':
+            elif txt == '(' or txt =='?':
                 self.__show_docstring()
             elif self.isListActive():
                 self.completion_chars += 1
