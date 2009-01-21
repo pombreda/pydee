@@ -7,10 +7,11 @@
 
 import os, cPickle
 import os.path as osp
+import pydoc
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
-from PyQt4.QtGui import QToolTip
+from PyQt4.QtGui import QToolTip, QCheckBox
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
@@ -526,7 +527,16 @@ class DocViewer(QWidget, BaseWidget):
         self.edit = QLineEdit()
         self.edit.setToolTip(self.tr("Enter an object name to view the associated help"))
         self.connect(self.edit, SIGNAL("textChanged(QString)"), self.set_help)
-        layout_edit.addWidget(self.edit)        
+        layout_edit.addWidget(self.edit)
+        
+        #TODO: find out how IPython generates 'object??'
+        self.docstring = True # to be removed when TODO above is done
+#        self.help_or_doc = QCheckBox(self.tr("Show extended help"))
+#        self.connect(self.help_or_doc, SIGNAL("stateChanged(int)"),
+#                     self.toggle_help)
+#        layout_edit.addWidget(self.help_or_doc)
+#        self.docstring = None
+#        self.toggle_help(Qt.Unchecked)
 
         # Main layout
         layout = QVBoxLayout()
@@ -543,12 +553,20 @@ class DocViewer(QWidget, BaseWidget):
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
                 Qt.TopDockWidgetArea)
         
+#    def toggle_help(self, state):
+#        """Toggle between docstring and help()"""
+#        self.docstring = (state == Qt.Unchecked)
+#        self.set_help(self.edit.text())
+        
     def set_help(self, text):
         """Refresh widget"""
         text = unicode(text)
         try:
             obj = eval(text, globals(), self.mainwindow.shell.interpreter.locals)
-            self.editor.set_text(obj.__doc__)
+            if self.docstring:
+                self.editor.set_text(pydoc.getdoc(obj))
+            else:
+                pass
             self.editor.setCursorPosition(0, 0)
         except:
             self.editor.set_text("")
