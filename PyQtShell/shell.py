@@ -56,21 +56,22 @@ class ShellInterface(object):
         self.namespace = self.interpreter.locals
         self.namespace['raw_input'] = _raw_input
         
+        # flag: readline() is being used for e.g. raw_input() and input()
+        self.reading = 0
+
+        # Running initial commands before redirecting I/O
+        for cmd in commands:
+            self.interpreter.runsource(cmd)
+        
         # capture all interactive input/output 
         self.initial_stdout = sys.stdout
         self.initial_stderr = sys.stderr
         self.initial_stdin = sys.stdin
         self.redirect_stds()
         
-        # flag: readline() is being used for e.g. raw_input() and input()
-        self.reading = 0
-        
         # history
         self.max_history_entries = CONF.get('history', 'max_entries')
         self.rawhistory, self.history = self.load_history()
-        
-        for cmd in commands:
-            self.interpreter.runsource(cmd)
         
     def raw_input(self, prompt, echo):
         raise NotImplementedError("raw_input is not yet supported in PyQtShell")
