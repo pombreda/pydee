@@ -7,9 +7,10 @@
 
 import os, cPickle
 import os.path as osp
-from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox
+from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
+from PyQt4.QtGui import QToolTip
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
@@ -179,29 +180,46 @@ class PathComboBox(QComboBox):
     """
     def __init__(self, parent):
         super(PathComboBox, self).__init__(parent)
+        self.font = QFont()
         self.setEditable(True)
         self.connect(self, SIGNAL("editTextChanged(QString)"), self.validate)
+        self.set_default_style()
+        
+    def show_tip(self, tip=""):
+        """Show tip"""
+        QToolTip.showText(self.mapToGlobal(self.pos()), tip, self)
+        
+    def set_default_style(self):
+        """Set widget style to default"""
+        self.font.setBold(False)
+        self.setFont(self.font)
+        self.setStyleSheet("")
+        self.show_tip()
         
     def validate(self, qstr):
         """Validate entered path"""
         if self.hasFocus():
+            self.font.setBold(True)
+            self.setFont(self.font)
             if osp.isdir( unicode(qstr) ):
-                self.setStyleSheet( "color:rgb(50, 155, 50);" )
+                self.setStyleSheet("color:rgb(50, 155, 50);")
+                self.show_tip(self.tr("Press enter to validate this path"))
             else:
-                self.setStyleSheet( "color:rgb(200, 50, 50);" )
+                self.setStyleSheet("color:rgb(200, 50, 50);")
+                self.show_tip(self.tr('This path is incorrect.\nEnter a correct directory path.\nThen press enter to validate'))
         else:
-            self.setStyleSheet( "" )
+            self.set_default_style()
 
     def keyPressEvent(self, event):
         """Handle key press events"""
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
             dir = unicode(self.currentText())
             if osp.isdir( dir ):
-#                self.setEditable(False)
                 self.parent().chdir(dir)
-                self.setStyleSheet( "" )
-                if self.parent().mainwindow is not None:
-                    self.parent().mainwindow.shell.setFocus()
+                self.set_default_style()
+                if hasattr(self.parent(), 'mainwindow'):
+                    if self.parent().mainwindow is not None:
+                        self.parent().mainwindow.shell.setFocus()
         else:
             QComboBox.keyPressEvent(self, event)
     
