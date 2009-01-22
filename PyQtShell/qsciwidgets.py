@@ -372,9 +372,11 @@ class QsciShell(QsciScintilla, ShellInterface):
             self.incremental_search_active = True
             if self.__is_cursor_on_last_index():
                 #TODO: Implement completion/calltips not only at the EOL
-                if txt == '.':
-                    self.__show_dyn_completion()
-                elif txt == '(' or txt =='?':
+#                if txt == '.':
+#                    self.__show_dyn_completion()
+#                elif txt == '"' or txt == "'":
+#                    self.__show_file_completion()
+                if txt == '(' or txt == '?':
                     self.__show_docstring()
                 elif self.isListActive():
                     self.completion_chars += 1
@@ -458,8 +460,10 @@ class QsciShell(QsciScintilla, ShellInterface):
             buf = self.__extract_from_text(line)
             if self.more and not buf[:index-len(self.prompt_more)].strip():
                 self.SendScintilla(QsciScintilla.SCI_TAB)
-            else:
+            elif buf[-1] == '.':
                 self.__show_dyn_completion()
+            elif buf[-1] == '"' or buf[-1] == "'":
+                self.__show_file_completion()
              
     def __qsci_delete_back(self):
         """
@@ -746,6 +750,15 @@ class QsciShell(QsciScintilla, ShellInterface):
         except:
             pass
 
+    def __show_file_completion(self):
+        """
+        Display a completion list for files and directories
+        """
+        text = self.__get_current_line()
+        import os
+        complist = os.listdir(os.getcwd())
+        self.__show_completions(complist, text) 
+
     def __show_completions(self, completions, text):
         """
         Private method to display the possible completions.
@@ -753,11 +766,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         if len(completions) == 0:
             return
         if len(completions) > 1:
-            completions.sort()
-            comps = QStringList()
-            for comp in completions:
-                comps.append(comp)
-            self.showUserList(1, comps)
+            self.showUserList(1, QStringList(sorted(completions)))
             self.completion_chars = 1
         else:
             txt = completions[0]
