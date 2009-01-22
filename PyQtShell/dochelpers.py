@@ -19,10 +19,12 @@ def getsource(obj):
 
 def getargtxt(obj, one_arg_per_line=True):
     """Get the names and default values of a function's arguments"""
-    if inspect.isfunction(obj):
+    if inspect.isfunction(obj) or inspect.isbuiltin(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
         func_obj = obj.im_func
+    elif inspect.isclass(obj):
+        func_obj = getattr(obj, '__init__')
     else:
         return None
     args, _, _ = inspect.getargs(func_obj.func_code)
@@ -36,10 +38,10 @@ def getargtxt(obj, one_arg_per_line=True):
             textlist[-1] += ', '
             if len(textlist[-1])>=32 or one_arg_per_line:
                 textlist.append('')
-                
     return textlist
     
-#import numpy
-#t = getargtxt(numpy.take)
+#import subprocess
+#t = getargtxt(subprocess.Popen)
+#print subprocess.Popen
 #print t
 #print len(t[0])

@@ -402,7 +402,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         """Drag and Drop - Drop event"""
         if(event.mimeData().hasFormat("text/plain")):
             text = event.mimeData().text()
-            self.__insert_text(text)
+            self.__insert_text(text, at_end=True)
             self.setFocus()
             event.setDropAction(Qt.MoveAction)
             event.accept()
@@ -702,21 +702,25 @@ class QsciShell(QsciScintilla, ShellInterface):
         self.docviewer = docviewer
         
     def __show_docstring(self):
+        """Show docstring or arguments"""
         text = self.__get_current_line()
         try:
             locals = self.interpreter.locals
             obj = eval(text, globals(), self.interpreter.locals)
+        except:
+            # No valid object was extracted from text
+            pass
+        else:
+            # Object obj is valid
             if (self.docviewer is not None) and \
                (self.docviewer.dockwidget.isVisible()):
-                self.docviewer.set_text(text, obj.__doc__)
-                self.showUserList(10, getargtxt(obj))
+                # DocViewer widget exists and is visible
+                self.docviewer.refresh(text)
+                arglist = getargtxt(obj)
+                if arglist:
+                    self.showUserList(10, QStringList(arglist))
             else:
-                comps = QStringList()
-                for comp in obj.__doc__.split('\n'):
-                    comps.append(comp)
-                self.showUserList(10, comps)
-        except:
-            pass
+                self.showUserList(10, QStringList( obj.__doc__.split('\n') ))
         
     #------ Code Completion Management            
     def __show_dyn_completion(self):
