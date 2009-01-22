@@ -354,8 +354,11 @@ class Editor(EditorBaseWidget, BaseWidget):
         """Change DockWidget title depending on modified state"""
         if state is None:
             state = self.isModified()
-        title = self.dockwidget.windowTitle()
-        title = title+"*" if state else title[:-1]
+        title = unicode( self.dockwidget.windowTitle() )
+        if state:
+            title += "*"
+        elif title.endswith('*'):
+            title = title[:-1]
         self.dockwidget.setWindowTitle(title)
         
     def get_name(self):
