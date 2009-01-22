@@ -123,6 +123,7 @@ class QtShell(QTextEdit, ShellInterface):
         
     
     def get_banner(self):
+        """Return interpreter banner and a one-line message"""
         return (self.tr('Type "copyright", "credits" or "license" for more information.'), )      
 
     def set_wrap_mode(self, enable):

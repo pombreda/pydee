@@ -177,6 +177,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         self.emit(SIGNAL("status(QString)"), QString())
 
     def get_banner(self):
+        """Return interpreter banner and a one-line message"""
         return (self.tr('Type "copyright", "credits" or "license" for more information.'),
                 self.tr('Type "object?" for details on "object"'))
 
