@@ -341,6 +341,8 @@ class Editor(EditorBaseWidget, BaseWidget):
 
     def change(self, state=None):
         """Change DockWidget title depending on modified state"""
+        if self.dockwidget is None:
+            return
         if state is None:
             state = self.isModified()
         title = unicode( self.dockwidget.windowTitle() )
@@ -428,8 +430,12 @@ class Editor(EditorBaseWidget, BaseWidget):
         self.filename = filename
         text, self.encoding = encoding.read(self.filename)
         self.set_text( text )
+        
         self.setModified(False)
         self.change()
+        
+        if self.dockwidget is None:
+            return
         title = self.get_name().replace('&','')
         if self.filename != self.file_path:
             title += ' - ' + osp.basename(self.filename)
