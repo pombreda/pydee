@@ -544,6 +544,7 @@ class DocViewer(QWidget, BaseWidget):
                      self.toggle_help)
         layout_edit.addWidget(self.help_or_doc)
         self.docstring = None
+        self.autosource = False
         self.toggle_help(Qt.Unchecked)
 
         # Main layout
@@ -565,10 +566,18 @@ class DocViewer(QWidget, BaseWidget):
     def toggle_help(self, state):
         """Toggle between docstring and help()"""
         self.docstring = (state == Qt.Unchecked)
-        self.set_help(self.edit.text())
+        self.refresh()
+        
+    def refresh(self, text=None):
+        """Refresh widget"""
+        if text is None:
+            text = self.edit.text()
+        else:
+            self.edit.setText(text)
+        self.set_help(text)
         
     def set_help(self, obj_text):
-        """Refresh widget"""
+        """Show help"""
         obj_text = unicode(obj_text)
         hlp_text = None
         try:
@@ -576,18 +585,17 @@ class DocViewer(QWidget, BaseWidget):
                        self.mainwindow.shell.interpreter.locals)
             if self.docstring:
                 hlp_text = getdoc(obj)
+                if hlp_text is None:
+                    self.help_or_doc.setChecked(True)
+                    return
             else:
                 hlp_text = getsource(obj)
         except:
             pass
-        if hlp_text:
-            self.editor.set_text(hlp_text)
-            self.editor.setCursorPosition(0, 0)
-            
-    def set_text(self, obj, doc):
-        """Set object name and associated doc"""
-        self.edit.setText(obj)
-        self.editor.set_text(doc)
+        if hlp_text is None:
+            hlp_text = self.tr("No documentation available.")
+        self.editor.set_text(hlp_text)
+        self.editor.setCursorPosition(0, 0)
         
     def set_actions(self):
         """Setup actions"""
