@@ -458,7 +458,7 @@ class QsciShell(QsciScintilla, ShellInterface):
                 self.SendScintilla(QsciScintilla.SCI_TAB)
             elif buf[index-len(self.prompt)-1] == '.':
                 self.__show_dyn_completion()
-            elif buf[index-len(self.prompt)-1] == '"' or buf[-1] == "'":
+            elif buf[index-len(self.prompt)-1] in ['"', "'"]:
                 self.__show_file_completion()
              
     def __qsci_delete_back(self):
@@ -698,23 +698,25 @@ class QsciShell(QsciScintilla, ShellInterface):
 
 
     #------ Miscellanous
-    def __get_current_line(self):
-        """ Return the current line """
-        line, _ = self.__get_end_pos()
+    def __get_current_line_to_cursor(self):
+        """
+        Return the current line: from the beginning to cursor position
+        """
+        line, index = self.getCursorPosition()
         buf = self.__extract_from_text(line)
-        text = buf.split()[-1][:-1]
-        return text
+        # Removing the end of the line from cursor position:
+        buf = buf[:index-len(self.prompt)]
+        # Keeping only last word, without its last character:
+        return buf.split()[-1][:-1]
         
     def set_docviewer(self, docviewer):
         """Set DocViewer DockWidget reference"""
         self.docviewer = docviewer
         
-    #TODO: Implement calltips (docviewer) not only at the EOL
     def __show_docstring(self):
         """Show docstring or arguments"""
-        text = self.__get_current_line()
+        text = self.__get_current_line_to_cursor()
         try:
-            locals = self.interpreter.locals
             obj = eval(text, globals(), self.interpreter.locals)
         except:
             # No valid object was extracted from text
@@ -732,28 +734,26 @@ class QsciShell(QsciScintilla, ShellInterface):
                 self.showUserList(10, QStringList( obj.__doc__.split('\n') ))
         
     #------ Code Completion Management            
-    #TODO: Implement auto-completion not only at the EOL
     def __show_dyn_completion(self):
         """
         Display a completion list based on the last token
         """
-        text = self.__get_current_line()
+        text = self.__get_current_line_to_cursor()
         try:
-            locals = self.interpreter.locals
             obj = eval(text, globals(), self.interpreter.locals)
-            complist = dir(obj)
-            #complist = filter(lambda x : not x.startswith('__'), complist)
-            self.__show_completions(complist, text) 
         except:
+            # No valid object was extracted from text
             pass
+        else:
+            # Object obj is valid
+            self.__show_completions(dir(obj), text) 
 
     def __show_file_completion(self):
         """
         Display a completion list for files and directories
         """
-        text = self.__get_current_line()
-        complist = os.listdir(os.getcwd())
-        self.__show_completions(complist, text) 
+        text = self.__get_current_line_to_cursor()
+        self.__show_completions(os.listdir(os.getcwd()), text) 
 
     def __show_completions(self, completions, text):
         """
