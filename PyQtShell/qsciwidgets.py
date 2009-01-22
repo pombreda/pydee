@@ -3,6 +3,7 @@
 Widgets based on QScintilla
 """
 
+import os
 from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QMenu, QCursor
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
@@ -370,16 +371,10 @@ class QsciShell(QsciScintilla, ShellInterface):
         elif self.__is_cursor_on_last_line() and txt.length() :
             QsciScintilla.keyPressEvent(self, key_event)
             self.incremental_search_active = True
-            if self.__is_cursor_on_last_index():
-                #TODO: Implement completion/calltips not only at the EOL
-#                if txt == '.':
-#                    self.__show_dyn_completion()
-#                elif txt == '"' or txt == "'":
-#                    self.__show_file_completion()
-                if txt == '(' or txt == '?':
-                    self.__show_docstring()
-                elif self.isListActive():
-                    self.completion_chars += 1
+            if txt == '(' or txt == '?':
+                self.__show_docstring()
+            elif self.isListActive():
+                self.completion_chars += 1
         elif (ctrl or shift):
             QsciScintilla.keyPressEvent(self, key_event)
         else:
@@ -460,9 +455,9 @@ class QsciShell(QsciScintilla, ShellInterface):
             buf = self.__extract_from_text(line)
             if self.more and not buf[:index-len(self.prompt_more)].strip():
                 self.SendScintilla(QsciScintilla.SCI_TAB)
-            elif buf[-1] == '.':
+            elif buf[index-len(self.prompt)-1] == '.':
                 self.__show_dyn_completion()
-            elif buf[-1] == '"' or buf[-1] == "'":
+            elif buf[index-len(self.prompt)-1] == '"' or buf[-1] == "'":
                 self.__show_file_completion()
              
     def __qsci_delete_back(self):
@@ -704,8 +699,7 @@ class QsciShell(QsciScintilla, ShellInterface):
     #------ Miscellanous
     def __get_current_line(self):
         """ Return the current line """
-        line, col = self.__get_end_pos()
-        self.setCursorPosition(line, col)
+        line, _ = self.__get_end_pos()
         buf = self.__extract_from_text(line)
         text = buf.split()[-1][:-1]
         return text
@@ -714,6 +708,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         """Set DocViewer DockWidget reference"""
         self.docviewer = docviewer
         
+    #TODO: Implement calltips (docviewer) not only at the EOL
     def __show_docstring(self):
         """Show docstring or arguments"""
         text = self.__get_current_line()
@@ -736,6 +731,7 @@ class QsciShell(QsciScintilla, ShellInterface):
                 self.showUserList(10, QStringList( obj.__doc__.split('\n') ))
         
     #------ Code Completion Management            
+    #TODO: Implement auto-completion not only at the EOL
     def __show_dyn_completion(self):
         """
         Display a completion list based on the last token
@@ -755,7 +751,6 @@ class QsciShell(QsciScintilla, ShellInterface):
         Display a completion list for files and directories
         """
         text = self.__get_current_line()
-        import os
         complist = os.listdir(os.getcwd())
         self.__show_completions(complist, text) 
 
