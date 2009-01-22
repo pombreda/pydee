@@ -216,6 +216,13 @@ class QsciShell(QsciScintilla, ShellInterface):
         cline, _ = self.getCursorPosition()
         return cline == self.lines() - 1
 
+    def __is_cursor_on_last_index(self):
+        """
+        Private method to check, if the cursor is on the last line and index
+        """
+        cline, cindex = self.getCursorPosition()
+        return (cline, cindex) == self.__get_end_pos()
+
 
     #------ stdin, stdout, stderr
     def readline(self):
@@ -363,12 +370,14 @@ class QsciShell(QsciScintilla, ShellInterface):
         elif self.__is_cursor_on_last_line() and txt.length() :
             QsciScintilla.keyPressEvent(self, key_event)
             self.incremental_search_active = True
-            if txt == '.':
-                self.__show_dyn_completion()
-            elif txt == '(' or txt =='?':
-                self.__show_docstring()
-            elif self.isListActive():
-                self.completion_chars += 1
+            if self.__is_cursor_on_last_index():
+                #TODO: Implement completion/calltips not only at the EOL
+                if txt == '.':
+                    self.__show_dyn_completion()
+                elif txt == '(' or txt =='?':
+                    self.__show_docstring()
+                elif self.isListActive():
+                    self.completion_chars += 1
         elif (ctrl or shift):
             QsciScintilla.keyPressEvent(self, key_event)
         else:
