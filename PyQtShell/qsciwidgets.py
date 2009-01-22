@@ -371,7 +371,9 @@ class QsciShell(QsciScintilla, ShellInterface):
         elif self.__is_cursor_on_last_line() and txt.length() :
             QsciScintilla.keyPressEvent(self, key_event)
             self.incremental_search_active = True
-            if txt == '(' or txt == '?':
+            if txt == '.':
+                self.__show_dyn_completion()
+            elif txt == '(' or txt =='?':
                 self.__show_docstring()
             elif self.isListActive():
                 self.completion_chars += 1
