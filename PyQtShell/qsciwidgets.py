@@ -267,16 +267,15 @@ class QsciShell(QsciScintilla, ShellInterface):
         """
         if not cmd:
             cmd = ''
-        elif(cmd.endswith('?')):
-            self.__show_help(cmd)
-            return
         else:
             self.add_to_history(cmd)
             self.histidx = -1
         
+        if(cmd.endswith('?')):
+            cmd = 'help(%s)' % cmd[:-1]
+                
         # Before running command
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
-#        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
         # Execute command
         self.execlines.append(unicode(cmd))
@@ -301,11 +300,10 @@ class QsciShell(QsciScintilla, ShellInterface):
             self.execlines = []
             
         self.emit(SIGNAL("status(QString)"), QString())
-#        QApplication.restoreOverrideCursor()
             
         # The following signal must be connected to any other related widget:
         self.emit(SIGNAL("refresh()"))
-        
+
     
     #------ Text Insertion
     def __insert_text(self, text, at_end=False):
@@ -696,14 +694,6 @@ class QsciShell(QsciScintilla, ShellInterface):
         buf = self.__extract_from_text(line)
         text = buf.split()[-1][:-1]
         return text
-
-    def __show_help(self, text):
-        """Show Python help on command 'text'"""
-        #text = self.__get_current_line()
-        self.__execute_command('help(%s)'%(text[:-1],))
-        #self.__qsci_newline()
-        #self.__insert_text(text, at_end=True)
-
         
     def set_docviewer(self, docviewer):
         """Set DocViewer DockWidget reference"""
