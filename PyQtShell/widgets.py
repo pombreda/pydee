@@ -7,7 +7,6 @@
 
 import os, cPickle
 import os.path as osp
-import inspect
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
@@ -16,6 +15,7 @@ from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
 import encoding
+from dochelpers import getdoc, getsource, getargtxt
 from qthelpers import create_action, get_std_icon
 from config import get_font, set_font
 from config import CONF, str2type
@@ -579,16 +579,9 @@ class DocViewer(QWidget, BaseWidget):
             obj = eval(obj_text, globals(),
                        self.mainwindow.shell.interpreter.locals)
             if self.docstring:
-                hlp_text = inspect.getdoc(obj)
+                hlp_text = getdoc(obj)
             elif False:#getsource
-                try:
-                    src = inspect.getsource(obj)
-                except TypeError:
-                    if hasattr(obj,'__class__'):
-                        src = inspect.getsource(obj.__class__)
-                return src
-                
-                pass
+                hlp_text = getsource(obj)
         except:
             pass
         if hlp_text:

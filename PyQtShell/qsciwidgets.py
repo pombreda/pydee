@@ -11,6 +11,7 @@ from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 import encoding
 from shell import ShellInterface, create_banner
 from config import CONF, get_icon
+from dochelpers import getargtxt
 from qthelpers import create_action, add_actions
 
 
@@ -708,6 +709,7 @@ class QsciShell(QsciScintilla, ShellInterface):
             if (self.docviewer is not None) and \
                (self.docviewer.dockwidget.isVisible()):
                 self.docviewer.set_text(text, obj.__doc__)
+                self.showUserList(10, getargtxt(obj))
             else:
                 comps = QStringList()
                 for comp in obj.__doc__.split('\n'):

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Qt utilities"""
 
 from PyQt4.QtGui import QAction, QStyle, QWidget, QIcon
 from PyQt4.QtGui import QVBoxLayout, QHBoxLayout, QLineEdit, QLabel
