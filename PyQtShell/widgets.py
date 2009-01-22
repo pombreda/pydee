@@ -10,7 +10,7 @@ import os.path as osp
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
-from PyQt4.QtGui import QToolTip
+from PyQt4.QtGui import QToolTip, QCheckBox
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
@@ -539,14 +539,12 @@ class DocViewer(QWidget, BaseWidget):
         self.connect(self.edit, SIGNAL("textChanged(QString)"), self.set_help)
         layout_edit.addWidget(self.edit)
         
-        #TODO: find out how IPython generates 'object??'
-        self.docstring = True # to be removed when TODO above is done
-#        self.help_or_doc = QCheckBox(self.tr("Show extended help"))
-#        self.connect(self.help_or_doc, SIGNAL("stateChanged(int)"),
-#                     self.toggle_help)
-#        layout_edit.addWidget(self.help_or_doc)
-#        self.docstring = None
-#        self.toggle_help(Qt.Unchecked)
+        self.help_or_doc = QCheckBox(self.tr("Show source"))
+        self.connect(self.help_or_doc, SIGNAL("stateChanged(int)"),
+                     self.toggle_help)
+        layout_edit.addWidget(self.help_or_doc)
+        self.docstring = None
+        self.toggle_help(Qt.Unchecked)
 
         # Main layout
         layout = QVBoxLayout()
@@ -564,10 +562,10 @@ class DocViewer(QWidget, BaseWidget):
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
                 Qt.TopDockWidgetArea)
         
-#    def toggle_help(self, state):
-#        """Toggle between docstring and help()"""
-#        self.docstring = (state == Qt.Unchecked)
-#        self.set_help(self.edit.text())
+    def toggle_help(self, state):
+        """Toggle between docstring and help()"""
+        self.docstring = (state == Qt.Unchecked)
+        self.set_help(self.edit.text())
         
     #TODO: add getsource, get
     # getsource -> try except TypeError, IOError
@@ -580,7 +578,7 @@ class DocViewer(QWidget, BaseWidget):
                        self.mainwindow.shell.interpreter.locals)
             if self.docstring:
                 hlp_text = getdoc(obj)
-            elif False:#getsource
+            else:
                 hlp_text = getsource(obj)
         except:
             pass
