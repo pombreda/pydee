@@ -567,8 +567,6 @@ class DocViewer(QWidget, BaseWidget):
         self.docstring = (state == Qt.Unchecked)
         self.set_help(self.edit.text())
         
-    #TODO: add getsource, get
-    # getsource -> try except TypeError, IOError
     def set_help(self, obj_text):
         """Refresh widget"""
         obj_text = unicode(obj_text)
