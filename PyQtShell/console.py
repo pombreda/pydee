@@ -21,113 +21,123 @@ from config import get_icon, CONF
 
 class ConsoleWindow(QMainWindow):
     """Console QDialog"""
-    def __init__(self, commands=None, message="", debug=False):
+    def __init__(self, commands=None, message="", debug=False, light=False):
         super(ConsoleWindow, self).__init__()
-
+        self.light = light
         self.filename = None
+        namespace = None
 
-        # Window menu
-        self.view_menu = QMenu(self.tr("&View"))
-
-        # Toolbar
-        self.toolbar = self.addToolBar(self.tr("Toolbar"))
-        self.toolbar.setObjectName("MainToolbar")
-        self.view_menu.addAction(self.toolbar.toggleViewAction())
-
-        # Status bar
-        status = self.statusBar()
-        status.setObjectName("StatusBar")
-        status.showMessage(self.tr("Welcome to PyQtShell demo!"), 5000)
-        action = create_action(self, self.tr("Status bar"),
-                               toggled=self.toggle_statusbar)
-        self.view_menu.addAction(action)
-        checked = CONF.get('window', 'statusbar')
-        action.setChecked(checked)
-        self.toggle_statusbar(checked)
+        if not light:
+            # Toolbar
+            self.toolbar = self.addToolBar(self.tr("Toolbar"))
+            self.toolbar.setObjectName("MainToolbar")
         
-        # Workspace init
-        if CONF.get('workspace', 'enable'):
-            self.workspace = Workspace(self)
-            namespace = self.workspace.namespace
-        else:
-            namespace = None
+            # Window menu
+            self.view_menu = QMenu(self.tr("&View"))
+            
+            # Toolbar (...)
+            self.view_menu.addAction(self.toolbar.toggleViewAction())
+
+            # Status bar
+            status = self.statusBar()
+            status.setObjectName("StatusBar")
+            status.showMessage(self.tr("Welcome to PyQtShell demo!"), 5000)
+            action = create_action(self, self.tr("Status bar"),
+                                   toggled=self.toggle_statusbar)
+            self.view_menu.addAction(action)
+            checked = CONF.get('window', 'statusbar')
+            action.setChecked(checked)
+            self.toggle_statusbar(checked)
+            
+            # Workspace init
+            if CONF.get('workspace', 'enable'):
+                self.workspace = Workspace(self)
+                namespace = self.workspace.namespace
         
         # Shell widget: window's central widget
         self.shell = Shell(namespace, commands, message, self, debug)
         self.setCentralWidget(self.shell)
-#        self.add_dockwidget(self.shell)
-        self.add_to_menubar(self.shell)
-        self.add_to_toolbar(self.shell)
-        self.toolbar.addSeparator()
-        self.connect(self.shell, SIGNAL("status(QString)"), 
-                     self.send_to_statusbar)
         
-        # Workspace
-        if CONF.get('workspace', 'enable'):
-            self.workspace.set_shell(self.shell)
-            self.add_dockwidget(self.workspace)
-            self.add_to_menubar(self.workspace)
-            self.add_to_toolbar(self.workspace)
-            self.connect(self.shell, SIGNAL("refresh()"),
-                         self.workspace.refresh)
+        if not light:
+            # Shell widget (...)
+            self.add_to_menubar(self.shell)
+            self.add_to_toolbar(self.shell)
+            self.toolbar.addSeparator()
+            self.connect(self.shell, SIGNAL("status(QString)"), 
+                         self.send_to_statusbar)
         
-        # Editor widget
-        if CONF.get('editor', 'enable'):
-            self.editor = Editor( self )
-            self.add_dockwidget(self.editor)
-            self.add_to_menubar(self.editor)
-            self.add_to_toolbar(self.editor)
+            # Workspace
+            if CONF.get('workspace', 'enable'):
+                self.workspace.set_shell(self.shell)
+                self.add_dockwidget(self.workspace)
+                self.add_to_menubar(self.workspace)
+                self.add_to_toolbar(self.workspace)
+                self.connect(self.shell, SIGNAL("refresh()"),
+                             self.workspace.refresh)
         
-        # History log widget
-        if CONF.get('history', 'enable'):
-            self.historylog = HistoryLog( self )
-            self.add_dockwidget(self.historylog)
-            self.connect(self.shell, SIGNAL("refresh()"),
-                         self.historylog.refresh)
+            # Editor widget
+            if CONF.get('editor', 'enable'):
+                self.editor = Editor( self )
+                self.add_dockwidget(self.editor)
+                self.add_to_menubar(self.editor)
+                self.add_to_toolbar(self.editor)
         
-        # Doc viewer widget
-        if CONF.get('docviewer', 'enable'):
-            self.docviewer = DocViewer( self )
-            self.add_dockwidget(self.docviewer)
-            self.shell.set_docviewer(self.docviewer)
+            # History log widget
+            if CONF.get('history', 'enable'):
+                self.historylog = HistoryLog( self )
+                self.add_dockwidget(self.historylog)
+                self.connect(self.shell, SIGNAL("refresh()"),
+                             self.historylog.refresh)
+        
+            # Doc viewer widget
+            if CONF.get('docviewer', 'enable'):
+                self.docviewer = DocViewer( self )
+                self.add_dockwidget(self.docviewer)
+                self.shell.set_docviewer(self.docviewer)
         
         # Working directory changer widget
         self.workdir = WorkingDirectory( self )
         self.connect(self.shell, SIGNAL("refresh()"),
                      self.workdir.refresh)
-#        self.add_dockwidget(self.workdir)
         self.add_toolbar(self.workdir)
-            
-        # View menu
-        self.menuBar().addMenu(self.view_menu)
         
-        # ? menu
-        about = self.menuBar().addMenu("?")
-        about.addAction(create_action(self, self.tr("About..."),
-            icon=get_std_icon('MessageBoxInformation'),
-            triggered=self.about))
+        if not light:
+            # View menu
+            self.menuBar().addMenu(self.view_menu)
+        
+            # ? menu
+            about = self.menuBar().addMenu("?")
+            about.addAction(create_action(self, self.tr("About..."),
+                icon=get_std_icon('MessageBoxInformation'),
+                triggered=self.about))
         
         # Window set-up
         self.setWindowIcon(get_icon('qtshell.png'))
         self.setWindowTitle(self.tr('PyQtShell Console'))
-        width, height = CONF.get('window', 'size')
+        section = 'lightwindow' if self.light else 'window'
+        width, height = CONF.get(section, 'size')
         self.resize( QSize(width, height) )
-        posx, posy = CONF.get('window', 'position')
+        posx, posy = CONF.get(section, 'position')
         self.move( QPoint(posx, posy) )
-        hexstate = CONF.get('window', 'state')
-        self.restoreState( QByteArray().fromHex(hexstate) )
+        if not light:
+            hexstate = CONF.get(section, 'state')
+            self.restoreState( QByteArray().fromHex(hexstate) )
+            
+        # Give focus to shell widget
         self.shell.setFocus()
         
     def closeEvent(self, event):
         """Exit confirmation"""
         size = self.size()
-        CONF.set('window', 'size', (size.width(), size.height()))
+        section = 'lightwindow' if self.light else 'window'
+        CONF.set(section, 'size', (size.width(), size.height()))
         pos = self.pos()
-        CONF.set('window', 'position', (pos.x(), pos.y()))
-        qba = self.saveState()
-        CONF.set('window', 'state', str(qba.toHex()))
-        CONF.set('window', 'statusbar',
-                  not self.statusBar().isHidden())
+        CONF.set(section, 'position', (pos.x(), pos.y()))
+        if not self.light:
+            qba = self.saveState()
+            CONF.set(section, 'state', str(qba.toHex()))
+            CONF.set(section, 'statusbar',
+                      not self.statusBar().isHidden())
         # Warning children that their parent is closing:
         self.emit( SIGNAL('closing()') )
         # Closing...
@@ -142,7 +152,7 @@ class ConsoleWindow(QMainWindow):
         
     def add_dockwidget(self, child):
         """Add QDockWidget and toggleViewAction"""
-        dockwidget, location = (child.dockwidget, child.location)
+        dockwidget, location = child.create_dockwidget()
         self.addDockWidget(location, dockwidget)
         self.view_menu.addAction(dockwidget.toggleViewAction())
         self.connect(dockwidget, SIGNAL('visibilityChanged(bool)'),
@@ -192,6 +202,9 @@ def get_options():
     """
     import optparse
     parser = optparse.OptionParser("PyQtShell Console")
+    parser.add_option('-l', '--light', dest="light", action='store_true',
+                      default=False,
+                      help="Light version (all add-ons are disabled)")
     parser.add_option('-m', '--modules', dest="modules", default='',
                       help="Modules to import (comma separated)")
     parser.add_option('-p', '--pylab', dest="pylab", action='store_true',
@@ -253,7 +266,7 @@ def get_options():
     else:
         message = ""
 
-    return commands, message, options.debug
+    return commands, message, options
 
 
 def main():
@@ -270,8 +283,9 @@ def main():
     app_path = os.path.dirname(__file__)
     if app_translator.load("console_" + locale, app_path):
         app.installTranslator(app_translator)
-    commands, message, debug = get_options()
-    window = ConsoleWindow(commands, message, debug)
+    commands, message, options = get_options()
+    window = ConsoleWindow(commands, message,
+                           light=options.light, debug=options.debug)
     window.show()
     sys.exit(app.exec_())
 

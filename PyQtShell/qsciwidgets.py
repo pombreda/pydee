@@ -83,7 +83,6 @@ class QsciEditor(QsciScintilla):
         return self.text()
 
 
-#TODO: Auto-completion for filenames (context: string, i.e. " or ')
 class QsciShell(QsciScintilla, ShellInterface):
     """
     Python shell based on QScintilla

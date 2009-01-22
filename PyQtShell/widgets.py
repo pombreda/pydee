@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 
-#TODO: Workspace
-#TODO: Before Workspace: DictEditor (dictionnary editor)
-#      (Workspace will be derived from DictEditor, as well as a ListEditor and
-#      a TupleShow)
-
 import os, cPickle
 import os.path as osp
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
@@ -35,7 +30,7 @@ class BaseWidget(object):
         if mainwindow is not None:
             mainwindow.connect(mainwindow, SIGNAL("closing()"), self.closing)
         self.menu_actions, self.toolbar_actions = self.set_actions()
-        self.dockwidget, self.location = self.get_dockwidget()
+        self.dockwidget = None
         
     def closing(self):
         """Perform actions before parent main window is closed"""
@@ -54,15 +49,15 @@ class BaseWidget(object):
         """Return QDockWidget properties"""
         raise NotImplementedError
         
-    def get_dockwidget(self):
+    def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
         allowed_areas, location = self.get_dockwidget_properties()
         dock = QDockWidget(self.get_name().replace('&',''),
                            self.mainwindow)
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(allowed_areas)
-#        dock.setTitleBarWidget(QWidget())
         dock.setWidget(self)
+        self.dockwidget = dock
         return (dock, location)
 
     def visibility_changed(self, enable):
@@ -108,12 +103,6 @@ class Shell(ShellBaseWidget, BaseWidget):
     def closing(self):
         """Perform actions before parent main window is closed"""
         self.save_history()
-    
-    def get_dockwidget_properties(self):
-        """Return QDockWidget properties"""
-        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
-                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.TopDockWidgetArea)
     
     def set_actions(self):
         """Setup actions"""
