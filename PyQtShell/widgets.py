@@ -7,17 +7,17 @@
 
 import os, cPickle
 import os.path as osp
-import pydoc
+import inspect
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
-from PyQt4.QtGui import QToolTip, QCheckBox
+from PyQt4.QtGui import QToolTip
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
 import encoding
 from qthelpers import create_action, get_std_icon
-from config import get_icon, get_font, set_font
+from config import get_font, set_font
 from config import CONF, str2type
 
 def toggle_actions(actions, enable):
@@ -29,7 +29,7 @@ def toggle_actions(actions, enable):
 
 class BaseWidget(object):
     """Typical widget interface"""
-    def bind(self, mainwindow):
+    def __init__(self, mainwindow):
         """Bind widget to a QMainWindow instance"""
         self.mainwindow = mainwindow
         if mainwindow is not None:
@@ -51,6 +51,7 @@ class BaseWidget(object):
         raise NotImplementedError
         
     def get_dockwidget_properties(self):
+        """Return QDockWidget properties"""
         raise NotImplementedError
         
     def get_dockwidget(self):
@@ -88,13 +89,15 @@ class Shell(ShellBaseWidget, BaseWidget):
     """
     def __init__(self, namespace=None, commands=None, message="",
                  parent=None, debug=False):
-        super(Shell, self).__init__(namespace, commands, message, parent, debug)
-        self.bind(parent)
+        ShellBaseWidget.__init__(self, namespace, commands,
+                                 message, parent, debug)
+        BaseWidget.__init__(self, parent)
         # Parameters
         self.set_font( get_font('shell') )
         self.set_wrap_mode( CONF.get('shell', 'wrap') )
 
     def get_banner(self):
+        """Return interpreter banner and a one-line message"""
         return (self.tr('Type "copyright", "credits" or "license" for more information.'),
                 self.tr('Type "object?" for details on "object"'))
         
@@ -107,6 +110,7 @@ class Shell(ShellBaseWidget, BaseWidget):
         self.save_history()
     
     def get_dockwidget_properties(self):
+        """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
                 Qt.TopDockWidgetArea)
@@ -156,18 +160,18 @@ class Shell(ShellBaseWidget, BaseWidget):
         
     def change_font(self):
         """Change console font"""
-        font, ok = QFontDialog.getFont(get_font('shell'),
+        font, valid = QFontDialog.getFont(get_font('shell'),
                        self, self.tr("Select a new font"))
-        if ok:
+        if valid:
             self.set_font(font)
             set_font(font, 'shell')
 
     def change_history_depth(self):
         "Change history max entries"""
-        depth, ok = QInputDialog.getInteger(self, self.tr('History'),
-                    self.tr('Maximum entries'),
-                    CONF.get('history', 'max_entries'), 10, 10000)
-        if ok:
+        depth, valid = QInputDialog.getInteger(self, self.tr('History'),
+                           self.tr('Maximum entries'),
+                           CONF.get('history', 'max_entries'), 10, 10000)
+        if valid:
             CONF.set('history', 'max_entries', depth)
             
     def toggle_wrap_mode(self, checked):
@@ -214,9 +218,9 @@ class PathComboBox(QComboBox):
     def keyPressEvent(self, event):
         """Handle key press events"""
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            dir = unicode(self.currentText())
-            if osp.isdir( dir ):
-                self.parent().chdir(dir)
+            directory = unicode(self.currentText())
+            if osp.isdir( directory ):
+                self.parent().chdir(directory)
                 self.set_default_style()
                 if hasattr(self.parent(), 'mainwindow'):
                     if self.parent().mainwindow is not None:
@@ -231,8 +235,8 @@ class WorkingDirectory(QWidget, BaseWidget):
     """
     log_path = osp.join(osp.expanduser('~'), '.workingdir')
     def __init__(self, parent):
-        super(WorkingDirectory, self).__init__(parent)
-        self.bind(parent)
+        QWidget.__init__(self, parent)
+        BaseWidget.__init__(self, parent)
         
         layout = QHBoxLayout()
         if self.mainwindow is None:
@@ -271,6 +275,7 @@ class WorkingDirectory(QWidget, BaseWidget):
         return self.tr('Working directory')
     
     def get_dockwidget_properties(self):
+        """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea,
                 Qt.BottomDockWidgetArea)
         
@@ -291,7 +296,7 @@ class WorkingDirectory(QWidget, BaseWidget):
             wdhistory = [ os.getcwd() ]
         return wdhistory
     
-    def save_wdhistory(self, qobj=None):
+    def save_wdhistory(self):
         """Save history to a text file in user home directory"""
         file(self.log_path, 'w').write("\n".join( \
             [ unicode( self.pathedit.itemText(index) )
@@ -335,7 +340,7 @@ class Editor(EditorBaseWidget, BaseWidget):
     file_path = osp.join(osp.expanduser('~'), '.QtShell_tempfile')
     def __init__(self, parent):
         EditorBaseWidget.__init__(self, parent)
-        self.bind(parent)
+        BaseWidget.__init__(self, parent)
         self.filename = None
         self.encoding = 'utf-8'
         self.load_temp_file()
@@ -358,6 +363,7 @@ class Editor(EditorBaseWidget, BaseWidget):
         return self.tr('&Editor')
     
     def get_dockwidget_properties(self):
+        """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
                 Qt.TopDockWidgetArea)
@@ -411,6 +417,7 @@ class Editor(EditorBaseWidget, BaseWidget):
         self.mainwindow.shell.run_script(self.file_path, silent=True)
         
     def load(self, filename=None):
+        """Load a Python script file"""
         if filename is None:
             self.mainwindow.shell.restore_stds()
             basedir = os.getcwd()
@@ -440,6 +447,7 @@ class Editor(EditorBaseWidget, BaseWidget):
         self.setFocus()
     
     def save(self, prompt=False):
+        """Save the currently edited Python script file"""
         if prompt:
             self.mainwindow.shell.restore_stds()
             filename = QFileDialog.getSaveFileName(self,
@@ -458,9 +466,9 @@ class Editor(EditorBaseWidget, BaseWidget):
         
     def change_font(self):
         """Change editor font"""
-        font, ok = QFontDialog.getFont(get_font('editor'),
-                       self, self.tr("Select a new font"))
-        if ok:
+        font, valid = QFontDialog.getFont(get_font('editor'),
+                          self, self.tr("Select a new font"))
+        if valid:
             self.set_font(font)
             set_font(font, 'editor')
             
@@ -474,8 +482,8 @@ class HistoryLog(EditorBaseWidget, BaseWidget):
     History log widget
     """
     def __init__(self, parent):
-        super(HistoryLog, self).__init__(parent)
-        self.bind(parent)
+        EditorBaseWidget.__init__(self, parent)
+        BaseWidget.__init__(self, parent)
         self.setReadOnly(True)
         self.set_font( get_font('history') )
         self.set_wrap_mode( CONF.get('history', 'wrap') )
@@ -488,6 +496,7 @@ class HistoryLog(EditorBaseWidget, BaseWidget):
         return self.tr('&History log')
     
     def get_dockwidget_properties(self):
+        """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
                 Qt.TopDockWidgetArea)
@@ -511,8 +520,8 @@ class DocViewer(QWidget, BaseWidget):
     Docstrings viewer widget
     """
     def __init__(self, parent):
-        super(DocViewer, self).__init__(parent)
-        self.bind(parent)
+        QWidget.__init__(self, parent)
+        BaseWidget.__init__(self, parent)
 
         # Read-only editor
         self.editor = EditorBaseWidget(self)
@@ -525,7 +534,8 @@ class DocViewer(QWidget, BaseWidget):
         layout_edit = QHBoxLayout()
         layout_edit.addWidget(QLabel(self.tr("Object")))
         self.edit = QLineEdit()
-        self.edit.setToolTip(self.tr("Enter an object name to view the associated help"))
+        self.edit.setToolTip( \
+            self.tr("Enter an object name to view the associated help"))
         self.connect(self.edit, SIGNAL("textChanged(QString)"), self.set_help)
         layout_edit.addWidget(self.edit)
         
@@ -549,6 +559,7 @@ class DocViewer(QWidget, BaseWidget):
         return self.tr('&Doc')
     
     def get_dockwidget_properties(self):
+        """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
                 Qt.TopDockWidgetArea)
@@ -558,20 +569,34 @@ class DocViewer(QWidget, BaseWidget):
 #        self.docstring = (state == Qt.Unchecked)
 #        self.set_help(self.edit.text())
         
-    def set_help(self, text):
+    #TODO: add getsource, get
+    # getsource -> try except TypeError, IOError
+    def set_help(self, obj_text):
         """Refresh widget"""
-        text = unicode(text)
+        obj_text = unicode(obj_text)
+        hlp_text = None
         try:
-            obj = eval(text, globals(), self.mainwindow.shell.interpreter.locals)
+            obj = eval(obj_text, globals(),
+                       self.mainwindow.shell.interpreter.locals)
             if self.docstring:
-                self.editor.set_text(pydoc.getdoc(obj))
-            else:
+                hlp_text = inspect.getdoc(obj)
+            elif False:#getsource
+                try:
+                    src = inspect.getsource(obj)
+                except TypeError:
+                    if hasattr(obj,'__class__'):
+                        src = inspect.getsource(obj.__class__)
+                return src
+                
                 pass
-            self.editor.setCursorPosition(0, 0)
         except:
-            self.editor.set_text("")
+            pass
+        if hlp_text:
+            self.editor.set_text(hlp_text)
+            self.editor.setCursorPosition(0, 0)
             
     def set_text(self, obj, doc):
+        """Set object name and associated doc"""
         self.edit.setText(obj)
         self.editor.set_text(doc)
         
@@ -588,33 +613,35 @@ class NoValue(object):
     pass
 
 
-def filter(obj_in, rec=0):
+def wsfilter(obj_in, rec=0):
     """Keep only objects that can be saved"""
     filters = str2type(CONF.get('workspace', 'filters'))
-    if rec==3:
+    exclude_private = CONF.get('workspace', 'exclude_private')
+    exclude_upper = CONF.get('workspace', 'exclude_upper')
+    if rec == 3:
         return NoValue
     obj_out = obj_in
     if isinstance(obj_in, dict):
         obj_out = {}
         for key in obj_in:
             value = obj_in[key]
-            if rec==0:
+            if rec == 0:
                 # Excluded references for namespace to be saved without error
                 if key in  CONF.get('workspace', 'excluded'):
                     continue
-                if CONF.get('workspace', 'exclude_private') and key.startswith('_'):
+                if exclude_private and key.startswith('_'):
                     continue
-                if CONF.get('workspace', 'exclude_upper') and key[0].isupper():
+                if exclude_upper and key[0].isupper():
                     continue
             if isinstance(value, filters):
-                value = filter(value, rec+1)
+                value = wsfilter(value, rec+1)
                 if value is not NoValue:
                     obj_out[key] = value
 #    elif isinstance(obj_in, (list, tuple)):
 #        obj_out = []
 #        for value in obj_in:
 #            if isinstance(value, filters):
-#                value = filter(value, rec+1)
+#                value = wsfilter(value, rec+1)
 #                if value is not NoValue:
 #                    obj_out.append(value)
 #        if isinstance(obj_in, tuple):
@@ -628,11 +655,11 @@ class Workspace(DictEditor, BaseWidget):
     Workspace widget (namespace explorer)
     """
     file_path = osp.join(osp.expanduser('~'), '.QtShell_ws')
-    def __init__(self, parent, namespace):
-        DictEditor.__init__(self, parent, None)
-        self.namespace = None
+    def __init__(self, parent):
         self.shell = None
-        self.bind(parent)
+        self.namespace = None
+        DictEditor.__init__(self, parent, None)
+        BaseWidget.__init__(self, parent)
         self.load_namespace()
         self.refresh()
         
@@ -641,6 +668,7 @@ class Workspace(DictEditor, BaseWidget):
         return self.tr('&Workspace')
     
     def get_dockwidget_properties(self):
+        """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
                 Qt.TopDockWidgetArea)
@@ -654,7 +682,7 @@ class Workspace(DictEditor, BaseWidget):
         """Refresh widget"""
         if self.shell is not None:
             self.namespace = self.shell.namespace
-        self.set_data( self.namespace, filter )
+        self.set_data( self.namespace, wsfilter )
         
     def set_actions(self):
         """Setup actions"""
@@ -697,7 +725,7 @@ class Workspace(DictEditor, BaseWidget):
         
     def save_namespace(self):
         """Save current namespace"""
-        cPickle.dump(filter(self.namespace),
+        cPickle.dump(wsfilter(self.namespace),
                      file(self.file_path, 'w'))
         
     def toggle_autosave(self, checked):

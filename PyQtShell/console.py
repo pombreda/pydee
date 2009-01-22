@@ -47,7 +47,7 @@ class ConsoleWindow(QMainWindow):
         
         # Workspace init
         if CONF.get('workspace', 'enable'):
-            self.workspace = Workspace(self, None)
+            self.workspace = Workspace(self)
             namespace = self.workspace.namespace
         else:
             namespace = None
