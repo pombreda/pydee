@@ -336,7 +336,7 @@ class Editor(EditorBaseWidget, WidgetMixin):
     """
     Editor widget
     """
-    file_path = osp.join(osp.expanduser('~'), '.QtShell_tempfile')
+    file_path = osp.join(osp.expanduser('~'), '.temp.py')
     def __init__(self, parent):
         EditorBaseWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
@@ -416,7 +416,17 @@ class Editor(EditorBaseWidget, WidgetMixin):
         self.filename = self.file_path
         if not osp.isfile(self.filename):
             # Creating temporary file
-            self.set_text( "# -*- coding: utf-8 -*-\n\r" )
+            default = ['# -*- coding: utf-8 -*-',
+                       '"""',
+                       self.tr("PyQtShell Editor"),
+                       '',
+                       self.tr("This temporary script file is located here:"),
+                       self.file_path,
+                       '"""',
+                       '',
+                       '',
+                       ]
+            self.set_text("\r\n".join([unicode(qstr) for qstr in default]))
             self.save(prompt=False)
         self.load(self.filename)
     
