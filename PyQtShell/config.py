@@ -97,7 +97,7 @@ DEFAULTS = [
              {
               'enable' : True,
               'filters' : type2str(FILTERS),
-              'autosave' : True,
+              'autosave' : False,
               'excluded': ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc'],
               'exclude_private': True,
               'exclude_upper': True,
@@ -120,9 +120,8 @@ DEFAULTS = [
               }),
             ]
 
-DEV = osp.isfile(osp.join(osp.join(osp.join(APP_PATH, osp.pardir), osp.pardir),
-                          'setup.py'))
-DEV = False
+DEV = osp.isfile(osp.join(osp.join(APP_PATH, osp.pardir), 'setup.py'))
+#DEV = False
 from userconfig import UserConfig
 CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.5', load=(not DEV))
 
