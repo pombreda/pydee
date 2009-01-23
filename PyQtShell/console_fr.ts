@@ -135,27 +135,27 @@
 <context>
     <name>DocViewer</name>
     <message>
-        <location filename="widgets.py" line="552"/>
+        <location filename="widgets.py" line="562"/>
         <source>Object</source>
         <translation>Objet</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="555"/>
+        <location filename="widgets.py" line="565"/>
         <source>Enter an object name to view the associated help</source>
         <translation>Entrer un nom d&apos;objet pour afficher l&apos;aide associée</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="576"/>
+        <location filename="widgets.py" line="586"/>
         <source>&amp;Doc</source>
         <translation>Ai&amp;de</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="559"/>
+        <location filename="widgets.py" line="569"/>
         <source>Show source</source>
         <translation>Afficher les sources</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="618"/>
+        <location filename="widgets.py" line="628"/>
         <source>No documentation available.</source>
         <translation>Aucune documentation disponible.</translation>
     </message>
@@ -208,22 +208,22 @@
         <translation>Modifier la police d&apos;écriture de l&apos;éditeur</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="436"/>
+        <location filename="widgets.py" line="446"/>
         <source>Open Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="468"/>
+        <location filename="widgets.py" line="478"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="467"/>
+        <location filename="widgets.py" line="477"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="483"/>
+        <location filename="widgets.py" line="493"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -233,7 +233,7 @@
         <translation>Retour à la ligne</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="458"/>
+        <location filename="widgets.py" line="468"/>
         <source>temporary file</source>
         <translation>fichier temporaire</translation>
     </message>
@@ -248,11 +248,21 @@
 Do you want to save changes?</source>
         <translation>a été modifié. Souhaitez-vous sauvegarder ces changements ?</translation>
     </message>
+    <message>
+        <location filename="widgets.py" line="423"/>
+        <source>This temporary script file is located here:</source>
+        <translation>Ce script temporaire est sauvegardé ici :</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="421"/>
+        <source>PyQtShell Editor</source>
+        <translation>Éditeur de PyQtShell</translation>
+    </message>
 </context>
 <context>
     <name>HistoryLog</name>
     <message>
-        <location filename="widgets.py" line="510"/>
+        <location filename="widgets.py" line="520"/>
         <source>&amp;History log</source>
         <translation>&amp;Historique</translation>
     </message>
@@ -428,47 +438,47 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>Workspace</name>
     <message>
-        <location filename="widgets.py" line="687"/>
+        <location filename="widgets.py" line="697"/>
         <source>&amp;Workspace</source>
         <translation>Espace de &amp;travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="722"/>
+        <location filename="widgets.py" line="732"/>
         <source>Auto save</source>
         <translation>Sauvegarde automatique</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="711"/>
+        <location filename="widgets.py" line="721"/>
         <source>Sort columns</source>
         <translation>Classement des colonnes</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="713"/>
+        <location filename="widgets.py" line="723"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="717"/>
+        <location filename="widgets.py" line="727"/>
         <source>Exclude private references</source>
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="746"/>
+        <location filename="widgets.py" line="756"/>
         <source>them</source>
         <translation>les</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="748"/>
+        <location filename="widgets.py" line="758"/>
         <source>one</source>
         <translation>un</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="750"/>
+        <location filename="widgets.py" line="760"/>
         <source>it</source>
         <translation>le</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="752"/>
+        <location filename="widgets.py" line="762"/>
         <source>Workspace is currently keeping reference to %1 object%2.
 
 Do you want to save %3?</source>
