@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-Widgets used only if QScintilla is not installed
-"""
+"""Widgets used only if QScintilla is not installed"""
 
 from PyQt4.QtGui import QTextEdit, QTextCursor, qApp, QColor, QBrush
 from PyQt4.QtCore import Qt, QString, SIGNAL
 
 # Local import
-from shell import ShellInterface, create_banner
+from shell import ShellMixin, create_banner
 
 
 def is_python_string(text):
@@ -72,7 +70,7 @@ class QtEditor(QTextEdit):
         return self.toPlainText()
 
 
-class QtShell(QTextEdit, ShellInterface):
+class QtShell(QTextEdit, ShellMixin):
     """
     Python shell based on Qt only
     Derived from:
@@ -88,7 +86,7 @@ class QtShell(QTextEdit, ShellInterface):
         If no parent widget has been specified, it is possible to
         exit the interpreter by Ctrl-D
         """
-        ShellInterface.__init__(self, namespace, commands, debug)       
+        ShellMixin.__init__(self, namespace, commands, debug)       
         QTextEdit.__init__(self, parent)
                         
         # session log

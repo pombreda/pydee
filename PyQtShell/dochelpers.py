@@ -53,6 +53,3 @@ def getargtxt(obj, one_arg_per_line=True):
         textlist.remove('self'+sep)
     return textlist
     
-    
-# Builtin case:
-print getargtxt(sorted)

@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
-"""
-Widgets based on QScintilla
-"""
+"""Widgets based on QScintilla"""
+
+# pylint: disable-msg=C0103
+# pylint: disable-msg=R0903
+# pylint: disable-msg=R0911
+# pylint: disable-msg=R0201
 
 import os
-from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QMenu, QCursor
+from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QMenu
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
 # Local import
 import encoding
-from shell import ShellInterface, create_banner
+from shell import ShellMixin, create_banner
 from config import CONF, get_icon
 from dochelpers import getargtxt
-from qthelpers import create_action, add_actions
+from qthelpers import create_action
 
 
 class QsciEditor(QsciScintilla):
@@ -54,10 +57,10 @@ class QsciEditor(QsciScintilla):
             self.setMarginsFont(font)
             if width is None:
                 linenb = self.lines()
-                if linenb<10:
-                    linenb=100
+                if linenb < 10:
+                    linenb = 100
                 from math import ceil, log
-                width = ceil(log(linenb,10))+1
+                width = ceil(log(linenb, 10))+1
             self.setMarginWidth(1, QString('0'*int(width+1)))
 
     def set_font(self, font):
@@ -83,7 +86,7 @@ class QsciEditor(QsciScintilla):
         return self.text()
 
 
-class QsciShell(QsciScintilla, ShellInterface):
+class QsciShell(QsciScintilla, ShellMixin):
     """
     Python shell based on QScintilla
     Derived from:
@@ -100,7 +103,7 @@ class QsciShell(QsciScintilla, ShellInterface):
         If no parent widget has been specified, it is possible to
         exit the interpreter by Ctrl-D
         """
-        ShellInterface.__init__(self, namespace, commands, debug)       
+        ShellMixin.__init__(self, namespace, commands, debug)       
         QsciScintilla.__init__(self, parent)
         
         self.setUtf8(True)
@@ -151,9 +154,9 @@ class QsciShell(QsciScintilla, ShellInterface):
         self.execlines = []
 
         # interpreter banner
-        moreinfo, help = self.get_banner()
+        moreinfo, helpmsg = self.get_banner()
         self.write( create_banner(moreinfo, message) )
-        self.write(help + '\n\n')
+        self.write(helpmsg + '\n\n')
         self.write(self.prompt)
 
         #self.standardCommands().clearKeys()
