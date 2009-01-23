@@ -3,6 +3,11 @@
 NumPy Array Editor Dialog based on PyQt4
 """
 
+# pylint: disable-msg=C0103
+# pylint: disable-msg=R0903
+# pylint: disable-msg=R0911
+# pylint: disable-msg=R0201
+
 from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
 from PyQt4.QtCore import SIGNAL, SLOT
 from PyQt4.QtGui import QHBoxLayout, QColor, QLabel, QTableView, QItemDelegate
@@ -52,6 +57,7 @@ class ArrayModel(QAbstractTableModel):
         return self._data.shape[0]
 
     def bgcolor(self, state):
+        """Toggle backgroundcolor"""
         self.bgcolor_enabled = state>0
         self.reset()
 

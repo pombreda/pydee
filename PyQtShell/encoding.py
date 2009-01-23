@@ -10,8 +10,8 @@ import re
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
 from PyQt4.QtCore import QString
 
-coding_re = re.compile(r"coding[:=]\s*([-\w_.]+)")
-codecs_ = ['utf-8', 'iso8859-1',  'iso8859-15', 'koi8-r', 'koi8-u',
+CODING_RE = re.compile(r"coding[:=]\s*([-\w_.]+)")
+CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'koi8-r', 'koi8-u',
           'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5', 
           'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9', 
           'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1', 
@@ -23,10 +23,10 @@ def get_coding(text):
     @param text text to inspect (string)
     @return coding string
     """
-    for l in text.splitlines()[:2]:
-        m = coding_re.search(l)
-        if m:
-            return m.group(1)
+    for line in text.splitlines()[:2]:
+        result = CODING_RE.search(line)
+        if result:
+            return result.group(1)
     return None
 
 def decode(text):
@@ -93,7 +93,7 @@ def encode(text, orig_coding):
     # Save as UTF-8 without BOM
     return text.encode('utf-8'), 'utf-8'
     
-def to_unicode(s):
+def to_unicode(string):
     """
     Public method to convert a string to unicode.
     
@@ -106,23 +106,24 @@ def to_unicode(s):
     @param s string to be converted (string or QString)
     @return converted string (unicode or QString)
     """
-    if isinstance(s, QString):
-        return s
+    if isinstance(string, QString):
+        return string
     
-    if type(s) is type(u""):
-        return s
+    if type(string) is type(u""):
+        return string
     
-    for codec in codecs_:
+    for codec in CODECS:
         try:
-            u = unicode(s, codec)
-            return u
+            unic = unicode(string, codec)
         except UnicodeError:
             pass
         except TypeError:
             break
+        else:
+            return unic
     
     # we didn't succeed
-    return s
+    return string
     
 
 def write(text, filename, encoding='utf-8'):

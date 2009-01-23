@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Shell Mixin"""
 
 import sys, time
 import os.path as osp
@@ -14,7 +15,7 @@ def create_banner(moreinfo, message=''):
         message = '\n' + message + '\n'
     return 'Python %s on %s\n' % (sys.version, sys.platform) + \
             moreinfo+'\n' + message + '\n'
-                      
+
 
 class MultipleRedirection:
     """ Dummy file which redirects stream to multiple file """
@@ -28,10 +29,11 @@ class MultipleRedirection:
             
 SHELL = None
 def _raw_input(prompt="", echo=1):
+    """Reimplementation of raw_input builtin (for future developments)"""
     return SHELL.raw_input(prompt, echo)
 
-class ShellInterface(object):
-    """Generic shell interface (to be continued...)"""
+class ShellMixin(object):
+    """Shell Mixin (to be continued...)"""
     log_path = osp.join(osp.expanduser('~'), '.history.py')
     inithistory = [ '"# -*- coding: utf-8 -*-\n\r"' ]
     separator = '# ---(%s)---' % time.ctime()
@@ -74,6 +76,7 @@ class ShellInterface(object):
         self.rawhistory, self.history = self.load_history()
         
     def raw_input(self, prompt, echo):
+        """Reimplementation of raw_input builtin (for future developments)"""
         raise NotImplementedError("raw_input is not yet supported in PyQtShell")
         
     def redirect_stds(self):

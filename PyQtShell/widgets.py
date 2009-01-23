@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""PyQtShell widgets"""
+
+# pylint: disable-msg=C0103
+# pylint: disable-msg=R0903
+# pylint: disable-msg=R0911
+# pylint: disable-msg=R0201
 
 import os, cPickle
 import os.path as osp
@@ -10,7 +16,7 @@ from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
 import encoding
-from dochelpers import getdoc, getsource, getargtxt
+from dochelpers import getdoc, getsource
 from qthelpers import create_action, get_std_icon
 from config import get_font, set_font
 from config import CONF, str2type
@@ -22,10 +28,11 @@ def toggle_actions(actions, enable):
             if action is not None:
                 action.setEnabled(enable)
 
-class BaseWidget(object):
-    """Typical widget interface"""
+class WidgetMixin(object):
+    """Useful methods to bind widgets to the main window"""
     def __init__(self, mainwindow):
         """Bind widget to a QMainWindow instance"""
+        super(WidgetMixin, self).__init__()
         self.mainwindow = mainwindow
         if mainwindow is not None:
             mainwindow.connect(mainwindow, SIGNAL("closing()"), self.closing)
@@ -78,7 +85,7 @@ except ImportError:
     from qtwidgets import QtEditor as EditorBaseWidget
 
 
-class Shell(ShellBaseWidget, BaseWidget):
+class Shell(ShellBaseWidget, WidgetMixin):
     """
     Shell widget
     """
@@ -86,7 +93,7 @@ class Shell(ShellBaseWidget, BaseWidget):
                  parent=None, debug=False):
         ShellBaseWidget.__init__(self, namespace, commands,
                                  message, parent, debug)
-        BaseWidget.__init__(self, parent)
+        WidgetMixin.__init__(self, parent)
         # Parameters
         self.set_font( get_font('shell') )
         self.set_wrap_mode( CONF.get('shell', 'wrap') )
@@ -218,14 +225,14 @@ class PathComboBox(QComboBox):
             QComboBox.keyPressEvent(self, event)
     
 
-class WorkingDirectory(QWidget, BaseWidget):
+class WorkingDirectory(QWidget, WidgetMixin):
     """
     Working directory changer widget
     """
     log_path = osp.join(osp.expanduser('~'), '.workingdir')
     def __init__(self, parent):
         QWidget.__init__(self, parent)
-        BaseWidget.__init__(self, parent)
+        WidgetMixin.__init__(self, parent)
         
         layout = QHBoxLayout()
         if self.mainwindow is None:
@@ -322,14 +329,14 @@ class WorkingDirectory(QWidget, BaseWidget):
 
 #TODO: TabWidget to open more than one script at a time
 #TODO: Link: edit with external editor
-class Editor(EditorBaseWidget, BaseWidget):
+class Editor(EditorBaseWidget, WidgetMixin):
     """
     Editor widget
     """
     file_path = osp.join(osp.expanduser('~'), '.QtShell_tempfile')
     def __init__(self, parent):
         EditorBaseWidget.__init__(self, parent)
-        BaseWidget.__init__(self, parent)
+        WidgetMixin.__init__(self, parent)
         self.filename = None
         self.encoding = 'utf-8'
         self.load_temp_file()
@@ -475,13 +482,13 @@ class Editor(EditorBaseWidget, BaseWidget):
         self.set_wrap_mode(checked)
 
 
-class HistoryLog(EditorBaseWidget, BaseWidget):
+class HistoryLog(EditorBaseWidget, WidgetMixin):
     """
     History log widget
     """
     def __init__(self, parent):
         EditorBaseWidget.__init__(self, parent)
-        BaseWidget.__init__(self, parent)
+        WidgetMixin.__init__(self, parent)
         self.setReadOnly(True)
         self.set_font( get_font('history') )
         self.set_wrap_mode( CONF.get('history', 'wrap') )
@@ -513,13 +520,13 @@ class HistoryLog(EditorBaseWidget, BaseWidget):
         pass
 
 
-class DocViewer(QWidget, BaseWidget):
+class DocViewer(QWidget, WidgetMixin):
     """
     Docstrings viewer widget
     """
     def __init__(self, parent):
         QWidget.__init__(self, parent)
-        BaseWidget.__init__(self, parent)
+        WidgetMixin.__init__(self, parent)
 
         # Read-only editor
         self.editor = EditorBaseWidget(self)
@@ -605,8 +612,8 @@ class DocViewer(QWidget, BaseWidget):
 
 
 class NoValue(object):
+    """Dummy class used by wsfilter"""
     pass
-
 
 def wsfilter(obj_in, rec=0):
     """Keep only objects that can be saved"""
@@ -645,7 +652,7 @@ def wsfilter(obj_in, rec=0):
 
 from dicteditor import DictEditor
 
-class Workspace(DictEditor, BaseWidget):
+class Workspace(DictEditor, WidgetMixin):
     """
     Workspace widget (namespace explorer)
     """
@@ -654,7 +661,7 @@ class Workspace(DictEditor, BaseWidget):
         self.shell = None
         self.namespace = None
         DictEditor.__init__(self, parent, None)
-        BaseWidget.__init__(self, parent)
+        WidgetMixin.__init__(self, parent)
         self.load_namespace()
         self.refresh()
         
@@ -735,7 +742,7 @@ class Workspace(DictEditor, BaseWidget):
 
 def tests():
     """
-    Testing all widgets
+    Testing Working Directory Widget
     """
     import sys
     from PyQt4.QtGui import QApplication
