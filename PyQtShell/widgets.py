@@ -707,10 +707,35 @@ class Workspace(DictEditor, WidgetMixin):
                  exclude_private_action,
                  None, save_action,), None)
         
+    def toggle_autosave(self, checked):
+        """Toggle autosave mode"""
+        CONF.set('workspace', 'autosave', checked)
+        
     def closing(self):
         """Perform actions before parent main window is closed"""
         if CONF.get('workspace', 'autosave'):
+            # Saving workspace
             self.save_namespace()
+        else:
+            workspace = wsfilter(self.namespace)
+            refnb = len(workspace)
+            if refnb > 1:
+                srefnb = str(refnb)
+                s_or_not = 's'
+                it_or_them = self.tr('them')
+            else:
+                srefnb = self.tr('one')
+                s_or_not = ''
+                it_or_them = self.tr('it')
+            if refnb and QMessageBox.question(self, self.tr("Quit"),
+               self.tr("Workspace is currently keeping reference to %1 object%2.\n\nDo you want to save %3?") \
+               .arg(srefnb).arg(s_or_not).arg(it_or_them),
+               QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
+                # Saving workspace
+                self.save_namespace()
+            elif osp.isfile(self.file_path):
+                # Removing last saved workspace
+                os.remove(self.file_path)
     
     def load_namespace(self):
         """Attempt to load last session namespace"""
@@ -720,8 +745,9 @@ class Workspace(DictEditor, WidgetMixin):
             except (EOFError, ValueError):
                 os.remove(self.file_path)
                 return
-            os.remove(self.file_path)
-            self.namespace = namespace
+            else:
+                os.remove(self.file_path)
+                self.namespace = namespace
         else:
             self.namespace = None
         
@@ -729,10 +755,6 @@ class Workspace(DictEditor, WidgetMixin):
         """Save current namespace"""
         cPickle.dump(wsfilter(self.namespace),
                      file(self.file_path, 'w'))
-        
-    def toggle_autosave(self, checked):
-        """Toggle autosave mode"""
-        CONF.set('workspace', 'autosave', checked)
         
     def toggle_exclude_private(self, checked):
         """Toggle exclude private references"""
