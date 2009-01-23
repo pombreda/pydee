@@ -205,9 +205,9 @@ def get_options():
     parser.add_option('-l', '--light', dest="light", action='store_true',
                       default=False,
                       help="Light version (all add-ons are disabled)")
-    parser.add_option('-w', '--workdir', dest="workdir", default='',
+    parser.add_option('-w', '--workdir', dest="working_directory", default='',
                       help="Default working directory")
-    parser.add_option('-m', '--modules', dest="modules", default='',
+    parser.add_option('-m', '--modules', dest="module_list", default='',
                       help="Modules to import (comma separated)")
     parser.add_option('-p', '--pylab', dest="pylab", action='store_true',
                       default=False,
@@ -227,10 +227,10 @@ def get_options():
     options, _args = parser.parse_args()
     messagelist = []
     commands = []
-    if options.workdir:
-        os.chdir(options.workdir)
-    if options.modules:
-        for mod in options.modules.split(','):
+    if options.working_directory:
+        os.chdir(options.working_directory)
+    if options.module_list:
+        for mod in options.module_list.split(','):
             mod = mod.strip()
             try:
                 __import__(mod)
