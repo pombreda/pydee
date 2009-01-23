@@ -144,7 +144,8 @@ class QsciShell(QsciScintilla, ShellInterface):
         self.histidx = -1
         
         # Excecution Status
-        self.more = 0
+        self.more = False
+        self.more_tabs = 0
         
         # Multi line execution Buffer
         self.execlines = []
@@ -289,21 +290,13 @@ class QsciShell(QsciScintilla, ShellInterface):
         # Execute command
         self.execlines.append(unicode(cmd))
         source = '\n'.join(self.execlines)
-        more = self.interpreter.runsource(source)
-        if more:
-            cmd_ws = cmd.strip()
-            if cmd_ws:
-                for text in ['for', 'if', 'else', 'elif', 'while',
-                             'def', 'class', 'try', 'except']:
-                    if cmd_ws.startswith(text):
-                        self.more += 1
-#            else:
-#                self.more -= 1
-        else:
-            self.more = 0
-
+        self.more = self.interpreter.runsource(source)
         if self.more:
-            self.write(self.prompt_more + ("    "*self.more))
+            if cmd.endswith(':'):
+                self.more_tabs += 1
+            elif cmd.strip()=='':
+                self.more_tabs -= 1
+            self.write(self.prompt_more + ("    "*self.more_tabs))
         else:
             self.write(self.prompt)
             self.execlines = []
