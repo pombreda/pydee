@@ -29,8 +29,12 @@ def getargtxt(obj, one_arg_per_line=True):
     else:
         return None
     if not hasattr(func_obj, 'func_code'):
-        # Builtins are rejected here...
-        return None
+        # Builtin: try to extract info from getdoc
+        doc = getdoc(func_obj)
+        name = func_obj.__name__
+        if not doc.startswith(name):
+            return None
+        return doc[len(name)+1:doc.find(')')].split()
     args, _, _ = inspect.getargs(func_obj.func_code)
     defaults = func_obj.func_defaults
     if defaults is not None:
@@ -49,8 +53,6 @@ def getargtxt(obj, one_arg_per_line=True):
         textlist.remove('self'+sep)
     return textlist
     
-#import subprocess
-#t = getargtxt(subprocess.Popen)
-#print subprocess.Popen
-#print t
-#print len(t[0])
+    
+# Builtin case:
+print getargtxt(sorted)
