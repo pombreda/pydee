@@ -43,7 +43,7 @@ class WidgetMixin(object):
         """Perform actions before parent main window is closed"""
         raise NotImplementedError
         
-    def get_name(self):
+    def get_name(self, raw=True):
         """Return widget name"""
         raise NotImplementedError
     
@@ -59,8 +59,7 @@ class WidgetMixin(object):
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
         allowed_areas, location = self.get_dockwidget_properties()
-        dock = QDockWidget(self.get_name().replace('&',''),
-                           self.mainwindow)
+        dock = QDockWidget(self.get_name(raw=False), self.mainwindow)
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(allowed_areas)
         dock.setWidget(self)
@@ -103,9 +102,13 @@ class Shell(ShellBaseWidget, WidgetMixin):
         return (self.tr('Type "copyright", "credits" or "license" for more information.'),
                 self.tr('Type "object?" for details on "object"'))
         
-    def get_name(self):
+    def get_name(self, raw=True):
         """Return widget name"""
-        return self.tr("&Console")
+        name = self.tr("&Console")
+        if raw:
+            return name
+        else:
+            return name.replace("&", "")
         
     def closing(self):
         """Perform actions before parent main window is closed"""
@@ -266,7 +269,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
         
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         
-    def get_name(self):
+    def get_name(self, raw=True):
         """Return widget name"""
         return self.tr('Working directory')
     
@@ -359,9 +362,13 @@ class Editor(EditorBaseWidget, WidgetMixin):
             title = title[:-1]
         self.dockwidget.setWindowTitle(title)
         
-    def get_name(self):
+    def get_name(self, raw=True):
         """Return widget name"""
-        return self.tr('&Editor')
+        name = self.tr('&Editor')
+        if raw:
+            return name
+        else:
+            return name.replace("&", "")
     
     def get_dockwidget_properties(self):
         """Return QDockWidget properties"""
@@ -397,10 +404,11 @@ class Editor(EditorBaseWidget, WidgetMixin):
         """Perform actions before parent main window is closed"""
         if self.filename == self.file_path:
             self.save(prompt=False)
-        elif self.isModified() and QMessageBox.question(self, self.tr("Quit"),
-               osp.basename(self.filename)+' '+ \
-               self.tr(" has been modified.\nDo you want to save changes?"),
-               QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
+        elif self.isModified() and QMessageBox.question(self,
+                self.get_name(raw=False),
+                osp.basename(self.filename)+' '+ \
+                self.tr(" has been modified.\nDo you want to save changes?"),
+                QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
             self.save(prompt=False)
         
     def load_temp_file(self):
@@ -443,7 +451,7 @@ class Editor(EditorBaseWidget, WidgetMixin):
         
         if self.dockwidget is None:
             return
-        title = self.get_name().replace('&','')
+        title = self.get_name(raw=False)
         if self.filename != self.file_path:
             title += ' - ' + osp.basename(self.filename)
         else:
@@ -496,9 +504,13 @@ class HistoryLog(EditorBaseWidget, WidgetMixin):
         self.history = self.mainwindow.shell.rawhistory
         self.refresh()
         
-    def get_name(self):
+    def get_name(self, raw=True):
         """Return widget name"""
-        return self.tr('&History log')
+        name = self.tr('&History log')
+        if raw:
+            return name
+        else:
+            return name.replace("&", "")
     
     def get_dockwidget_properties(self):
         """Return QDockWidget properties"""
@@ -558,9 +570,13 @@ class DocViewer(QWidget, WidgetMixin):
         layout.addWidget(self.editor)
         self.setLayout(layout)
         
-    def get_name(self):
+    def get_name(self, raw=True):
         """Return widget name"""
-        return self.tr('&Doc')
+        name = self.tr('&Doc')
+        if raw:
+            return name
+        else:
+            return name.replace("&", "")
     
     def get_dockwidget_properties(self):
         """Return QDockWidget properties"""
@@ -665,9 +681,13 @@ class Workspace(DictEditor, WidgetMixin):
         self.load_namespace()
         self.refresh()
         
-    def get_name(self):
+    def get_name(self, raw=True):
         """Return widget name"""
-        return self.tr('&Workspace')
+        name = self.tr('&Workspace')
+        if raw:
+            return name
+        else:
+            return name.replace("&", "")
     
     def get_dockwidget_properties(self):
         """Return QDockWidget properties"""
@@ -727,7 +747,7 @@ class Workspace(DictEditor, WidgetMixin):
                 srefnb = self.tr('one')
                 s_or_not = ''
                 it_or_them = self.tr('it')
-            if refnb and QMessageBox.question(self, self.tr("Quit"),
+            if refnb and QMessageBox.question(self, self.get_name(raw=False),
                self.tr("Workspace is currently keeping reference to %1 object%2.\n\nDo you want to save %3?") \
                .arg(srefnb).arg(s_or_not).arg(it_or_them),
                QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
