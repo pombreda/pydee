@@ -46,16 +46,6 @@
         <translation>Console PyQtShell</translation>
     </message>
     <message>
-        <location filename="console.py" line="115"/>
-        <source>Quit</source>
-        <translation type="obsolete">Quitter</translation>
-    </message>
-    <message>
-        <location filename="console.py" line="116"/>
-        <source>Are you sure you want to quit?</source>
-        <translation type="obsolete">Souhaitez-vous réellement quitter ?</translation>
-    </message>
-    <message>
         <location filename="console.py" line="44"/>
         <source>Welcome to PyQtShell demo!</source>
         <translation>Bienvenue dans la console de démontration de PyQtShell !</translation>
@@ -95,72 +85,51 @@
     </message>
 </context>
 <context>
-    <name>DictEditorWidget</name>
+    <name>DictEditor</name>
     <message>
-        <location filename="dicteditor.py" line="330"/>
-        <source>Sort columns</source>
-        <translation>Classement des colonnes</translation>
+        <location filename="dicteditor.py" line="212"/>
+        <source>Type</source>
+        <translation>Type</translation>
     </message>
     <message>
-        <location filename="dicteditor.py" line="332"/>
-        <source>Always edit in-place</source>
-        <translation>Édition en ligne pour tous les types</translation>
-    </message>
-</context>
-<context>
-    <name>DictModel</name>
-    <message>
-        <location filename="dicteditor.py" line="208"/>
-        <source>Value</source>
-        <translation>Valeur</translation>
-    </message>
-    <message>
-        <location filename="dicteditor.py" line="206"/>
+        <location filename="dicteditor.py" line="213"/>
         <source>Size</source>
         <translation>Taille</translation>
     </message>
     <message>
-        <location filename="dicteditor.py" line="206"/>
-        <source>Type</source>
-        <translation>Type</translation>
+        <location filename="dicteditor.py" line="214"/>
+        <source>Value</source>
+        <translation>Valeur</translation>
     </message>
-</context>
-<context>
-    <name>DictModelRO</name>
     <message>
-        <location filename="dicteditor.py" line="99"/>
+        <location filename="dicteditor.py" line="114"/>
         <source>Tuple</source>
         <translation>Tuple</translation>
     </message>
     <message>
-        <location filename="dicteditor.py" line="102"/>
+        <location filename="dicteditor.py" line="117"/>
         <source>List</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="dicteditor.py" line="105"/>
+        <location filename="dicteditor.py" line="120"/>
         <source>Dictionary</source>
         <translation>Dictionnaire</translation>
     </message>
     <message>
-        <location filename="dicteditor.py" line="107"/>
+        <location filename="dicteditor.py" line="123"/>
         <source>elements</source>
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="dicteditor.py" line="192"/>
-        <source>Value</source>
-        <translation>Valeur</translation>
+        <location filename="dicteditor.py" line="352"/>
+        <source>Sort columns</source>
+        <translation>Classement des colonnes</translation>
     </message>
     <message>
-        <location filename="dicteditor.py" line="190"/>
-        <source>Size</source>
-        <translation>Taille</translation>
-    </message>
-    <message>
-        <location filename="dicteditor.py" line="190"/>
-        <source>Type</source>
-        <translation>Type</translation>
+        <location filename="dicteditor.py" line="355"/>
+        <source>Always edit in-place</source>
+        <translation>Édition en ligne pour tous les types</translation>
     </message>
 </context>
 <context>
@@ -285,7 +254,7 @@ Do you want to save changes?</source>
     <message>
         <location filename="widgets.py" line="496"/>
         <source>&amp;History log</source>
-        <translation>Historique</translation>
+        <translation>&amp;Historique</translation>
     </message>
 </context>
 <context>
@@ -461,7 +430,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
     <message>
         <location filename="widgets.py" line="665"/>
         <source>&amp;Workspace</source>
-        <translation>Espace de travail</translation>
+        <translation>Espace de &amp;travail</translation>
     </message>
     <message>
         <location filename="widgets.py" line="695"/>

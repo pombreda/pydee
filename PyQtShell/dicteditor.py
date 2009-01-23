@@ -3,6 +3,11 @@
 Dictionary Editor Widget and Dialog based on PyQt4
 """
 
+# pylint: disable-msg=C0103
+# pylint: disable-msg=R0903
+# pylint: disable-msg=R0911
+# pylint: disable-msg=R0201
+
 from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
 from PyQt4.QtCore import SIGNAL, SLOT
 from PyQt4.QtGui import QHBoxLayout, QTableView, QItemDelegate
@@ -11,13 +16,16 @@ from PyQt4.QtGui import QDialog, QDialogButtonBox
 
 # Local import
 from config import get_icon, get_font
+from qthelpers import translate
 
 class FakeObject(object):
+    """Fake class used in replacement of missing modules"""
     pass
 try:
-    from numpy import ndarray, array
+    from numpy import ndarray
 except ImportError:
     class ndarray(FakeObject):
+        """Fake ndarray"""
         pass
 
 COLORS = {
@@ -30,9 +38,9 @@ COLORS = {
           ndarray: Qt.green,
           }
 
-def sort_against(a, b, reverse=False):
-    """Arrange a list items in the same order as sorted(b) list"""
-    return [item for _, item in sorted(zip(b, a), reverse=reverse)]
+def sort_against(lista, listb, reverse=False):
+    """Arrange lista items in the same order as sorted(listb)"""
+    return [item for _, item in sorted(zip(listb, lista), reverse=reverse)]
 
 def value_to_display(value):
     """Convert value for display purpose"""
@@ -81,30 +89,38 @@ def get_type(item):
 
 class DictModelRO(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
-    def __init__(self, parent, data, filter=None, sortkeys=True):
+    def __init__(self, parent, data, dictfilter=None, sortkeys=True):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
         self.sortkeys = sortkeys
-        self.set_data(data, filter)
+        self._data = None
+        self.showndata = None
+        self.keys = None
+        self.title = None
+        self.sizes = None
+        self.types = None
+        self.set_data(data, dictfilter)
             
-    def set_data(self, data, filter):
+    def set_data(self, data, dictfilter):
+        """Set model data"""
         self._data = data
-        if filter is not None:
-            data = filter(data)
+        if dictfilter is not None:
+            data = dictfilter(data)
         self.showndata = data
         if isinstance(data, tuple):
             self.keys = range(len(data))
-            self.title = self.tr("Tuple")
+            self.title = translate("DictEditor", "Tuple")
         elif isinstance(data, list):
             self.keys = range(len(data))
-            self.title = self.tr("List")
+            self.title = translate("DictEditor", "List")
         elif isinstance(data, dict):
             self.keys = data.keys()
-            self.title = self.tr("Dictionary")
+            self.title = translate("DictEditor", "Dictionary")
         else:
             raise RuntimeError("Invalid data type")
-        self.title += ' ('+str(len(self.keys))+' '+self.tr("elements")+')'
+        self.title += ' ('+str(len(self.keys))+' '+ \
+                      translate("DictEditor", "elements")+')'
         self.sizes = [ get_size(data[self.keys[index]])
                        for index in range(len(self.keys)) ]
         self.types = [ get_type(data[self.keys[index]])
@@ -113,25 +129,26 @@ class DictModelRO(QAbstractTableModel):
             self.sort(-1)
 
     def sort(self, column, order=Qt.AscendingOrder):
+        """Overriding sort method"""
         reverse = (order==Qt.DescendingOrder)
-        if column==0:
+        if column == 0:
             self.keys = sort_against(self.keys, self.types, reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
             self.types.sort(reverse=reverse)
-        elif column==1:
+        elif column == 1:
             self.keys = sort_against(self.keys, self.sizes, reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
             self.sizes.sort(reverse=reverse)
-        elif column==2:
+        elif column == 2:
             self.keys = sort_against(self.keys, self.sizes, reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
             self.sizes.sort(reverse=reverse)
-        elif column==3:
+        elif column == 3:
             values = [self._data[key] for key in self.keys]
             self.keys = sort_against(self.keys, values, reverse)
             self.sizes = sort_against(self.sizes, values, reverse)
             self.types = sort_against(self.types, values, reverse)
-        elif column==-1:
+        elif column == -1:
             self.sizes = sort_against(self.sizes, self.keys, reverse)
             self.types = sort_against(self.types, self.keys, reverse)
             self.keys.sort(reverse=reverse)
@@ -186,24 +203,21 @@ class DictModelRO(QAbstractTableModel):
             return QVariant(get_font('dicteditor'))
         return QVariant()
     
-    def get_header_text(self):
-        return self.tr("Type"), self.tr("Size"), self.tr("Value")
-    
     def headerData(self, section, orientation, role=Qt.DisplayRole):
+        """Overriding method headerData"""
         if role != Qt.DisplayRole:
             return QVariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
-            return QVariant( self.get_header_text()[i_column] )
+            headers = (translate("DictEditor", "Type"),
+                       translate("DictEditor", "Size"),
+                       translate("DictEditor", "Value"))
+            return QVariant( headers[i_column] )
         else:
             return QVariant( self.keys[i_column] )
 
 class DictModel(DictModelRO):
     """DictEditor Table Model"""
-    
-    def get_header_text(self):
-        # Exactly the same as above but needed for translation purpose
-        return self.tr("Type"), self.tr("Size"), self.tr("Value")
     
     def set_value(self, index, value):
         """Set value"""
@@ -241,6 +255,7 @@ class DictModel(DictModelRO):
         return True
 
     def flags(self, index):
+        """Overriding method flags"""
         if not index.isValid():
             return Qt.ItemIsEnabled
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
@@ -254,6 +269,7 @@ class DictDelegate(QItemDelegate):
         self.inplace = False
 
     def createEditor(self, parent, option, index):
+        """Overriding method createEditor"""
         if index.column()<2:
             return None
         value = index.model().get_value(index)
@@ -278,21 +294,25 @@ class DictDelegate(QItemDelegate):
             return editor
 
     def commitAndCloseEditor(self):
+        """Overriding method commitAndCloseEditor"""
         editor = self.sender()
         self.emit(SIGNAL("commitData(QWidget*)"), editor)
         self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
 
     def setEditorData(self, editor, index):
+        """Overriding method setEditorData"""
         if isinstance(editor, QLineEdit):
             text = index.model().data(index, Qt.DisplayRole).toString()
             editor.setText(text)
 
     def setModelData(self, editor, model, index):
+        """Overriding method setModelData"""
         if isinstance(editor, QLineEdit):
             model.setData(index, QVariant(editor.text()))
 
 
 class DictEditor(QTableView):
+    """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, sort_by=None):
         QTableView.__init__(self, parent)
         self.readonly = readonly
@@ -309,14 +329,16 @@ class DictEditor(QTableView):
         self.horizontalHeader().setStretchLastSection(True)
         
     def set_inplace_editor(self, state):
+        """Set option in-place editor"""
         if state:
             self.delegate.inplace = True
         else:
             self.delegate.inplace = False
         
-    def set_data(self, data, filter=None):
+    def set_data(self, data, dictfilter=None):
+        """Set table data"""
         if data is not None:
-            self.model.set_data(data, filter)
+            self.model.set_data(data, dictfilter)
             for col in range(2):
                 self.resizeColumnToContents(col)
 
@@ -327,9 +349,10 @@ class DictEditorWidget(QWidget):
 
         # Options
         layout_opts = QHBoxLayout()
-        self.cb_sort = QCheckBox(self.tr("Sort columns"))
+        self.cb_sort = QCheckBox(translate("DictEditor", "Sort columns"))
         layout_opts.addWidget(self.cb_sort)
-        self.cb_inline = QCheckBox(self.tr("Always edit in-place"))
+        self.cb_inline = QCheckBox(translate("DictEditor",
+                                             "Always edit in-place"))
         layout_opts.addWidget(self.cb_inline)
 
         layout = QVBoxLayout()
@@ -343,15 +366,17 @@ class DictEditorWidget(QWidget):
         self.setLayout(layout)
         
     def set_data(self, data):
+        """Set DictEditor data"""
         self.editor.set_data(data)
         
     def get_title(self):
+        """Get model title"""
         return self.editor.model.title
 
 
 class DictEditorDialog(QDialog):
     """Dictionary/List Editor Dialog"""
-    def __init__(self, title, data, format="%.3f", xy=False):
+    def __init__(self, title, data):
         QDialog.__init__(self)
         import copy
         self.copy = copy.deepcopy(data)
