@@ -148,7 +148,6 @@ class QsciShell(QsciScintilla, ShellMixin):
         
         # Excecution Status
         self.more = False
-        self.more_tabs = 0
         
         # Multi line execution Buffer
         self.execlines = []
@@ -295,11 +294,7 @@ class QsciShell(QsciScintilla, ShellMixin):
         source = '\n'.join(self.execlines)
         self.more = self.interpreter.runsource(source)
         if self.more:
-            if cmd.endswith(':'):
-                self.more_tabs += 1
-            elif cmd.strip()=='':
-                self.more_tabs -= 1
-            self.write(self.prompt_more + ("    "*self.more_tabs))
+            self.write(self.prompt_more)
         else:
             self.write(self.prompt)
             self.execlines = []
