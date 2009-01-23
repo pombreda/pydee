@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 """Qt utilities"""
 
-from PyQt4.QtGui import QAction, QStyle, QWidget, QIcon
+from PyQt4.QtGui import QAction, QStyle, QWidget, QIcon, QApplication
 from PyQt4.QtGui import QVBoxLayout, QHBoxLayout, QLineEdit, QLabel
 from PyQt4.QtCore import SIGNAL
 
 # Local import
 from config import get_icon
+
+def translate(context, string):
+    """Translation"""
+    return QApplication.translate(context, string)
 
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None):
