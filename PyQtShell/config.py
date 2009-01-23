@@ -123,7 +123,7 @@ DEFAULTS = [
 DEV = osp.isfile(osp.join(osp.join(APP_PATH, osp.pardir), 'setup.py'))
 #DEV = False
 from userconfig import UserConfig
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.5', load=(not DEV))
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.6', load=(not DEV))
 
 def get_image_path( name, default="not_found.png" ):
     """
