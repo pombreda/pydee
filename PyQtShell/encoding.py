@@ -6,7 +6,7 @@ Functions 'get_coding', 'decode', 'encode' and 'to_unicode' come from Eric4
 source code (Utilities/__init___.py) Copyright © 2003-2009 Detlev Offenbach
 """
 
-import re
+import re, os
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
 from PyQt4.QtCore import QString
 
@@ -140,7 +140,7 @@ def writelines(lines, filename, encoding='utf-8'):
     Write 'lines' to file ('filename') assuming 'encoding'
     Return (eventually new) encoding
     """
-    return write("\n".join(lines), filename, encoding)
+    return write(os.linesep.join(lines), filename, encoding)
 
 def read(filename, encoding='utf-8'):
     """
@@ -156,4 +156,4 @@ def readlines(filename, encoding='utf-8'):
     Return lines and encoding
     """
     text, encoding = read(filename, encoding)
-    return text.split('\n'), encoding
+    return text.split(os.linesep), encoding
