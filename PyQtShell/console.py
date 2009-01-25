@@ -6,9 +6,9 @@ PyQtShell Console
 __version__ = '0.1.3'
 
 import sys, os, platform
-from PyQt4.QtGui import QApplication, QMainWindow
+from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap
 from PyQt4.QtGui import QMessageBox, QMenu
-from PyQt4.QtCore import SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint
+from PyQt4.QtCore import SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt
 from PyQt4.QtCore import QLibraryInfo, QLocale, QTranslator, QSize, QByteArray
 
 # Local import
@@ -27,6 +27,8 @@ class ConsoleWindow(QMainWindow):
         self.light = light
         self.filename = None
         namespace = None
+        self.splash = QSplashScreen(QPixmap('images\\splash.png', 'png'))
+        self.splash.show()
 
         if not light:
             # Toolbar
@@ -53,6 +55,7 @@ class ConsoleWindow(QMainWindow):
             
             # Workspace init
             if CONF.get('workspace', 'enable'):
+                self.set_splash(self.tr("Loading workspace..."))
                 self.workspace = Workspace(self)
                 namespace = self.workspace.namespace
         
@@ -70,6 +73,7 @@ class ConsoleWindow(QMainWindow):
         
             # Workspace
             if CONF.get('workspace', 'enable'):
+                self.set_splash(self.tr("Loading workspace widget..."))
                 self.workspace.set_shell(self.shell)
                 self.add_dockwidget(self.workspace)
                 self.add_to_menubar(self.workspace)
@@ -79,6 +83,7 @@ class ConsoleWindow(QMainWindow):
         
             # Editor widget
             if CONF.get('editor', 'enable'):
+                self.set_splash(self.tr("Loading editor widget..."))
                 self.editor = Editor( self )
                 self.add_dockwidget(self.editor)
                 self.add_to_menubar(self.editor)
@@ -86,6 +91,7 @@ class ConsoleWindow(QMainWindow):
         
             # History log widget
             if CONF.get('history', 'enable'):
+                self.set_splash(self.tr("Loading history widget..."))
                 self.historylog = HistoryLog( self )
                 self.add_dockwidget(self.historylog)
                 self.connect(self.shell, SIGNAL("refresh()"),
@@ -93,6 +99,7 @@ class ConsoleWindow(QMainWindow):
         
             # Doc viewer widget
             if CONF.get('docviewer', 'enable'):
+                self.set_splash(self.tr("Loading docviewer widget..."))
                 self.docviewer = DocViewer( self )
                 self.add_dockwidget(self.docviewer)
                 self.shell.set_docviewer(self.docviewer)
@@ -125,8 +132,14 @@ class ConsoleWindow(QMainWindow):
             hexstate = CONF.get(section, 'state')
             self.restoreState( QByteArray().fromHex(hexstate) )
             
+        self.splash.hide()
         # Give focus to shell widget
         self.shell.setFocus()
+        
+    def set_splash(self, message):
+        """Set splash message"""
+        self.splash.show()
+        self.splash.showMessage(message+'\n', Qt.AlignBottom | Qt.AlignHCenter)
         
     def closeEvent(self, event):
         """Exit confirmation"""
