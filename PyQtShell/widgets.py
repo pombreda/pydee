@@ -644,10 +644,10 @@ class NoValue(object):
 
 def wsfilter(obj_in, rec=0):
     """Keep only objects that can be saved"""
-    filters = str2type(CONF.get('workspace', 'filters'))
+    filters = tuple(str2type(CONF.get('workspace', 'filters')))
     exclude_private = CONF.get('workspace', 'exclude_private')
     exclude_upper = CONF.get('workspace', 'exclude_upper')
-    if rec == 3:
+    if rec == 2:
         return NoValue
     obj_out = obj_in
     if isinstance(obj_in, dict):
@@ -656,16 +656,18 @@ def wsfilter(obj_in, rec=0):
             value = obj_in[key]
             if rec == 0:
                 # Excluded references for namespace to be saved without error
-                if key in  CONF.get('workspace', 'excluded'):
+                if key in CONF.get('workspace', 'excluded'):
                     continue
                 if exclude_private and key.startswith('_'):
                     continue
                 if exclude_upper and key[0].isupper():
                     continue
-            if isinstance(value, filters):
-                value = wsfilter(value, rec+1)
-                if value is not NoValue:
-                    obj_out[key] = value
+                if isinstance(value, filters):
+                    value = wsfilter(value, rec+1)
+                    if value is not NoValue:
+                        obj_out[key] = value
+            elif not isinstance(value, filters) or not isinstance(key, filters):
+                return NoValue
 #    elif isinstance(obj_in, (list, tuple)):
 #        obj_out = []
 #        for value in obj_in:

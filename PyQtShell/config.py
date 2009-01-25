@@ -17,6 +17,9 @@ try:
 except ImportError:
     pass
 
+EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc', 'e', 'pi',
+            'sctypes', 'typecodes']
+
 def type2str(types):
     """Convert types to strings"""
     return [typ.__name__ for typ in types]
@@ -98,7 +101,7 @@ DEFAULTS = [
               'enable' : True,
               'filters' : type2str(FILTERS),
               'autosave' : False,
-              'excluded': ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc'],
+              'excluded': EXCLUDED,
               'exclude_private': True,
               'exclude_upper': True,
               }),
