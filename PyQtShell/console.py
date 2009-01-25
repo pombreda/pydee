@@ -21,7 +21,8 @@ from config import get_icon, CONF
 
 class ConsoleWindow(QMainWindow):
     """Console QDialog"""
-    def __init__(self, commands=None, message="", debug=False, light=False):
+    def __init__(self, commands=None, message="",
+                 workdir=None, debug=False, light=False):
         super(ConsoleWindow, self).__init__()
         self.light = light
         self.filename = None
@@ -96,7 +97,7 @@ class ConsoleWindow(QMainWindow):
                 self.shell.set_docviewer(self.docviewer)
         
         # Working directory changer widget
-        self.workdir = WorkingDirectory( self )
+        self.workdir = WorkingDirectory( self, workdir )
         self.connect(self.shell, SIGNAL("refresh()"),
                      self.workdir.refresh)
         self.add_toolbar(self.workdir)
@@ -206,7 +207,7 @@ def get_options():
     parser.add_option('-l', '--light', dest="light", action='store_true',
                       default=False,
                       help="Light version (all add-ons are disabled)")
-    parser.add_option('-w', '--workdir', dest="working_directory", default='',
+    parser.add_option('-w', '--workdir', dest="working_directory", default=None,
                       help="Default working directory")
     parser.add_option('-m', '--modules', dest="module_list", default='',
                       help="Modules to import (comma separated)")
@@ -228,8 +229,6 @@ def get_options():
     options, _args = parser.parse_args()
     messagelist = []
     commands = []
-    if options.working_directory:
-        os.chdir(options.working_directory)
     if options.module_list:
         for mod in options.module_list.split(','):
             mod = mod.strip()
@@ -292,7 +291,7 @@ def main():
     if app_translator.load("console_" + locale, app_path):
         app.installTranslator(app_translator)
     commands, message, options = get_options()
-    window = ConsoleWindow(commands, message,
+    window = ConsoleWindow(commands, message, workdir=options.working_directory,
                            light=options.light, debug=options.debug)
     window.show()
     sys.exit(app.exec_())
