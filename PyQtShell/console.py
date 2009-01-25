@@ -112,8 +112,8 @@ class ConsoleWindow(QMainWindow):
                 triggered=self.about))
         
         # Window set-up
-        self.setWindowIcon(get_icon('qtshell.png'))
-        self.setWindowTitle(self.tr('PyQtShell Console'))
+        self.setWindowIcon(get_icon('console.png'))
+        self.setWindowTitle(self.tr('Python Console'))
         section = 'lightwindow' if self.light else 'window'
         width, height = CONF.get(section, 'size')
         self.resize( QSize(width, height) )
@@ -183,8 +183,9 @@ class ConsoleWindow(QMainWindow):
         QMessageBox.about(self,
             self.tr("About %1").arg(self.tr('PyQtShell Console')),
             self.tr("""<b>%1</b> v %2
+            <br>Enhanced Python interpreter emulation
             <p>Copyright &copy; 2009 Pierre Raybaut - GPLv3
-            <p>Interactive console demo.
+            <p>This project will soon be part of <a href="http://www.google.fr">Python(x,y) distribution</a>
             <p>Python %3 - Qt %4 - PyQt %5 on %6""") \
             .arg(self.tr('PyQtShell Console')).arg(__version__) \
             .arg(platform.python_version()).arg(QT_VERSION_STR) \
