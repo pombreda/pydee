@@ -18,7 +18,7 @@ except ImportError:
     pass
 
 EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc', 'e', 'pi',
-            'sctypes', 'typecodes']
+            'sctypes', 'typecodes', 'rcParams', 'rcParamsDefault']
 
 def type2str(types):
     """Convert types to strings"""
@@ -126,7 +126,7 @@ DEFAULTS = [
 DEV = osp.isfile(osp.join(osp.join(APP_PATH, osp.pardir), 'setup.py'))
 #DEV = False
 from userconfig import UserConfig
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.7', load=(not DEV))
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.8', load=(not DEV))
 
 def get_image_path( name, default="not_found.png" ):
     """
