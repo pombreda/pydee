@@ -85,6 +85,8 @@ def get_size(item):
 def get_type(item):
     """Return type of an item"""
     text = str(type(item)).replace("<type '", "").replace("'>", "")
+    if text.endswith('ndarray'):
+        text += '\n('+str(item.dtype)+')'
     return text[text.find('.')+1:]
 
 class DictModelRO(QAbstractTableModel):
