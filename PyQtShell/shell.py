@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Shell Mixin"""
 
+#TODO: Implement a plateform independent 'ls'
+
 import sys, time
 import os.path as osp
 import code
