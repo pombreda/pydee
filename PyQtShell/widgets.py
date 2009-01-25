@@ -387,16 +387,13 @@ class Editor(EditorBaseWidget, WidgetMixin):
     def set_actions(self):
         """Setup actions"""
         open_action = create_action(self, self.tr("Open..."), None,
-            get_std_icon('DialogOpenButton', 16),
-            self.tr("Open a Python script"),
+            'py_open.png', self.tr("Open a Python script"),
             triggered = self.load)
         save_action = create_action(self, self.tr("Save"), "Ctrl+S",
-            get_std_icon('DialogSaveButton', 16),
-            self.tr("Save current script"),
+            'py_save.png', self.tr("Save current script"),
             triggered = self.save)
-        save_action_as = create_action(self, self.tr("Save as..."), None,
-            get_std_icon('DialogSaveButton', 16),
-            self.tr("Save current script as..."),
+        save_as_action = create_action(self, self.tr("Save as..."), None,
+            'py_save_as.png', self.tr("Save current script as..."),
             triggered = self.save_as)
         exec_action = create_action(self, self.tr("&Execute"), "F5",
             'execute.png', self.tr("Execute current script"),
@@ -407,7 +404,7 @@ class Editor(EditorBaseWidget, WidgetMixin):
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get('editor', 'wrap') )
-        menu_actions = (open_action, save_action, save_action_as, exec_action,
+        menu_actions = (open_action, save_action, save_as_action, exec_action,
                         None, font_action, wrap_action)
         toolbar_actions = (open_action, save_action, exec_action,)
         return (menu_actions, toolbar_actions)                
@@ -713,14 +710,14 @@ class Workspace(DictEditor, WidgetMixin):
     """
     Workspace widget (namespace explorer)
     """
-    file_path = osp.join(osp.expanduser('~'), '.QtShell_ws')
+    file_path = osp.join(osp.expanduser('~'), '.temp.ws')
     def __init__(self, parent):
         self.shell = None
         self.namespace = None
+        self.filename = None
         DictEditor.__init__(self, parent, None)
         WidgetMixin.__init__(self, parent)
-        self.load_namespace()
-        self.refresh()
+        self.load_temp_namespace()
         
     def get_name(self, raw=True):
         """Return widget name"""
@@ -749,6 +746,13 @@ class Workspace(DictEditor, WidgetMixin):
         
     def set_actions(self):
         """Setup actions"""
+        open_action = create_action(self, self.tr("Open..."), None,
+            'ws_open.png', self.tr("Open a workspace"), triggered = self.load)
+        save_action = create_action(self, self.tr("Save"), None, 'ws_save.png',
+            self.tr("Save current workspace"), triggered = self.save)
+        save_as_action = create_action(self, self.tr("Save as..."), None,
+            'ws_save_as.png',  self.tr("Save current workspace as..."),
+            triggered = self.save_as)
         sort_action = create_action(self, self.tr("Sort columns"),
             toggled=self.setSortingEnabled)
         inplace_action = create_action(self, self.tr("Always edit in-place"),
@@ -760,13 +764,16 @@ class Workspace(DictEditor, WidgetMixin):
         checked = CONF.get('workspace', 'exclude_private')
         exclude_private_action.setChecked(checked)
         
-        save_action = create_action(self, self.tr("Auto save"),
-            toggled=self.toggle_autosave)
+        autosave_action = create_action(self, self.tr("Auto save"),
+            toggled=self.toggle_autosave,
+            tip=self.tr("Automatically save workspace in a temporary file when quitting"))
         checked = CONF.get('workspace', 'autosave')
         save_action.setChecked(checked)
-        return ((sort_action, inplace_action, None,
-                 exclude_private_action,
-                 None, save_action,), None)
+        menu_actions = (sort_action, inplace_action, None,
+                        exclude_private_action, None, open_action, save_action,
+                        save_as_action, autosave_action)
+        toolbar_actions = (open_action, save_action, None)
+        return (menu_actions, toolbar_actions)                
         
     def toggle_autosave(self, checked):
         """Toggle autosave mode"""
@@ -776,7 +783,7 @@ class Workspace(DictEditor, WidgetMixin):
         """Perform actions before parent main window is closed"""
         if CONF.get('workspace', 'autosave'):
             # Saving workspace
-            self.save_namespace()
+            self.save()
         else:
             workspace = wsfilter(self.namespace)
             refnb = len(workspace)
@@ -793,29 +800,69 @@ class Workspace(DictEditor, WidgetMixin):
                .arg(srefnb).arg(s_or_not).arg(it_or_them),
                QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
                 # Saving workspace
-                self.save_namespace()
+                self.save()
             elif osp.isfile(self.file_path):
                 # Removing last saved workspace
                 os.remove(self.file_path)
     
-    def load_namespace(self):
+    def load_temp_namespace(self):
         """Attempt to load last session namespace"""
-        if osp.isfile(self.file_path):
-            try:
-                namespace = cPickle.load(file(self.file_path))
-            except (EOFError, ValueError):
-                os.remove(self.file_path)
-                return
-            else:
-                os.remove(self.file_path)
-                self.namespace = namespace
+        self.filename = self.file_path
+        if osp.isfile(self.filename):
+            self.load(self.filename)
         else:
             self.namespace = None
-        
-    def save_namespace(self):
-        """Save current namespace"""
-        cPickle.dump(wsfilter(self.namespace),
-                     file(self.file_path, 'w'))
+            
+    def load(self, filename=None):
+        """Attempt to load namespace"""
+        if filename is None:
+            self.mainwindow.shell.restore_stds()
+            basedir = osp.dirname(self.filename)
+            filename = QFileDialog.getOpenFileName(self,
+                          self.tr("Open workspace"), basedir,
+                          self.tr("Workspaces")+" (*.ws)")
+            self.mainwindow.shell.redirect_stds()
+            if filename:
+                filename = unicode(filename)
+            else:
+                return
+        self.filename = filename
+        try:
+            namespace = cPickle.load(file(self.filename))
+            if self.namespace is None:
+                self.namespace = namespace
+            else:
+                for key in namespace:
+                    self.shell.namespace[key] = namespace[key]
+        except (EOFError, ValueError):
+            os.remove(self.filename)
+            return
+        self.refresh()        
+
+    def save_as(self):
+        """Save current workspace as"""
+        self.mainwindow.shell.restore_stds()
+        filename = QFileDialog.getSaveFileName(self,
+                      self.tr("Save workspace"), self.filename,
+                      self.tr("Workspaces")+" (*.ws)")
+        self.mainwindow.shell.redirect_stds()
+        if filename:
+            self.filename = unicode(filename)
+        else:
+            return False
+        self.save()
+    
+    def save(self):
+        """Save current workspace"""
+        if self.filename is None:
+            return self.save_as()
+        try:
+            cPickle.dump(wsfilter(self.namespace), file(self.filename, 'w'))
+        except RuntimeError, error:
+            raise RuntimeError(self.tr("Unable to save current workspace:") + \
+                               '\n\r' + error)
+        else:
+            return True
         
     def toggle_exclude_private(self, checked):
         """Toggle exclude private references"""
