@@ -6,7 +6,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import os, cPickle
+import sys, os, cPickle
 import os.path as osp
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
@@ -233,7 +233,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
     Working directory changer widget
     """
     log_path = osp.join(osp.expanduser('~'), '.workingdir')
-    def __init__(self, parent):
+    def __init__(self, parent, workdir=None):
         QWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
         
@@ -265,7 +265,9 @@ class WorkingDirectory(QWidget, WidgetMixin):
         layout.addWidget(self.parent_btn)
         
         self.setLayout(layout)
-        self.refresh()
+        if workdir is None:
+            workdir = os.getcwd()
+        self.chdir( workdir )
         
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         
@@ -327,6 +329,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
     def chdir(self, directory):
         """Set directory as working directory"""
         os.chdir( unicode(directory) )
+        sys.path.append(os.getcwd())
         self.refresh()
 
 
