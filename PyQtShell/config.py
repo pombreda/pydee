@@ -10,7 +10,7 @@ from PyQt4.QtGui import QFontDatabase
 
 APP_PATH = osp.dirname(__file__)
 
-FILTERS = [int, long, float, list, tuple, str, unicode]
+FILTERS = [int, long, float, list, dict, tuple, str, unicode]
 try:
     from numpy import ndarray
     FILTERS.append(ndarray)
