@@ -241,9 +241,12 @@ def get_options():
                 print "Warning: module '%s' was not found" % mod
                 continue
     if options.pylab:
-        commands.extend(['from pylab import *',
-                             'from matplotlib import rcParams',
-                             'rcParams["interactive"]=True'])
+        commands.extend([
+                         'from matplotlib import rcParams',
+                         'rcParams["interactive"]=True',
+                         'rcParams["backend"]="Qt4Agg"',
+                         'from pylab import *',
+                         ])
         messagelist.append('pylab')
     if options.os:
         commands.extend(['import os',
