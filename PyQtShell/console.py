@@ -32,6 +32,7 @@ class ConsoleWindow(QMainWindow):
             # Toolbar
             self.toolbar = self.addToolBar(self.tr("Toolbar"))
             self.toolbar.setObjectName("MainToolbar")
+            self.toolbar.setIconSize( QSize(24, 24) )
         
             # Window menu
             self.view_menu = QMenu(self.tr("&View"))
