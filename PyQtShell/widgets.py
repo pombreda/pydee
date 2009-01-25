@@ -333,7 +333,6 @@ class WorkingDirectory(QWidget, WidgetMixin):
         self.refresh()
 
 
-#TODO: Save as.../Save: fix this (save as.. does what save should do)
 #TODO: TabWidget to open more than one script at a time
 #TODO: Link: edit with external editor
 class Editor(EditorBaseWidget, WidgetMixin):
@@ -386,10 +385,14 @@ class Editor(EditorBaseWidget, WidgetMixin):
             get_std_icon('DialogOpenButton', 16),
             self.tr("Open a Python script"),
             triggered = self.load)
-        save_action = create_action(self, self.tr("Save as..."), None,
+        save_action = create_action(self, self.tr("Save"), "Ctrl+S",
             get_std_icon('DialogSaveButton', 16),
             self.tr("Save current script"),
             triggered = self.save)
+        save_action_as = create_action(self, self.tr("Save as..."), None,
+            get_std_icon('DialogSaveButton', 16),
+            self.tr("Save current script as..."),
+            triggered = self.save_as)
         exec_action = create_action(self, self.tr("&Execute"), "F5",
             'execute.png', self.tr("Execute current script"),
             triggered=self.exec_script)
@@ -399,21 +402,14 @@ class Editor(EditorBaseWidget, WidgetMixin):
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get('editor', 'wrap') )
-        menu_actions = (open_action, save_action, exec_action,
+        menu_actions = (open_action, save_action, save_action_as, exec_action,
                         None, font_action, wrap_action)
         toolbar_actions = (open_action, save_action, exec_action,)
         return (menu_actions, toolbar_actions)                
         
     def closing(self):
         """Perform actions before parent main window is closed"""
-        if self.filename == self.file_path:
-            self.save(prompt=False)
-        elif self.isModified() and QMessageBox.question(self,
-                self.get_name(raw=False),
-                osp.basename(self.filename)+' '+ \
-                self.tr(" has been modified.\nDo you want to save changes?"),
-                QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
-            self.save(prompt=False)
+        self.save_if_changed()
         
     def load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
@@ -431,17 +427,28 @@ class Editor(EditorBaseWidget, WidgetMixin):
                        '',
                        ]
             self.set_text("\r\n".join([unicode(qstr) for qstr in default]))
-            self.save(prompt=False)
+            self.save()
         self.load(self.filename)
     
     def exec_script(self):
         """Execute current script"""
-        self.save(prompt=False)
-        self.mainwindow.shell.run_script(self.file_path, silent=True)
+        if self.save():
+            self.mainwindow.shell.run_script(self.file_path, silent=True)
+
+    def save_if_changed(self):
+        """Ask user to save file if modified"""
+        if self.filename == self.file_path or \
+           self.isModified() and QMessageBox.question(self,
+                self.get_name(raw=False),
+                osp.basename(self.filename)+' '+ \
+                self.tr(" has been modified.\nDo you want to save changes?"),
+                QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
+            self.save()
         
     def load(self, filename=None):
         """Load a Python script file"""
         if filename is None:
+            self.save_if_changed()
             self.mainwindow.shell.restore_stds()
             basedir = os.getcwd()
             if self.filename != self.file_path:
@@ -461,8 +468,10 @@ class Editor(EditorBaseWidget, WidgetMixin):
         self.set_text( text )
         
         self.setModified(False)
-        self.change()
+        self.refresh_title()
         
+    def refresh_title(self):
+        """Refresh DockWidget title (+filename)"""
         if self.dockwidget is None:
             return
         title = self.get_name(raw=False)
@@ -471,25 +480,33 @@ class Editor(EditorBaseWidget, WidgetMixin):
         else:
             title += ' (' + self.tr("temporary file") + ')'
         self.dockwidget.setWindowTitle(title)
+        self.change()
         self.setFocus()
-    
-    def save(self, prompt=False):
+
+    def save_as(self):
         """Save the currently edited Python script file"""
-        if prompt:
-            self.mainwindow.shell.restore_stds()
-            filename = QFileDialog.getSaveFileName(self,
-                          self.tr("Save Python script"), self.filename,
-                          self.tr("Python scripts")+" (*.py ; *.pyw)")
-            self.mainwindow.shell.redirect_stds()
-            if filename:
-                self.filename = unicode(filename)
-                self.chdir( os.path.dirname(self.filename) )
-            else:
-                return
+        self.mainwindow.shell.restore_stds()
+        filename = QFileDialog.getSaveFileName(self,
+                      self.tr("Save Python script"), self.filename,
+                      self.tr("Python scripts")+" (*.py ; *.pyw)")
+        self.mainwindow.shell.redirect_stds()
+        if filename:
+            self.filename = unicode(filename)
+            self.chdir( os.path.dirname(self.filename) )
+        else:
+            return False
+        self.save()
+        self.refresh_title()
+    
+    def save(self):
+        """Save the currently edited Python script file"""
+        if self.filename is None:
+            return self.save_as()
         self.encoding = encoding.write(unicode(self.get_text()),
                                        self.filename, self.encoding)
         self.setModified(False)
         self.change()
+        return True
         
     def change_font(self):
         """Change editor font"""
