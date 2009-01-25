@@ -330,6 +330,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
         self.refresh()
 
 
+#TODO: Save as.../Save: fix this (save as.. does what save should do)
 #TODO: TabWidget to open more than one script at a time
 #TODO: Link: edit with external editor
 class Editor(EditorBaseWidget, WidgetMixin):
@@ -678,6 +679,9 @@ def wsfilter(obj_in, rec=0):
 
 from dicteditor import DictEditor
 
+#TODO: Add action "Save workspace as..."
+#TODO: Add action "Load workspace"
+#TODO: Add splash screen during loading/saving
 class Workspace(DictEditor, WidgetMixin):
     """
     Workspace widget (namespace explorer)
