@@ -245,7 +245,12 @@ class WorkingDirectory(QWidget, WidgetMixin):
         # Path combo box
         self.max_wdhistory_entries = CONF.get('shell', 'working_dir_history')
         self.pathedit = PathComboBox(self)
-        self.pathedit.addItems( self.load_wdhistory() )
+        wdhistory = self.load_wdhistory( workdir )
+        if workdir is None:
+            workdir = wdhistory[0]
+        self.chdir( workdir )
+        self.pathedit.addItems( wdhistory )
+        self.refresh()
         layout.addWidget(self.pathedit)
         
         # Browse button
@@ -265,9 +270,6 @@ class WorkingDirectory(QWidget, WidgetMixin):
         layout.addWidget(self.parent_btn)
         
         self.setLayout(layout)
-        if workdir is None:
-            workdir = os.getcwd()
-        self.chdir( workdir )
         
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         
@@ -288,13 +290,15 @@ class WorkingDirectory(QWidget, WidgetMixin):
         """Perform actions before parent main window is closed"""
         self.save_wdhistory()
         
-    def load_wdhistory(self):
+    def load_wdhistory(self, workdir=None):
         """Load history from a text file in user home directory"""
         if osp.isfile(self.log_path):
             wdhistory = [line.replace('\n','')
                          for line in file(self.log_path, 'r').readlines()]
         else:
-            wdhistory = [ os.getcwd() ]
+            if workdir is None:
+                workdir = os.getcwd()
+            wdhistory = [ workdir ]
         return wdhistory
     
     def save_wdhistory(self):
@@ -307,8 +311,9 @@ class WorkingDirectory(QWidget, WidgetMixin):
         """Refresh widget"""
         curdir = os.getcwd()
         index = self.pathedit.findText(curdir)
-        if index != -1:
+        while index!=-1:
             self.pathedit.removeItem(index)
+            index = self.pathedit.findText(curdir)
         self.pathedit.insertItem(0, curdir)
         self.pathedit.setCurrentIndex(0)
         
