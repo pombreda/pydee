@@ -16,7 +16,7 @@ import encoding
 from widgets import Shell, WorkingDirectory, Editor
 from widgets import HistoryLog, Workspace, DocViewer
 from qthelpers import create_action, add_actions, get_std_icon
-from config import get_icon, CONF
+from config import get_icon, get_image_path, CONF
 
 
 class ConsoleWindow(QMainWindow):
@@ -27,7 +27,8 @@ class ConsoleWindow(QMainWindow):
         self.light = light
         self.filename = None
         namespace = None
-        self.splash = QSplashScreen(QPixmap('images\\splash.png', 'png'))
+        self.splash = QSplashScreen(QPixmap(get_image_path('splash.png'),
+                                            'png'))
         self.splash.show()
 
         if not light:
