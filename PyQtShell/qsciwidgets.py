@@ -359,18 +359,25 @@ class QsciShell(QsciScintilla, ShellMixin):
         elif key_event == QKeySequence.Paste:
             self.paste()
         elif self.__is_cursor_on_last_line() and txt.length() :
-            QsciScintilla.keyPressEvent(self, key_event)
-            self.incremental_search_active = True
-            if txt == '.':
-                self.__show_dyn_completion()
-            elif txt == '(' or txt =='?':
-                self.__show_docstring()
-            elif self.isListActive():
-                self.completion_chars += 1
-        elif (ctrl or shift):
+            self.__keypressed(txt, key_event)
+        elif ctrl:
             QsciScintilla.keyPressEvent(self, key_event)
         else:
-            key_event.ignore()
+            line, index = self.__get_end_pos()
+            self.setCursorPosition(line, index)
+            self.__keypressed(txt, key_event)
+#            key_event.ignore()
+
+    def __keypressed(self, txt, key_event):
+        """Private key pressed event handler"""
+        QsciScintilla.keyPressEvent(self, key_event)
+        self.incremental_search_active = True
+        if txt == '.':
+            self.__show_dyn_completion()
+        elif txt == '(' or txt =='?':
+            self.__show_docstring()
+        elif self.isListActive():
+            self.completion_chars += 1
 
     def focusNextPrevChild(self, next):
         """
