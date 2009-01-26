@@ -3,9 +3,9 @@
 PyQtShell Console
 """
 
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 
-import sys, os, platform, atexit
+import sys, os, platform
 from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap
 from PyQt4.QtGui import QMessageBox, QMenu
 from PyQt4.QtCore import SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt
@@ -70,6 +70,7 @@ class ConsoleWindow(QMainWindow):
         self.shell = Shell(namespace, commands, message, self,
                            debug, self.closing)
         self.setCentralWidget(self.shell)
+        self.widgetlist.append(self.shell)
         
         # Working directory changer widget
         self.workdir = WorkingDirectory( self, workdir )
