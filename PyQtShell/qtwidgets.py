@@ -5,7 +5,8 @@ from PyQt4.QtGui import QTextEdit, QTextCursor, qApp, QColor, QBrush
 from PyQt4.QtCore import Qt, QString, SIGNAL
 
 # Local import
-from shell import ShellMixin, create_banner
+from shell import Interpreter, create_banner
+from config import get_font
 
 
 def is_python_string(text):
@@ -42,6 +43,19 @@ class QtEditor(QTextEdit):
     """
     def __init__(self, parent=None):
         super(QtEditor, self).__init__(parent)
+        self.is_modified = False
+        
+    def isModified(self):
+        return self.is_modified
+    
+    def setModified(self, state):
+        self.is_modified = state
+        
+    def setCursorPosition(self, arg1, arg2):
+        pass
+    
+    def lines(self):
+        return 0
 
     def set_wrap_mode(self, enable):
         """Set wrap mode"""
@@ -53,7 +67,7 @@ class QtEditor(QTextEdit):
     def set_font(self, font):
         pass
     
-    def setup_margin(self, font, width):
+    def setup_margin(self, font, width=None):
         """Set margin font and width"""
         pass
            
@@ -70,14 +84,14 @@ class QtEditor(QTextEdit):
         return self.toPlainText()
 
 
-class QtShell(QTextEdit, ShellMixin):
+class QtShell(QTextEdit, Interpreter):
     """
     Python shell based on Qt only
     Derived from:
         PyCute (pycute.py): http://gerard.vermeulen.free.fr (GPL)
     """    
     def __init__(self, namespace=None, commands=None,
-                 message="", parent=None, debug=False):
+                 message="", parent=None, debug=False, exitfunc=None):
         """
         namespace : locals send to InteractiveInterpreter object
         commands: list of commands executed at startup
@@ -86,12 +100,11 @@ class QtShell(QTextEdit, ShellMixin):
         If no parent widget has been specified, it is possible to
         exit the interpreter by Ctrl-D
         """
-        ShellMixin.__init__(self, namespace, commands, debug)       
+        Interpreter.__init__(self, namespace, commands, debug, exitfunc)       
         QTextEdit.__init__(self, parent)
                         
-        # session log
-        self.log = log or ''
-
+        self.set_font( get_font('shell') )
+        
         # to exit the main interpreter by a Ctrl-D if PyCute has no parent
         if parent is None:
             self.eofKey = Qt.Key_D
@@ -114,11 +127,14 @@ class QtShell(QTextEdit, ShellMixin):
         # interpreter banner
         moreinfo, _ = self.get_banner()
         self.write( create_banner(moreinfo, message) )
-        self.write(self.tr('Please install QScintilla to enable autocompletion')+':'+
+        self.write(self.tr('Please install QScintilla to enable auto-completion and calltips')+':'+
                    '\n'+'http://www.riverbankcomputing.co.uk/qscintilla\n\n')
         self.write(self.prompt)
         self.emit(SIGNAL("status(QString)"), QString())
         
+    
+    def set_docviewer(self, arg):
+        pass
     
     def get_banner(self):
         """Return interpreter banner and a one-line message"""
@@ -133,8 +149,7 @@ class QtShell(QTextEdit, ShellMixin):
                 
     def set_font(self, font):
         """Set shell font"""
-        self.font = font
-    
+        self.font = font    
 
     def readline(self):
         """
@@ -202,7 +217,7 @@ class QtShell(QTextEdit, ShellMixin):
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
         
         source = '\n'.join(self.lines)
-        self.more = self.interpreter.runsource(source)
+        self.more = self.runsource(source)
 
         if self.more:
             self.write(self.prompt_more)

@@ -13,7 +13,7 @@ from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
 # Local import
 import encoding
-from shell import ShellMixin, create_banner
+from shell import Interpreter, create_banner
 from config import CONF, get_icon
 from dochelpers import getargtxt
 from qthelpers import create_action
@@ -86,7 +86,7 @@ class QsciEditor(QsciScintilla):
         return self.text()
 
 
-class QsciShell(QsciScintilla, ShellMixin):
+class QsciShell(QsciScintilla, Interpreter):
     """
     Python shell based on QScintilla
     Derived from:
@@ -94,7 +94,7 @@ class QsciShell(QsciScintilla, ShellMixin):
         Eric4 shell (shell.py): http://www.die-offenbachs.de/eric/index.html (GPL)
     """
     def __init__(self, namespace=None, commands=None,
-                 message="", parent=None, debug=False):
+                 message="", parent=None, debug=False, exitfunc=None):
         """
         namespace : locals send to InteractiveInterpreter object
         commands: list of commands executed at startup
@@ -103,7 +103,7 @@ class QsciShell(QsciScintilla, ShellMixin):
         If no parent widget has been specified, it is possible to
         exit the interpreter by Ctrl-D
         """
-        ShellMixin.__init__(self, namespace, commands, debug)       
+        Interpreter.__init__(self, namespace, commands, debug, exitfunc)       
         QsciScintilla.__init__(self, parent)
         
         self.setUtf8(True)
@@ -292,7 +292,7 @@ class QsciShell(QsciScintilla, ShellMixin):
         # Execute command
         self.execlines.append(unicode(cmd))
         source = '\n'.join(self.execlines)
-        self.more = self.interpreter.runsource(source)
+        self.more = self.runsource(source)
         if self.more:
             self.write(self.prompt_more)
         else:
@@ -715,7 +715,7 @@ class QsciShell(QsciScintilla, ShellMixin):
         """Show docstring or arguments"""
         text = self.__get_current_line_to_cursor()
         try:
-            obj = eval(text, globals(), self.interpreter.locals)
+            obj = eval(text, globals(), self.locals)
         except:
             # No valid object was extracted from text
             pass
@@ -738,7 +738,7 @@ class QsciShell(QsciScintilla, ShellMixin):
         """
         text = self.__get_current_line_to_cursor()
         try:
-            obj = eval(text, globals(), self.interpreter.locals)
+            obj = eval(text, globals(), self.locals)
         except:
             # No valid object was extracted from text
             pass

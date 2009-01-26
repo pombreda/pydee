@@ -5,7 +5,7 @@ PyQtShell Console
 
 __version__ = '0.1.4'
 
-import sys, os, platform
+import sys, os, platform, atexit
 from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap
 from PyQt4.QtGui import QMessageBox, QMenu
 from PyQt4.QtCore import SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt
@@ -30,6 +30,12 @@ class ConsoleWindow(QMainWindow):
         self.splash = QSplashScreen(QPixmap(get_image_path('splash.png'),
                                             'png'))
         self.splash.show()
+        
+        # List of satellite widgets (registered in add_dockwidget):
+        self.widgetlist = []
+        
+        # Flag used if closing() is called by the exit() shell command
+        self.already_closed = False
 
         if not light:
             # Toolbar
@@ -61,7 +67,8 @@ class ConsoleWindow(QMainWindow):
                 namespace = self.workspace.namespace
         
         # Shell widget: window's central widget
-        self.shell = Shell(namespace, commands, message, self, debug)
+        self.shell = Shell(namespace, commands, message, self,
+                           debug, self.closing)
         self.setCentralWidget(self.shell)
         
         if not light:
@@ -143,7 +150,16 @@ class ConsoleWindow(QMainWindow):
         self.splash.showMessage(message+'\n', Qt.AlignBottom | Qt.AlignHCenter)
         
     def closeEvent(self, event):
-        """Exit confirmation"""
+        """closeEvent reimplementation"""
+        if self.closing(True):
+            event.accept()
+        else:
+            event.ignore()
+        
+    def closing(self, cancelable=False):
+        """Exit tasks"""
+        if self.already_closed:
+            return
         size = self.size()
         section = 'lightwindow' if self.light else 'window'
         CONF.set(section, 'size', (size.width(), size.height()))
@@ -154,10 +170,11 @@ class ConsoleWindow(QMainWindow):
             CONF.set(section, 'state', str(qba.toHex()))
             CONF.set(section, 'statusbar',
                       not self.statusBar().isHidden())
-        # Warning children that their parent is closing:
-        self.emit( SIGNAL('closing()') )
-        # Closing...
-        event.accept()
+        for widget in self.widgetlist:
+            if not widget.closing(cancelable):
+                return False
+        self.already_closed = True
+        return True
         
     def toggle_statusbar(self, checked):
         """Toggle status bar"""
@@ -173,6 +190,7 @@ class ConsoleWindow(QMainWindow):
         self.view_menu.addAction(dockwidget.toggleViewAction())
         self.connect(dockwidget, SIGNAL('visibilityChanged(bool)'),
                      child.visibility_changed)
+        self.widgetlist.append(child)
     
     def add_toolbar(self, widget):
         """Add toolbar including a widget"""
