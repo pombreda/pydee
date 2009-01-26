@@ -6,6 +6,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
+#FIXME: The second tab is 8 characters instead of 4...
+
 import os
 from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QMenu
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
@@ -283,16 +285,28 @@ class QsciShell(QsciScintilla, Interpreter):
             self.add_to_history(cmd)
             self.histidx = -1
         
-        if(cmd.endswith('?')):
+        if cmd.endswith('?'):
             cmd = 'help(%s)' % cmd[:-1]
                 
         # Before running command
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
 
         # Execute command
-        self.execlines.append(unicode(cmd))
-        source = '\n'.join(self.execlines)
-        self.more = self.runsource(source)
+        if cmd.startswith('!'):
+            # System command
+            _, out, err = os.popen3(cmd[1:])
+            txt_out = out.read().rstrip()
+            txt_err = err.read().rstrip()
+            if txt_err:
+                self.write(txt_err)
+            else:
+                self.write(txt_out)
+            self.write('\n')
+            self.more = False
+        else:
+            self.execlines.append(unicode(cmd))
+            source = '\n'.join(self.execlines)
+            self.more = self.runsource(source)
         if self.more:
             self.write(self.prompt_more)
         else:
