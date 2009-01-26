@@ -358,15 +358,16 @@ class QsciShell(QsciScintilla, Interpreter):
             self.keymap[key]()
         elif key_event == QKeySequence.Paste:
             self.paste()
-        elif self.__is_cursor_on_last_line() and txt.length() :
+        elif self.__is_cursor_on_last_line() and txt.length():
             self.__keypressed(txt, key_event)
-        elif ctrl:
+        elif ctrl or shift:
             QsciScintilla.keyPressEvent(self, key_event)
-        else:
+        elif not self.__is_cursor_on_last_line():
             line, index = self.__get_end_pos()
             self.setCursorPosition(line, index)
             self.__keypressed(txt, key_event)
-#            key_event.ignore()
+        else:
+            key_event.ignore()
 
     def __keypressed(self, txt, key_event):
         """Private key pressed event handler"""
@@ -463,6 +464,8 @@ class QsciShell(QsciScintilla, Interpreter):
         """
         Private method to handle the Backspace key.
         """
+        if self.hasSelectedText():
+            self.__delete_selected_text()
         if self.__is_cursor_on_last_line():
             line, col = self.getCursorPosition()
             is_active = self.isListActive()
@@ -482,21 +485,33 @@ class QsciShell(QsciScintilla, Interpreter):
         """
         Private method to handle the delete command.
         """
+        if self.hasSelectedText():
+            self.__delete_selected_text()
         if self.__is_cursor_on_last_line():
-            if self.hasSelectedText():
-                line_from, index_from, line_to, index_to = self.getSelection()
-                if self.text(line_from).startsWith(self.prompt):
-                    if index_from >= len(self.prompt):
-                        self.SendScintilla(QsciScintilla.SCI_CLEAR)
-                elif self.text(line_from).startsWith(self.prompt_more):
-                    if index_from >= len(self.prompt_more):
-                        self.SendScintilla(QsciScintilla.SCI_CLEAR)
-                elif index_from >= 0:
-                    self.SendScintilla(QsciScintilla.SCI_CLEAR)
-                    
-                self.setSelection(line_to, index_to, line_to, index_to)
-            else:
-                self.SendScintilla(QsciScintilla.SCI_CLEAR)
+            self.SendScintilla(QsciScintilla.SCI_CLEAR)
+                
+    def __delete_selected_text(self):
+        """
+        Private method to delete selected text
+        """
+        line_from, index_from, line_to, index_to = self.getSelection()
+
+        # If not on last line, then move selection to last line
+        last_line = self.lines()-1
+        if line_from != last_line:
+            line_from = last_line
+            index_from = 0
+            
+        for prompt in [self.prompt, self.prompt_more]:
+            if self.text(line_from).startsWith(prompt):
+                if index_from < len(prompt):
+                    index_from = len(prompt)
+        if index_from < 0:
+            index_from = index_to
+            line_from = line_to
+        self.setSelection(line_from, index_from, line_to, index_to)
+        self.SendScintilla(QsciScintilla.SCI_CLEAR)
+        self.setSelection(line_to, index_to, line_to, index_to)
 
     def __qsci_newline(self):
         """
