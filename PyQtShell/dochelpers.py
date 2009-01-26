@@ -32,7 +32,7 @@ def getargtxt(obj, one_arg_per_line=True):
         # Builtin: try to extract info from getdoc
         doc = getdoc(func_obj)
         name = func_obj.__name__
-        if not doc.startswith(name):
+        if (doc is None) or (not doc.startswith(name)):
             return None
         return doc[len(name)+1:doc.find(')')].split()
     args, _, _ = inspect.getargs(func_obj.func_code)
