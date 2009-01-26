@@ -76,7 +76,7 @@ class WidgetMixin(object):
 
 
 try:
-    from qsciwidgets import QsciShellx as ShellBaseWidget
+    from qsciwidgets import QsciShell as ShellBaseWidget
     from qsciwidgets import QsciEditor as EditorBaseWidget
 except ImportError:
     from qtwidgets import QtShell as ShellBaseWidget
@@ -114,8 +114,15 @@ class Shell(ShellBaseWidget, WidgetMixin):
         self.save_history()
         return True
     
+    def quit(self):
+        """Quit mainwindow"""
+        self.mainwindow.close()
+    
     def set_actions(self):
         """Setup actions"""
+        quit_action = create_action(self, self.tr("&Quit"), self.tr("Ctrl+Q"),
+            get_std_icon("BrowserStop"), self.tr("Quit"),
+            triggered=self.quit)
         run_action = create_action(self, self.tr("&Run..."), self.tr("Ctrl+R"),
             'run.png', self.tr("Run a Python script"),
             triggered=self.run_script)
@@ -129,7 +136,8 @@ class Shell(ShellBaseWidget, WidgetMixin):
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get('shell', 'wrap') )
         menu_actions = (run_action, None,
-                        font_action, history_action, wrap_action)
+                        font_action, history_action, wrap_action, None,
+                        quit_action)
         toolbar_actions = (run_action,)
         return menu_actions, toolbar_actions
         
