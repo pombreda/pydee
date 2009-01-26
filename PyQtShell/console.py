@@ -71,6 +71,12 @@ class ConsoleWindow(QMainWindow):
                            debug, self.closing)
         self.setCentralWidget(self.shell)
         
+        # Working directory changer widget
+        self.workdir = WorkingDirectory( self, workdir )
+        self.connect(self.shell, SIGNAL("refresh()"),
+                     self.workdir.refresh)
+        self.add_toolbar(self.workdir)
+        
         if not light:
             # Shell widget (...)
             self.add_to_menubar(self.shell)
@@ -111,12 +117,6 @@ class ConsoleWindow(QMainWindow):
                 self.docviewer = DocViewer( self )
                 self.add_dockwidget(self.docviewer)
                 self.shell.set_docviewer(self.docviewer)
-        
-        # Working directory changer widget
-        self.workdir = WorkingDirectory( self, workdir )
-        self.connect(self.shell, SIGNAL("refresh()"),
-                     self.workdir.refresh)
-        self.add_toolbar(self.workdir)
         
         if not light:
             # View menu
@@ -198,6 +198,8 @@ class ConsoleWindow(QMainWindow):
         toolbar.addWidget(widget)
         toolbar.setObjectName(widget.get_name())
         toolbar.setToolTip(widget.get_name())
+        if not self.light:
+            self.view_menu.addAction(toolbar.toggleViewAction())
         
     def add_to_menubar(self, widget):
         """Add menu and actions to menubar"""
