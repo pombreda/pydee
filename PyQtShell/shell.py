@@ -55,6 +55,10 @@ class Interpreter(code.InteractiveInterpreter):
         commands: list of commands executed at startup
         """
         code.InteractiveInterpreter.__init__(self, namespace)
+        
+        if commands is None:
+            commands = []
+        
         if exitfunc is not None:
             atexit.register(exitfunc)
         self.debug = debug
