@@ -34,13 +34,12 @@ class WidgetMixin(object):
         """Bind widget to a QMainWindow instance"""
         super(WidgetMixin, self).__init__()
         self.mainwindow = mainwindow
-        if mainwindow is not None:
-            mainwindow.connect(mainwindow, SIGNAL("closing()"), self.closing)
         self.menu_actions, self.toolbar_actions = self.set_actions()
         self.dockwidget = None
         
-    def closing(self):
+    def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
+        # Must return True or False (if cancelable)
         raise NotImplementedError
         
     def get_name(self, raw=True):
@@ -77,7 +76,7 @@ class WidgetMixin(object):
 
 
 try:
-    from qsciwidgets import QsciShell as ShellBaseWidget
+    from qsciwidgets import QsciShellx as ShellBaseWidget
     from qsciwidgets import QsciEditor as EditorBaseWidget
 except ImportError:
     from qtwidgets import QtShell as ShellBaseWidget
@@ -89,9 +88,9 @@ class Shell(ShellBaseWidget, WidgetMixin):
     Shell widget
     """
     def __init__(self, namespace=None, commands=None, message="",
-                 parent=None, debug=False):
+                 parent=None, debug=False, exitfunc=None):
         ShellBaseWidget.__init__(self, namespace, commands,
-                                 message, parent, debug)
+                                 message, parent, debug, exitfunc)
         WidgetMixin.__init__(self, parent)
         # Parameters
         self.set_font( get_font('shell') )
@@ -110,9 +109,10 @@ class Shell(ShellBaseWidget, WidgetMixin):
         else:
             return name.replace("&", "")
         
-    def closing(self):
+    def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_history()
+        return True
     
     def set_actions(self):
         """Setup actions"""
@@ -152,7 +152,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
         self.setFocus()
         if silent:
             self.write(command+'\n')
-            self.interpreter.runsource(command)
+            self.runsource(command)
             self.write(self.prompt)
         else:
             self.write(command)
@@ -286,9 +286,10 @@ class WorkingDirectory(QWidget, WidgetMixin):
         """Setup actions"""
         return (None, None)
         
-    def closing(self):
+    def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_wdhistory()
+        return True
         
     def load_wdhistory(self, workdir=None):
         """Load history from a text file in user home directory"""
@@ -409,9 +410,9 @@ class Editor(EditorBaseWidget, WidgetMixin):
         toolbar_actions = (open_action, save_action, exec_action,)
         return (menu_actions, toolbar_actions)                
         
-    def closing(self):
+    def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        self.save_if_changed()
+        return self.save_if_changed(cancelable)
         
     def load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
@@ -437,15 +438,23 @@ class Editor(EditorBaseWidget, WidgetMixin):
         if self.save():
             self.mainwindow.shell.run_script(self.file_path, silent=True)
 
-    def save_if_changed(self):
+    def save_if_changed(self, cancelable=False):
         """Ask user to save file if modified"""
-        if self.filename == self.file_path or \
-           self.isModified() and QMessageBox.question(self,
-                self.get_name(raw=False),
+        buttons = QMessageBox.Yes | QMessageBox.No
+        if cancelable:
+            buttons = buttons | QMessageBox.Cancel
+        if self.filename == self.file_path:
+            self.save()
+        if self.isModified():
+            answer = QMessageBox.question(self, self.get_name(raw=False),
                 osp.basename(self.filename)+' '+ \
                 self.tr(" has been modified.\nDo you want to save changes?"),
-                QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
-            self.save()
+                buttons)
+            if answer == QMessageBox.Yes:
+                self.save()
+            elif answer == QMessageBox.Cancel:
+                return False
+        return True
         
     def load(self, filename=None):
         """Load a Python script file"""
@@ -560,9 +569,9 @@ class HistoryLog(EditorBaseWidget, WidgetMixin):
         """Setup actions"""
         return (None, None)
         
-    def closing(self):
+    def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        pass
+        return True
 
 
 class DocViewer(QWidget, WidgetMixin):
@@ -636,7 +645,7 @@ class DocViewer(QWidget, WidgetMixin):
         hlp_text = None
         try:
             obj = eval(obj_text, globals(),
-                       self.mainwindow.shell.interpreter.locals)
+                       self.mainwindow.shell.locals)
             if self.docstring:
                 hlp_text = getdoc(obj)
                 if hlp_text is None:
@@ -655,9 +664,9 @@ class DocViewer(QWidget, WidgetMixin):
         """Setup actions"""
         return (None, None)
         
-    def closing(self):
+    def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        pass
+        return True
 
 
 class NoValue(object):
@@ -776,7 +785,7 @@ class Workspace(DictEditor, WidgetMixin):
         """Toggle autosave mode"""
         CONF.set('workspace', 'autosave', checked)
         
-    def closing(self):
+    def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         if CONF.get('workspace', 'autosave'):
             # Saving workspace
@@ -792,15 +801,22 @@ class Workspace(DictEditor, WidgetMixin):
                 srefnb = self.tr('one')
                 s_or_not = ''
                 it_or_them = self.tr('it')
-            if refnb and QMessageBox.question(self, self.get_name(raw=False),
-               self.tr("Workspace is currently keeping reference to %1 object%2.\n\nDo you want to save %3?") \
-               .arg(srefnb).arg(s_or_not).arg(it_or_them),
-               QMessageBox.Yes, QMessageBox.No) == QMessageBox.Yes:
-                # Saving workspace
-                self.save()
+            if refnb > 0:
+                buttons = QMessageBox.Yes | QMessageBox.No
+                if cancelable:
+                    buttons = buttons | QMessageBox.Cancel
+                answer = QMessageBox.question(self, self.get_name(raw=False),
+                   self.tr("Workspace is currently keeping reference to %1 object%2.\n\nDo you want to save %3?") \
+                   .arg(srefnb).arg(s_or_not).arg(it_or_them), buttons)
+                if answer == QMessageBox.Yes:
+                    # Saving workspace
+                    self.save()
+                elif answer == QMessageBox.Cancel:
+                    return False
 #            elif osp.isfile(self.file_path):
 #                # Removing last saved workspace
 #                os.remove(self.file_path)
+        return True
     
     def load_temp_namespace(self):
         """Attempt to load last session namespace"""

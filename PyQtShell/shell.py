@@ -3,7 +3,7 @@
 
 #TODO: Implement a plateform independent 'ls'
 
-import sys, time
+import sys, time, atexit
 import os.path as osp
 import code
 
@@ -34,8 +34,8 @@ def _raw_input(prompt="", echo=1):
     """Reimplementation of raw_input builtin (for future developments)"""
     return SHELL.raw_input(prompt, echo)
 
-class ShellMixin(object):
-    """Shell Mixin (to be continued...)"""
+class Interpreter(code.InteractiveInterpreter):
+    """Interpreter (to be continued...)"""
     log_path = osp.join(osp.expanduser('~'), '.history.py')
     inithistory = [ '"# -*- coding: utf-8 -*-\n\r"' ]
     separator = '# ---(%s)---' % time.ctime()
@@ -48,16 +48,19 @@ class ShellMixin(object):
     except AttributeError:
         prompt_more = "... "
         
-    def __init__(self, namespace=None, commands=None, debug=False):
+    def __init__(self, namespace=None, commands=None,
+                 debug=False, exitfunc=None):
         """
         namespace: locals send to InteractiveInterpreter object
         commands: list of commands executed at startup
         """
+        code.InteractiveInterpreter.__init__(self, namespace)
+        if exitfunc is not None:
+            atexit.register(exitfunc)
         self.debug = debug
-        self.interpreter = code.InteractiveInterpreter(namespace)
         global SHELL
         SHELL = self
-        self.namespace = self.interpreter.locals
+        self.namespace = self.locals
         self.namespace['raw_input'] = _raw_input
         
         # flag: readline() is being used for e.g. raw_input() and input()
@@ -65,7 +68,7 @@ class ShellMixin(object):
 
         # Running initial commands before redirecting I/O
         for cmd in commands:
-            self.interpreter.runsource(cmd)
+            self.runsource(cmd)
         
         # capture all interactive input/output 
         self.initial_stdout = sys.stdout
@@ -125,7 +128,7 @@ class ShellMixin(object):
     
     def get_interpreter(self):
         """Return the interpreter object"""
-        return self.interpreter
+        return self
 
     def flush(self):
         """Simulate stdin, stdout, and stderr"""
@@ -136,6 +139,6 @@ class ShellMixin(object):
         return 1
 
     def clear(self):
-        """ Clear """
+        """Clear"""
         
 
