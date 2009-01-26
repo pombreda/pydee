@@ -88,7 +88,7 @@ class ConsoleWindow(QMainWindow):
                 self.add_to_toolbar(self.workspace)
                 self.connect(self.shell, SIGNAL("refresh()"),
                              self.workspace.refresh)
-        
+
             # Editor widget
             if CONF.get('editor', 'enable'):
                 self.set_splash(self.tr("Loading editor widget..."))
@@ -96,7 +96,7 @@ class ConsoleWindow(QMainWindow):
                 self.add_dockwidget(self.editor)
                 self.add_to_menubar(self.editor)
                 self.add_to_toolbar(self.editor)
-        
+
             # History log widget
             if CONF.get('history', 'enable'):
                 self.set_splash(self.tr("Loading history widget..."))
