@@ -114,8 +114,10 @@ class ShellMixin(object):
         
     def add_to_history(self, command):
         """Add command to history"""
-        if len(self.history) == self.max_history_entries:
+        while len(self.history) >= self.max_history_entries:
             del self.history[0]
+            while self.rawhistory[0].startswith('#'):
+                del self.rawhistory[0]
             del self.rawhistory[0]
         cmd = unicode(command)
         self.history.append( cmd )
