@@ -123,6 +123,8 @@ class Interpreter(code.InteractiveInterpreter):
                 del self.rawhistory[0]
             del self.rawhistory[0]
         cmd = unicode(command)
+        if len(self.history)>0 and self.history[-1] == cmd:
+            return
         self.history.append( cmd )
         self.rawhistory.append( cmd )
     
