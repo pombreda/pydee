@@ -257,12 +257,12 @@ def get_options():
     parser.add_option('-o', '--os', dest="os", action='store_true',
                       default=False,
                       help="Import os and os.path as osp")
-    parser.add_option('-n', '--np', dest="np", action='store_true',
+    parser.add_option('--numpy', dest="numpy", action='store_true',
                       default=False,
-                      help="Import numpy as np (and * from numpy)")
-    parser.add_option('-s', '--sp', dest="sp", action='store_true',
+                      help="Import numpy as np (and *)")
+    parser.add_option('--scipy', dest="scipy", action='store_true',
                       default=False,
-                      help="Import scipy as sp (and * from scipy)")
+                      help="Import numpy as np, scipy as sp (and *)")
     parser.add_option('-d', '--debug', dest="debug", action='store_true',
                       default=False,
                       help="Debug mode (stds are not redirected)")
@@ -289,16 +289,18 @@ def get_options():
         messagelist.append('pylab')
     if options.os:
         commands.extend(['import os',
-                             'import os.path as osp'])
+                         'import os.path as osp'])
         messagelist.append('os')
-    if options.np:
+    if options.numpy:
         commands.extend(['from numpy import *',
-                             'import numpy as np'])
-        messagelist.append('np')
-    if options.sp:
-        commands.extend(['from scipy import *',
-                             'import scipy as sp'])
-        messagelist.append('sp')
+                         'import numpy as np'])
+        messagelist.append('numpy')
+    if options.scipy:
+        commands.extend(['from numpy import *',
+                         'import numpy as np',
+                         'from scipy import *',
+                         'import scipy as sp'])
+        messagelist.append('numpy/scipy')
         
     # Adding PYTHONSTARTUP file to initial commands
     if options.startup is not None:
