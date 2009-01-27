@@ -148,7 +148,7 @@ class ArrayDelegate(QItemDelegate):
 
 class ArrayEditor(QDialog):
     """Array Editor Dialog"""
-    def __init__(self, title, data, format="%.3f", xy=False):
+    def __init__(self, data, title='', format="%.3f", xy=False):
         super(ArrayEditor, self).__init__()
         self.copy = np.array(data, dtype=float, copy=True)
         self.data = self.copy.view()
@@ -161,8 +161,8 @@ class ArrayEditor(QDialog):
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
-        title = self.tr("Array editor")
-        self.setWindowTitle(title + "%s" % (" - "+title if title else ""))
+        self.setWindowTitle(self.tr("Array editor") + \
+                            "%s" % (" - "+title if title else ""))
         self.resize(600, 500)
 
         # Table configuration
@@ -240,7 +240,7 @@ def main():
     """Array editor demo"""
     from PyQt4.QtGui import QApplication
     QApplication([])
-    dialog = ArrayEditor('', np.random.rand(20, 20))
+    dialog = ArrayEditor(np.random.rand(20, 20))
     if dialog.exec_():
         print "Accepted:", dialog.get_copy()
     else:
