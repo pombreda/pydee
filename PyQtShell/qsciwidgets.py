@@ -387,9 +387,10 @@ class QsciShell(QsciScintilla, Interpreter):
         """Private key pressed event handler"""
         QsciScintilla.keyPressEvent(self, key_event)
         self.incremental_search_active = True
-        if txt == '.':
-            self.__show_dyn_completion()
-        elif txt == '(' or txt =='?':
+# Disable automatic completion: (the user have to press TAB to enable it)
+#        if txt == '.':
+#            self.__show_dyn_completion()
+        if txt == '(' or txt =='?':
             self.__show_docstring()
         elif self.isListActive():
             self.completion_chars += 1
