@@ -39,7 +39,7 @@ def getargtxt(obj, one_arg_per_line=True):
     defaults = func_obj.func_defaults
     if defaults is not None:
         for index, default in enumerate(defaults):
-            args[index+len(args)-len(defaults)] += '='+str(default)
+            args[index+len(args)-len(defaults)] += '='+repr(default)
     textlist = None
     for i_arg, arg in enumerate(args):
         if textlist is None:
