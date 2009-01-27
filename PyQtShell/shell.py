@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Shell Mixin"""
 
-#TODO: Implement a plateform independent 'ls'
-
 import sys, time, atexit
 import os.path as osp
 import code
@@ -37,7 +35,11 @@ def _raw_input(prompt="", echo=1):
 class Interpreter(code.InteractiveInterpreter):
     """Interpreter (to be continued...)"""
     log_path = osp.join(osp.expanduser('~'), '.history.py')
-    inithistory = [ '"# -*- coding: utf-8 -*-\n\r"' ]
+    inithistory = [
+                   '# -*- coding: utf-8 -*-',
+                   '# *** history: v0.2 ***',
+                   '',
+                   ]
     separator = '# ---(%s)---' % time.ctime()
     try:
         prompt = sys.p1
@@ -107,6 +109,8 @@ class Interpreter(code.InteractiveInterpreter):
         if osp.isfile(self.log_path):
             rawhistory, _ = encoding.readlines(self.log_path)
             rawhistory = [line.replace('\n','') for line in rawhistory]
+            if rawhistory[1] != self.inithistory[1]:
+                rawhistory = self.inithistory
         else:
             rawhistory = self.inithistory
         history = [line for line in rawhistory if not line.startswith('#')]
