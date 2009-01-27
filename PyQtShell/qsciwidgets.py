@@ -468,12 +468,14 @@ class QsciShell(QsciScintilla, Interpreter):
         elif self.__is_cursor_on_last_line():
             line, index = self.getCursorPosition()
             buf = self.__extract_from_text(line)
+            lastchar_index = index-len(self.prompt)-1
             if self.more and not buf[:index-len(self.prompt_more)].strip():
                 self.SendScintilla(QsciScintilla.SCI_TAB)
-            elif buf[index-len(self.prompt)-1] == '.':
-                self.__show_dyn_completion()
-            elif buf[index-len(self.prompt)-1] in ['"', "'"]:
-                self.__show_file_completion()
+            elif lastchar_index>=0:
+                if buf[lastchar_index] == '.':
+                    self.__show_dyn_completion()
+                elif buf[lastchar_index] in ['"', "'"]:
+                    self.__show_file_completion()
              
     def __qsci_delete_back(self):
         """
