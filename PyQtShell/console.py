@@ -247,6 +247,8 @@ def get_options():
                       help="Light version (all add-ons are disabled)")
     parser.add_option('-w', '--workdir', dest="working_directory", default=None,
                       help="Default working directory")
+    parser.add_option('-s', '--startup', dest="startup", default=None,
+                      help="Startup script (overrides PYTHONSTARTUP)")
     parser.add_option('-m', '--modules', dest="module_list", default='',
                       help="Modules to import (comma separated)")
     parser.add_option('-p', '--pylab', dest="pylab", action='store_true',
@@ -299,7 +301,10 @@ def get_options():
         messagelist.append('sp')
         
     # Adding PYTHONSTARTUP file to initial commands
-    filename = os.environ.get('PYTHONSTARTUP')
+    if options.startup is not None:
+        filename = options.startup
+    else:
+        filename = os.environ.get('PYTHONSTARTUP')
     if filename and os.path.isfile(filename):
         lines, _ = encoding.readlines(filename)
         commands.extend( lines )
