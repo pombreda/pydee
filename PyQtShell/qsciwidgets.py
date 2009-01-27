@@ -30,9 +30,12 @@ class QsciEditor(QsciScintilla):
         
         self.setUtf8(True)
         
+        # Indentation
         self.setAutoIndent(True)
         self.setIndentationsUseTabs(False)
         self.setIndentationWidth(4)
+        self.setTabIndents(True)
+        self.setTabWidth(4)
         
         # Auto-completion
         self.setAutoCompletionThreshold(-1)
@@ -114,6 +117,8 @@ class QsciShell(QsciScintilla, Interpreter):
         self.setAutoIndent(True)
         self.setIndentationsUseTabs(False)
         self.setIndentationWidth(4)
+        self.setTabIndents(True)
+        self.setTabWidth(4)
         
         # Auto Completion setup
         self.setAutoCompletionThreshold( \
