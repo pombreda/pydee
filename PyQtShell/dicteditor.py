@@ -401,7 +401,7 @@ class DictEditorDialog(QDialog):
         constant = 121
         row_height = 30
         error_margin = 20
-        height = constant + row_height*max([20, len(data)]) + error_margin
+        height = constant + row_height*min([20, len(data)]) + error_margin
         self.resize(400, height)
         
         self.setWindowTitle(self.widget.get_title())
