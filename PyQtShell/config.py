@@ -69,6 +69,7 @@ DEFAULTS = [
               'margin/font/size' : 8,
               'margin/font/bold' : True,
               'wrap' : True,
+              'api' : osp.join(APP_PATH, 'python.api'),
               }),
             ('history',
              {
@@ -124,9 +125,18 @@ DEFAULTS = [
             ]
 
 DEV = osp.isfile(osp.join(osp.join(APP_PATH, osp.pardir), 'setup.py'))
-#DEV = False
+DEV = False
 from userconfig import UserConfig
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.8', load=(not DEV))
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.9', load=(not DEV))
+
+def get_conf_path(filename):
+    """
+    Return absolute path for configuration file with specified filename
+    """
+    conf_dir = osp.join(osp.expanduser('~'), '.PyQtShell')
+    if not osp.isdir(conf_dir):
+        os.mkdir(conf_dir)
+    return osp.join(conf_dir, filename)
 
 def get_image_path( name, default="not_found.png" ):
     """

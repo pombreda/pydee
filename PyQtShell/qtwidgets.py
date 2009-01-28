@@ -56,6 +56,9 @@ class QtEditor(QTextEdit):
     
     def lines(self):
         return 0
+    
+    def setup_api(self):
+        pass
 
     def set_wrap_mode(self, enable):
         """Set wrap mode"""

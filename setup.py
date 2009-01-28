@@ -34,7 +34,7 @@ google_url = 'http://%s.googlecode.com' % name.lower()
 download_url = '%s/files/%s-%s-py2.5.egg' % (google_url, name, version)
 py_modules = ['xyinstall']
 packages = ['PyQtShell']
-package_data={'PyQtShell': ['images/*.png', '*.qm']}
+package_data={'PyQtShell': ['images/*.png', '*.qm', 'python.api']}
 scripts = ['qons.pyw']
 import os
 if os.name == 'posix':

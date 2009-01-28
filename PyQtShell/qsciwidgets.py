@@ -6,19 +6,64 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-#FIXME: The second tab is 8 characters instead of 4...
-
 import os
 from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QMenu
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
 # Local import
-import encoding
+import encoding, re
 from shell import Interpreter, create_banner
 from config import CONF, get_icon
 from dochelpers import getargtxt
 from qthelpers import create_action
+
+
+class LexerPython(QsciLexerPython):
+    """ 
+    Subclass to implement some additional lexer dependant methods.
+    """
+    def getIndentationDifference(self, line, editor):
+        """
+        Private method to determine the difference for the new indentation.
+        """
+        indent_width = 4
+        lead_spaces = editor.indentation(line)
+        
+        pline = line - 1
+        while pline >= 0 and re.match('^\s*(#.*)?$',
+                                      unicode(editor.text(pline))):
+            pline -= 1
+        
+        if pline < 0:
+            last = 0
+        else:
+            previous_lead_spaces = editor.indentation(pline)
+            # trailing spaces
+            m = re.search(':\s*(#.*)?$', unicode(editor.text(pline)))
+            last = previous_lead_spaces
+            if m:
+                last += indent_width
+            else:
+                # special cases, like pass (unindent) or return (also unindent)
+                m = re.search('(pass\s*(#.*)?$)|(^[^#]return)', 
+                              unicode(editor.text(pline)))
+                if m:
+                    last -= indent_width
+        
+        if lead_spaces % indent_width != 0 or lead_spaces == 0 \
+           or self.lastIndented != line:
+            indentDifference = last - lead_spaces
+        else:
+            indentDifference = -indent_width
+
+        return indentDifference
+    
+    def autoCompletionWordSeparators(self):
+        """
+        Public method to return the list of separators for autocompletion.
+        """
+        return QStringList() << '.'
 
 
 class QsciEditor(QsciScintilla):
@@ -39,18 +84,36 @@ class QsciEditor(QsciScintilla):
         
         # Auto-completion
         self.setAutoCompletionThreshold(-1)
-        self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+        self.setAutoCompletionSource(QsciScintilla.AcsAll)
         
         self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
 
-        # API
-        self.lex = QsciLexerPython(self)
+        # Lexer
+        self.lex = LexerPython(self)
         self.setLexer(self.lex)
-        apis = QsciAPIs(self.lex)
-        apis.prepare()
+        self.api = None
         
         self.setMinimumWidth(200)
         self.setMinimumHeight(100)
+        
+    def setup_api(self):
+        """Load and prepare API"""
+        self.api = QsciAPIs(self.lex)
+        is_api_ready = False
+        api_path = CONF.get('editor', 'api')
+        api_stat = CONF.get('editor', 'api_stat', None)
+        current_api_stat = os.stat(api_path)
+        if (api_stat is not None) and (api_stat == current_api_stat):
+            if self.api.isPrepared():
+                is_api_ready = self.api.loadPrepared()
+        else:
+            CONF.set('editor', 'api_stat', current_api_stat)
+        if not is_api_ready:
+            if self.api.load(api_path):
+                self.api.prepare()
+                self.connect(self.api, SIGNAL("apiPreparationFinished()"),
+                             self.api.savePrepared)
+        return is_api_ready
 
     def setup_margin(self, font, width=None):
         """Set margin font and width"""
