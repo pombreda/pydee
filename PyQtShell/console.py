@@ -3,7 +3,7 @@
 PyQtShell Console
 """
 
-__version__ = '0.1.7'
+__version__ = '0.1.8'
 
 import sys, os, platform
 from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap
@@ -305,12 +305,14 @@ def get_options():
     # Adding PYTHONSTARTUP file to initial commands
     if options.startup is not None:
         filename = options.startup
+        msg = 'Startup script (%s)' % os.path.basename(filename)
     else:
         filename = os.environ.get('PYTHONSTARTUP')
+        msg = 'PYTHONSTARTUP (%s)' % os.path.basename(filename)
     if filename and os.path.isfile(filename):
         lines, _ = encoding.readlines(filename)
         commands.extend( lines )
-        messagelist.append('PYTHONSTARTUP (%s)' % os.path.basename(filename))
+        messagelist.append(msg)
         
     if messagelist:
         message = 'Option%s: ' % ('s' if len(messagelist)>1 else '')

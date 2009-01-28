@@ -355,6 +355,22 @@ class QsciShell(QsciScintilla, Interpreter):
         
         if cmd.endswith('?'):
             cmd = 'help(%s)' % cmd[:-1]
+            
+        if cmd.startswith('run '):
+            filename = cmd[4:]
+            if filename.startswith('"') or filename.startswith("'"):
+                filename = filename[1:-1]
+            if not filename.endswith('.py'):
+                filename += '.py'
+            cmd = 'execfile("%s")' % filename
+                
+        if cmd.startswith('edit '):
+            filename = cmd[4:]
+            if filename.startswith('"') or filename.startswith("'"):
+                filename = filename[1:-1]
+            if not filename.endswith('.py'):
+                filename += '.py'
+            cmd = '!%s %s' % (CONF.get('shell', 'external_editor'), filename)
                 
         # Before running command
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
