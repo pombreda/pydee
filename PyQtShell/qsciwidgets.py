@@ -435,16 +435,20 @@ class QsciShell(QsciScintilla, Interpreter):
         key = key_event.key()
         ctrl = key_event.modifiers() & Qt.ControlModifier
         shift = key_event.modifiers() & Qt.ShiftModifier
-        # See it is text to insert.
+        line, index = self.getCursorPosition()
+        last_line = self.lines()-1
         if (self.keymap.has_key(key) and not shift and not ctrl):
             self.keymap[key]()
         elif key_event == QKeySequence.Paste:
             self.paste()
-        elif self.__is_cursor_on_last_line() and txt.length():
+        elif line==last_line and txt.length():
+            prompt = self.prompt_more if self.more else self.prompt
+            if index<len(prompt):
+                self.setCursorPosition(line, len(prompt))
             self.__keypressed(txt, key_event)
         elif ctrl or shift:
             QsciScintilla.keyPressEvent(self, key_event)
-        elif not self.__is_cursor_on_last_line():
+        elif line!=last_line:
             line, index = self.__get_end_pos()
             self.setCursorPosition(line, index)
             self.__keypressed(txt, key_event)
