@@ -7,7 +7,7 @@ import code
 
 # Local import
 import encoding
-from config import CONF
+from config import CONF, get_conf_path
 
 def create_banner(moreinfo, message=''):
     """Create shell banner"""
@@ -34,7 +34,7 @@ def _raw_input(prompt="", echo=1):
 
 class Interpreter(code.InteractiveInterpreter):
     """Interpreter (to be continued...)"""
-    log_path = osp.join(osp.expanduser('~'), '.history.py')
+    log_path = get_conf_path('.history.py')
     inithistory = [
                    '# -*- coding: utf-8 -*-',
                    '# *** history: v0.2 ***',

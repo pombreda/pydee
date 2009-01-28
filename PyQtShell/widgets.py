@@ -19,7 +19,7 @@ import encoding
 from dochelpers import getdoc, getsource
 from qthelpers import create_action, get_std_icon
 from config import get_font, set_font
-from config import CONF, str2type
+from config import CONF, str2type, get_conf_path
 
 def toggle_actions(actions, enable):
     """Enable/disable actions"""
@@ -240,7 +240,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
     """
     Working directory changer widget
     """
-    log_path = osp.join(osp.expanduser('~'), '.workingdir')
+    log_path = get_conf_path('.workingdir')
     def __init__(self, parent, workdir=None):
         QWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
@@ -353,7 +353,7 @@ class Editor(EditorBaseWidget, WidgetMixin):
     """
     Editor widget
     """
-    file_path = osp.join(osp.expanduser('~'), '.temp.py')
+    file_path = get_conf_path('.temp.py')
     def __init__(self, parent):
         EditorBaseWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
@@ -365,6 +365,7 @@ class Editor(EditorBaseWidget, WidgetMixin):
         self.set_wrap_mode( CONF.get('editor', 'wrap') )
         self.setup_margin( get_font('editor', 'margin') )
         self.connect(self, SIGNAL('modificationChanged(bool)'), self.change)
+        self.setup_api()
 
     def change(self, state=None):
         """Change DockWidget title depending on modified state"""
@@ -724,7 +725,7 @@ class Workspace(DictEditor, WidgetMixin):
     """
     Workspace widget (namespace explorer)
     """
-    file_path = osp.join(osp.expanduser('~'), '.temp.ws')
+    file_path = get_conf_path('.temp.ws')
     def __init__(self, parent):
         self.shell = None
         self.namespace = None
