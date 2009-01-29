@@ -124,10 +124,12 @@ class ConsoleWindow(QMainWindow):
             self.menuBar().addMenu(self.view_menu)
         
             # ? menu
-            about = self.menuBar().addMenu("?")
-            about.addAction(create_action(self, self.tr("About..."),
+            help_menu = self.menuBar().addMenu("?")
+            help_menu.addAction(create_action(self, self.tr("About..."),
                 icon=get_std_icon('MessageBoxInformation'),
                 triggered=self.about))
+            if self.shell.help_action is not None:
+                help_menu.addAction(self.shell.help_action)
         
         # Window set-up
         self.setWindowIcon(get_icon('console.png'))
