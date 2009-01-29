@@ -228,16 +228,7 @@ class QsciShell(QsciScintilla, Interpreter):
         # Search
         self.incremental_search_string = ""
         self.incremental_search_active = False
-            
-        # Initialize history
-        self.histidx = -1
         
-        # Excecution Status
-        self.more = False
-        
-        # Multi line execution Buffer
-        self.execlines = []
-
         # interpreter banner
         moreinfo, helpmsg = self.get_banner()
         self.write( create_banner(moreinfo, message) )
@@ -383,72 +374,20 @@ class QsciShell(QsciScintilla, Interpreter):
         Private slot to execute a command.
         cmd: command to be executed by debug client (string)
         """
-        if not cmd:
-            cmd = ''
-        else:
-            self.add_to_history(cmd)
-            self.histidx = -1
-        
         # cls command
         if cmd == 'cls':
             self.__clear()
             return
-        
-        # ? command
-        if cmd.endswith('?'):
-            cmd = 'help(%s)' % cmd[:-1]
-            
-        # run command
-        if cmd.startswith('run '):
-            filename = cmd[4:]
-            if filename.startswith('"') or filename.startswith("'"):
-                filename = filename[1:-1]
-            if not filename.endswith('.py'):
-                filename += '.py'
-            cmd = 'execfile("%s")' % filename
-                
-        # edit command
-        if cmd.startswith('edit '):
-            filename = cmd[5:]
-            if filename.startswith('"') or filename.startswith("'"):
-                filename = filename[1:-1]
-            editor_path = CONF.get('shell', 'external_editor')
-            subprocess.Popen('%s %s' % (editor_path, filename))
-            self.write('\n')
-            self.write(self.prompt)
-            return
                 
         # Before running command
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
-
-        # Execute command
-        if cmd.startswith('!'):
-            # System ! command
-            _, out, err = os.popen3(cmd[1:])
-            txt_out = out.read().rstrip()
-            txt_err = err.read().rstrip()
-            if txt_err:
-                self.write(txt_err)
-            else:
-                self.write(txt_out)
-            self.write('\n')
-            self.more = False
-        else:
-            # Other command
-            self.execlines.append(unicode(cmd))
-            source = '\n'.join(self.execlines)
-            self.more = self.runsource(source)
-        if self.more:
-            self.write(self.prompt_more)
-        else:
-            self.write(self.prompt)
-            self.execlines = []
+        
+        self.run_command(cmd)
             
         self.emit(SIGNAL("status(QString)"), QString())
             
         # The following signal must be connected to any other related widget:
         self.emit(SIGNAL("refresh()"))
-
     
     #------ Text Insertion
     def __insert_text(self, text, at_end=False):
