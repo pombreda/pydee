@@ -11,7 +11,7 @@ import os.path as osp
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
-from PyQt4.QtGui import QToolTip, QCheckBox
+from PyQt4.QtGui import QToolTip, QCheckBox, QTabWidget
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
@@ -19,7 +19,7 @@ import encoding
 from dochelpers import getdoc, getsource
 from qthelpers import create_action, get_std_icon, add_actions
 from config import get_font, set_font
-from config import CONF, str2type, get_conf_path
+from config import CONF, str2type, get_conf_path, get_icon
 
 def toggle_actions(actions, enable):
     """Enable/disable actions"""
@@ -314,7 +314,6 @@ class WorkingDirectory(QWidget, WidgetMixin):
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        self.save_wdhistory()
         return True
         
     def load_wdhistory(self, workdir=None):
@@ -322,6 +321,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
         if osp.isfile(self.log_path):
             wdhistory = [line.replace('\n','')
                          for line in file(self.log_path, 'r').readlines()]
+            wdhistory = [name for name in wdhistory if os.path.isdir(name)]
         else:
             if workdir is None:
                 workdir = os.getcwd()
@@ -343,6 +343,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
             index = self.pathedit.findText(curdir)
         self.pathedit.insertItem(0, curdir)
         self.pathedit.setCurrentIndex(0)
+        self.save_wdhistory()
         
     def select_directory(self):
         """Select directory"""
@@ -365,37 +366,48 @@ class WorkingDirectory(QWidget, WidgetMixin):
         self.refresh()
 
 
-#TODO: TabWidget to open more than one script at a time
-class Editor(EditorBaseWidget, WidgetMixin):
+class Editor(QWidget, WidgetMixin):
     """
     Editor widget
     """
     file_path = get_conf_path('.temp.py')
     def __init__(self, parent):
-        EditorBaseWidget.__init__(self, parent)
+        QWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
-        self.filename = None
-        self.encoding = 'utf-8'
+        
+        layout = QVBoxLayout()
+        self.tabwidget = QTabWidget()
+        self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
+                     self.refresh)
+        layout.addWidget(self.tabwidget)
+        self.setLayout(layout)
+        
+        self.untitled = self.tr("Untitled")
+        
+        self.file_dependent_actions = []
+        self.filenames = []
+        self.encodings = []
+        self.editors = []
         self.load_temp_file()
-        # Parameters
-        self.set_font( get_font('editor') )
-        self.set_wrap_mode( CONF.get('editor', 'wrap') )
-        self.setup_margin( get_font('editor', 'margin') )
-        self.connect(self, SIGNAL('modificationChanged(bool)'), self.change)
-        self.setup_api()
+        
+    def refresh(self, index):
+        """Refresh tabwidget"""
+        # Doesn't work... references must be lost somewhere...
+        enable = index != -1
+        for action in self.file_dependent_actions:
+            action.setEnabled(enable)
 
     def change(self, state=None):
-        """Change DockWidget title depending on modified state"""
-        if self.dockwidget is None:
-            return
+        """Change tab title depending on modified state"""
+        index = self.tabwidget.currentIndex()
         if state is None:
-            state = self.isModified()
-        title = unicode( self.dockwidget.windowTitle() )
+            state = self.editors[index].isModified()
+        title = unicode( self.tabwidget.tabText(index) )
         if state:
             title += "*"
         elif title.endswith('*'):
             title = title[:-1]
-        self.dockwidget.setWindowTitle(title)
+        self.tabwidget.setTabText(index, title)
         
     def get_name(self, raw=True):
         """Return widget name"""
@@ -422,6 +434,12 @@ class Editor(EditorBaseWidget, WidgetMixin):
         save_as_action = create_action(self, self.tr("Save as..."), None,
             'py_save_as.png', self.tr("Save current script as..."),
             triggered = self.save_as)
+        close_action = create_action(self, self.tr("Close"), "Ctrl+W",
+            'close.png', self.tr("Close current script"),
+            triggered = self.close)
+        close_all_action = create_action(self, self.tr("Close all"),
+            "Ctrl+Maj+W", 'close_all.png', self.tr("Close all opened scripts"),
+            triggered = self.close_all)
         exec_action = create_action(self, self.tr("&Execute"), "F5",
             'execute.png', self.tr("Execute current script"),
             triggered=self.exec_script)
@@ -432,8 +450,11 @@ class Editor(EditorBaseWidget, WidgetMixin):
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get('editor', 'wrap') )
         menu_actions = (open_action, save_action, save_as_action, exec_action,
+                        None, close_action, close_all_action,
                         None, font_action, wrap_action)
         toolbar_actions = (open_action, save_action, exec_action,)
+        self.file_dependent_actions = (save_action, save_as_action, exec_action,
+                                       close_action, close_all_action)
         return (menu_actions, toolbar_actions)                
         
     def closing(self, cancelable=False):
@@ -442,8 +463,7 @@ class Editor(EditorBaseWidget, WidgetMixin):
         
     def load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
-        self.filename = self.file_path
-        if not osp.isfile(self.filename):
+        if not osp.isfile(self.file_path):
             # Creating temporary file
             default = ['# -*- coding: utf-8 -*-',
                        '"""',
@@ -455,107 +475,149 @@ class Editor(EditorBaseWidget, WidgetMixin):
                        '',
                        '',
                        ]
-            self.set_text("\r\n".join([unicode(qstr) for qstr in default]))
-            self.save()
-        self.load(self.filename)
+            text = "\r\n".join([unicode(qstr) for qstr in default])
+            encoding.write(unicode(text), self.file_path, 'utf-8')
+        self.load(self.file_path)
     
     def exec_script(self):
         """Execute current script"""
         if self.save():
-            self.mainwindow.shell.run_script(self.file_path, silent=True)
+            index = self.tabwidget.currentIndex()
+            self.mainwindow.shell.run_script(self.filenames[index], silent=True)
 
     def save_if_changed(self, cancelable=False):
         """Ask user to save file if modified"""
         buttons = QMessageBox.Yes | QMessageBox.No
         if cancelable:
             buttons = buttons | QMessageBox.Cancel
-        if self.filename == self.file_path:
-            self.save()
-        if self.isModified():
-            answer = QMessageBox.question(self, self.get_name(raw=False),
-                osp.basename(self.filename)+' '+ \
-                self.tr(" has been modified.\nDo you want to save changes?"),
-                buttons)
-            if answer == QMessageBox.Yes:
+        for index in range(0, self.tabwidget.count()):
+            self.tabwidget.setCurrentIndex(index)
+            filename = self.filenames[index]
+            if filename == self.file_path:
                 self.save()
-            elif answer == QMessageBox.Cancel:
-                return False
+            if self.editors[index].isModified():
+                answer = QMessageBox.question(self, self.get_name(raw=False),
+                    osp.basename(filename)+' '+ \
+                    self.tr(" has been modified.\nDo you want to save changes?"),
+                    buttons)
+                if answer == QMessageBox.Yes:
+                    self.save()
+                elif answer == QMessageBox.Cancel:
+                    return False
         return True
+    
+    def close(self):
+        """Close current Python script file"""
+        if self.tabwidget.count():
+            index = self.tabwidget.currentIndex()
+            is_ok = self.save_if_changed(cancelable=True)
+            if is_ok:
+                self.tabwidget.removeTab(index)
+                self.filenames.pop(index)
+                self.encodings.pop(index)
+                self.editors.pop(index)
+            return is_ok
+            
+    def close_all(self):
+        """Close all opened scripts"""
+        while self.close():
+            pass
         
-    def load(self, filename=None):
+    def load(self, filenames=None):
         """Load a Python script file"""
-        if filename is None:
-            self.save_if_changed()
+        if filenames is None:
             self.mainwindow.shell.restore_stds()
             basedir = os.getcwd()
-            if self.filename != self.file_path:
-                basedir = osp.dirname(self.filename)
-            filename = QFileDialog.getOpenFileName(self,
+            if self.filenames and (self.filenames[-1] != self.file_path):
+                basedir = osp.dirname(self.filenames[-1])
+            filenames = QFileDialog.getOpenFileNames(self,
                           self.tr("Open Python script"), basedir,
                           self.tr("Python scripts")+" (*.py ; *.pyw)")
             self.mainwindow.shell.redirect_stds()
-            if filename:
-                filename = unicode(filename)
-                self.chdir( os.path.dirname(filename) )
-                filename = os.path.basename(filename)
+            filenames = list(filenames)
+            if len(filenames):
+                self.chdir( os.path.dirname(unicode(filenames[-1])) )
+                filenames = [os.path.basename(unicode(fname)) for fname in filenames]
             else:
                 return
-        self.filename = filename
-        text, self.encoding = encoding.read(self.filename)
-        self.set_text( text )
-        
-        self.setModified(False)
-        self.refresh_title()
-        
-    def refresh_title(self):
-        """Refresh DockWidget title (+filename)"""
-        if self.dockwidget is None:
-            return
-        title = self.get_name(raw=False)
-        if self.filename != self.file_path:
-            title += ' - ' + osp.basename(self.filename)
-        else:
-            title += ' (' + self.tr("temporary file") + ')'
-        self.dockwidget.setWindowTitle(title)
-        self.change()
-        self.setFocus()
+            
+        if not isinstance(filenames, list):
+            filenames = [filenames]
+            
+        for filename in filenames:
+            self.filenames.append(filename)
+            txt, enc = encoding.read(filename)
+            self.encodings.append(enc)
+            
+            # Editor widget creation
+            editor = EditorBaseWidget(self)
+            self.editors.append(editor)
+            editor.set_font( get_font('editor') )
+            editor.set_wrap_mode( CONF.get('editor', 'wrap') )
+            editor.setup_margin( get_font('editor', 'margin') )
+            self.connect(editor, SIGNAL('modificationChanged(bool)'), self.change)
+            editor.setup_api()
+            
+            editor.set_text(txt)
+            editor.setModified(False)
+            
+            if filename != self.file_path:
+                title = osp.basename(filename)
+            else:
+                title = self.tr("Temporary file")
+            index = self.tabwidget.addTab(editor, title)
+            self.tabwidget.setTabToolTip(index, filename)
+            self.tabwidget.setTabIcon(index, get_icon('python.png'))
+            
+            self.change()
+            self.tabwidget.setCurrentIndex(index)
+            editor.setFocus()
 
     def save_as(self):
         """Save the currently edited Python script file"""
-        self.mainwindow.shell.restore_stds()
-        filename = QFileDialog.getSaveFileName(self,
-                      self.tr("Save Python script"), self.filename,
-                      self.tr("Python scripts")+" (*.py ; *.pyw)")
-        self.mainwindow.shell.redirect_stds()
-        if filename:
-            self.filename = unicode(filename)
-            self.chdir( os.path.dirname(self.filename) )
-        else:
-            return False
-        self.save()
-        self.refresh_title()
+        if self.tabwidget.count():
+            index = self.tabwidget.currentIndex()
+            self.mainwindow.shell.restore_stds()
+            filename = QFileDialog.getSaveFileName(self,
+                          self.tr("Save Python script"), self.filenames[index],
+                          self.tr("Python scripts")+" (*.py ; *.pyw)")
+            self.mainwindow.shell.redirect_stds()
+            if filename:
+                self.filenames[index] = unicode(filename)
+                self.chdir( os.path.dirname(filename) )
+            else:
+                return False
+            self.save()
+            self.refresh_title()
     
     def save(self):
         """Save the currently edited Python script file"""
-        if self.filename is None:
-            return self.save_as()
-        self.encoding = encoding.write(unicode(self.get_text()),
-                                       self.filename, self.encoding)
-        self.setModified(False)
-        self.change()
-        return True
+        if self.tabwidget.count():
+            index = self.tabwidget.currentIndex()
+            if os.path.basename(self.filenames[index]) == self.untitled:
+                return self.save_as()
+            txt = unicode(self.editors[index].get_text())
+            self.encodings[index] = encoding.write(txt,
+                                                   self.filenames[index],
+                                                   self.encodings[index])
+            self.editors[index].setModified(False)
+            self.change()
+            return True
         
     def change_font(self):
         """Change editor font"""
         font, valid = QFontDialog.getFont(get_font('editor'),
                           self, self.tr("Select a new font"))
         if valid:
-            self.set_font(font)
+            for index in range(0, self.tabwidget.count()):
+                self.editors[index].set_font(font)
             set_font(font, 'editor')
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
-        self.set_wrap_mode(checked)
+        if hasattr(self, 'tabwidget'):
+            for index in range(0, self.tabwidget.count()):
+                self.editors[index].set_wrap_mode(checked)
 
 
 class HistoryLog(EditorBaseWidget, WidgetMixin):
