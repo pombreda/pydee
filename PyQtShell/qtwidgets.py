@@ -108,6 +108,8 @@ class QtShell(QTextEdit, Interpreter):
                         
         self.set_font( get_font('shell') )
         
+        self.help_action = None
+        
         # to exit the main interpreter by a Ctrl-D if PyCute has no parent
         if parent is None:
             self.eofKey = Qt.Key_D
@@ -137,6 +139,9 @@ class QtShell(QTextEdit, Interpreter):
         
     
     def set_docviewer(self, arg):
+        pass
+    
+    def get_menu(self):
         pass
     
     def get_banner(self):
