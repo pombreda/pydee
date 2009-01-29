@@ -366,7 +366,6 @@ class WorkingDirectory(QWidget, WidgetMixin):
 
 
 #TODO: TabWidget to open more than one script at a time
-#TODO: Link: edit with external editor
 class Editor(EditorBaseWidget, WidgetMixin):
     """
     Editor widget
@@ -840,9 +839,9 @@ class Workspace(DictEditor, WidgetMixin):
                     self.save()
                 elif answer == QMessageBox.Cancel:
                     return False
-#            elif osp.isfile(self.file_path):
-#                # Removing last saved workspace
-#                os.remove(self.file_path)
+                elif osp.isfile(self.file_path):
+                    # Removing last saved workspace
+                    os.remove(self.file_path)
         return True
     
     def load_temp_namespace(self):
