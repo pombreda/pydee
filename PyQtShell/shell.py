@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Shell Mixin"""
+"""Shell Interpreter"""
 
-import sys, time, atexit
+import sys, time, atexit, os, subprocess
 import os.path as osp
 import code
 
@@ -32,7 +32,7 @@ def _raw_input(prompt="", echo=1):
     """Reimplementation of raw_input builtin (for future developments)"""
     return SHELL.raw_input(prompt, echo)
 
-class Interpreter(code.InteractiveInterpreter):
+class Interpreter(code.InteractiveConsole):
     """Interpreter (to be continued...)"""
     log_path = get_conf_path('.history.py')
     inithistory = [
@@ -53,10 +53,10 @@ class Interpreter(code.InteractiveInterpreter):
     def __init__(self, namespace=None, commands=None,
                  debug=False, exitfunc=None):
         """
-        namespace: locals send to InteractiveInterpreter object
+        namespace: locals send to InteractiveConsole object
         commands: list of commands executed at startup
         """
-        code.InteractiveInterpreter.__init__(self, namespace)
+        code.InteractiveConsole.__init__(self, namespace)
         
         if commands is None:
             commands = []
@@ -82,13 +82,69 @@ class Interpreter(code.InteractiveInterpreter):
         self.initial_stdin = sys.stdin
         self.redirect_stds()
         
+        # Excecution Status
+        self.more = False
+        
         # history
+        self.histidx = -1
         self.max_history_entries = CONF.get('history', 'max_entries')
         self.rawhistory, self.history = self.load_history()
         
     def raw_input(self, prompt, echo):
         """Reimplementation of raw_input builtin (for future developments)"""
         raise NotImplementedError("raw_input is not yet supported in PyQtShell")
+        
+    def run_command(self, cmd):
+        if not cmd:
+            cmd = ''
+        else:
+            self.add_to_history(cmd)
+            self.histidx = -1
+        
+        # ? command
+        if cmd.endswith('?'):
+            cmd = 'help(%s)' % cmd[:-1]
+            
+        # run command
+        if cmd.startswith('run '):
+            filename = cmd[4:]
+            if filename.startswith('"') or filename.startswith("'"):
+                filename = filename[1:-1]
+            if not filename.endswith('.py'):
+                filename += '.py'
+            cmd = 'execfile("%s")' % filename
+                
+        # edit command
+        if cmd.startswith('edit '):
+            filename = cmd[5:]
+            if filename.startswith('"') or filename.startswith("'"):
+                filename = filename[1:-1]
+            editor_path = CONF.get('shell', 'external_editor')
+            subprocess.Popen('%s %s' % (editor_path, filename))
+            self.write('\n')
+            self.write(self.prompt)
+            return
+
+        # Execute command
+        if cmd.startswith('!'):
+            # System ! command
+            _, out, err = os.popen3(cmd[1:])
+            txt_out = out.read().rstrip()
+            txt_err = err.read().rstrip()
+            if txt_err:
+                self.write(txt_err)
+            else:
+                self.write(txt_out)
+            self.write('\n')
+            self.more = False
+        else:
+            # Other command
+            self.more = self.push(cmd)
+        if self.more:
+            self.write(self.prompt_more)
+        else:
+            self.write(self.prompt)
+            self.resetbuffer()
         
     def redirect_stds(self):
         """Redirects stds"""

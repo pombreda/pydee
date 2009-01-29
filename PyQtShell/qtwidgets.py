@@ -118,7 +118,6 @@ class QtShell(QTextEdit, Interpreter):
         
         # last line + last incomplete lines
         self.line    = QString()
-        self.lines   = []
         # the cursor position in the last line
         self.point   = 0
         # flag: the interpreter needs more input to run the last lines. 
@@ -209,33 +208,20 @@ class QtShell(QTextEdit, Interpreter):
 
     def __run(self):
         """
-        Append the last line to the history list, let the interpreter execute
-        the last line(s), and clean up accounting for the interpreter results:
-        (1) the interpreter succeeds
-        (2) the interpreter fails, finds no errors and wants more line(s)
-        (3) the interpreter fails, finds errors and writes them to sys.stderr
+        Run last line
         """
-        self.add_to_history(self.line)
         self.pointer = 0
-        try:
-            self.lines.append(str(self.line))
-        except Exception,e:
-            print e
-
+        # Before running command
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
         
-        source = '\n'.join(self.lines)
-        self.more = self.runsource(source)
-
-        if self.more:
-            self.write(self.prompt_more)
-        else:
-            self.write(self.prompt)
-            self.lines = []
-        self.__clear_line()
-        
+        self.run_command(unicode(self.line))
+            
         self.emit(SIGNAL("status(QString)"), QString())
+            
+        # The following signal must be connected to any other related widget:
         self.emit(SIGNAL("refresh()"))
+
+        self.__clear_line()
         
     def __clear_line(self):
         """
