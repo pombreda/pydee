@@ -17,7 +17,7 @@ from PyQt4.QtCore import Qt, SIGNAL
 # Local import
 import encoding
 from dochelpers import getdoc, getsource
-from qthelpers import create_action, get_std_icon
+from qthelpers import create_action, get_std_icon, add_actions
 from config import get_font, set_font
 from config import CONF, str2type, get_conf_path
 
@@ -132,13 +132,22 @@ class Shell(ShellBaseWidget, WidgetMixin):
         history_action = create_action(self, self.tr("History..."), None,
             'history.png', self.tr("Set history max entries"),
             triggered=self.change_history_depth)
+        exteditor_action = create_action(self,
+            self.tr("External editor path..."), None,
+            None, self.tr("Set external editor executable path"),
+            triggered=self.change_exteditor)
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get('shell', 'wrap') )
         menu_actions = (run_action, None,
-                        font_action, history_action, wrap_action, None,
-                        quit_action)
+                        font_action, history_action, wrap_action,
+                        exteditor_action,
+                        None, quit_action)
         toolbar_actions = (run_action,)
+        menu = self.get_menu()
+        if  menu is not None:
+            add_actions(menu, (None,))
+            add_actions(menu, menu_actions)
         return menu_actions, toolbar_actions
         
     def run_script(self, filename=None, silent=False):
@@ -180,6 +189,15 @@ class Shell(ShellBaseWidget, WidgetMixin):
                            CONF.get('history', 'max_entries'), 10, 10000)
         if valid:
             CONF.set('history', 'max_entries', depth)
+        
+    def change_exteditor(self):
+        """Change external editor path"""
+        path, valid = QInputDialog.getText(self, self.tr('External editor'),
+                          self.tr('External editor executable path:'),
+                          QLineEdit.Normal,
+                          CONF.get('shell', 'external_editor'))
+        if valid:
+            CONF.set('shell', 'external_editor', path)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
