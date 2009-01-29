@@ -6,8 +6,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import os
+import os, subprocess
 from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QMenu
+from PyQt4.QtGui import QMessageBox
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
@@ -16,7 +17,7 @@ import encoding, re
 from shell import Interpreter, create_banner
 from config import CONF, get_icon
 from dochelpers import getargtxt
-from qthelpers import create_action
+from qthelpers import create_action, add_actions, get_std_icon, translate
 
 
 class LexerPython(QsciLexerPython):
@@ -198,10 +199,25 @@ class QsciShell(QsciScintilla, Interpreter):
         
         # Create a little context menu
         self.menu = QMenu(self)
-        self.menu.addAction(create_action(self, self.tr("Copy"),
-            icon=get_icon('copy.png'), triggered=self.copy))
-        self.menu.addAction(create_action(self, self.tr("Paste"),
-            icon=get_icon('paste.png'), triggered=self.paste))
+        cut_action   = create_action(self, translate("ShellBaseWidget", "Cut"),
+                           icon=get_icon('cut.png'), triggered=self.cut)
+        copy_action  = create_action(self, translate("ShellBaseWidget", "Copy"),
+                           icon=get_icon('copy.png'), triggered=self.copy)
+        paste_action = create_action(self,
+                           translate("ShellBaseWidget", "Paste"),
+                           icon=get_icon('paste.png'), triggered=self.paste)
+        clear_action = create_action(self,
+                           translate("ShellBaseWidget", "Clear shell"),
+                           icon=get_std_icon("TrashIcon"),
+                           tip=translate("ShellBaseWidget",
+                                   "Clear shell contents ('cls' command)"),
+                           triggered=self.__clear)
+        self.help_action = create_action(self,
+                           translate("ShellBaseWidget", "Help..."),
+                           icon=get_std_icon('DialogHelpButton'),
+                           triggered=self.help)
+        add_actions(self.menu, (cut_action, copy_action, paste_action,
+                                None, clear_action, None, self.help_action) )
 
         self.setMinimumWidth(400)
         self.setMinimumHeight(150)
@@ -249,6 +265,26 @@ class QsciShell(QsciScintilla, Interpreter):
                      self.__completion_list_selected)
         self.setFocus()
         self.emit(SIGNAL("status(QString)"), QString())
+
+    def get_menu(self):
+        """Return shell context menu"""
+        return self.menu
+        
+    def help(self):
+        """Help on PyQtShell console"""
+        QMessageBox.about(self,
+            translate("ShellBaseWidget", "Help"),
+            self.tr("""<b>%1</b>
+            <p><i>%2</i><br>    edit foobar.py
+            <p><i>%3</i><br>    run foobar.py
+            <p><i>%4</i><br>    !ls
+            <p><i>%5</i><br>    object?
+            """) \
+            .arg(translate("ShellBaseWidget", 'Shell special commands:')) \
+            .arg(translate("ShellBaseWidget", 'External editor:')) \
+            .arg(translate("ShellBaseWidget", 'Run script:')) \
+            .arg(translate("ShellBaseWidget", 'System commands:')) \
+            .arg(translate("ShellBaseWidget", 'Python help:')))
 
     def get_banner(self):
         """Return interpreter banner and a one-line message"""
@@ -353,9 +389,16 @@ class QsciShell(QsciScintilla, Interpreter):
             self.add_to_history(cmd)
             self.histidx = -1
         
+        # cls command
+        if cmd == 'cls':
+            self.__clear()
+            return
+        
+        # ? command
         if cmd.endswith('?'):
             cmd = 'help(%s)' % cmd[:-1]
             
+        # run command
         if cmd.startswith('run '):
             filename = cmd[4:]
             if filename.startswith('"') or filename.startswith("'"):
@@ -364,20 +407,23 @@ class QsciShell(QsciScintilla, Interpreter):
                 filename += '.py'
             cmd = 'execfile("%s")' % filename
                 
+        # edit command
         if cmd.startswith('edit '):
-            filename = cmd[4:]
+            filename = cmd[5:]
             if filename.startswith('"') or filename.startswith("'"):
                 filename = filename[1:-1]
-            if not filename.endswith('.py'):
-                filename += '.py'
-            cmd = '!%s %s' % (CONF.get('shell', 'external_editor'), filename)
+            editor_path = CONF.get('shell', 'external_editor')
+            subprocess.Popen('%s %s' % (editor_path, filename))
+            self.write('\n')
+            self.write(self.prompt)
+            return
                 
         # Before running command
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
 
         # Execute command
         if cmd.startswith('!'):
-            # System command
+            # System ! command
             _, out, err = os.popen3(cmd[1:])
             txt_out = out.read().rstrip()
             txt_err = err.read().rstrip()
@@ -388,6 +434,7 @@ class QsciShell(QsciScintilla, Interpreter):
             self.write('\n')
             self.more = False
         else:
+            # Other command
             self.execlines.append(unicode(cmd))
             source = '\n'.join(self.execlines)
             self.more = self.runsource(source)
@@ -521,7 +568,7 @@ class QsciShell(QsciScintilla, Interpreter):
 
     #------ Paste, middle-button, ...    
     def paste(self):
-        """Reimplemented slot to handle the paste action"""
+        """Reimplemented slot to handle multiline paste action"""
         lines = unicode(QApplication.clipboard().text())
         if self.__is_cursor_on_last_line():
             # Paste at cursor position
@@ -538,6 +585,14 @@ class QsciShell(QsciScintilla, Interpreter):
                self.lineLength(cline2)-len(linetext[cindex:]) )
         else:
             self.__execute_lines(lines)
+            
+    def __clear(self):
+        """Reimplemented to write prompt after clearing shell"""
+        self.clear()
+        if self.more:
+            self.write(self.prompt_more)
+        else:
+            self.write(self.prompt)
             
     def __middle_mouse_button(self):
         """Private method to handle the middle mouse button press"""

@@ -147,8 +147,5 @@ class Interpreter(code.InteractiveInterpreter):
     def isatty(self):
         """Simulate stdin, stdout, and stderr"""
         return 1
-
-    def clear(self):
-        """Clear"""
         
 
