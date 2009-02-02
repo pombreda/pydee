@@ -906,7 +906,7 @@ class QsciShell(QsciScintilla, Interpreter):
         """
         if userlist_id == 1:
             cline, cindex = self.getCursorPosition()
-            self.setSelection(cline, cindex-self.completion_chars+1,
+            self.setSelection(cline, cindex-self.completion_chars+2,
                               cline, cindex)
             self.removeSelectedText()
             seltxt = unicode(seltxt)
