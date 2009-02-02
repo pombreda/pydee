@@ -93,7 +93,7 @@ class QtShell(QTextEdit, Interpreter):
     Derived from:
         PyCute (pycute.py): http://gerard.vermeulen.free.fr (GPL)
     """    
-    def __init__(self, namespace=None, commands=None,
+    def __init__(self, namespace=None, commands=[],
                  message="", parent=None, debug=False, exitfunc=None):
         """
         namespace : locals send to InteractiveInterpreter object
@@ -103,7 +103,7 @@ class QtShell(QTextEdit, Interpreter):
         If no parent widget has been specified, it is possible to
         exit the interpreter by Ctrl-D
         """
-        Interpreter.__init__(self, namespace, commands, debug, exitfunc)       
+        Interpreter.__init__(self, namespace, debug, exitfunc)       
         QTextEdit.__init__(self, parent)
                         
         self.set_font( get_font('shell') )
@@ -133,6 +133,12 @@ class QtShell(QTextEdit, Interpreter):
         self.write( create_banner(moreinfo, message) )
         self.write(self.tr('Please install QScintilla to enable auto-completion and calltips')+':'+
                    '\n'+'http://www.riverbankcomputing.co.uk/qscintilla\n\n')
+
+        # Initial commands
+        for cmd in commands:
+            if not self.push(cmd):
+                self.resetbuffer()
+                
         self.write(self.prompt)
         self.emit(SIGNAL("status(QString)"), QString())
         
