@@ -128,7 +128,7 @@ DEFAULTS = [
 DEV = osp.isfile(osp.join(osp.join(APP_PATH, osp.pardir), 'setup.py'))
 DEV = False
 from userconfig import UserConfig
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.11', load=(not DEV))
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.12', load=(not DEV))
 
 def get_conf_path(filename):
     """

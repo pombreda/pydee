@@ -6,11 +6,14 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import os, subprocess
+import sys, os
 from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QMenu
 from PyQt4.QtGui import QMessageBox
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
+
+# For debugging purpose:
+STDOUT = sys.stdout
 
 # Local import
 import encoding, re
@@ -153,7 +156,7 @@ class QsciEditor(QsciScintilla):
     def get_text(self):
         """Return editor text"""
         return self.text()
-
+    
 
 class QsciShell(QsciScintilla, Interpreter):
     """
@@ -162,8 +165,8 @@ class QsciShell(QsciScintilla, Interpreter):
         PyCute (pycute.py): http://gerard.vermeulen.free.fr (GPL)
         Eric4 shell (shell.py): http://www.die-offenbachs.de/eric/index.html (GPL)
     """
-    def __init__(self, namespace=None, commands=None,
-                 message="", parent=None, debug=False, exitfunc=None):
+    def __init__(self, namespace=None, commands=[], message="",
+    			 parent=None, debug=False, exitfunc=None):
         """
         namespace : locals send to InteractiveInterpreter object
         commands: list of commands executed at startup
@@ -172,7 +175,7 @@ class QsciShell(QsciScintilla, Interpreter):
         If no parent widget has been specified, it is possible to
         exit the interpreter by Ctrl-D
         """
-        Interpreter.__init__(self, namespace, commands, debug, exitfunc)       
+        Interpreter.__init__(self, namespace, debug, exitfunc)       
         QsciScintilla.__init__(self, parent)
         
         self.setUtf8(True)
@@ -233,7 +236,15 @@ class QsciShell(QsciScintilla, Interpreter):
         moreinfo, helpmsg = self.get_banner()
         self.write( create_banner(moreinfo, message) )
         self.write(helpmsg + '\n\n')
+
+        # Initial commands
+        for cmd in commands:
+            if not self.push(cmd):
+                self.resetbuffer()
+                
+        # First prompt
         self.write(self.prompt)
+        self.emit(SIGNAL("refresh()"))
 
         #self.standardCommands().clearKeys()
         self.keymap = {
@@ -372,7 +383,7 @@ class QsciShell(QsciScintilla, Interpreter):
     def __execute_command(self, cmd):
         """
         Private slot to execute a command.
-        cmd: command to be executed by debug client (string)
+        cmd: one-line command only, without '\n' at the end!
         """
         # cls command
         if cmd == 'cls':
@@ -461,9 +472,12 @@ class QsciShell(QsciScintilla, Interpreter):
         """Private key pressed event handler"""
         QsciScintilla.keyPressEvent(self, key_event)
         self.incremental_search_active = True
-# Disable automatic completion: (the user have to press TAB to enable it)
-#        if txt == '.':
-#            self.__show_dyn_completion()
+        if txt == '.':
+            # Enable auto-completion only if last token isn't a float
+            text = self.__get_current_line_to_cursor()
+            tokens = text.split(" ")
+            if not tokens[-1].isdigit():
+                self.__show_dyn_completion(text)
         if txt == '(' or txt =='?':
             self.__show_docstring()
         elif self.isListActive():
@@ -846,11 +860,12 @@ class QsciShell(QsciScintilla, Interpreter):
                 self.showUserList(10, QStringList( obj.__doc__.split('\n') ))
         
     #------ Code Completion Management            
-    def __show_dyn_completion(self):
+    def __show_dyn_completion(self, text=None):
         """
         Display a completion list based on the last token
         """
-        text = self.__get_current_line_to_cursor()
+        if text is None:
+            text = self.__get_current_line_to_cursor()
         try:
             obj = eval(text, globals(), self.locals)
         except:
