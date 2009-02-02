@@ -169,8 +169,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
         self.setFocus()
         if silent:
             self.write(command+'\n')
-            self.runsource(command)
-            self.write(self.prompt)
+            self.run_command(command+'\n')
         else:
             self.write(command)
         
@@ -273,7 +272,10 @@ class WorkingDirectory(QWidget, WidgetMixin):
         self.pathedit = PathComboBox(self)
         wdhistory = self.load_wdhistory( workdir )
         if workdir is None:
-            workdir = wdhistory[0]
+            if wdhistory:
+                workdir = wdhistory[0]
+            else:
+                workdir = "."
         self.chdir( workdir )
         self.pathedit.addItems( wdhistory )
         self.refresh()
