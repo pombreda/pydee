@@ -165,13 +165,13 @@ class Interpreter(code.InteractiveConsole):
         # run command
         if cmd.startswith('run '):
             filename = guess_filename(cmd[4:])
-            cmd = 'execfile("%s")' % filename
+            cmd = 'execfile(r"%s")' % filename
                 
         # edit command
         if cmd.startswith('edit '):
             filename = guess_filename(cmd[5:])
             editor_path = CONF.get('shell', 'external_editor')
-            subprocess.Popen('%s "%s"' % (editor_path, filename))
+            subprocess.Popen(r'%s "%s"' % (editor_path, filename))
             self.write('\n')
             self.write(self.prompt)
             return
