@@ -196,6 +196,8 @@ class Interpreter(code.InteractiveConsole):
         else:
             # Other command
             self.more = self.push(cmd)
+        
+        self.emit_refresh_signal()
         if self.more:
             self.write(self.prompt_more)
         else:

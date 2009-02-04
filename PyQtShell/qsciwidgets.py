@@ -396,9 +396,7 @@ class QsciShell(QsciScintilla, Interpreter):
         self.run_command(cmd)
             
         self.emit(SIGNAL("status(QString)"), QString())
-            
-        # The following signal must be connected to any other related widget:
-        self.emit(SIGNAL("refresh()"))
+        
     
     #------ Text Insertion
     def __insert_text(self, text, at_end=False):

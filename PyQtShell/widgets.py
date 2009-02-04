@@ -99,6 +99,10 @@ class Shell(ShellBaseWidget, WidgetMixin):
         self.set_font( get_font('shell') )
         self.set_wrap_mode( CONF.get('shell', 'wrap') )
 
+    def emit_refresh_signal(self):
+        """Emit refresh SIGNAL to update all other widgets"""
+        self.emit(SIGNAL("refresh()"))
+
     def get_banner(self):
         """Return interpreter banner and a one-line message"""
         return (self.tr('Type "copyright", "credits" or "license" for more information.'),
