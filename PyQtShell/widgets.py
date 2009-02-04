@@ -21,6 +21,9 @@ from qthelpers import create_action, get_std_icon, add_actions
 from config import get_font, set_font
 from config import CONF, str2type, get_conf_path, get_icon
 
+# For debugging purpose:
+STDOUT = sys.stdout
+
 def toggle_actions(actions, enable):
     """Enable/disable actions"""
     if actions is not None:
@@ -404,7 +407,7 @@ class Editor(QWidget, WidgetMixin):
         index = self.tabwidget.currentIndex()
         if state is None:
             state = self.editors[index].isModified()
-        title = unicode( self.tabwidget.tabText(index) )
+        title = self.get_title(self.filenames[index])
         if state:
             title += "*"
         elif title.endswith('*'):
@@ -525,6 +528,13 @@ class Editor(QWidget, WidgetMixin):
         while self.close():
             pass
         
+    def get_title(self, filename):
+        """Return tab title"""
+        if filename != self.file_path:
+            return osp.basename(filename)
+        else:
+            return unicode(self.tr("Temporary file"))
+        
     def load(self, filenames=None):
         """Load a Python script file"""
         if filenames is None:
@@ -563,10 +573,7 @@ class Editor(QWidget, WidgetMixin):
             editor.set_text(txt)
             editor.setModified(False)
             
-            if filename != self.file_path:
-                title = osp.basename(filename)
-            else:
-                title = self.tr("Temporary file")
+            title = self.get_title(filename)
             index = self.tabwidget.addTab(editor, title)
             self.tabwidget.setTabToolTip(index, filename)
             self.tabwidget.setTabIcon(index, get_icon('python.png'))
@@ -585,12 +592,12 @@ class Editor(QWidget, WidgetMixin):
                           self.tr("Python scripts")+" (*.py ; *.pyw)")
             self.mainwindow.shell.redirect_stds()
             if filename:
-                self.filenames[index] = unicode(filename)
+                filename = unicode(filename)
+                self.filenames[index] = filename
                 self.chdir( os.path.dirname(filename) )
             else:
                 return False
             self.save()
-            self.refresh_title()
     
     def save(self):
         """Save the currently edited Python script file"""
