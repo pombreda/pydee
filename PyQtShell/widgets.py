@@ -90,8 +90,8 @@ class Shell(ShellBaseWidget, WidgetMixin):
     """
     Shell widget
     """
-    def __init__(self, namespace=None, commands=None, message="",
-                 parent=None, debug=False, exitfunc=None):
+    def __init__(self, parent=None, namespace=None, commands=None, message="",
+                 debug=False, exitfunc=None):
         ShellBaseWidget.__init__(self, namespace, commands,
                                  message, parent, debug, exitfunc)
         WidgetMixin.__init__(self, parent)
