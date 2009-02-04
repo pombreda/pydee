@@ -139,7 +139,10 @@ class QtShell(QTextEdit, Interpreter):
             if not self.push(cmd):
                 self.resetbuffer()
                 
+        # First prompt
         self.write(self.prompt)
+        self.emit(SIGNAL("refresh()"))
+        
         self.emit(SIGNAL("status(QString)"), QString())
         
     
@@ -223,9 +226,6 @@ class QtShell(QTextEdit, Interpreter):
         self.run_command(unicode(self.line))
             
         self.emit(SIGNAL("status(QString)"), QString())
-            
-        # The following signal must be connected to any other related widget:
-        self.emit(SIGNAL("refresh()"))
 
         self.__clear_line()
         
