@@ -387,8 +387,6 @@ class Editor(QWidget, WidgetMixin):
         layout.addWidget(self.tabwidget)
         self.setLayout(layout)
         
-        self.untitled = self.tr("Untitled")
-        
         self.file_dependent_actions = []
         self.filenames = []
         self.encodings = []
@@ -435,6 +433,9 @@ class Editor(QWidget, WidgetMixin):
 
     def set_actions(self):
         """Setup actions"""
+        new_action = create_action(self, self.tr("New..."), None,
+            'py_new.png', self.tr("Create a new Python script"),
+            triggered = self.new)
         open_action = create_action(self, self.tr("Open..."), None,
             'py_open.png', self.tr("Open a Python script"),
             triggered = self.load)
@@ -459,10 +460,11 @@ class Editor(QWidget, WidgetMixin):
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get('editor', 'wrap') )
-        menu_actions = (open_action, save_action, save_as_action, exec_action,
+        menu_actions = (new_action, open_action, save_action, save_as_action,
+                        exec_action,
                         None, close_action, close_all_action,
                         None, font_action, wrap_action)
-        toolbar_actions = (open_action, save_action, exec_action,)
+        toolbar_actions = (new_action, open_action, save_action, exec_action,)
         self.file_dependent_actions = (save_action, save_as_action, exec_action,
                                        close_action, close_all_action)
         return (menu_actions, toolbar_actions)                
@@ -489,6 +491,30 @@ class Editor(QWidget, WidgetMixin):
             text = "\r\n".join([unicode(qstr) for qstr in default])
             encoding.write(unicode(text), self.file_path, 'utf-8')
         self.load(self.file_path)
+    
+    def new(self):
+        """Create a new Python script"""
+        gen_name = lambda nb: self.tr("untitled") + ("%d.py" % nb)
+        nb = 0
+        while osp.isfile(gen_name(nb)):
+            nb += 1
+        fname = gen_name(nb)
+        self.mainwindow.shell.restore_stds()
+        fname = QFileDialog.getSaveFileName(self, self.tr("New Python script"),
+                    fname, self.tr("Python scripts")+" (*.py ; *.pyw)")
+        self.mainwindow.shell.redirect_stds()
+        if not fname.isEmpty():
+            fname = unicode(fname)
+            default = ['# -*- coding: utf-8 -*-',
+                       '"""',
+                       osp.basename(fname),
+                       '"""',
+                       '',
+                       '',
+                       ]
+            text = "\r\n".join([unicode(qstr) for qstr in default])
+            encoding.write(unicode(text), fname, 'utf-8')
+            self.load(fname)
     
     def exec_script(self):
         """Execute current script"""
@@ -609,8 +635,6 @@ class Editor(QWidget, WidgetMixin):
         """Save the currently edited Python script file"""
         if self.tabwidget.count():
             index = self.tabwidget.currentIndex()
-            if os.path.basename(self.filenames[index]) == self.untitled:
-                return self.save_as()
             txt = unicode(self.editors[index].get_text())
             self.encodings[index] = encoding.write(txt,
                                                    self.filenames[index],
