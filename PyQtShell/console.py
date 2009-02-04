@@ -67,7 +67,7 @@ class ConsoleWindow(QMainWindow):
                 namespace = self.workspace.namespace
         
         # Shell widget: window's central widget
-        self.shell = Shell(namespace, commands, message, self,
+        self.shell = Shell(self, namespace, commands, message,
                            debug, self.closing)
         self.setCentralWidget(self.shell)
         self.widgetlist.append(self.shell)
@@ -162,7 +162,7 @@ class ConsoleWindow(QMainWindow):
     def closing(self, cancelable=False):
         """Exit tasks"""
         if self.already_closed:
-            return
+            return True
         size = self.size()
         section = 'lightwindow' if self.light else 'window'
         CONF.set(section, 'size', (size.width(), size.height()))
