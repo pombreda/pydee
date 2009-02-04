@@ -393,7 +393,12 @@ class Editor(QWidget, WidgetMixin):
         self.filenames = []
         self.encodings = []
         self.editors = []
-        self.load_temp_file()
+        
+        filenames = CONF.get('editor', 'filenames', [])
+        if filenames:
+            self.load(filenames)
+        else:
+            self.load_temp_file()
         
     def refresh(self, index):
         """Refresh tabwidget"""
@@ -464,6 +469,7 @@ class Editor(QWidget, WidgetMixin):
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
+        CONF.set('editor', 'filenames', self.filenames)
         return self.save_if_changed(cancelable)
         
     def load_temp_file(self):
