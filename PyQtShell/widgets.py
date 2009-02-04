@@ -199,7 +199,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
                           QLineEdit.Normal,
                           CONF.get('shell', 'external_editor'))
         if valid:
-            CONF.set('shell', 'external_editor', path)
+            CONF.set('shell', 'external_editor', unicode(path))
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
