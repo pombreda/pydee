@@ -577,7 +577,7 @@ class QsciShell(QsciScintilla, Interpreter):
         """
         if self.hasSelectedText():
             self.__delete_selected_text()
-        if self.__is_cursor_on_last_line():
+        elif self.__is_cursor_on_last_line():
             line, col = self.getCursorPosition()
             is_active = self.isListActive()
             old_length = self.text(line).length()
@@ -598,7 +598,7 @@ class QsciShell(QsciScintilla, Interpreter):
         """
         if self.hasSelectedText():
             self.__delete_selected_text()
-        if self.__is_cursor_on_last_line():
+        elif self.__is_cursor_on_last_line():
             self.SendScintilla(QsciScintilla.SCI_CLEAR)
                 
     def __delete_selected_text(self):
@@ -622,7 +622,7 @@ class QsciShell(QsciScintilla, Interpreter):
             line_from = line_to
         self.setSelection(line_from, index_from, line_to, index_to)
         self.SendScintilla(QsciScintilla.SCI_CLEAR)
-        self.setSelection(line_to, index_to, line_to, index_to)
+        self.setSelection(line_from, index_from, line_from, index_from)
 
     def __qsci_newline(self):
         """
