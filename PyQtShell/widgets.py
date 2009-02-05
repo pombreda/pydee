@@ -6,15 +6,17 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, os, cPickle
+import sys, os, cPickle, subprocess
+from time import time
 import os.path as osp
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
 from PyQt4.QtGui import QToolTip, QCheckBox, QTabWidget
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtCore import Qt, SIGNAL, QString, QEventLoop, QCoreApplication
 
 # Local import
+from shell import Interpreter
 import encoding
 from dochelpers import getdoc, getsource
 from qthelpers import create_action, get_std_icon, add_actions
@@ -78,12 +80,237 @@ class WidgetMixin(object):
         self.mainwindow.workdir.chdir(dirname)
 
 
+class MultipleRedirection:
+    """ Dummy file which redirects stream to multiple file """
+    def __init__(self, files):
+        """ The stream is redirect to the file list 'files' """
+        self.files = files
+    def write(self, string):
+        """ Emulate write function """
+        for fileobj in self.files:
+            fileobj.write(string)
+
+def guess_filename(filename):
+    """Guess filename"""
+    if filename.startswith('"') or filename.startswith("'"):
+        filename = filename[1:-1]
+    if osp.isfile(filename):
+        return filename
+    pathlist = sys.path
+    pathlist[0] = os.getcwd()
+    if not filename.endswith('.py'):
+        filename += '.py'
+    for path in pathlist:
+        fname = osp.join(path, filename)
+        if osp.isfile(fname):
+            return fname
+    return filename
+
+def create_banner(moreinfo, message=''):
+    """Create shell banner"""
+    if message:
+        message = '\n' + message + '\n'
+    return 'Python %s on %s\n' % (sys.version, sys.platform) + \
+            moreinfo+'\n' + message + '\n'
+
 try:
-    from qsciwidgets import QsciShell as ShellBaseWidget
+    from qsciwidgets import QsciTerminal as Terminal
     from qsciwidgets import QsciEditor as EditorBaseWidget
 except ImportError:
-    from qtwidgets import QtShell as ShellBaseWidget
+    from qtwidgets import QtTerminal as Terminal
     from qtwidgets import QtEditor as EditorBaseWidget
+
+class ShellBaseWidget(Terminal):
+    try:
+        p1 = sys.p1
+    except AttributeError:
+        p1 = ">>> "
+    try:
+        p2 = sys.p2
+    except AttributeError:
+        p2 = "... "
+    def __init__(self, parent=None, namespace=None, commands=None, message="",
+                 debug=False, exitfunc=None):
+        self.__buffer = []
+        self.__timestamp = 0.0
+        Terminal.__init__(self, parent)
+        
+        # raw_input support
+        self.input_loop = None
+        self.input_mode = False
+        
+        # KeyboardInterrupt support
+        self.interrupted = False
+        
+        # Init interpreter
+        #TODO: multithreaded Interpreter (if option.thread)
+        self.interpreter = Interpreter(namespace, exitfunc, self.raw_input)
+        
+        # Execution Status
+        self.more = False
+        
+        # capture all interactive input/output 
+        self.debug = debug
+        self.initial_stdout = sys.stdout
+        self.initial_stderr = sys.stderr
+        self.initial_stdin = sys.stdin
+        self.redirect_stds()
+
+        # interpreter banner
+        moreinfo, helpmsg = self.get_banner()
+        self.write( create_banner(moreinfo, message) )
+        self.write(helpmsg + '\n\n')
+
+        # Initial commands
+        for cmd in commands:
+            if not self.push(cmd):
+                self.resetbuffer()
+                
+        # First prompt
+        self.prompt = self.p1
+        self.write(self.prompt, flush=True)
+        self.emit(SIGNAL("refresh()"))
+  
+    def redirect_stds(self):
+        """Redirects stds"""
+        if not self.debug:
+            sys.stdout   = self
+            sys.stderr   = MultipleRedirection((sys.stderr, self))
+            sys.stdin    = self
+        
+    def restore_stds(self):
+        """Restore stds"""
+        if not self.debug:
+            sys.stdout = self.initial_stdout
+            sys.stderr = self.initial_stderr
+            sys.stdin = self.initial_stdin
+
+    def raw_input(self, prompt):
+        """Reimplementation of raw_input builtin"""
+        self.write(prompt, flush=True)
+        old_prompt = self.prompt
+        self.prompt = prompt
+        inp = self.wait_input()
+        self.prompt = old_prompt
+        return inp
+    
+    def readline(self):
+        """For help() support (to be implemented...)"""
+        #TODO: help() support
+        inp = self.wait_input()
+        return inp
+        
+    def wait_input(self):
+        """Wait for input (raw_input)"""
+        self.input_data = None # If shell is closed, None will be returned
+        self.input_mode = True
+        self.input_loop = QEventLoop()
+        self.input_loop.exec_()
+        self.input_loop = None
+        return self.input_data
+    
+    def end_input(self, cmd):
+        """End of wait_input mode"""
+        self.input_data = cmd
+        self.input_mode = False
+        self.input_loop.exit()
+
+    def write(self, text, flush=False):
+        """Simulate stdout and stderr"""
+        if isinstance(text, QString):
+            # This test is useful to discriminate QStrings from decoded str
+            text = unicode(text)
+        self.__buffer.append(text)
+        ts = time()
+        if flush or ts-self.__timestamp > 0.05:
+            self.flush_buffer()
+            self.__timestamp = ts
+
+    def flush_buffer(self):
+        """Flush buffer, write text to console"""
+        text = "".join(self.__buffer)
+        self.__buffer = []
+        self.insert_text(text, at_end=True)
+        QCoreApplication.processEvents()
+        if self.interrupted:
+            self.interrupted = False
+            raise KeyboardInterrupt
+
+    def get_banner(self):
+        """Return interpreter banner and a one-line message"""
+        return (self.tr('Type "copyright", "credits" or "license" for more information.'),
+                self.tr('Type "object?" for details on "object"'))
+
+    def execute_command(self, cmd):
+        """
+        Execute a command.
+        cmd: one-line command only, without '\n' at the end!
+        """
+        if self.input_mode:
+            self.end_input(cmd)
+            return
+        # cls command
+        if cmd == 'cls':
+            self.clear_terminal()
+            return
+                
+        # Before running command
+        self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
+        self.run_command(cmd)
+        self.emit(SIGNAL("status(QString)"), QString())
+        
+    def run_command(self, cmd):
+        """Run command in interpreter"""
+        if not cmd:
+            cmd = ''
+        else:
+            self.interpreter.add_to_history(cmd)
+            self.histidx = -1
+        
+        # ? command
+        if cmd.endswith('?'):
+            cmd = 'help(%s)' % cmd[:-1]
+            
+        # run command
+        if cmd.startswith('run '):
+            filename = guess_filename(cmd[4:])
+            cmd = 'execfile(r"%s")' % filename
+                
+        # edit command
+        if cmd.startswith('edit '):
+            filename = guess_filename(cmd[5:])
+            editor_path = CONF.get('shell', 'external_editor')
+            subprocess.Popen(r'%s "%s"' % (editor_path, filename))
+            self.write('\n')
+            self.write(self.prompt, flush=True)
+            return
+
+        # Execute command
+        if cmd.startswith('!'):
+            # System ! command
+            _, out, err = os.popen3(cmd[1:])
+            #txt_out = out.read().rstrip()
+            #TODO: Why is the line below working whereas the one above not?
+            #XXX: Is this working on Linux too?
+            import locale
+            txt_out = out.read().decode('cp437') \
+                      .encode(locale.getpreferredencoding())
+            txt_err = err.read().rstrip()
+            if txt_err:
+                self.write(txt_err)
+            else:
+                self.write(txt_out)
+            self.write('\n')
+            self.more = False
+        else:
+            # Other command
+            self.more = self.interpreter.push(cmd)
+        
+        self.emit(SIGNAL("refresh()"))
+        self.prompt = self.p2 if self.more else self.p1
+        self.write(self.prompt, flush=True)
+        if not self.more:
+            self.interpreter.resetbuffer()
 
 
 class Shell(ShellBaseWidget, WidgetMixin):
@@ -92,21 +319,12 @@ class Shell(ShellBaseWidget, WidgetMixin):
     """
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None):
-        ShellBaseWidget.__init__(self, namespace, commands,
-                                 message, parent, debug, exitfunc)
+        ShellBaseWidget.__init__(self, parent, namespace, commands, message,
+                                 debug, exitfunc)
         WidgetMixin.__init__(self, parent)
         # Parameters
         self.set_font( get_font('shell') )
         self.set_wrap_mode( CONF.get('shell', 'wrap') )
-
-    def emit_refresh_signal(self):
-        """Emit refresh SIGNAL to update all other widgets"""
-        self.emit(SIGNAL("refresh()"))
-
-    def get_banner(self):
-        """Return interpreter banner and a one-line message"""
-        return (self.tr('Type "copyright", "credits" or "license" for more information.'),
-                self.tr('Type "object?" for details on "object"'))
         
     def get_name(self, raw=True):
         """Return widget name"""
@@ -118,7 +336,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        self.save_history()
+        self.interpreter.save_history()
         return True
     
     def quit(self):
@@ -674,7 +892,7 @@ class HistoryLog(EditorBaseWidget, WidgetMixin):
         self.set_font( get_font('history') )
         self.set_wrap_mode( CONF.get('history', 'wrap') )
         self.setup_margin( get_font('history', 'margin'), 3 )
-        self.history = self.mainwindow.shell.rawhistory
+        self.history = self.mainwindow.shell.interpreter.rawhistory
         self.refresh()
         
     def get_name(self, raw=True):
@@ -775,8 +993,7 @@ class DocViewer(QWidget, WidgetMixin):
         obj_text = unicode(obj_text)
         hlp_text = None
         try:
-            obj = eval(obj_text, globals(),
-                       self.mainwindow.shell.locals)
+            obj = eval(obj_text, self.mainwindow.shell.interpreter.locals)
             if self.docstring:
                 hlp_text = getdoc(obj)
                 if hlp_text is None:
@@ -878,7 +1095,7 @@ class Workspace(DictEditor, WidgetMixin):
     def refresh(self):
         """Refresh widget"""
         if self.shell is not None:
-            self.namespace = self.shell.namespace
+            self.namespace = self.shell.interpreter.namespace
         self.set_data( self.namespace, wsfilter )
         
     def set_actions(self):

@@ -1,57 +1,16 @@
 # -*- coding: utf-8 -*-
 """Shell Interpreter"""
 
-import sys, time, atexit, os, subprocess
+import time, atexit
 import os.path as osp
 import code
 
 # Local import
 import encoding
 from config import CONF, get_conf_path
-
-def create_banner(moreinfo, message=''):
-    """Create shell banner"""
-    if message:
-        message = '\n' + message + '\n'
-    return 'Python %s on %s\n' % (sys.version, sys.platform) + \
-            moreinfo+'\n' + message + '\n'
-
-
-class MultipleRedirection:
-    """ Dummy file which redirects stream to multiple file """
-    def __init__(self, files):
-        """ The stream is redirect to the file list 'files' """
-        self.files = files
-    def write(self, str):
-        """ Emulate write function """
-        for fileobj in self.files:
-            fileobj.write(str)
             
-SHELL = None
-def _raw_input(prompt="", echo=1):
-    """Reimplementation of raw_input builtin (for future developments)"""
-    return SHELL.raw_input(prompt, echo)
-
-        
-def guess_filename(filename):
-    """Guess filename"""
-    if filename.startswith('"') or filename.startswith("'"):
-        filename = filename[1:-1]
-    if osp.isfile(filename):
-        return filename
-    pathlist = sys.path
-    pathlist[0] = os.getcwd()
-    if not filename.endswith('.py'):
-        filename += '.py'
-    for path in pathlist:
-        fname = osp.join(path, filename)
-        if osp.isfile(fname):
-            return fname
-    return filename
-    
-    
 class Interpreter(code.InteractiveConsole):
-    """Interpreter (to be continued...)"""
+    """Interpreter"""
     log_path = get_conf_path('.history.py')
     inithistory = [
                    '# -*- coding: utf-8 -*-',
@@ -59,16 +18,9 @@ class Interpreter(code.InteractiveConsole):
                    '',
                    ]
     separator = '# ---(%s)---' % time.ctime()
-    try:
-        prompt = sys.p1
-    except AttributeError:
-        prompt = ">>> "
-    try:
-        prompt_more = sys.p2
-    except AttributeError:
-        prompt_more = "... "
         
-    def __init__(self, namespace=None, debug=False, exitfunc=None):
+    def __init__(self, namespace=None, exitfunc=None,
+                 rawinputfunc=None):
         """
         namespace: locals send to InteractiveConsole object
         commands: list of commands executed at startup
@@ -77,46 +29,14 @@ class Interpreter(code.InteractiveConsole):
         
         if exitfunc is not None:
             atexit.register(exitfunc)
-        self.debug = debug
-        global SHELL
-        SHELL = self
+        
         self.namespace = self.locals
-        self.namespace['raw_input'] = _raw_input
-        
-        # flag: readline() is being used for e.g. raw_input() and input()
-        self.reading = 0
-        
-        # capture all interactive input/output 
-        self.initial_stdout = sys.stdout
-        self.initial_stderr = sys.stderr
-        self.initial_stdin = sys.stdin
-        self.redirect_stds()
-        
-        # Excecution Status
-        self.more = False
+        if rawinputfunc is not None:
+            self.namespace['raw_input'] = rawinputfunc
         
         # history
-        self.histidx = -1
         self.max_history_entries = CONF.get('history', 'max_entries')
         self.rawhistory, self.history = self.load_history()
-        
-    def raw_input(self, prompt, echo):
-        """Reimplementation of raw_input builtin (for future developments)"""
-        raise NotImplementedError("raw_input is not yet supported in PyQtShell")
-        
-    def redirect_stds(self):
-        """Redirects stds"""
-        if not self.debug:
-            sys.stdout   = self
-            sys.stderr   = MultipleRedirection((sys.stderr, self))
-            sys.stdin    = self
-        
-    def restore_stds(self):
-        """Restore stds"""
-        if not self.debug:
-            sys.stdout = self.initial_stdout
-            sys.stderr = self.initial_stderr
-            sys.stdin = self.initial_stdin
         
     def load_history(self):
         """Load history from a .py file in user home directory"""
@@ -149,58 +69,4 @@ class Interpreter(code.InteractiveConsole):
             return
         self.history.append( cmd )
         self.rawhistory.append( cmd )
-        
-    def run_command(self, cmd):
-        """Run command in interpreter"""
-        if not cmd:
-            cmd = ''
-        else:
-            self.add_to_history(cmd)
-            self.histidx = -1
-        
-        # ? command
-        if cmd.endswith('?'):
-            cmd = 'help(%s)' % cmd[:-1]
-            
-        # run command
-        if cmd.startswith('run '):
-            filename = guess_filename(cmd[4:])
-            cmd = 'execfile(r"%s")' % filename
-                
-        # edit command
-        if cmd.startswith('edit '):
-            filename = guess_filename(cmd[5:])
-            editor_path = CONF.get('shell', 'external_editor')
-            subprocess.Popen(r'%s "%s"' % (editor_path, filename))
-            self.write('\n')
-            self.write(self.prompt)
-            return
-
-        # Execute command
-        if cmd.startswith('!'):
-            # System ! command
-            _, out, err = os.popen3(cmd[1:])
-            #txt_out = out.read().rstrip()
-            #TODO: Why is the line below working whereas the one above not?
-            #XXX: Is this working on Linux too?
-            import locale
-            txt_out = out.read().decode('cp437') \
-                      .encode(locale.getpreferredencoding())
-            txt_err = err.read().rstrip()
-            if txt_err:
-                self.write(txt_err)
-            else:
-                self.write(txt_out)
-            self.write('\n')
-            self.more = False
-        else:
-            # Other command
-            self.more = self.push(cmd)
-        
-        self.emit_refresh_signal()
-        if self.more:
-            self.write(self.prompt_more)
-        else:
-            self.write(self.prompt)
-            self.resetbuffer()
         

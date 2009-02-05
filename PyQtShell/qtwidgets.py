@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """Widgets used only if QScintilla is not installed"""
-
-from PyQt4.QtGui import QTextEdit, QTextCursor, qApp, QColor, QBrush
+#FIXME: This module no longer works with recent changes of qsciwidgets.py
+from PyQt4.QtGui import QTextEdit, QTextCursor, QColor, QBrush
 from PyQt4.QtCore import Qt, QString, SIGNAL
 
 # Local import
-from shell import Interpreter, create_banner
 from config import get_font
 
 
@@ -87,23 +86,16 @@ class QtEditor(QTextEdit):
         return self.toPlainText()
 
 
-class QtShell(QTextEdit, Interpreter):
+class QtTerminal(QTextEdit):
     """
     Python shell based on Qt only
     Derived from:
         PyCute (pycute.py): http://gerard.vermeulen.free.fr (GPL)
     """    
-    def __init__(self, namespace=None, commands=[],
-                 message="", parent=None, debug=False, exitfunc=None):
+    def __init__(self, parent=None):
         """
-        namespace : locals send to InteractiveInterpreter object
-        commands: list of commands executed at startup
-        message : welcome message string
         parent : specifies the parent widget
-        If no parent widget has been specified, it is possible to
-        exit the interpreter by Ctrl-D
         """
-        Interpreter.__init__(self, namespace, debug, exitfunc)       
         QTextEdit.__init__(self, parent)
                         
         self.set_font( get_font('shell') )
@@ -127,24 +119,8 @@ class QtShell(QTextEdit, Interpreter):
 
         # user interface setup
         #self.setLineWrapMode(QTextEdit.NoWrap)
-
-        # interpreter banner
-        moreinfo, _ = self.get_banner()
-        self.write( create_banner(moreinfo, message) )
-        self.write(self.tr('Please install QScintilla to enable auto-completion and calltips')+':'+
-                   '\n'+'http://www.riverbankcomputing.co.uk/qscintilla\n\n')
-
-        # Initial commands
-        for cmd in commands:
-            if not self.push(cmd):
-                self.resetbuffer()
-                
-        # First prompt
-        self.write(self.prompt)
-        self.emit(SIGNAL("refresh()"))
         
         self.emit(SIGNAL("status(QString)"), QString())
-        
     
     def set_docviewer(self, arg):
         pass
@@ -154,7 +130,9 @@ class QtShell(QTextEdit, Interpreter):
     
     def get_banner(self):
         """Return interpreter banner and a one-line message"""
-        return (self.tr('Type "copyright", "credits" or "license" for more information.'), )      
+        return (self.tr('Type "copyright", "credits" or "license" for more information.'),
+                self.tr('Please install QScintilla to enable auto-completion and calltips')+':'+
+                   '\n'+'http://www.riverbankcomputing.co.uk/qscintilla\n\n')      
 
     def set_wrap_mode(self, enable):
         """Set wrap mode"""
@@ -167,21 +145,6 @@ class QtShell(QTextEdit, Interpreter):
         """Set shell font"""
         self.font = font    
 
-    def readline(self):
-        """
-        Simulate stdin, stdout, and stderr.
-        """
-        self.reading = 1
-        self.__clear_line()
-        self.moveCursor(QTextCursor.End)
-        while self.reading:
-            qApp.processOneEvent()
-        if self.line.length() == 0:
-            return '\n'
-        else:
-            return str(self.line) 
-
-    
     def write(self, text):
         """
         Simulate stdin, stdout, and stderr.
@@ -279,10 +242,7 @@ class QtShell(QTextEdit, Interpreter):
             
         elif key == Qt.Key_Return or key == Qt.Key_Enter:
             self.write('\n')
-            if self.reading:
-                self.reading = 0
-            else:
-                self.__run()
+            self.__run()
                 
         elif key == Qt.Key_Tab:
             self.__insert_text(text)
@@ -306,16 +266,16 @@ class QtShell(QTextEdit, Interpreter):
             self.point = self.line.length() 
 
         elif key == Qt.Key_Up:
-            if len(self.history):
+            if len(self.interpreter.history):
                 if self.pointer == 0:
-                    self.pointer = len(self.history)
+                    self.pointer = len(self.interpreter.history)
                 self.pointer -= 1
                 self.__recall()
                 
         elif key == Qt.Key_Down:
-            if len(self.history):
+            if len(self.interpreter.history):
                 self.pointer += 1
-                if self.pointer == len(self.history):
+                if self.pointer == len(self.interpreter.history):
                     self.pointer = 0
                 self.__recall()
 
@@ -341,7 +301,7 @@ class QtShell(QTextEdit, Interpreter):
             self.write(self.prompt)
             
         self.__clear_line()
-        self.__insert_text( QString(self.history[self.pointer]) )
+        self.__insert_text( QString(self.interpreter.history[self.pointer]) )
 
 
     def mousePressEvent(self, e):
