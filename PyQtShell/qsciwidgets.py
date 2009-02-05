@@ -16,8 +16,7 @@ from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 STDOUT = sys.stdout
 
 # Local import
-import encoding, re
-from shell import Interpreter, create_banner
+import re
 from config import CONF, get_icon
 from dochelpers import getargtxt
 from qthelpers import create_action, add_actions, get_std_icon, translate
@@ -158,28 +157,20 @@ class QsciEditor(QsciScintilla):
         return self.text()
     
 
-class QsciShell(QsciScintilla, Interpreter):
+class QsciTerminal(QsciScintilla):
     """
-    Python shell based on QScintilla
-    Derived from:
-        PyCute (pycute.py): http://gerard.vermeulen.free.fr (GPL)
-        Eric4 shell (shell.py): http://www.die-offenbachs.de/eric/index.html (GPL)
+    Terminal based on QScintilla
     """
-    def __init__(self, namespace=None, commands=[], message="",
-    			 parent=None, debug=False, exitfunc=None):
+    def __init__(self, parent=None):
         """
-        namespace : locals send to InteractiveInterpreter object
-        commands: list of commands executed at startup
-        message : welcome message string
         parent : specifies the parent widget
-        If no parent widget has been specified, it is possible to
-        exit the interpreter by Ctrl-D
         """
-        Interpreter.__init__(self, namespace, debug, exitfunc)       
         QsciScintilla.__init__(self, parent)
-        
         self.setUtf8(True)
-
+        
+        # history
+        self.histidx = -1
+        
         # Indentation
         self.setAutoIndent(True)
         self.setIndentationsUseTabs(False)
@@ -214,7 +205,7 @@ class QsciShell(QsciScintilla, Interpreter):
                            icon=get_std_icon("TrashIcon"),
                            tip=translate("ShellBaseWidget",
                                    "Clear shell contents ('cls' command)"),
-                           triggered=self.__clear)
+                           triggered=self.clear_terminal)
         self.help_action = create_action(self,
                            translate("ShellBaseWidget", "Help..."),
                            icon=get_std_icon('DialogHelpButton'),
@@ -231,20 +222,6 @@ class QsciShell(QsciScintilla, Interpreter):
         # Search
         self.incremental_search_string = ""
         self.incremental_search_active = False
-        
-        # interpreter banner
-        moreinfo, helpmsg = self.get_banner()
-        self.write( create_banner(moreinfo, message) )
-        self.write(helpmsg + '\n\n')
-
-        # Initial commands
-        for cmd in commands:
-            if not self.push(cmd):
-                self.resetbuffer()
-                
-        # First prompt
-        self.write(self.prompt)
-        self.emit(SIGNAL("refresh()"))
 
         #self.standardCommands().clearKeys()
         self.keymap = {
@@ -306,7 +283,7 @@ class QsciShell(QsciScintilla, Interpreter):
     #------ Utilities
     def __remove_prompts(self, text):
         """Remove prompts from text"""
-        return text.replace(self.prompt, "").replace(self.prompt_more, "")
+        return text[len(self.prompt):]
     
     def __extract_from_text(self, line_nb):
         """Extract clean text from line number 'line_nb'"""
@@ -335,30 +312,6 @@ class QsciShell(QsciScintilla, Interpreter):
         return (cline, cindex) == self.__get_end_pos()
 
 
-    #------ stdin, stdout, stderr
-    def readline(self):
-        """Simulate stdin, stdout, and stderr"""
-        self.reading = 1
-        line, col = self.__get_end_pos()
-        self.setCursorPosition(line, col)
-        buf = ""
-        if len(buf) == 0:
-            return '\n'
-        else:
-            return buf
-
-    def write(self, text):
-        """Simulate stdin, stdout, and stderr"""
-        line, col = self.__get_end_pos()
-        self.setCursorPosition(line, col)
-        self.insert(encoding.to_unicode(text))
-        line, col = self.__get_end_pos()
-        self.setCursorPosition(line, col)
-        self.prline, self.prcol = self.getCursorPosition()
-        self.ensureCursorVisible()
-        self.ensureLineVisible(line)
-    
-        
     #------ Command Execution
     def __execute_lines(self, lines):
         """
@@ -376,30 +329,13 @@ class QsciShell(QsciScintilla, Interpreter):
             else:
                 fullline = False
             
-            self.__insert_text(line, at_end=True)
+            self.insert_text(line, at_end=True)
             if fullline:
-                self.__execute_command(cmd)
-
-    def __execute_command(self, cmd):
-        """
-        Private slot to execute a command.
-        cmd: one-line command only, without '\n' at the end!
-        """
-        # cls command
-        if cmd == 'cls':
-            self.__clear()
-            return
-                
-        # Before running command
-        self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
+                self.execute_command(cmd)
         
-        self.run_command(cmd)
-            
-        self.emit(SIGNAL("status(QString)"), QString())
         
-    
     #------ Text Insertion
-    def __insert_text(self, text, at_end=False):
+    def insert_text(self, text, at_end=False):
         """
         Insert text at the current cursor position
         or at the end of the command line
@@ -411,6 +347,8 @@ class QsciShell(QsciScintilla, Interpreter):
             self.insert(text)
             self.prline, self.prcol = self.__get_end_pos()
             self.setCursorPosition(self.prline, self.prcol)
+            self.ensureCursorVisible()
+            self.ensureLineVisible(self.prline)
         else:
             # Insert text at current cursor position
             line, col = self.getCursorPosition()
@@ -452,10 +390,18 @@ class QsciShell(QsciScintilla, Interpreter):
             self.keymap[key]()
         elif key_event == QKeySequence.Paste:
             self.paste()
+        elif (key_event == QKeySequence.Copy) and not self.hasSelectedText():
+            if self.more:
+                self.write("\nKeyboardInterrupt\n", flush=True)
+                self.more = False
+                self.prompt = self.p1
+                self.write(self.prompt, flush=True)
+                self.interpreter.resetbuffer()
+            else:
+                self.interrupted = True
         elif line==last_line and txt.length():
-            prompt = self.prompt_more if self.more else self.prompt
-            if index<len(prompt):
-                self.setCursorPosition(line, len(prompt))
+            if index < len(self.prompt):
+                self.setCursorPosition(line, len(self.prompt))
             self.__keypressed(txt, key_event)
         elif ctrl or shift:
             QsciScintilla.keyPressEvent(self, key_event)
@@ -476,7 +422,7 @@ class QsciShell(QsciScintilla, Interpreter):
             tokens = text.split(" ")
             if not tokens[-1].isdigit():
                 self.__show_dyn_completion(text)
-        if txt == '(' or txt =='?':
+        if txt == '(' or txt == '?':
             self.__show_docstring()
         elif self.isListActive():
             self.completion_chars += 1
@@ -509,7 +455,7 @@ class QsciShell(QsciScintilla, Interpreter):
         """Drag and Drop - Drop event"""
         if(event.mimeData().hasFormat("text/plain")):
             text = event.mimeData().text()
-            self.__insert_text(text, at_end=True)
+            self.insert_text(text, at_end=True)
             self.setFocus()
             event.setDropAction(Qt.MoveAction)
             event.accept()
@@ -537,13 +483,10 @@ class QsciShell(QsciScintilla, Interpreter):
         else:
             self.__execute_lines(lines)
             
-    def __clear(self):
+    def clear_terminal(self):
         """Reimplemented to write prompt after clearing shell"""
         self.clear()
-        if self.more:
-            self.write(self.prompt_more)
-        else:
-            self.write(self.prompt)
+        self.write(self.prompt, flush=True)
             
     def __middle_mouse_button(self):
         """Private method to handle the middle mouse button press"""
@@ -563,7 +506,7 @@ class QsciShell(QsciScintilla, Interpreter):
             line, index = self.getCursorPosition()
             buf = self.__extract_from_text(line)
             lastchar_index = index-len(self.prompt)-1
-            if self.more and not buf[:index-len(self.prompt_more)].strip():
+            if self.more and not buf[:index-len(self.prompt)].strip():
                 self.SendScintilla(QsciScintilla.SCI_TAB)
             elif lastchar_index>=0:
                 if buf[lastchar_index] == '.':
@@ -583,9 +526,6 @@ class QsciShell(QsciScintilla, Interpreter):
             old_length = self.text(line).length()
             if self.text(line).startsWith(self.prompt):
                 if col > len(self.prompt):
-                    self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
-            elif self.text(line).startsWith(self.prompt_more):
-                if col > len(self.prompt_more):
                     self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
             elif col > 0:
                 self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
@@ -613,7 +553,7 @@ class QsciShell(QsciScintilla, Interpreter):
             line_from = last_line
             index_from = 0
             
-        for prompt in [self.prompt, self.prompt_more]:
+        for prompt in [self.p1, self.p2]:
             if self.text(line_from).startsWith(prompt):
                 if index_from < len(prompt):
                     index_from = len(prompt)
@@ -631,8 +571,6 @@ class QsciShell(QsciScintilla, Interpreter):
         if self.__is_cursor_on_last_line():
             if self.isListActive():
                 self.SendScintilla(QsciScintilla.SCI_NEWLINE)
-            elif self.reading:
-                self.reading = 0
             else:
                 self.incremental_search_string = ""
                 self.incremental_search_active = False
@@ -640,11 +578,11 @@ class QsciShell(QsciScintilla, Interpreter):
                 self.setCursorPosition(line, col)
                 buf = self.__extract_from_text(line)
                 self.insert('\n')
-                self.__execute_command(buf)
+                self.execute_command(buf)
         # add and run selection
         else:
             text = self.selectedText()
-            self.__insert_text(text, at_end=True)
+            self.insert_text(text, at_end=True)
 
     def __qsci_char_left(self, all_lines_allowed = False):
         """
@@ -654,9 +592,6 @@ class QsciShell(QsciScintilla, Interpreter):
             line, col = self.getCursorPosition()
             if self.text(line).startsWith(self.prompt):
                 if col > len(self.prompt):
-                    self.SendScintilla(QsciScintilla.SCI_CHARLEFT)
-            elif self.text(line).startsWith(self.prompt_more):
-                if col > len(self.prompt_more):
                     self.SendScintilla(QsciScintilla.SCI_CHARLEFT)
             elif col > 0:
                 self.SendScintilla(QsciScintilla.SCI_CHARLEFT)
@@ -678,8 +613,6 @@ class QsciShell(QsciScintilla, Interpreter):
             line, col = self.getCursorPosition()
             if self.text(line).startsWith(self.prompt):
                 col = len(self.prompt)
-            elif self.text(line).startsWith(self.prompt_more):
-                col = len(self.prompt_more)
             else:
                 col = 0
             self.setCursorPosition(line, col)
@@ -717,7 +650,7 @@ class QsciShell(QsciScintilla, Interpreter):
                         self.__use_history()
             else:
                 if self.histidx < 0:
-                    self.histidx = len(self.history)
+                    self.histidx = len(self.interpreter.history)
                 if self.histidx > 0:
                     self.histidx = self.histidx - 1
                     self.__use_history()
@@ -745,7 +678,7 @@ class QsciShell(QsciScintilla, Interpreter):
                         self.incremental_search_string = buf
                         self.__use_history()
             else:
-                if self.histidx >= 0 and self.histidx < len(self.history):
+                if self.histidx >= 0 and self.histidx < len(self.interpreter.history):
                     self.histidx += 1
                     self.__use_history()
   
@@ -775,18 +708,18 @@ class QsciShell(QsciScintilla, Interpreter):
         """
         Private method to display a command from the history
         """
-        if self.histidx < len(self.history):
-            cmd = QString( self.history[self.histidx] )
+        if self.histidx < len(self.interpreter.history):
+            cmd = QString( self.interpreter.history[self.histidx] )
         else:
             cmd = QString()
             self.incremental_search_string = ""
             self.incremental_search_active = False
         self.setCursorPosition(self.prline, self.prcol \
-            + len(self.more and self.prompt or self.prompt_more))
+            + len(self.more and self.p1 or self.p2))
         self.setSelection(self.prline, self.prcol, \
             self.prline,self.lineLength(self.prline))
         self.removeSelectedText()
-        self.__insert_text(cmd)
+        self.insert_text(cmd)
 
     def __search_history(self, txt, start_index = -1):
         """
@@ -799,8 +732,8 @@ class QsciShell(QsciScintilla, Interpreter):
             idx = 0
         else:
             idx = start_index + 1
-        while idx < len(self.history) and \
-              not self.history[idx].startswith(txt):
+        while idx < len(self.interpreter.history) and \
+              not self.interpreter.history[idx].startswith(txt):
             idx += 1
         return idx
     
@@ -812,11 +745,11 @@ class QsciShell(QsciScintilla, Interpreter):
         @return index of 
         """
         if start_index == -1:
-            idx = len(self.history) - 1
+            idx = len(self.interpreter.history) - 1
         else:
             idx = start_index - 1
         while idx >= 0 and \
-              not self.history[idx].startswith(txt):
+              not self.interpreter.history[idx].startswith(txt):
             idx -= 1
         return idx
 
@@ -841,7 +774,7 @@ class QsciShell(QsciScintilla, Interpreter):
         """Show docstring or arguments"""
         text = self.__get_current_line_to_cursor()
         try:
-            obj = eval(text, globals(), self.locals)
+            obj = eval(text, self.interpreter.locals)
         except:
             # No valid object was extracted from text
             pass
@@ -865,7 +798,7 @@ class QsciShell(QsciScintilla, Interpreter):
         if text is None:
             text = self.__get_current_line_to_cursor()
         try:
-            obj = eval(text, globals(), self.locals)
+            obj = eval(text, self.interpreter.locals)
         except:
             # No valid object was extracted from text
             pass
@@ -893,7 +826,7 @@ class QsciShell(QsciScintilla, Interpreter):
             txt = completions[0]
             if text != "":
                 txt = txt.replace(text, "")
-            self.__insert_text(txt)
+            self.insert_text(txt)
             self.completion_chars = 0
 
     def __completion_list_selected(self, userlist_id, seltxt):
@@ -908,5 +841,5 @@ class QsciShell(QsciScintilla, Interpreter):
                               cline, cindex)
             self.removeSelectedText()
             seltxt = unicode(seltxt)
-            self.__insert_text(seltxt)
+            self.insert_text(seltxt)
             self.completion_chars = 0
