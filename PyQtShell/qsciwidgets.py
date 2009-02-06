@@ -7,8 +7,7 @@
 # pylint: disable-msg=R0201
 
 import sys, os
-from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QMenu
-from PyQt4.QtGui import QMessageBox
+from PyQt4.QtGui import QKeySequence, QApplication, QClipboard
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
@@ -17,9 +16,7 @@ STDOUT = sys.stdout
 
 # Local import
 import re
-from config import CONF, get_icon
-from dochelpers import getargtxt
-from qthelpers import create_action, add_actions, get_std_icon, translate
+from config import CONF
 
 
 class LexerPython(QsciLexerPython):
@@ -191,28 +188,6 @@ class QsciTerminal(QsciScintilla):
         # Call-tips
         self.docviewer = None
         
-        # Create a little context menu
-        self.menu = QMenu(self)
-        cut_action   = create_action(self, translate("ShellBaseWidget", "Cut"),
-                           icon=get_icon('cut.png'), triggered=self.cut)
-        copy_action  = create_action(self, translate("ShellBaseWidget", "Copy"),
-                           icon=get_icon('copy.png'), triggered=self.copy)
-        paste_action = create_action(self,
-                           translate("ShellBaseWidget", "Paste"),
-                           icon=get_icon('paste.png'), triggered=self.paste)
-        clear_action = create_action(self,
-                           translate("ShellBaseWidget", "Clear shell"),
-                           icon=get_std_icon("TrashIcon"),
-                           tip=translate("ShellBaseWidget",
-                                   "Clear shell contents ('cls' command)"),
-                           triggered=self.clear_terminal)
-        self.help_action = create_action(self,
-                           translate("ShellBaseWidget", "Help..."),
-                           icon=get_std_icon('DialogHelpButton'),
-                           triggered=self.help)
-        add_actions(self.menu, (cut_action, copy_action, paste_action,
-                                None, clear_action, None, self.help_action) )
-
         self.setMinimumWidth(400)
         self.setMinimumHeight(150)
         
@@ -244,27 +219,7 @@ class QsciTerminal(QsciScintilla):
                      self.__completion_list_selected)
         self.setFocus()
         self.emit(SIGNAL("status(QString)"), QString())
-
-    def get_menu(self):
-        """Return shell context menu"""
-        return self.menu
         
-    def help(self):
-        """Help on PyQtShell console"""
-        QMessageBox.about(self,
-            translate("ShellBaseWidget", "Help"),
-            self.tr("""<b>%1</b>
-            <p><i>%2</i><br>    edit foobar.py
-            <p><i>%3</i><br>    run foobar.py
-            <p><i>%4</i><br>    !ls
-            <p><i>%5</i><br>    object?
-            """) \
-            .arg(translate("ShellBaseWidget", 'Shell special commands:')) \
-            .arg(translate("ShellBaseWidget", 'External editor:')) \
-            .arg(translate("ShellBaseWidget", 'Run script:')) \
-            .arg(translate("ShellBaseWidget", 'System commands:')) \
-            .arg(translate("ShellBaseWidget", 'Python help:')))
-
     def get_banner(self):
         """Return interpreter banner and a one-line message"""
         return (self.tr('Type "copyright", "credits" or "license" for more information.'),
@@ -357,13 +312,6 @@ class QsciTerminal(QsciScintilla):
         
 
     #------ Re-implemented Qt Methods
-    def contextMenuEvent(self, event):
-        """
-        Re-implemented to hide context menu
-        """
-        self.menu.popup(event.globalPos())
-        event.accept()
-
     def mousePressEvent(self, event):
         """
         Re-implemented to handle the mouse press event.
@@ -421,9 +369,9 @@ class QsciTerminal(QsciScintilla):
             text = self.__get_current_line_to_cursor()
             tokens = text.split(" ")
             if not tokens[-1].isdigit():
-                self.__show_dyn_completion(text)
+                self.show_completion(text)
         if txt == '(' or txt == '?':
-            self.__show_docstring()
+            self.show_docstring(self.__get_current_line_to_cursor())
         elif self.isListActive():
             self.completion_chars += 1
 
@@ -484,7 +432,7 @@ class QsciTerminal(QsciScintilla):
             self.__execute_lines(lines)
             
     def clear_terminal(self):
-        """Reimplemented to write prompt after clearing shell"""
+        """Clear terminal window and write prompt"""
         self.clear()
         self.write(self.prompt, flush=True)
             
@@ -509,10 +457,11 @@ class QsciTerminal(QsciScintilla):
             if self.more and not buf[:index-len(self.prompt)].strip():
                 self.SendScintilla(QsciScintilla.SCI_TAB)
             elif lastchar_index>=0:
+                text = self.__get_current_line_to_cursor()
                 if buf[lastchar_index] == '.':
-                    self.__show_dyn_completion()
+                    self.show_completion(text)
                 elif buf[lastchar_index] in ['"', "'"]:
-                    self.__show_file_completion()
+                    self.show_file_completion(text)
              
     def __qsci_delete_back(self):
         """
@@ -770,65 +719,7 @@ class QsciTerminal(QsciScintilla):
         """Set DocViewer DockWidget reference"""
         self.docviewer = docviewer
         
-    def __show_docstring(self):
-        """Show docstring or arguments"""
-        text = self.__get_current_line_to_cursor()
-        try:
-            obj = eval(text, self.interpreter.locals)
-        except:
-            # No valid object was extracted from text
-            pass
-        else:
-            # Object obj is valid
-            if (self.docviewer is not None) and \
-               (self.docviewer.dockwidget.isVisible()):
-                # DocViewer widget exists and is visible
-                self.docviewer.refresh(text)
-                arglist = getargtxt(obj)
-                if arglist:
-                    self.showUserList(10, QStringList(arglist))
-            else:
-                self.showUserList(10, QStringList( obj.__doc__.split('\n') ))
-        
     #------ Code Completion Management            
-    def __show_dyn_completion(self, text=None):
-        """
-        Display a completion list based on the last token
-        """
-        if text is None:
-            text = self.__get_current_line_to_cursor()
-        try:
-            obj = eval(text, self.interpreter.locals)
-        except:
-            # No valid object was extracted from text
-            pass
-        else:
-            # Object obj is valid
-            self.__show_completions(dir(obj), text) 
-
-    def __show_file_completion(self):
-        """
-        Display a completion list for files and directories
-        """
-        text = self.__get_current_line_to_cursor()
-        self.__show_completions(os.listdir(os.getcwd()), text) 
-
-    def __show_completions(self, completions, text):
-        """
-        Private method to display the possible completions.
-        """
-        if len(completions) == 0:
-            return
-        if len(completions) > 1:
-            self.showUserList(1, QStringList(sorted(completions)))
-            self.completion_chars = 1
-        else:
-            txt = completions[0]
-            if text != "":
-                txt = txt.replace(text, "")
-            self.insert_text(txt)
-            self.completion_chars = 0
-
     def __completion_list_selected(self, userlist_id, seltxt):
         """
         Private slot to handle the selection from the completion list

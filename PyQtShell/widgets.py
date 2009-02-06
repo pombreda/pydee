@@ -12,14 +12,15 @@ import os.path as osp
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
-from PyQt4.QtGui import QToolTip, QCheckBox, QTabWidget
+from PyQt4.QtGui import QToolTip, QCheckBox, QTabWidget, QMenu
 from PyQt4.QtCore import Qt, SIGNAL, QString, QEventLoop, QCoreApplication
+from PyQt4.QtCore import QPoint, QStringList
 
 # Local import
 from shell import Interpreter
 import encoding
-from dochelpers import getdoc, getsource
-from qthelpers import create_action, get_std_icon, add_actions
+from dochelpers import getdoc, getsource, getargtxt
+from qthelpers import create_action, get_std_icon, add_actions, translate
 from config import get_font, set_font
 from config import CONF, str2type, get_conf_path, get_icon
 
@@ -120,6 +121,7 @@ except ImportError:
     from qtwidgets import QtTerminal as Terminal
     from qtwidgets import QtEditor as EditorBaseWidget
 
+
 class ShellBaseWidget(Terminal):
     try:
         p1 = sys.p1
@@ -163,8 +165,8 @@ class ShellBaseWidget(Terminal):
 
         # Initial commands
         for cmd in commands:
-            if not self.push(cmd):
-                self.resetbuffer()
+            if not self.interpreter.push(cmd):
+                self.interpreter.resetbuffer()
                 
         # First prompt
         self.prompt = self.p1
@@ -174,9 +176,9 @@ class ShellBaseWidget(Terminal):
     def redirect_stds(self):
         """Redirects stds"""
         if not self.debug:
-            sys.stdout   = self
-            sys.stderr   = MultipleRedirection((sys.stderr, self))
-            sys.stdin    = self
+            sys.stdout = self
+            sys.stderr = MultipleRedirection((sys.stderr, self))
+            sys.stdin  = self
         
     def restore_stds(self):
         """Restore stds"""
@@ -226,7 +228,7 @@ class ShellBaseWidget(Terminal):
             self.flush_buffer()
             self.__timestamp = ts
 
-    def flush_buffer(self):
+    def flush_buffer(self, color=None):
         """Flush buffer, write text to console"""
         text = "".join(self.__buffer)
         self.__buffer = []
@@ -235,11 +237,6 @@ class ShellBaseWidget(Terminal):
         if self.interrupted:
             self.interrupted = False
             raise KeyboardInterrupt
-
-    def get_banner(self):
-        """Return interpreter banner and a one-line message"""
-        return (self.tr('Type "copyright", "credits" or "license" for more information.'),
-                self.tr('Type "object?" for details on "object"'))
 
     def execute_command(self, cmd):
         """
@@ -259,12 +256,14 @@ class ShellBaseWidget(Terminal):
         self.run_command(cmd)
         self.emit(SIGNAL("status(QString)"), QString())
         
-    def run_command(self, cmd):
+    def run_command(self, cmd, history=True):
         """Run command in interpreter"""
         if not cmd:
             cmd = ''
         else:
-            self.interpreter.add_to_history(cmd)
+            if history:
+                #FIXME: (banner + first prompt + \n) are added to history!
+                self.interpreter.add_to_history(cmd)
             self.histidx = -1
         
         # ? command
@@ -311,6 +310,69 @@ class ShellBaseWidget(Terminal):
         self.write(self.prompt, flush=True)
         if not self.more:
             self.interpreter.resetbuffer()
+    
+    def show_completion(self, text):
+        """
+        Display a completion list based on the last token
+        """
+        try:
+            obj = eval(text, self.interpreter.locals)
+        except:
+            # No valid object was extracted from text
+            pass
+        else:
+            # Object obj is valid
+            self.show_list(dir(obj), text) 
+
+    def show_file_completion(self, text):
+        """
+        Display a completion list for files and directories
+        """
+        self.show_list(os.listdir(os.getcwd()), text) 
+
+    def show_list(self, completions, text):
+        """
+        Private method to display the possible completions.
+        """
+        if len(completions) == 0:
+            return
+        if len(completions) > 1:
+            self.showUserList(1, QStringList(sorted(completions)))
+            self.completion_chars = 1
+        else:
+            txt = completions[0]
+            if text != "":
+                txt = txt.replace(text, "")
+            self.insert_text(txt)
+            self.completion_chars = 0
+
+    def show_calltip(self, text):
+        """Show calltip"""
+        if isinstance(text, list):
+            text = "\n    ".join(text)
+            text = '<b>Arguments</b>:\n<hr><span style=\'font-family: "Monaco, Bitstream Vera Sans Mono, Consolas, Courier New"\'>'+text+"</p>"
+        rect = self.cursorRect()
+        point = self.mapToGlobal(QPoint(rect.x(), rect.y()))
+        QToolTip.showText(point, text)
+        
+    def show_docstring(self, text):
+        """Show docstring or arguments"""
+        try:
+            obj = eval(text, self.interpreter.locals)
+        except:
+            # No valid object was extracted from text
+            pass
+        else:
+            # Object obj is valid
+            if (self.docviewer is not None) and \
+               (self.docviewer.dockwidget.isVisible()):
+                # DocViewer widget exists and is visible
+                self.docviewer.refresh(text)
+                arglist = getargtxt(obj)
+                if arglist:
+                    self.show_calltip(arglist)
+            else:
+                self.show_calltip(obj.__doc__)
 
 
 class Shell(ShellBaseWidget, WidgetMixin):
@@ -319,6 +381,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
     """
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None):
+        self.menu = None
         ShellBaseWidget.__init__(self, parent, namespace, commands, message,
                                  debug, exitfunc)
         WidgetMixin.__init__(self, parent)
@@ -326,6 +389,29 @@ class Shell(ShellBaseWidget, WidgetMixin):
         self.set_font( get_font('shell') )
         self.set_wrap_mode( CONF.get('shell', 'wrap') )
         
+    def contextMenuEvent(self, event):
+        """
+        Re-implemented to hide context menu
+        """
+        self.menu.popup(event.globalPos())
+        event.accept()
+
+    def help(self):
+        """Help on PyQtShell console"""
+        QMessageBox.about(self,
+            translate("ShellBaseWidget", "Help"),
+            self.tr("""<b>%1</b>
+            <p><i>%2</i><br>    edit foobar.py
+            <p><i>%3</i><br>    run foobar.py
+            <p><i>%4</i><br>    !ls
+            <p><i>%5</i><br>    object?
+            """) \
+            .arg(translate("ShellBaseWidget", 'Shell special commands:')) \
+            .arg(translate("ShellBaseWidget", 'External editor:')) \
+            .arg(translate("ShellBaseWidget", 'Run script:')) \
+            .arg(translate("ShellBaseWidget", 'System commands:')) \
+            .arg(translate("ShellBaseWidget", 'Python help:')))
+
     def get_name(self, raw=True):
         """Return widget name"""
         name = self.tr("&Console")
@@ -369,10 +455,31 @@ class Shell(ShellBaseWidget, WidgetMixin):
                         exteditor_action,
                         None, quit_action)
         toolbar_actions = (run_action,)
-        menu = self.get_menu()
-        if  menu is not None:
-            add_actions(menu, (None,))
-            add_actions(menu, menu_actions)
+        
+        # Create a little context menu
+        self.menu = QMenu(self)
+        cut_action   = create_action(self, translate("ShellBaseWidget", "Cut"),
+                           icon=get_icon('cut.png'), triggered=self.cut)
+        copy_action  = create_action(self, translate("ShellBaseWidget", "Copy"),
+                           icon=get_icon('copy.png'), triggered=self.copy)
+        paste_action = create_action(self,
+                           translate("ShellBaseWidget", "Paste"),
+                           icon=get_icon('paste.png'), triggered=self.paste)
+        clear_action = create_action(self,
+                           translate("ShellBaseWidget", "Clear shell"),
+                           icon=get_std_icon("TrashIcon"),
+                           tip=translate("ShellBaseWidget",
+                                   "Clear shell contents ('cls' command)"),
+                           triggered=self.clear_terminal)
+        self.help_action = create_action(self,
+                           translate("ShellBaseWidget", "Help..."),
+                           icon=get_std_icon('DialogHelpButton'),
+                           triggered=self.help)
+        add_actions(self.menu, (cut_action, copy_action, paste_action,
+                                None, clear_action, None, self.help_action) )
+
+        add_actions(self.menu, (None,))
+        add_actions(self.menu, menu_actions)
         return menu_actions, toolbar_actions
         
     def run_script(self, filename=None, silent=False):
