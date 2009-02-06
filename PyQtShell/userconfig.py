@@ -28,7 +28,7 @@ This software is licensed under the terms of the GNU General Public
 License version 3 as published by the Free Software Foundation.
 """
 
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 
 import os
 import os.path as osp
@@ -49,7 +49,7 @@ class UserConfig(ConfigParser):
     differ from the overriden methods
     """
     
-    default_section_name = 'default'
+    default_section_name = 'main'
     
     def __init__(self, name, defaults=None, load=True, version=None):
         ConfigParser.__init__(self)
