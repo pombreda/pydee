@@ -14,7 +14,7 @@ class Interpreter(code.InteractiveConsole):
     log_path = get_conf_path('.history.py')
     inithistory = [
                    '# -*- coding: utf-8 -*-',
-                   '# *** history: v0.2 ***',
+                   '# *** history: v0.3 ***',
                    '',
                    ]
     separator = '# ---(%s)---' % time.ctime()
@@ -31,6 +31,7 @@ class Interpreter(code.InteractiveConsole):
             atexit.register(exitfunc)
         
         self.namespace = self.locals
+        self.namespace['__name__'] = '__main__'
         if rawinputfunc is not None:
             self.namespace['raw_input'] = rawinputfunc
         

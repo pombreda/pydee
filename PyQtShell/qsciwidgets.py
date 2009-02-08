@@ -153,7 +153,7 @@ class QsciEditor(QsciScintilla):
         """Return editor text"""
         return self.text()
     
-
+    
 class QsciTerminal(QsciScintilla):
     """
     Terminal based on QScintilla
@@ -222,8 +222,7 @@ class QsciTerminal(QsciScintilla):
         
     def get_banner(self):
         """Return interpreter banner and a one-line message"""
-        return (self.tr('Type "copyright", "credits" or "license" for more information.'),
-                self.tr('Type "object?" for details on "object"'))
+        return (self.tr('Type "copyright", "credits" or "license" for more information.'),"")
 
     def set_font(self, font):
         """Set shell font"""
@@ -274,6 +273,8 @@ class QsciTerminal(QsciScintilla):
         lines: multiple lines of text to be executed as single
             commands (string)
         """
+        if isinstance(lines, list):
+            lines = "\n".join(lines)
         for line in lines.splitlines(True):
             if line.endswith("\r\n"):
                 fullline = True
@@ -290,7 +291,7 @@ class QsciTerminal(QsciScintilla):
         
         
     #------ Text Insertion
-    def insert_text(self, text, at_end=False):
+    def insert_text(self, text, at_end=False, error=False):
         """
         Insert text at the current cursor position
         or at the end of the command line
@@ -347,6 +348,9 @@ class QsciTerminal(QsciScintilla):
                 self.interpreter.resetbuffer()
             else:
                 self.interrupted = True
+        elif shift and (key == Qt.Key_Return or key == Qt.Key_Enter):
+            # Multiline entry
+            self.append_command(self.get_new_line())
         elif line==last_line and txt.length():
             if index < len(self.prompt):
                 self.setCursorPosition(line, len(self.prompt))
@@ -513,6 +517,16 @@ class QsciTerminal(QsciScintilla):
         self.SendScintilla(QsciScintilla.SCI_CLEAR)
         self.setSelection(line_from, index_from, line_from, index_from)
 
+    def get_new_line(self):
+        """Enter or Return -> get new line"""
+        self.incremental_search_string = ""
+        self.incremental_search_active = False
+        line, col = self.__get_end_pos()
+        self.setCursorPosition(line, col)
+        buf = self.__extract_from_text(line)
+        self.write('\n')
+        return buf
+
     def __qsci_newline(self):
         """
         Private method to handle the Return key.
@@ -521,12 +535,7 @@ class QsciTerminal(QsciScintilla):
             if self.isListActive():
                 self.SendScintilla(QsciScintilla.SCI_NEWLINE)
             else:
-                self.incremental_search_string = ""
-                self.incremental_search_active = False
-                line, col = self.__get_end_pos()
-                self.setCursorPosition(line, col)
-                buf = self.__extract_from_text(line)
-                self.insert('\n')
+                buf = self.get_new_line()
                 self.execute_command(buf)
         # add and run selection
         else:
@@ -734,3 +743,9 @@ class QsciTerminal(QsciScintilla):
             seltxt = unicode(seltxt)
             self.insert_text(seltxt)
             self.completion_chars = 0
+
+    def show_calltip(self, text):
+        """Show calltip"""
+        if not isinstance(text, list):
+            text = [text]
+        self.showUserList(1, text)

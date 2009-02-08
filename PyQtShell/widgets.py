@@ -14,10 +14,10 @@ from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
 from PyQt4.QtGui import QToolTip, QCheckBox, QTabWidget, QMenu
 from PyQt4.QtCore import Qt, SIGNAL, QString, QEventLoop, QCoreApplication
-from PyQt4.QtCore import QPoint, QStringList
+from PyQt4.QtCore import QStringList
 
 # Local import
-from shell import Interpreter
+from interpreter import Interpreter
 import encoding
 from dochelpers import getdoc, getsource, getargtxt
 from qthelpers import create_action, get_std_icon, add_actions, translate
@@ -115,14 +115,21 @@ def create_banner(moreinfo, message=''):
             moreinfo+'\n' + message + '\n'
 
 try:
-    from qsciwidgets import QsciTerminal as Terminal
+    from qsciwidgetsk import QsciTerminal as Terminal
     from qsciwidgets import QsciEditor as EditorBaseWidget
 except ImportError:
     from qtwidgets import QtTerminal as Terminal
     from qtwidgets import QtEditor as EditorBaseWidget
 
+class IOHandler(object):
+    """Handle stream output"""
+    def __init__(self, write):
+        self._write = write
+    def write(self, cmd):
+        self._write(cmd)
 
 class ShellBaseWidget(Terminal):
+    """Shell base widget: link between Terminal and Interpreter"""
     try:
         p1 = sys.p1
     except AttributeError:
@@ -148,6 +155,9 @@ class ShellBaseWidget(Terminal):
         #TODO: multithreaded Interpreter (if option.thread)
         self.interpreter = Interpreter(namespace, exitfunc, self.raw_input)
         
+        # Multiline entry
+        self.multiline_entry = []
+        
         # Execution Status
         self.more = False
         
@@ -156,17 +166,18 @@ class ShellBaseWidget(Terminal):
         self.initial_stdout = sys.stdout
         self.initial_stderr = sys.stderr
         self.initial_stdin = sys.stdin
+        self.stderr = IOHandler(self.write_error)
         self.redirect_stds()
 
         # interpreter banner
         moreinfo, helpmsg = self.get_banner()
-        self.write( create_banner(moreinfo, message) )
-        self.write(helpmsg + '\n\n')
+        self.write( create_banner(moreinfo, message), flush=True )
+        if helpmsg:
+            self.write(helpmsg + '\n\n', flush=True)
 
         # Initial commands
         for cmd in commands:
-            if not self.interpreter.push(cmd):
-                self.interpreter.resetbuffer()
+            self.run_command(cmd, history=False, multiline=True)
                 
         # First prompt
         self.prompt = self.p1
@@ -177,7 +188,7 @@ class ShellBaseWidget(Terminal):
         """Redirects stds"""
         if not self.debug:
             sys.stdout = self
-            sys.stderr = MultipleRedirection((sys.stderr, self))
+            sys.stderr = MultipleRedirection((sys.stderr, self.stderr))
             sys.stdin  = self
         
     def restore_stds(self):
@@ -217,7 +228,12 @@ class ShellBaseWidget(Terminal):
         self.input_mode = False
         self.input_loop.exit()
 
-    def write(self, text, flush=False):
+    def write_error(self, text, flush=False):
+        """Simulate stderr"""
+        self.flush_buffer()
+        self.write(text, flush=True, error=True)
+
+    def write(self, text, flush=False, error=False):
         """Simulate stdout and stderr"""
         if isinstance(text, QString):
             # This test is useful to discriminate QStrings from decoded str
@@ -225,24 +241,31 @@ class ShellBaseWidget(Terminal):
         self.__buffer.append(text)
         ts = time()
         if flush or ts-self.__timestamp > 0.05:
-            self.flush_buffer()
+            self.flush_buffer(error=error)
             self.__timestamp = ts
 
-    def flush_buffer(self, color=None):
+    def flush_buffer(self, error=False):
         """Flush buffer, write text to console"""
         text = "".join(self.__buffer)
         self.__buffer = []
-        self.insert_text(text, at_end=True)
+        self.insert_text(text, at_end=True, error=error)
+        self.repaint()
         QCoreApplication.processEvents()
         if self.interrupted:
             self.interrupted = False
             raise KeyboardInterrupt
+        
+    def append_command(self, cmd):
+        """Multiline command"""
+        self.write(self.p2, flush=True)
+        if len(cmd)>0:
+            self.multiline_entry.append(cmd)
 
     def execute_command(self, cmd):
         """
         Execute a command.
         cmd: one-line command only, without '\n' at the end!
-        """
+        """            
         if self.input_mode:
             self.end_input(cmd)
             return
@@ -250,19 +273,42 @@ class ShellBaseWidget(Terminal):
         if cmd == 'cls':
             self.clear_terminal()
             return
+        
+        # Multiline entry support: very limited feature...
+        # (bug after exiting an indented block, e.g. a for loop)
+        if self.multiline_entry:
+            self.multiline_entry.append(cmd)
+            cmdlist = self.multiline_entry
+        else:
+            cmdlist = [cmd]
                 
+        for index, cmd in enumerate(cmdlist):
+            self.run_command(cmd, multiline=(index!=len(cmdlist)-1))
+        
+        self.multiline_entry = []
+        
+    def external_editor(self, filename, goto=None):
+        """Edit in an external editor
+        Recommended: SciTE (e.g. to go to line where an error did occur)"""
+        editor_path = CONF.get('shell', 'external_editor')
+        goto_option = CONF.get('shell', 'external_editor/gotoline')
+        if (goto is not None) and goto_option:
+            subprocess.Popen(r'%s "%s" %s%d' % (editor_path, filename,
+                                                goto_option, goto))
+        else:
+            subprocess.Popen(r'%s "%s"' % (editor_path, filename))
+        
+    def run_command(self, cmd, history=True, multiline=False):
+        """Run command in interpreter"""
+        
         # Before running command
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
-        self.run_command(cmd)
-        self.emit(SIGNAL("status(QString)"), QString())
+        self.emit( SIGNAL("executing_command(bool)"), True )
         
-    def run_command(self, cmd, history=True):
-        """Run command in interpreter"""
         if not cmd:
             cmd = ''
         else:
             if history:
-                #FIXME: (banner + first prompt + \n) are added to history!
                 self.interpreter.add_to_history(cmd)
             self.histidx = -1
         
@@ -278,18 +324,12 @@ class ShellBaseWidget(Terminal):
         # edit command
         if cmd.startswith('edit '):
             filename = guess_filename(cmd[5:])
-            editor_path = CONF.get('shell', 'external_editor')
-            subprocess.Popen(r'%s "%s"' % (editor_path, filename))
-            self.write('\n')
-            self.write(self.prompt, flush=True)
-            return
-
+            self.external_editor(filename)
         # Execute command
-        if cmd.startswith('!'):
+        elif cmd.startswith('!'):
             # System ! command
             _, out, err = os.popen3(cmd[1:])
             #txt_out = out.read().rstrip()
-            #TODO: Why is the line below working whereas the one above not?
             #XXX: Is this working on Linux too?
             import locale
             txt_out = out.read().decode('cp437') \
@@ -307,9 +347,14 @@ class ShellBaseWidget(Terminal):
         
         self.emit(SIGNAL("refresh()"))
         self.prompt = self.p2 if self.more else self.p1
-        self.write(self.prompt, flush=True)
+        if not multiline:
+            self.write(self.prompt, flush=True)
         if not self.more:
             self.interpreter.resetbuffer()
+            
+        # After running command
+        self.emit( SIGNAL("executing_command(bool)"), False )
+        self.emit(SIGNAL("status(QString)"), QString())
     
     def show_completion(self, text):
         """
@@ -345,15 +390,6 @@ class ShellBaseWidget(Terminal):
                 txt = txt.replace(text, "")
             self.insert_text(txt)
             self.completion_chars = 0
-
-    def show_calltip(self, text):
-        """Show calltip"""
-        if isinstance(text, list):
-            text = "\n    ".join(text)
-            text = '<b>Arguments</b>:\n<hr><span style=\'font-family: "Monaco, Bitstream Vera Sans Mono, Consolas, Courier New"\'>'+text+"</p>"
-        rect = self.cursorRect()
-        point = self.mapToGlobal(QPoint(rect.x(), rect.y()))
-        QToolTip.showText(point, text)
         
     def show_docstring(self, text):
         """Show docstring or arguments"""
@@ -475,6 +511,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
                            translate("ShellBaseWidget", "Help..."),
                            icon=get_std_icon('DialogHelpButton'),
                            triggered=self.help)
+        #TODO: Add checkable action for enabling/disabling calltips
         add_actions(self.menu, (cut_action, copy_action, paste_action,
                                 None, clear_action, None, self.help_action) )
 

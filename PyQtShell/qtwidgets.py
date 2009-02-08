@@ -4,7 +4,7 @@
 from PyQt4.QtGui import QTextEdit, QTextCursor, QColor, QFont, QCursor
 from PyQt4.QtCore import Qt, QString, SIGNAL, QEvent, QRegExp, QPoint
 from PyQt4.QtGui import QSyntaxHighlighter, QApplication, QTextCharFormat
-from PyQt4.QtGui import QListWidget, QShortcut, QKeySequence
+from PyQt4.QtGui import QListWidget, QShortcut, QKeySequence, QToolTip
 
 import sys
 try:
@@ -16,9 +16,7 @@ except AttributeError:
 STDOUT = sys.stdout
 
 # Local import
-from config import get_font
-
-#TODO: implement copy/paste
+from config import get_font, CONF
 
 
 class PythonHighlighter(QSyntaxHighlighter):
@@ -60,8 +58,7 @@ class PythonHighlighter(QSyntaxHighlighter):
         super(PythonHighlighter, self).__init__(parent)
         
         self.formats = {}
-        self.stderr = False
-        self.stdout = False
+        self.state = True
         self.set_font(font)
 
         PythonHighlighter.Rules.append((QRegExp(
@@ -123,24 +120,17 @@ class PythonHighlighter(QSyntaxHighlighter):
             format.setFontItalic(italic)
             self.formats[name] = format
 
-    def set_stdout(self, state):
-        self.stdout = state
-
-    def set_stderr(self, state):
-        self.stderr = state
-
     def highlightBlock(self, text):
-        #TODO: Optimize this method: very slow compared to QScintilla
         """Overrides Qt method"""
+        if not self.state:
+            return
+        
         normal, triplesingle, tripledouble, error = range(4)
 
         text_length = text.length()
         prev_state = self.previousBlockState()
 
         self.setFormat(0, text_length, self.formats["normal"])
-        
-        if self.stdout or self.stderr:
-            return
 
         if text.startsWith("Traceback") or text.startsWith("Error: "):
             self.setCurrentBlockState(error)
@@ -176,6 +166,10 @@ class PythonHighlighter(QSyntaxHighlighter):
             elif i > -1:
                 self.setCurrentBlockState(state)
                 self.setFormat(i, text.length(), self.formats["string"])
+
+    def disable(self, disable):
+        """Enable/disable syntax highlighter"""
+        self.state = not disable
 
     def rehighlight(self):
         """Overrides Qt method"""
@@ -260,7 +254,12 @@ class QtTerminal(QTextEdit):
         parent : specifies the parent widget
         """
         QTextEdit.__init__(self, parent)
+        self.format = QTextCharFormat()
+        self.format.setFont(get_font('shell'))
         self.highlighter = PythonHighlighter(self, get_font('shell'))
+        
+        self.connect(self, SIGNAL("executing_command(bool)"),
+                     self.highlighter.disable)
         
         self.completion_widget = None
         self.completion_chars = 0
@@ -287,8 +286,8 @@ class QtTerminal(QTextEdit):
     def get_banner(self):
         """Return interpreter banner and a one-line message"""
         return (self.tr('Type "copyright", "credits" or "license" for more information.'),
-                self.tr('Type "object?" for details on "object"')+'\n'+'\n'+
-                self.tr('Please install QScintilla to enable the optimized/stable version of PyQtShell')+
+                self.tr('This version of PyQtShell is based on PyQt4 only')+'\n'+
+                self.tr('Please install QScintilla to try the PyQt4/QScintilla-based version')+
                 ':'+'\n'+'http://www.riverbankcomputing.co.uk/qscintilla')      
 
     def set_wrap_mode(self, enable):
@@ -308,20 +307,37 @@ class QtTerminal(QTextEdit):
         self.clear()
         self.write(self.prompt, flush=True)
         
-    def insert_text(self, text, at_end=False):
+    def insert_text(self, text, at_end=False, error=False):
         """
-        Insert text at the current cursor position.
+        Insert text at the current cursor position
+        or at the end of the command line
         """
         cursor = self.textCursor()
         if at_end:
+            # Insert text at the end of the command line
             cursor.movePosition(QTextCursor.End)
-            self.insertPlainText(text)
-            self.ensureCursorVisible ()
+            if error:
+                if not text.startswith('  File "<'):
+                    #TODO: remove underlined spaces!!
+                    if text.startswith('  File'):
+                        cursor.insertText("  ", self.format)
+                        self.format.setUnderlineStyle(QTextCharFormat.SingleUnderline)
+                        self.format.setForeground(Qt.blue)
+                        text = text[2:]
+                    else:
+                        self.format.setForeground(Qt.red)
+                    cursor.insertText(text, self.format)
+                    self.format.setForeground(Qt.black)
+                    self.format.setUnderlineStyle(QTextCharFormat.NoUnderline)
+            else:
+                cursor.insertText(text, self.format)
+            self.ensureCursorVisible()
         else:
+            # Insert text at current cursor position
             self.line.insert(self.point, text)
             self.point += len(text)
-            self.insertPlainText(text)
-
+            cursor.insertText(text, self.format)
+            
     def writelines(self, text):
         """
         Simulate stdin, stdout, and stderr.
@@ -341,7 +357,8 @@ class QtTerminal(QTextEdit):
         """
         text  = event.text()
         key   = event.key()
-
+        shift = event.modifiers() & Qt.ShiftModifier
+        
         if key == Qt.Key_Backspace:
             if self.point:
                 cursor = self.textCursor()
@@ -360,14 +377,20 @@ class QtTerminal(QTextEdit):
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
-                        
             self.line.remove(self.point, 1)
             
-        elif key == Qt.Key_Return or key == Qt.Key_Enter:
+        elif shift and (key == Qt.Key_Return or key == Qt.Key_Enter):
             self.write('\n')
+            self.pointer = 0
+            self.append_command(unicode(self.line))
+            self.__clear_line()
+            
+        elif key == Qt.Key_Return or key == Qt.Key_Enter:
+            self.insert_text('\n', at_end=True)
             self.pointer = 0
             self.execute_command(unicode(self.line))
             self.__clear_line()
+            self.moveCursor(QTextCursor.End)
                 
         elif key == Qt.Key_Tab:
             current_line = self.__get_current_line_to_cursor()
@@ -412,6 +435,21 @@ class QtTerminal(QTextEdit):
                     self.pointer = 0
                 self.__recall()
                 
+        elif event == QKeySequence.Copy:
+            self.copy()
+            
+        elif event == QKeySequence.Paste:
+            self.paste()
+            
+        elif event == QKeySequence.Cut:
+            self.cut()
+            
+        elif event == QKeySequence.Undo:
+            self.undo()
+            
+        elif event == QKeySequence.Redo:
+            self.redo()
+                
         elif key == Qt.Key_ParenLeft or key == Qt.Key_Question:
             self.show_docstring(self.__get_current_line_to_cursor())
             self.insert_text(text)
@@ -443,12 +481,29 @@ class QtTerminal(QTextEdit):
 
     def mousePressEvent(self, event):
         """Keep the cursor after the last prompt"""
+        ctrl = event.modifiers() & Qt.ControlModifier
         if event.button() == Qt.LeftButton:
-            self.moveCursor(QTextCursor.End)
+            if ctrl:
+                cursor = self.cursorForPosition(event.pos())
+                text = unicode(cursor.block().text())
+                if text.startswith("  File "):
+                    pos1 = text.find('File ')
+                    pos2 = text.find('", line ')
+                    pos3 = text.find(', in')
+                    if  (pos1 > 0) and (pos2 > 0) and (pos3 > 0):
+                        fname = text[pos1+6:pos2]
+                        lnb = int( text[pos2+8:pos3] )
+                        self.external_editor(fname, lnb)
+            else:
+                self.moveCursor(QTextCursor.End)
             
     def contentsContextMenuEvent(self,ev):
         """Suppress the right button context menu"""
         pass
+
+    def insertFromMimeData(self, source):
+        """Paste"""
+        self.insert_text( source.text() )
     
     def set_docviewer(self, docviewer):
         """Set DocViewer DockWidget reference"""
@@ -495,6 +550,27 @@ class QtTerminal(QTextEdit):
 #        point.setX(point.x())
         self.completion_widget.move(point)
         self.completion_widget.show()
+
+    def show_calltip(self, text):
+        """Show calltip"""
+        if text is None or len(text)==0:
+            return
+        tipsize = CONF.get('calltips', 'size')
+        font = get_font('calltips')
+        weight = 'bold' if font.bold() else 'normal'
+        format1 = '<span style=\'font-size: %spt\'>' % font.pointSize()
+        format2 = '\n<hr><span style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (font.family(), font.pointSize(), weight)
+        if isinstance(text, list):
+            text = "\n    ".join(text)
+            text = format1+'<b>Arguments</b></span>:'+format2+text+"</span>"
+        else:
+            if len(text) > tipsize:
+                text = text[:tipsize] + " ..."
+            text = text.replace('\n', '<br>')
+            text = format1+'<b>Documentation</b></span>:'+format2+text+"</span>"
+        rect = self.cursorRect()
+        point = self.mapToGlobal(QPoint(rect.x(), rect.y()))
+        QToolTip.showText(point, text)
         
     def __completion_list_selected(self):
         """
@@ -503,8 +579,6 @@ class QtTerminal(QTextEdit):
         extra = self.completion_widget.currentItem().text(). \
                 mid(self.completion_chars-1)
         if not extra.isEmpty():
-            cursor = self.textCursor()
-            cursor.insertText(extra)
-            self.point += len(extra)
+            self.insert_text(extra)
         self.completion_widget.close()
         self.completion_chars = 0
