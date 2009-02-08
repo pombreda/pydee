@@ -219,6 +219,11 @@ class ConsoleWindow(QMainWindow):
         
     def about(self):
         """About PyQtShell console"""
+        try:
+            from PyQt4.Qsci import QSCINTILLA_VERSION_STR as qsci
+            qsci = ", QScintilla "+ qsci
+        except ImportError:
+            qsci = ""
         QMessageBox.about(self,
             self.tr("About %1").arg(self.tr('PyQtShell Console')),
             self.tr("""<b>%1</b> v %2
@@ -227,10 +232,10 @@ class ConsoleWindow(QMainWindow):
             <p>Bug reports and feature requests: <a href="http://code.google.com/p/pyqtshell/">Google Code</a><br>
             Discussions around the project: <a href="http://groups.google.com/group/pyqtshell">Google Group</a>
             <p>This project will soon be part of <a href="http://www.google.fr">Python(x,y) distribution</a>
-            <p>Python %3 - Qt %4 - PyQt %5 on %6""") \
+            <p>Python %3, Qt %4, PyQt %5%6 on %7""") \
             .arg(self.tr('PyQtShell Console')).arg(__version__) \
             .arg(platform.python_version()).arg(QT_VERSION_STR) \
-            .arg(PYQT_VERSION_STR).arg(platform.system()))
+            .arg(PYQT_VERSION_STR).arg(qsci).arg(platform.system()))
             
     def send_to_statusbar(self, message):
         """Show a message in the status bar"""
