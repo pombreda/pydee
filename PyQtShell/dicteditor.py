@@ -332,6 +332,10 @@ class DictEditor(QTableView):
         self.delegate = DictDelegate(self)
         self.setItemDelegate(self.delegate)
         self.horizontalHeader().setStretchLastSection(True)
+        self.adjust_columns()
+        
+    def adjust_columns(self):
+        """Resize two first columns to contents"""
         for col in range(2):
             self.resizeColumnToContents(col)
         
