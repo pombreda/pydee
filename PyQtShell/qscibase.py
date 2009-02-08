@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Widgets based on QScintilla"""
+"""Editor and terminal base widgets based on QScintilla"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903

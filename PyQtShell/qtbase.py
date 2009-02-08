@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Widgets used only if QScintilla is not installed"""
+"""Editor and terminal base widgets used only if QScintilla is not installed"""
 
 from PyQt4.QtGui import QTextEdit, QTextCursor, QColor, QFont, QCursor
 from PyQt4.QtCore import Qt, QString, SIGNAL, QEvent, QRegExp, QPoint

@@ -6,23 +6,25 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, os, cPickle, subprocess
-from time import time
+import sys, os, cPickle
 import os.path as osp
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
 from PyQt4.QtGui import QToolTip, QCheckBox, QTabWidget, QMenu
-from PyQt4.QtCore import Qt, SIGNAL, QString, QEventLoop, QCoreApplication
-from PyQt4.QtCore import QStringList
+from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
-from interpreter import Interpreter
 import encoding
-from dochelpers import getdoc, getsource, getargtxt
+from dochelpers import getdoc, getsource
 from qthelpers import create_action, get_std_icon, add_actions, translate
 from config import get_font, set_font
 from config import CONF, str2type, get_conf_path, get_icon
+from shell import ShellBaseWidget
+try:
+    from qscibase import QsciEditor as EditorBaseWidget
+except ImportError:
+    from qtbase import QtEditor as EditorBaseWidget
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -33,6 +35,7 @@ def toggle_actions(actions, enable):
         for action in actions:
             if action is not None:
                 action.setEnabled(enable)
+
 
 class WidgetMixin(object):
     """Useful methods to bind widgets to the main window"""
@@ -79,336 +82,6 @@ class WidgetMixin(object):
     def chdir(self, dirname):
         """Change working directory"""
         self.mainwindow.workdir.chdir(dirname)
-
-
-class MultipleRedirection:
-    """ Dummy file which redirects stream to multiple file """
-    def __init__(self, files):
-        """ The stream is redirect to the file list 'files' """
-        self.files = files
-    def write(self, string):
-        """ Emulate write function """
-        for fileobj in self.files:
-            fileobj.write(string)
-
-def guess_filename(filename):
-    """Guess filename"""
-    if filename.startswith('"') or filename.startswith("'"):
-        filename = filename[1:-1]
-    if osp.isfile(filename):
-        return filename
-    pathlist = sys.path
-    pathlist[0] = os.getcwd()
-    if not filename.endswith('.py'):
-        filename += '.py'
-    for path in pathlist:
-        fname = osp.join(path, filename)
-        if osp.isfile(fname):
-            return fname
-    return filename
-
-def create_banner(moreinfo, message=''):
-    """Create shell banner"""
-    if message:
-        message = '\n' + message + '\n'
-    return 'Python %s on %s\n' % (sys.version, sys.platform) + \
-            moreinfo+'\n' + message + '\n'
-
-try:
-    from qsciwidgetsk import QsciTerminal as Terminal
-    from qsciwidgets import QsciEditor as EditorBaseWidget
-except ImportError:
-    from qtwidgets import QtTerminal as Terminal
-    from qtwidgets import QtEditor as EditorBaseWidget
-
-class IOHandler(object):
-    """Handle stream output"""
-    def __init__(self, write):
-        self._write = write
-    def write(self, cmd):
-        self._write(cmd)
-
-class ShellBaseWidget(Terminal):
-    """Shell base widget: link between Terminal and Interpreter"""
-    try:
-        p1 = sys.p1
-    except AttributeError:
-        p1 = ">>> "
-    try:
-        p2 = sys.p2
-    except AttributeError:
-        p2 = "... "
-    def __init__(self, parent=None, namespace=None, commands=None, message="",
-                 debug=False, exitfunc=None):
-        self.__buffer = []
-        self.__timestamp = 0.0
-        Terminal.__init__(self, parent)
-        
-        # raw_input support
-        self.input_loop = None
-        self.input_mode = False
-        
-        # KeyboardInterrupt support
-        self.interrupted = False
-        
-        # Init interpreter
-        #TODO: multithreaded Interpreter (if option.thread)
-        self.interpreter = Interpreter(namespace, exitfunc, self.raw_input)
-        
-        # Multiline entry
-        self.multiline_entry = []
-        
-        # Execution Status
-        self.more = False
-        
-        # capture all interactive input/output 
-        self.debug = debug
-        self.initial_stdout = sys.stdout
-        self.initial_stderr = sys.stderr
-        self.initial_stdin = sys.stdin
-        self.stderr = IOHandler(self.write_error)
-        self.redirect_stds()
-
-        # interpreter banner
-        moreinfo, helpmsg = self.get_banner()
-        self.write( create_banner(moreinfo, message), flush=True )
-        if helpmsg:
-            self.write(helpmsg + '\n\n', flush=True)
-
-        # Initial commands
-        for cmd in commands:
-            self.run_command(cmd, history=False, multiline=True)
-                
-        # First prompt
-        self.prompt = self.p1
-        self.write(self.prompt, flush=True)
-        self.emit(SIGNAL("refresh()"))
-  
-    def redirect_stds(self):
-        """Redirects stds"""
-        if not self.debug:
-            sys.stdout = self
-            sys.stderr = MultipleRedirection((sys.stderr, self.stderr))
-            sys.stdin  = self
-        
-    def restore_stds(self):
-        """Restore stds"""
-        if not self.debug:
-            sys.stdout = self.initial_stdout
-            sys.stderr = self.initial_stderr
-            sys.stdin = self.initial_stdin
-
-    def raw_input(self, prompt):
-        """Reimplementation of raw_input builtin"""
-        self.write(prompt, flush=True)
-        old_prompt = self.prompt
-        self.prompt = prompt
-        inp = self.wait_input()
-        self.prompt = old_prompt
-        return inp
-    
-    def readline(self):
-        """For help() support (to be implemented...)"""
-        #TODO: help() support
-        inp = self.wait_input()
-        return inp
-        
-    def wait_input(self):
-        """Wait for input (raw_input)"""
-        self.input_data = None # If shell is closed, None will be returned
-        self.input_mode = True
-        self.input_loop = QEventLoop()
-        self.input_loop.exec_()
-        self.input_loop = None
-        return self.input_data
-    
-    def end_input(self, cmd):
-        """End of wait_input mode"""
-        self.input_data = cmd
-        self.input_mode = False
-        self.input_loop.exit()
-
-    def write_error(self, text, flush=False):
-        """Simulate stderr"""
-        self.flush_buffer()
-        self.write(text, flush=True, error=True)
-
-    def write(self, text, flush=False, error=False):
-        """Simulate stdout and stderr"""
-        if isinstance(text, QString):
-            # This test is useful to discriminate QStrings from decoded str
-            text = unicode(text)
-        self.__buffer.append(text)
-        ts = time()
-        if flush or ts-self.__timestamp > 0.05:
-            self.flush_buffer(error=error)
-            self.__timestamp = ts
-
-    def flush_buffer(self, error=False):
-        """Flush buffer, write text to console"""
-        text = "".join(self.__buffer)
-        self.__buffer = []
-        self.insert_text(text, at_end=True, error=error)
-        self.repaint()
-        QCoreApplication.processEvents()
-        if self.interrupted:
-            self.interrupted = False
-            raise KeyboardInterrupt
-        
-    def append_command(self, cmd):
-        """Multiline command"""
-        self.write(self.p2, flush=True)
-        if len(cmd)>0:
-            self.multiline_entry.append(cmd)
-
-    def execute_command(self, cmd):
-        """
-        Execute a command.
-        cmd: one-line command only, without '\n' at the end!
-        """            
-        if self.input_mode:
-            self.end_input(cmd)
-            return
-        # cls command
-        if cmd == 'cls':
-            self.clear_terminal()
-            return
-        
-        # Multiline entry support: very limited feature...
-        # (bug after exiting an indented block, e.g. a for loop)
-        if self.multiline_entry:
-            self.multiline_entry.append(cmd)
-            cmdlist = self.multiline_entry
-        else:
-            cmdlist = [cmd]
-                
-        for index, cmd in enumerate(cmdlist):
-            self.run_command(cmd, multiline=(index!=len(cmdlist)-1))
-        
-        self.multiline_entry = []
-        
-    def external_editor(self, filename, goto=None):
-        """Edit in an external editor
-        Recommended: SciTE (e.g. to go to line where an error did occur)"""
-        editor_path = CONF.get('shell', 'external_editor')
-        goto_option = CONF.get('shell', 'external_editor/gotoline')
-        if (goto is not None) and goto_option:
-            subprocess.Popen(r'%s "%s" %s%d' % (editor_path, filename,
-                                                goto_option, goto))
-        else:
-            subprocess.Popen(r'%s "%s"' % (editor_path, filename))
-        
-    def run_command(self, cmd, history=True, multiline=False):
-        """Run command in interpreter"""
-        
-        # Before running command
-        self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
-        self.emit( SIGNAL("executing_command(bool)"), True )
-        
-        if not cmd:
-            cmd = ''
-        else:
-            if history:
-                self.interpreter.add_to_history(cmd)
-            self.histidx = -1
-        
-        # ? command
-        if cmd.endswith('?'):
-            cmd = 'help(%s)' % cmd[:-1]
-            
-        # run command
-        if cmd.startswith('run '):
-            filename = guess_filename(cmd[4:])
-            cmd = 'execfile(r"%s")' % filename
-                
-        # edit command
-        if cmd.startswith('edit '):
-            filename = guess_filename(cmd[5:])
-            self.external_editor(filename)
-        # Execute command
-        elif cmd.startswith('!'):
-            # System ! command
-            _, out, err = os.popen3(cmd[1:])
-            #txt_out = out.read().rstrip()
-            #XXX: Is this working on Linux too?
-            import locale
-            txt_out = out.read().decode('cp437') \
-                      .encode(locale.getpreferredencoding())
-            txt_err = err.read().rstrip()
-            if txt_err:
-                self.write(txt_err)
-            else:
-                self.write(txt_out)
-            self.write('\n')
-            self.more = False
-        else:
-            # Other command
-            self.more = self.interpreter.push(cmd)
-        
-        self.emit(SIGNAL("refresh()"))
-        self.prompt = self.p2 if self.more else self.p1
-        if not multiline:
-            self.write(self.prompt, flush=True)
-        if not self.more:
-            self.interpreter.resetbuffer()
-            
-        # After running command
-        self.emit( SIGNAL("executing_command(bool)"), False )
-        self.emit(SIGNAL("status(QString)"), QString())
-    
-    def show_completion(self, text):
-        """
-        Display a completion list based on the last token
-        """
-        try:
-            obj = eval(text, self.interpreter.locals)
-        except:
-            # No valid object was extracted from text
-            pass
-        else:
-            # Object obj is valid
-            self.show_list(dir(obj), text) 
-
-    def show_file_completion(self, text):
-        """
-        Display a completion list for files and directories
-        """
-        self.show_list(os.listdir(os.getcwd()), text) 
-
-    def show_list(self, completions, text):
-        """
-        Private method to display the possible completions.
-        """
-        if len(completions) == 0:
-            return
-        if len(completions) > 1:
-            self.showUserList(1, QStringList(sorted(completions)))
-            self.completion_chars = 1
-        else:
-            txt = completions[0]
-            if text != "":
-                txt = txt.replace(text, "")
-            self.insert_text(txt)
-            self.completion_chars = 0
-        
-    def show_docstring(self, text):
-        """Show docstring or arguments"""
-        try:
-            obj = eval(text, self.interpreter.locals)
-        except:
-            # No valid object was extracted from text
-            pass
-        else:
-            # Object obj is valid
-            if (self.docviewer is not None) and \
-               (self.docviewer.dockwidget.isVisible()):
-                # DocViewer widget exists and is visible
-                self.docviewer.refresh(text)
-                arglist = getargtxt(obj)
-                if arglist:
-                    self.show_calltip(arglist)
-            else:
-                self.show_calltip(obj.__doc__)
 
 
 class Shell(ShellBaseWidget, WidgetMixin):
