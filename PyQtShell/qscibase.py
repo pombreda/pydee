@@ -524,7 +524,7 @@ class QsciTerminal(QsciScintilla):
         line, col = self.__get_end_pos()
         self.setCursorPosition(line, col)
         buf = self.__extract_from_text(line)
-        self.write('\n')
+        self.insert_text('\n', at_end=True)
         return buf
 
     def __qsci_newline(self):
