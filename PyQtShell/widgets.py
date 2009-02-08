@@ -914,6 +914,7 @@ class Workspace(DictEditor, WidgetMixin):
         if self.shell is not None:
             self.namespace = self.shell.interpreter.namespace
         self.set_data( self.namespace, wsfilter )
+        self.adjust_columns()
         
     def set_actions(self):
         """Setup actions"""
