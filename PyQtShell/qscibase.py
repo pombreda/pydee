@@ -154,6 +154,7 @@ class QsciEditor(QsciScintilla):
         return self.text()
     
     
+#TODO: Do not allow user to ctrl-leftarrow back into the command prompt (or past)
 class QsciTerminal(QsciScintilla):
     """
     Terminal based on QScintilla
@@ -374,8 +375,10 @@ class QsciTerminal(QsciScintilla):
             tokens = re.split(r'[][*-/+ {}().]', text)
             if not tokens[-1].isdigit():
                 self.show_completion(text)
-        if txt == '(' or txt == '?':
+        if txt == '?':
             self.show_docstring(self.__get_current_line_to_cursor())
+        elif txt == '(':
+            self.show_docstring(self.__get_current_line_to_cursor(), call=True)
         elif self.isListActive():
             self.completion_chars += 1
 
