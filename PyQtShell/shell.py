@@ -258,6 +258,7 @@ class ShellBaseWidget(Terminal):
             filename = guess_filename(cmd[4:])
             cmd = 'execfile(r"%s")' % filename
                 
+        #TODO: Add local edit command (e.g. ledit)
         # edit command
         if cmd.startswith('edit '):
             filename = guess_filename(cmd[5:])
@@ -328,7 +329,7 @@ class ShellBaseWidget(Terminal):
             self.insert_text(txt)
             self.completion_chars = 0
         
-    def show_docstring(self, text):
+    def show_docstring(self, text, call=False):
         """Show docstring or arguments"""
         try:
             obj = eval(text, self.interpreter.locals)
@@ -341,9 +342,11 @@ class ShellBaseWidget(Terminal):
                (self.docviewer.dockwidget.isVisible()):
                 # DocViewer widget exists and is visible
                 self.docviewer.refresh(text)
-                arglist = getargtxt(obj)
-                if arglist:
-                    self.show_calltip(arglist)
+                if call:
+                    # Display argument list if this is function call
+                    arglist = getargtxt(obj)
+                    if arglist:
+                        self.show_calltip(arglist)
             else:
                 self.show_calltip(obj.__doc__)
 

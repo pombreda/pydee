@@ -450,8 +450,12 @@ class QtTerminal(QTextEdit):
         elif event == QKeySequence.Redo:
             self.redo()
                 
-        elif key == Qt.Key_ParenLeft or key == Qt.Key_Question:
+        elif key == Qt.Key_Question:
             self.show_docstring(self.__get_current_line_to_cursor())
+            self.insert_text(text)
+                
+        elif key == Qt.Key_ParenLeft:
+            self.show_docstring(self.__get_current_line_to_cursor(), call=True)
             self.insert_text(text)
                 
 #        elif key == Qt.Key_Period:
