@@ -371,7 +371,7 @@ class QsciTerminal(QsciScintilla):
         if txt == '.':
             # Enable auto-completion only if last token isn't a float
             text = self.__get_current_line_to_cursor()
-            tokens = text.split(" ")
+            tokens = re.split(r'[][*-/+ {}().]', text)
             if not tokens[-1].isdigit():
                 self.show_completion(text)
         if txt == '(' or txt == '?':
