@@ -11,7 +11,7 @@ import os.path as osp
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
-from PyQt4.QtGui import QToolTip, QCheckBox, QTabWidget, QMenu, QTextDocument
+from PyQt4.QtGui import QToolTip, QCheckBox, QTabWidget, QMenu, QGridLayout
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
@@ -410,7 +410,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
         self.refresh()
 
 
-class Find(QWidget):
+class FindReplace(QWidget):
     """
     Find widget
     """
@@ -419,10 +419,13 @@ class Find(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         self.editor = None
+        self.setLayout(QGridLayout())
         
         self.close_button = QPushButton(get_std_icon("DialogCloseButton"), "")
         self.connect(self.close_button, SIGNAL('clicked()'), self.hide)
+        self.layout().addWidget(self.close_button, 0, 0)
         
+        # Find layout
         self.edit = QLineEdit()
         self.connect(self.edit, SIGNAL("textChanged(QString)"),
                      self.text_has_changed)
@@ -438,17 +441,45 @@ class Find(QWidget):
         self.connect(self.case_check, SIGNAL("stateChanged(int)"), self.find)
         self.words_check = QCheckBox(self.tr("Whole words"))
         self.connect(self.words_check, SIGNAL("stateChanged(int)"), self.find)
-        
+
         layout = QHBoxLayout()
-        self.widgets = (self.close_button, self.edit, self.previous_button,
-                        self.next_button, self.case_check, self.words_check)
+        self.widgets = [self.close_button, self.edit, self.previous_button,
+                        self.next_button, self.case_check, self.words_check]
+        for widget in self.widgets[1:]:
+            layout.addWidget(widget)
+        self.layout().addLayout(layout, 0, 1)
+
+        # Replace layout
+        replace_with = QLabel(self.tr("Replace with:"))
+        self.replace_edit = QLineEdit()
+        
+        self.replace_button = QPushButton(get_std_icon("ArrowForward"), "")
+        self.connect(self.replace_button, SIGNAL('clicked()'),
+                     self.replace_find)
+        
+        self.all_check = QCheckBox(self.tr("Replace all"))
+        
+        self.replace_layout = QHBoxLayout()
+        widgets = [replace_with, self.replace_edit,
+                   self.replace_button, self.all_check]
+        for widget in widgets:
+            self.replace_layout.addWidget(widget)
+        self.layout().addLayout(self.replace_layout, 1, 1)
+        self.widgets.extend(widgets)
+        self.replace_widgets = widgets
+        self.hide_replace()
+        
+        self.edit.setTabOrder(self.edit, self.replace_edit)
+        
+        self.tweak_buttons()
+        self.refresh()
+        
+    def tweak_buttons(self):
+        """Change buttons appearance"""
         for widget in self.widgets:
             if isinstance(widget, QPushButton):
                 widget.setFlat(True)
                 widget.setFixedWidth(20)
-            layout.addWidget(widget)
-        self.setLayout(layout)
-        self.refresh()
         
     def show(self):
         """Overrides Qt Method"""
@@ -457,6 +488,22 @@ class Find(QWidget):
         if len(text)>0:
             self.edit.setText(text)
             self.refresh()
+        
+    def hide(self):
+        """Overrides Qt Method"""
+        for widget in self.replace_widgets:
+            widget.hide()
+        QWidget.hide(self)
+        
+    def show_replace(self):
+        """Show replace widgets"""
+        for widget in self.replace_widgets:
+            widget.show()
+            
+    def hide_replace(self):
+        """Hide replace widgets"""
+        for widget in self.replace_widgets:
+            widget.hide()
         
     def refresh(self):
         """Refresh widget"""
@@ -488,12 +535,25 @@ class Find(QWidget):
         text = self.edit.text()
         if len(text)==0:
             self.edit.setStyleSheet("")
+            return None
         else:
             found = self.editor.find_text(text, changed, forward,
                                           case=self.case_check.isChecked(),
                                           words=self.words_check.isChecked())
             self.edit.setStyleSheet(self.STYLE[found])
+            return found
+            
+    def replace_find(self):
+        """Replace and find"""
+        if (self.editor is not None):
+            while self.find(changed=True, forward=True):
+                if not self.all_check.isChecked():
+                    break
+                self.editor.replace(self.replace_edit.text())
+                self.refresh()
+            self.all_check.setCheckState(Qt.Unchecked)
     
+
 class Editor(QWidget, WidgetMixin):
     """
     Editor widget
@@ -508,7 +568,7 @@ class Editor(QWidget, WidgetMixin):
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh)
         layout.addWidget(self.tabwidget)
-        self.find_widget = Find(self)
+        self.find_widget = FindReplace(self)
         self.find_widget.hide()
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
@@ -580,6 +640,9 @@ class Editor(QWidget, WidgetMixin):
         find_action = create_action(self, self.tr("Find text"), "Ctrl+F",
             'find.png', self.tr("Find text in current script"),
             triggered = self.find)
+        replace_action = create_action(self, self.tr("Replace text"), "Ctrl+H",
+            tip = self.tr("Replace text in current script"),
+            triggered = self.replace)
         close_action = create_action(self, self.tr("Close"), "Ctrl+W",
             'close.png', self.tr("Close current script"),
             triggered = self.close)
@@ -596,14 +659,14 @@ class Editor(QWidget, WidgetMixin):
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get('editor', 'wrap') )
         menu_actions = (new_action, open_action, save_action, save_as_action,
-                        exec_action, None, find_action,
+                        exec_action, None, find_action, replace_action,
                         None, close_action, close_all_action,
                         None, font_action, wrap_action)
         toolbar_actions = (new_action, open_action, save_action, exec_action,
                            find_action)
         self.file_dependent_actions = (save_action, save_as_action, exec_action,
                                        close_action, close_all_action,
-                                       find_action)
+                                       find_action, replace_action)
         return (menu_actions, toolbar_actions)                
         
     def closing(self, cancelable=False):
@@ -615,6 +678,11 @@ class Editor(QWidget, WidgetMixin):
         """Show Find Widget"""
         self.find_widget.show()
         self.find_widget.edit.setFocus()
+        
+    def replace(self):
+        """Show Replace Widget"""
+        self.find()
+        self.find_widget.show_replace()
         
     def load_temp_file(self):
         """Load temporary file from a text file in user home directory"""

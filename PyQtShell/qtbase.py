@@ -187,6 +187,7 @@ class QtEditor(QTextEdit):
         super(QtEditor, self).__init__(parent)
         self.is_modified = False
         self.highlighter = PythonHighlighter(self, get_font('editor'))
+        self.connect(self, SIGNAL('textChanged()'), self.changed)
         
     def isModified(self):
         """Fake QScintilla method"""
@@ -195,6 +196,11 @@ class QtEditor(QTextEdit):
     def setModified(self, state):
         """Fake QScintilla method"""
         self.is_modified = state
+        
+    def changed(self):
+        """Emit changed signal"""
+        self.is_modified = True # Temporary: does not support undo
+        self.emit(SIGNAL('modificationChanged(bool)'), self.is_modified)
         
     def setCursorPosition(self, arg1, arg2):
         """Fake QScintilla method"""
@@ -261,15 +267,24 @@ class QtEditor(QTextEdit):
                 self.moveCursor(QTextCursor.PreviousWord)
         else:
             moves = [QTextCursor.End]
+        found = self.find(text, findflag)
         for move in moves:
-            found = self.find(text, findflag)
             if found: break
             self.moveCursor(move)
+            found = self.find(text, findflag)
         return found
     
     def selectedText(self):
         """Reimplements QScintilla method"""
         return self.textCursor().selectedText()
+    
+    def replace(self, text):
+        """Reimplements QScintilla method"""
+        cursor = self.textCursor()
+        cursor.beginEditBlock()
+        cursor.removeSelectedText()
+        cursor.insertText(text)
+        cursor.endEditBlock()
 
 
 class QtTerminal(QTextEdit):

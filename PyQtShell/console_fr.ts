@@ -168,27 +168,27 @@
 <context>
     <name>DocViewer</name>
     <message>
-        <location filename="widgets.py" line="868"/>
+        <location filename="widgets.py" line="937"/>
         <source>Object</source>
         <translation>Objet</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="871"/>
+        <location filename="widgets.py" line="940"/>
         <source>Enter an object name to view the associated help</source>
         <translation>Entrer un nom d&apos;objet pour afficher l&apos;aide associée</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="892"/>
+        <location filename="widgets.py" line="961"/>
         <source>&amp;Doc</source>
         <translation>Ai&amp;de</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="875"/>
+        <location filename="widgets.py" line="944"/>
         <source>Show source</source>
         <translation>Afficher les sources</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="933"/>
+        <location filename="widgets.py" line="1002"/>
         <source>No documentation available.</source>
         <translation>Aucune documentation disponible.</translation>
     </message>
@@ -196,72 +196,72 @@
 <context>
     <name>Editor</name>
     <message>
-        <location filename="widgets.py" line="554"/>
+        <location filename="widgets.py" line="615"/>
         <source>&amp;Editor</source>
         <translation>&amp;Éditeur</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="570"/>
+        <location filename="widgets.py" line="631"/>
         <source>Open...</source>
         <translation>Ouvrir...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="571"/>
+        <location filename="widgets.py" line="632"/>
         <source>Open a Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="576"/>
+        <location filename="widgets.py" line="637"/>
         <source>Save as...</source>
         <translation>Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="574"/>
+        <location filename="widgets.py" line="635"/>
         <source>Save current script</source>
         <translation>Enregistrer le script actuel</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="588"/>
+        <location filename="widgets.py" line="652"/>
         <source>&amp;Execute</source>
         <translation>&amp;Exécuter</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="589"/>
+        <location filename="widgets.py" line="653"/>
         <source>Execute current script</source>
         <translation>Exécuter le script actuel</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="591"/>
+        <location filename="widgets.py" line="655"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="592"/>
+        <location filename="widgets.py" line="656"/>
         <source>Set editor font style</source>
         <translation>Modifier la police d&apos;écriture de l&apos;éditeur</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="721"/>
+        <location filename="widgets.py" line="790"/>
         <source>Open Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="770"/>
+        <location filename="widgets.py" line="839"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="769"/>
+        <location filename="widgets.py" line="838"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="795"/>
+        <location filename="widgets.py" line="864"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="594"/>
+        <location filename="widgets.py" line="658"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne</translation>
     </message>
@@ -276,85 +276,95 @@
         <translation type="obsolete">Quitter</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="679"/>
+        <location filename="widgets.py" line="748"/>
         <source> has been modified.
 Do you want to save changes?</source>
         <translation>a été modifié. Souhaitez-vous sauvegarder ces changements ?</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="626"/>
+        <location filename="widgets.py" line="695"/>
         <source>This temporary script file is located here:</source>
         <translation>Ce script temporaire est sauvegardé ici :</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="624"/>
+        <location filename="widgets.py" line="693"/>
         <source>PyQtShell Editor</source>
         <translation>Éditeur de PyQtShell</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="573"/>
+        <location filename="widgets.py" line="634"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="577"/>
+        <location filename="widgets.py" line="638"/>
         <source>Save current script as...</source>
         <translation>Enregistrer le script sous...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="567"/>
+        <location filename="widgets.py" line="628"/>
         <source>New...</source>
         <translation>Nouveau...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="568"/>
+        <location filename="widgets.py" line="629"/>
         <source>Create a new Python script</source>
         <translation>Créer un nouveau script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="582"/>
+        <location filename="widgets.py" line="646"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="583"/>
+        <location filename="widgets.py" line="647"/>
         <source>Close current script</source>
         <translation>Fermer le script en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="585"/>
+        <location filename="widgets.py" line="649"/>
         <source>Close all</source>
         <translation>Fermer tout</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="586"/>
+        <location filename="widgets.py" line="650"/>
         <source>Close all opened scripts</source>
         <translation>Fermer tous les scripts en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="638"/>
+        <location filename="widgets.py" line="707"/>
         <source>untitled</source>
         <translation>sanstitre</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="644"/>
+        <location filename="widgets.py" line="713"/>
         <source>New Python script</source>
         <translation>Nouveau script Python</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="711"/>
+        <location filename="widgets.py" line="780"/>
         <source>Temporary file</source>
         <translation>Fichier temporaire</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="579"/>
+        <location filename="widgets.py" line="640"/>
         <source>Find text</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="580"/>
+        <location filename="widgets.py" line="641"/>
         <source>Find text in current script</source>
         <translation>Rechercher une chaîne de caractères dans le script en cours d&apos;édition</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="643"/>
+        <source>Replace text</source>
+        <translation>Remplacer</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="644"/>
+        <source>Replace text in current script</source>
+        <translation>Remplacer une chaîne de caractères dans le script en cours d&apos;édition</translation>
     </message>
 </context>
 <context>
@@ -362,18 +372,41 @@ Do you want to save changes?</source>
     <message>
         <location filename="widgets.py" line="437"/>
         <source>Case Sensitive</source>
-        <translation>Casse</translation>
+        <translation type="obsolete">Casse</translation>
     </message>
     <message>
         <location filename="widgets.py" line="439"/>
         <source>Whole words</source>
+        <translation type="obsolete">Mots entiers</translation>
+    </message>
+</context>
+<context>
+    <name>FindReplace</name>
+    <message>
+        <location filename="widgets.py" line="440"/>
+        <source>Case Sensitive</source>
+        <translation>Casse</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="442"/>
+        <source>Whole words</source>
         <translation>Mots entiers</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="453"/>
+        <source>Replace with:</source>
+        <translation>Remplacer par :</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="460"/>
+        <source>Replace all</source>
+        <translation>Remplacer tout</translation>
     </message>
 </context>
 <context>
     <name>HistoryLog</name>
     <message>
-        <location filename="widgets.py" line="825"/>
+        <location filename="widgets.py" line="894"/>
         <source>&amp;History log</source>
         <translation>&amp;Historique</translation>
     </message>
@@ -471,17 +504,17 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QtTerminal</name>
     <message>
-        <location filename="qtbase.py" line="315"/>
+        <location filename="qtbase.py" line="330"/>
         <source>Type &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</source>
         <translation>Entrer &quot;copyright&quot;, &quot;credits&quot; ou &quot;license&quot; pour des informations supplémentaires.</translation>
     </message>
     <message>
-        <location filename="qtbase.py" line="316"/>
+        <location filename="qtbase.py" line="331"/>
         <source>This version of PyQtShell is based on PyQt4 only</source>
         <translation>Cette version de PyQtShell utilise exclusivement PyQt4</translation>
     </message>
     <message>
-        <location filename="qtbase.py" line="318"/>
+        <location filename="qtbase.py" line="333"/>
         <source>Please install QScintilla to try the PyQt4/QScintilla-based version</source>
         <translation>Merci d&apos;installer QScintilla pour essayer la version basée sur PyQt4/QScintilla</translation>
     </message>
@@ -708,47 +741,47 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>Workspace</name>
     <message>
-        <location filename="widgets.py" line="1004"/>
+        <location filename="widgets.py" line="1073"/>
         <source>&amp;Workspace</source>
         <translation>Espace de &amp;travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1047"/>
+        <location filename="widgets.py" line="1116"/>
         <source>Auto save</source>
         <translation>Sauvegarde automatique</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1036"/>
+        <location filename="widgets.py" line="1105"/>
         <source>Sort columns</source>
         <translation>Classement des colonnes</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1038"/>
+        <location filename="widgets.py" line="1107"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1042"/>
+        <location filename="widgets.py" line="1111"/>
         <source>Exclude private references</source>
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1074"/>
+        <location filename="widgets.py" line="1143"/>
         <source>them</source>
         <translation>les</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1076"/>
+        <location filename="widgets.py" line="1145"/>
         <source>one</source>
         <translation>un</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1078"/>
+        <location filename="widgets.py" line="1147"/>
         <source>it</source>
         <translation>le</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1084"/>
+        <location filename="widgets.py" line="1153"/>
         <source>Workspace is currently keeping reference to %1 object%2.
 
 Do you want to save %3?</source>
@@ -757,77 +790,77 @@ Do you want to save %3?</source>
 Souhaitez-vous %3 sauvegarder ?</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1029"/>
+        <location filename="widgets.py" line="1098"/>
         <source>Open...</source>
         <translation>Ouvrir...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1030"/>
+        <location filename="widgets.py" line="1099"/>
         <source>Open a workspace</source>
         <translation>Ouvrir un espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1031"/>
+        <location filename="widgets.py" line="1100"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1032"/>
+        <location filename="widgets.py" line="1101"/>
         <source>Save current workspace</source>
         <translation>Enregistrer l&apos;espace de travail actuel</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1033"/>
+        <location filename="widgets.py" line="1102"/>
         <source>Save as...</source>
         <translation>Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1034"/>
+        <location filename="widgets.py" line="1103"/>
         <source>Save current workspace as...</source>
         <translation>Enregistrer l&apos;espace de travail sous un autre nom</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1049"/>
+        <location filename="widgets.py" line="1118"/>
         <source>Automatically save workspace in a temporary file when quitting</source>
         <translation>Enregistrer automatiquement l&apos;espace de travail dans un fichier temporaire en quittant</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1106"/>
+        <location filename="widgets.py" line="1175"/>
         <source>Open workspace</source>
         <translation>Ouvrir un espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1141"/>
+        <location filename="widgets.py" line="1210"/>
         <source>Workspaces</source>
         <translation>Espaces de travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1120"/>
+        <location filename="widgets.py" line="1189"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1130"/>
+        <location filename="widgets.py" line="1199"/>
         <source>Unable to load the following workspace:</source>
         <translation>Impossible d&apos;ouvrir l&apos;espace de travail suivant :</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1160"/>
+        <location filename="widgets.py" line="1229"/>
         <source>Save workspace</source>
         <translation>Enregistrer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1154"/>
+        <location filename="widgets.py" line="1223"/>
         <source>Saving workspace...</source>
         <translation>Enregistrement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1161"/>
+        <location filename="widgets.py" line="1230"/>
         <source>Unable to save current workspace</source>
         <translation>Impossible d&apos;enregistrer l&apos;espace de travail suivant</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1163"/>
+        <location filename="widgets.py" line="1232"/>
         <source>Unable to save current workspace:</source>
         <translation>Impossible d&apos;enregistrer l&apos;espace de travail suivant :</translation>
     </message>
