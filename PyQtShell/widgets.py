@@ -12,6 +12,7 @@ from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
 from PyQt4.QtGui import QToolTip, QCheckBox, QTabWidget, QMenu, QGridLayout
+from PyQt4.QtGui import QShortcut, QKeySequence
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
@@ -471,6 +472,9 @@ class FindReplace(QWidget):
         
         self.edit.setTabOrder(self.edit, self.replace_edit)
         
+        # Escape shortcut
+        QShortcut(QKeySequence("Escape"), self, self.hide)
+        
         self.tweak_buttons()
         self.refresh()
         
@@ -494,6 +498,8 @@ class FindReplace(QWidget):
         for widget in self.replace_widgets:
             widget.hide()
         QWidget.hide(self)
+        if self.editor is not None:
+            self.editor.setFocus()
         
     def show_replace(self):
         """Show replace widgets"""
