@@ -11,7 +11,7 @@ import os.path as osp
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
 from PyQt4.QtGui import QFontDialog, QInputDialog, QDockWidget, QSizePolicy
-from PyQt4.QtGui import QToolTip, QCheckBox, QTabWidget, QMenu
+from PyQt4.QtGui import QToolTip, QCheckBox, QTabWidget, QMenu, QTextDocument
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local import
@@ -22,7 +22,7 @@ from config import get_font, set_font
 from config import CONF, str2type, get_conf_path, get_icon
 from shell import ShellBaseWidget
 try:
-    from qscibase import QsciEditor as EditorBaseWidget
+    from qscibasex import QsciEditor as EditorBaseWidget
 except ImportError:
     from qtbase import QtEditor as EditorBaseWidget
 
@@ -410,6 +410,90 @@ class WorkingDirectory(QWidget, WidgetMixin):
         self.refresh()
 
 
+class Find(QWidget):
+    """
+    Find widget
+    """
+    STYLE = {False: "background-color:rgb(255, 175, 90);",
+             True: ""}
+    def __init__(self, parent):
+        QWidget.__init__(self, parent)
+        self.editor = None
+        
+        self.close_button = QPushButton(get_std_icon("DialogCloseButton"), "")
+        self.connect(self.close_button, SIGNAL('clicked()'), self.hide)
+        
+        self.edit = QLineEdit()
+        self.connect(self.edit, SIGNAL("textChanged(QString)"),
+                     self.text_has_changed)
+        
+        self.previous_button = QPushButton(get_std_icon("ArrowBack"), "")
+        self.connect(self.previous_button, SIGNAL('clicked()'),
+                     self.find_previous)
+        self.next_button = QPushButton(get_std_icon("ArrowForward"), "")
+        self.connect(self.next_button, SIGNAL('clicked()'),
+                     self.find_next)
+
+        self.case_check = QCheckBox(self.tr("Case Sensitive"))
+        self.connect(self.case_check, SIGNAL("stateChanged(int)"), self.find)
+        self.words_check = QCheckBox(self.tr("Whole words"))
+        self.connect(self.words_check, SIGNAL("stateChanged(int)"), self.find)
+        
+        layout = QHBoxLayout()
+        self.widgets = (self.close_button, self.edit, self.previous_button,
+                        self.next_button, self.case_check, self.words_check)
+        for widget in self.widgets:
+            if isinstance(widget, QPushButton):
+                widget.setFlat(True)
+                widget.setFixedWidth(20)
+            layout.addWidget(widget)
+        self.setLayout(layout)
+        self.refresh()
+        
+    def show(self):
+        """Overrides Qt Method"""
+        QWidget.show(self)
+        text = self.editor.selectedText()
+        if len(text)>0:
+            self.edit.setText(text)
+            self.refresh()
+        
+    def refresh(self):
+        """Refresh widget"""
+        state = self.editor is not None
+        for widget in self.widgets:
+            widget.setEnabled(state)
+        if state:
+            self.find()
+            
+    def set_editor(self, editor):
+        """Set parent editor"""
+        self.editor = editor
+        self.refresh()
+        
+    def find_next(self):
+        """Find next occurence"""
+        self.find(changed=False, forward=True)
+        
+    def find_previous(self):
+        """Find previous occurence"""
+        self.find(changed=False, forward=False)
+        
+    def text_has_changed(self, text):
+        """Find text has changed"""
+        self.find(changed=True, forward=True)
+        
+    def find(self, changed=True, forward=True):
+        """Call the find function"""
+        text = self.edit.text()
+        if len(text)==0:
+            self.edit.setStyleSheet("")
+        else:
+            found = self.editor.find_text(text, changed, forward,
+                                          case=self.case_check.isChecked(),
+                                          words=self.words_check.isChecked())
+            self.edit.setStyleSheet(self.STYLE[found])
+    
 class Editor(QWidget, WidgetMixin):
     """
     Editor widget
@@ -424,6 +508,9 @@ class Editor(QWidget, WidgetMixin):
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh)
         layout.addWidget(self.tabwidget)
+        self.find_widget = Find(self)
+        self.find_widget.hide()
+        layout.addWidget(self.find_widget)
         self.setLayout(layout)
         
         self.file_dependent_actions = []
@@ -443,6 +530,12 @@ class Editor(QWidget, WidgetMixin):
         enable = index != -1
         for action in self.file_dependent_actions:
             action.setEnabled(enable)
+        # The following works
+        if self.tabwidget.count():
+            editor = self.editors[self.tabwidget.currentIndex()]
+        else:
+            editor = None
+        self.find_widget.set_editor(editor)
 
     def change(self, state=None):
         """Change tab title depending on modified state"""
@@ -473,17 +566,20 @@ class Editor(QWidget, WidgetMixin):
     def set_actions(self):
         """Setup actions"""
         new_action = create_action(self, self.tr("New..."), None,
-            'py_new.png', self.tr("Create a new Python script"),
+            'new.png', self.tr("Create a new Python script"),
             triggered = self.new)
         open_action = create_action(self, self.tr("Open..."), None,
-            'py_open.png', self.tr("Open a Python script"),
+            'open.png', self.tr("Open a Python script"),
             triggered = self.load)
         save_action = create_action(self, self.tr("Save"), "Ctrl+S",
-            'py_save.png', self.tr("Save current script"),
+            'save.png', self.tr("Save current script"),
             triggered = self.save)
         save_as_action = create_action(self, self.tr("Save as..."), None,
-            'py_save_as.png', self.tr("Save current script as..."),
+            'saveas.png', self.tr("Save current script as..."),
             triggered = self.save_as)
+        find_action = create_action(self, self.tr("Find text"), "Ctrl+F",
+            'find.png', self.tr("Find text in current script"),
+            triggered = self.find)
         close_action = create_action(self, self.tr("Close"), "Ctrl+W",
             'close.png', self.tr("Close current script"),
             triggered = self.close)
@@ -500,18 +596,25 @@ class Editor(QWidget, WidgetMixin):
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get('editor', 'wrap') )
         menu_actions = (new_action, open_action, save_action, save_as_action,
-                        exec_action,
+                        exec_action, None, find_action,
                         None, close_action, close_all_action,
                         None, font_action, wrap_action)
-        toolbar_actions = (new_action, open_action, save_action, exec_action,)
+        toolbar_actions = (new_action, open_action, save_action, exec_action,
+                           find_action)
         self.file_dependent_actions = (save_action, save_as_action, exec_action,
-                                       close_action, close_all_action)
+                                       close_action, close_all_action,
+                                       find_action)
         return (menu_actions, toolbar_actions)                
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         CONF.set('editor', 'filenames', self.filenames)
         return self.save_if_changed(cancelable)
+        
+    def find(self):
+        """Show Find Widget"""
+        self.find_widget.show()
+        self.find_widget.edit.setFocus()
         
     def load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
@@ -593,6 +696,8 @@ class Editor(QWidget, WidgetMixin):
                 self.encodings.pop(index)
                 self.editors.pop(index)
             return is_ok
+        else:
+            self.find_widget.set_editor(None)
             
     def close_all(self):
         """Close all opened scripts"""
@@ -638,7 +743,8 @@ class Editor(QWidget, WidgetMixin):
             editor.set_font( get_font('editor') )
             editor.set_wrap_mode( CONF.get('editor', 'wrap') )
             editor.setup_margin( get_font('editor', 'margin') )
-            self.connect(editor, SIGNAL('modificationChanged(bool)'), self.change)
+            self.connect(editor, SIGNAL('modificationChanged(bool)'),
+                         self.change)
             editor.setup_api()
             
             editor.set_text(txt)
@@ -648,6 +754,8 @@ class Editor(QWidget, WidgetMixin):
             index = self.tabwidget.addTab(editor, title)
             self.tabwidget.setTabToolTip(index, filename)
             self.tabwidget.setTabIcon(index, get_icon('python.png'))
+            
+            self.find_widget.set_editor(editor)
             
             self.change()
             self.tabwidget.setCurrentIndex(index)
@@ -740,6 +848,7 @@ class HistoryLog(EditorBaseWidget, WidgetMixin):
         return True
 
 
+#TODO: Editable combo-box to keep help history
 class DocViewer(QWidget, WidgetMixin):
     """
     Docstrings viewer widget

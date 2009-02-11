@@ -153,6 +153,16 @@ class QsciEditor(QsciScintilla):
         """Return editor text"""
         return self.text()
     
+    def find_text(self, text, changed=True,
+                  forward=True, case=False, words=False):
+        """Find text"""
+        # findFirst(expr, re, cs, wo, wrap, forward, line, index, show)
+        if changed or not forward:
+            line_from, index_from, _line_to, _index_to = self.getSelection()
+            self.setCursorPosition(line_from, max([0, index_from-1]))
+        return self.findFirst(text, False, case, words,
+                              True, forward, -1, -1, True)
+    
     
 #TODO: Do not allow user to ctrl-leftarrow back into the command prompt (or past)
 class QsciTerminal(QsciScintilla):
