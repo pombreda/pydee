@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """Editor and terminal base widgets used only if QScintilla is not installed"""
 
-from PyQt4.QtGui import QTextEdit, QTextCursor, QColor, QFont, QCursor
 from PyQt4.QtCore import Qt, QString, SIGNAL, QEvent, QRegExp, QPoint
+from PyQt4.QtGui import QTextEdit, QTextCursor, QColor, QFont, QCursor
 from PyQt4.QtGui import QSyntaxHighlighter, QApplication, QTextCharFormat
 from PyQt4.QtGui import QListWidget, QShortcut, QKeySequence, QToolTip
+from PyQt4.QtGui import QTextDocument
 
 import sys
 try:
@@ -243,6 +244,32 @@ class QtEditor(QTextEdit):
             cursor.insertText("    ")
             return True
         return QTextEdit.event(self, event)
+    
+    def find_text(self, text, changed=True,
+                  forward=True, case=False, words=False):
+        """Find text"""
+        findflag = QTextDocument.FindFlag()
+        if not forward:
+            findflag = findflag | QTextDocument.FindBackward
+        if case:
+            findflag = findflag | QTextDocument.FindCaseSensitively
+        if words:
+            findflag = findflag | QTextDocument.FindWholeWords
+        if forward:
+            moves = [QTextCursor.NextWord, QTextCursor.Start]
+            if changed:
+                self.moveCursor(QTextCursor.PreviousWord)
+        else:
+            moves = [QTextCursor.End]
+        for move in moves:
+            found = self.find(text, findflag)
+            if found: break
+            self.moveCursor(move)
+        return found
+    
+    def selectedText(self):
+        """Reimplements QScintilla method"""
+        return self.textCursor().selectedText()
 
 
 class QtTerminal(QTextEdit):

@@ -103,7 +103,9 @@ class ShellBaseWidget(Terminal):
         self.initial_stdout = sys.stdout
         self.initial_stderr = sys.stderr
         self.initial_stdin = sys.stdin
+        self.stdout = self
         self.stderr = IOHandler(self.write_error)
+        self.stdin = self
         self.redirect_stds()
 
         # interpreter banner
@@ -124,9 +126,9 @@ class ShellBaseWidget(Terminal):
     def redirect_stds(self):
         """Redirects stds"""
         if not self.debug:
-            sys.stdout = self
+            sys.stdout = self.stdout
             sys.stderr = MultipleRedirection((sys.stderr, self.stderr))
-            sys.stdin  = self
+            sys.stdin  = self.stdin
         
     def restore_stds(self):
         """Restore stds"""
@@ -258,9 +260,13 @@ class ShellBaseWidget(Terminal):
             filename = guess_filename(cmd[4:])
             cmd = 'execfile(r"%s")' % filename
                 
-        #TODO: Add local edit command (e.g. ledit)
-        # edit command
+        # (external) edit command
         if cmd.startswith('edit '):
+            filename = guess_filename(cmd[5:])
+            self.external_editor(filename)
+        #TODO: Add local edit command (e.g. ledit)
+        # local edit command
+        if cmd.startswith('ledit '):
             filename = guess_filename(cmd[5:])
             self.external_editor(filename)
         # Execute command

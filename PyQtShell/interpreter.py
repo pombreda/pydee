@@ -8,7 +8,8 @@ import code
 # Local import
 import encoding
 from config import CONF, get_conf_path
-            
+
+
 class Interpreter(code.InteractiveConsole):
     """Interpreter"""
     log_path = get_conf_path('.history.py')
