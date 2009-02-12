@@ -86,6 +86,14 @@ class ConsoleWindow(QMainWindow):
             self.toolbar.addSeparator()
             self.connect(self.shell, SIGNAL("status(QString)"), 
                          self.send_to_statusbar)
+
+            # Editor widget
+            if CONF.get('editor', 'enable'):
+                self.set_splash(self.tr("Loading editor widget..."))
+                self.editor = Editor( self )
+                self.add_dockwidget(self.editor)
+                self.add_to_menubar(self.editor)
+                self.add_to_toolbar(self.editor)
         
             # Workspace
             if CONF.get('workspace', 'enable'):
@@ -96,14 +104,6 @@ class ConsoleWindow(QMainWindow):
                 self.add_to_toolbar(self.workspace)
                 self.connect(self.shell, SIGNAL("refresh()"),
                              self.workspace.refresh)
-
-            # Editor widget
-            if CONF.get('editor', 'enable'):
-                self.set_splash(self.tr("Loading editor widget..."))
-                self.editor = Editor( self )
-                self.add_dockwidget(self.editor)
-                self.add_to_menubar(self.editor)
-                self.add_to_toolbar(self.editor)
 
             # History log widget
             if CONF.get('history', 'enable'):
