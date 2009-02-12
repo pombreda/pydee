@@ -454,7 +454,7 @@ class FindReplace(QWidget):
         replace_with = QLabel(self.tr("Replace with:"))
         self.replace_edit = QLineEdit()
         
-        self.replace_button = QPushButton(get_std_icon("ArrowForward"), "")
+        self.replace_button = QPushButton(get_std_icon("DialogApplyButton"), "")
         self.connect(self.replace_button, SIGNAL('clicked()'),
                      self.replace_find)
         
@@ -474,7 +474,7 @@ class FindReplace(QWidget):
         
         # Escape shortcut
         QShortcut(QKeySequence("Escape"), self, self.hide)
-        
+                
         self.tweak_buttons()
         self.refresh()
         
@@ -669,7 +669,7 @@ class Editor(QWidget, WidgetMixin):
                         None, close_action, close_all_action,
                         None, font_action, wrap_action)
         toolbar_actions = (new_action, open_action, save_action, exec_action,
-                           find_action)
+                           find_action, None)
         self.file_dependent_actions = (save_action, save_as_action, exec_action,
                                        close_action, close_all_action,
                                        find_action, replace_action)
@@ -1127,7 +1127,7 @@ class Workspace(DictEditor, WidgetMixin):
         menu_actions = (sort_action, inplace_action, None,
                         exclude_private_action, None, open_action, save_action,
                         save_as_action, autosave_action)
-        toolbar_actions = (open_action, save_action, None)
+        toolbar_actions = (open_action, save_action)
         return (menu_actions, toolbar_actions)                
         
     def toggle_autosave(self, checked):
