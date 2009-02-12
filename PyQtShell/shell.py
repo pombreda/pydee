@@ -264,12 +264,12 @@ class ShellBaseWidget(Terminal):
             filename = guess_filename(cmd[4:])
             cmd = 'execfile(r"%s")' % filename
         # (external) edit command
-        elif cmd.startswith('edit '):
-            filename = guess_filename(cmd[5:])
+        elif cmd.startswith('xedit '):
+            filename = guess_filename(cmd[6:])
             self.external_editor(filename)
         # local edit command
-        elif cmd.startswith('ledit '):
-            filename = guess_filename(cmd[6:])
+        elif cmd.startswith('edit '):
+            filename = guess_filename(cmd[5:])
             self.edit_script(filename)
         # Execute command
         elif cmd.startswith('!'):

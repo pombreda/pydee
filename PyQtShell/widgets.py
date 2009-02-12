@@ -114,11 +114,13 @@ class Shell(ShellBaseWidget, WidgetMixin):
             translate("ShellBaseWidget", "Help"),
             self.tr("""<b>%1</b>
             <p><i>%2</i><br>    edit foobar.py
-            <p><i>%3</i><br>    run foobar.py
-            <p><i>%4</i><br>    !ls
-            <p><i>%5</i><br>    object?
+            <p><i>%3</i><br>    xedit foobar.py
+            <p><i>%4</i><br>    run foobar.py
+            <p><i>%5</i><br>    !ls
+            <p><i>%6</i><br>    object?
             """) \
             .arg(translate("ShellBaseWidget", 'Shell special commands:')) \
+            .arg(translate("ShellBaseWidget", 'Internal editor:')) \
             .arg(translate("ShellBaseWidget", 'External editor:')) \
             .arg(translate("ShellBaseWidget", 'Run script:')) \
             .arg(translate("ShellBaseWidget", 'System commands:')) \
@@ -223,9 +225,9 @@ class Shell(ShellBaseWidget, WidgetMixin):
     def edit_script(self, filename=None, goto=None):
         """Edit script"""
         # Called from ShellBaseWidget
-        if not hasattr(self, 'mainwindow'):
-            return
-        if not hasattr(self.mainwindow, 'editor'):
+        if not hasattr(self, 'mainwindow') \
+           or not hasattr(self.mainwindow, 'editor'):
+            self.external_editor(filename, goto)
             return
         if filename is not None:
             self.mainwindow.editor.load(filename)
