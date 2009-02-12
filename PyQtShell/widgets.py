@@ -162,9 +162,12 @@ class Shell(ShellBaseWidget, WidgetMixin):
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get('shell', 'wrap') )
+        calltips_action = create_action(self, self.tr("Balloon tips"),
+            toggled=self.toggle_calltips)
+        calltips_action.setChecked( CONF.get('shell', 'calltips') )
         menu_actions = (run_action, None,
                         font_action, history_action, wrap_action,
-                        exteditor_action,
+                        calltips_action, exteditor_action,
                         None, quit_action)
         toolbar_actions = (run_action,)
         
@@ -187,7 +190,6 @@ class Shell(ShellBaseWidget, WidgetMixin):
                            translate("ShellBaseWidget", "Help..."),
                            icon=get_std_icon('DialogHelpButton'),
                            triggered=self.help)
-        #TODO: Add checkable action for enabling/disabling calltips
         add_actions(self.menu, (cut_action, copy_action, paste_action,
                                 None, clear_action, None, self.help_action) )
 
@@ -246,6 +248,10 @@ class Shell(ShellBaseWidget, WidgetMixin):
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         self.set_wrap_mode(checked)
+            
+    def toggle_calltips(self, checked):
+        """Toggle calltips"""
+        self.set_calltips(checked)
 
 
 class PathComboBox(QComboBox):

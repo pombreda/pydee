@@ -322,6 +322,7 @@ class QtTerminal(QTextEdit):
         
         # Call-tips
         self.docviewer = None
+        self.calltips = True
         
         self.emit(SIGNAL("status(QString)"), QString())
     
@@ -338,6 +339,10 @@ class QtTerminal(QTextEdit):
             self.setLineWrapMode(QTextEdit.WidgetWidth)
         else:
             self.setLineWrapMode(QTextEdit.NoWrap)
+        
+    def set_calltips(self, state):
+        """Set calltips state"""
+        self.calltips = state
                 
     def set_font(self, font):
         """Set shell font"""
@@ -608,6 +613,8 @@ class QtTerminal(QTextEdit):
 
     def show_calltip(self, text):
         """Show calltip"""
+        if not self.calltips:
+            return
         if text is None or len(text)==0:
             return
         tipsize = CONF.get('calltips', 'size')
