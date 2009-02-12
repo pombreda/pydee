@@ -825,6 +825,14 @@ class Editor(QWidget, WidgetMixin):
             filenames = [filenames]
             
         for filename in filenames:
+            # -- Do not open an already opened file
+            if filename in self.filenames:
+                index = self.filenames.index(filename)
+                self.tabwidget.setCurrentIndex(index)
+                self.editors[index].setFocus()
+                continue
+            # --
+            
             self.filenames.append(filename)
             txt, enc = encoding.read(filename)
             self.encodings.append(enc)
@@ -838,7 +846,6 @@ class Editor(QWidget, WidgetMixin):
             self.connect(editor, SIGNAL('modificationChanged(bool)'),
                          self.change)
             editor.setup_api()
-            
             editor.set_text(txt)
             editor.setModified(False)
             
