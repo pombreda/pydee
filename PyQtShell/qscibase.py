@@ -197,6 +197,7 @@ class QsciTerminal(QsciScintilla):
         self.completion_chars = 0
         
         # Call-tips
+        self.calltips = True
         self.docviewer = None
         
         self.setMinimumWidth(400)
@@ -244,6 +245,10 @@ class QsciTerminal(QsciScintilla):
         """Set wrap mode"""
         self.setWrapMode(QsciScintilla.WrapWord if enable
                          else QsciScintilla.WrapNone)
+        
+    def set_calltips(self, state):
+        """Set calltips state"""
+        self.calltips = state
         
     #------ Utilities
     def __remove_prompts(self, text):
@@ -768,6 +773,7 @@ class QsciTerminal(QsciScintilla):
 
     def show_calltip(self, text):
         """Show calltip"""
-        if not isinstance(text, list):
-            text = [text]
-        self.showUserList(1, text)
+        if self.calltips:
+            if not isinstance(text, list):
+                text = [text]
+            self.showUserList(1, text)
