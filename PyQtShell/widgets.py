@@ -219,6 +219,16 @@ class Shell(ShellBaseWidget, WidgetMixin):
             self.run_command(command+'\n')
         else:
             self.write(command)
+            
+    def edit_script(self, filename=None, goto=None):
+        """Edit script"""
+        # Called from ShellBaseWidget
+        if not hasattr(self, 'mainwindow'):
+            return
+        if not hasattr(self.mainwindow, 'editor'):
+            return
+        if filename is not None:
+            self.mainwindow.editor.load(filename)
         
     def change_font(self):
         """Change console font"""
