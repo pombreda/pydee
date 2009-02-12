@@ -350,9 +350,8 @@ class WorkingDirectory(QWidget, WidgetMixin):
             layout.addWidget( QLabel(self.get_name()+':') )
         
         # Path combo box
-        #FIXME: Not implemented: self.max_wdhistory_entries
-        self.max_wdhistory_entries = CONF.get('shell', 'working_dir_history')
         self.pathedit = PathComboBox(self)
+        self.pathedit.setMaxCount(CONF.get('shell', 'working_dir_history'))
         wdhistory = self.load_wdhistory( workdir )
         if workdir is None:
             if wdhistory:
@@ -1019,9 +1018,7 @@ class DocViewer(QWidget, WidgetMixin):
         self.combo = DocComboBox(self)
         self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         layout_edit.addWidget(self.combo)
-        #FIXME: Not implemented: self.max_dvhistory_entries
-        self.max_dvhistory_entries = CONF.get('docviewer',
-                                              'max_history_entries', 10)
+        self.combo.setMaxCount(CONF.get('docviewer', 'max_history_entries', 2))
         dvhistory = self.load_dvhistory()
         self.combo.addItems( dvhistory )
         
