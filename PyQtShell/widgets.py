@@ -266,16 +266,18 @@ class Shell(ShellBaseWidget, WidgetMixin):
         self.set_calltips(checked)
 
 
-class PathComboBox(QComboBox):
+class EditableComboBox(QComboBox):
     """
-    QComboBox handling path locations
+    Editable QComboBox
     """
     def __init__(self, parent):
-        super(PathComboBox, self).__init__(parent)
+        super(EditableComboBox, self).__init__(parent)
         self.font = QFont()
         self.setEditable(True)
         self.connect(self, SIGNAL("editTextChanged(QString)"), self.validate)
         self.set_default_style()
+        self.tips = {True: self.tr("Press enter to validate this entry"),
+                     False: self.tr('This entry is incorrect')}
         
     def show_tip(self, tip=""):
         """Show tip"""
@@ -288,19 +290,36 @@ class PathComboBox(QComboBox):
         self.setStyleSheet("")
         self.show_tip()
         
+    def is_valid(self, qstr):
+        """Return True if string is valid"""
+        raise NotImplementedError
+        
     def validate(self, qstr):
         """Validate entered path"""
         if self.hasFocus():
             self.font.setBold(True)
             self.setFont(self.font)
-            if osp.isdir( unicode(qstr) ):
+            valid = self.is_valid(qstr)
+            if valid:
                 self.setStyleSheet("color:rgb(50, 155, 50);")
-                self.show_tip(self.tr("Press enter to validate this path"))
             else:
                 self.setStyleSheet("color:rgb(200, 50, 50);")
-                self.show_tip(self.tr('This path is incorrect.\nEnter a correct directory path.\nThen press enter to validate'))
+            self.show_tip(self.tips[valid])
         else:
             self.set_default_style()
+
+class PathComboBox(EditableComboBox):
+    """
+    QComboBox handling path locations
+    """
+    def __init__(self, parent):
+        super(PathComboBox, self).__init__(parent)
+        self.tips = {True: self.tr("Press enter to validate this path"),
+                     False: self.tr('This path is incorrect.\nEnter a correct directory path.\nThen press enter to validate')}
+        
+    def is_valid(self, qstr):
+        """Return True if string is valid"""
+        return osp.isdir( unicode(qstr) )
 
     def keyPressEvent(self, event):
         """Handle key press events"""
@@ -331,6 +350,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
             layout.addWidget( QLabel(self.get_name()+':') )
         
         # Path combo box
+        #FIXME: Not implemented: self.max_wdhistory_entries
         self.max_wdhistory_entries = CONF.get('shell', 'working_dir_history')
         self.pathedit = PathComboBox(self)
         wdhistory = self.load_wdhistory( workdir )
@@ -949,11 +969,39 @@ class HistoryLog(EditorBaseWidget, WidgetMixin):
         return True
 
 
-#TODO: Editable combo-box to keep help history
+class DocComboBox(EditableComboBox):
+    """
+    QComboBox handling doc viewer history
+    """
+    def __init__(self, parent):
+        super(DocComboBox, self).__init__(parent)
+        self.tips = {True: self.tr("Press enter to validate this object name"),
+                     False: self.tr('This object name is incorrect')}
+        
+    def is_valid(self, qstr):
+        """Return True if string is valid"""
+        try:
+            eval(unicode(qstr),
+                 self.parent().mainwindow.shell.interpreter.locals)
+            return True
+        except:
+            return False
+
+    def keyPressEvent(self, event):
+        """Handle key press events"""
+        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            text = self.currentText()
+            if self.is_valid(text):
+                self.parent().refresh(text)
+                self.set_default_style()
+        else:
+            QComboBox.keyPressEvent(self, event)
+    
 class DocViewer(QWidget, WidgetMixin):
     """
     Docstrings viewer widget
     """
+    log_path = get_conf_path('.docviewer')
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
@@ -968,11 +1016,14 @@ class DocViewer(QWidget, WidgetMixin):
         # Object name
         layout_edit = QHBoxLayout()
         layout_edit.addWidget(QLabel(self.tr("Object")))
-        self.edit = QLineEdit()
-        self.edit.setToolTip( \
-            self.tr("Enter an object name to view the associated help"))
-        self.connect(self.edit, SIGNAL("textChanged(QString)"), self.set_help)
-        layout_edit.addWidget(self.edit)
+        self.combo = DocComboBox(self)
+        self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        layout_edit.addWidget(self.combo)
+        #FIXME: Not implemented: self.max_dvhistory_entries
+        self.max_dvhistory_entries = CONF.get('docviewer',
+                                              'max_history_entries', 10)
+        dvhistory = self.load_dvhistory()
+        self.combo.addItems( dvhistory )
         
         self.help_or_doc = QCheckBox(self.tr("Show source"))
         self.connect(self.help_or_doc, SIGNAL("stateChanged(int)"),
@@ -1002,6 +1053,21 @@ class DocViewer(QWidget, WidgetMixin):
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
                 Qt.TopDockWidgetArea)
         
+    def load_dvhistory(self, obj=None):
+        """Load history from a text file in user home directory"""
+        if osp.isfile(self.log_path):
+            dvhistory = [line.replace('\n','')
+                         for line in file(self.log_path, 'r').readlines()]
+        else:
+            dvhistory = [ ]
+        return dvhistory
+    
+    def save_dvhistory(self):
+        """Save history to a text file in user home directory"""
+        file(self.log_path, 'w').write("\n".join( \
+            [ unicode( self.combo.itemText(index) )
+                for index in range(self.combo.count()) ] ))
+        
     def toggle_help(self, state):
         """Toggle between docstring and help()"""
         self.docstring = (state == Qt.Unchecked)
@@ -1010,10 +1076,16 @@ class DocViewer(QWidget, WidgetMixin):
     def refresh(self, text=None):
         """Refresh widget"""
         if text is None:
-            text = self.edit.text()
+            text = self.combo.currentText()
         else:
-            self.edit.setText(text)
+            index = self.combo.findText(text)
+            while index!=-1:
+                self.combo.removeItem(index)
+                index = self.combo.findText(text)
+            self.combo.insertItem(0, text)
+            self.combo.setCurrentIndex(0)
         self.set_help(text)
+        self.save_dvhistory()
         
     def set_help(self, obj_text):
         """Show help"""
