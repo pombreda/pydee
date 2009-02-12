@@ -1018,7 +1018,7 @@ class DocViewer(QWidget, WidgetMixin):
         self.combo = DocComboBox(self)
         self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         layout_edit.addWidget(self.combo)
-        self.combo.setMaxCount(CONF.get('docviewer', 'max_history_entries', 2))
+        self.combo.setMaxCount(CONF.get('docviewer', 'max_history_entries'))
         dvhistory = self.load_dvhistory()
         self.combo.addItems( dvhistory )
         

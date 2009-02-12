@@ -102,6 +102,7 @@ DEFAULTS = [
             ('docviewer',
              {
               'enable' : True,
+              'max_history_entries' : 20,
               'font/family/nt' : ['Consolas', 'Courier New'],
               'font/family/posix' : 'Bitstream Vera Sans Mono',
               'font/family/mac' : 'Monaco',
@@ -139,7 +140,7 @@ DEFAULTS = [
 DEV = osp.isfile(osp.join(osp.join(APP_PATH, osp.pardir), 'setup.py'))
 #DEV = False
 from userconfig import UserConfig
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.17', load=(not DEV))
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.18', load=(not DEV))
 
 def get_conf_path(filename):
     """
