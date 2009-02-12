@@ -386,7 +386,20 @@ class QtTerminal(QTextEdit):
         """
         map(self.write, text)
 
-    def __clear_line(self):
+    def clear_line(self):
+        """
+        Clear current line
+        """
+        cursor = self.textCursor()
+        cursor.select( QTextCursor.BlockUnderCursor )
+        cursor.beginEditBlock()
+        cursor.removeSelectedText()
+        cursor.insertText('\n')
+        cursor.insertText(self.prompt)
+        cursor.endEditBlock()
+        self.__clear_line_buffer()
+
+    def __clear_line_buffer(self):
         """
         Clear input line buffer
         """
@@ -425,13 +438,13 @@ class QtTerminal(QTextEdit):
             self.write('\n')
             self.pointer = 0
             self.append_command(unicode(self.line))
-            self.__clear_line()
+            self.__clear_line_buffer()
             
         elif key == Qt.Key_Return or key == Qt.Key_Enter:
             self.insert_text('\n', at_end=True)
             self.pointer = 0
             self.execute_command(unicode(self.line))
-            self.__clear_line()
+            self.__clear_line_buffer()
             self.moveCursor(QTextCursor.End)
                 
         elif key == Qt.Key_Tab:
@@ -518,11 +531,7 @@ class QtTerminal(QTextEdit):
         """
         Display the current item from the command history.
         """
-        cursor = self.textCursor()
-        cursor.select( QTextCursor.LineUnderCursor )
-        cursor.removeSelectedText()
-        self.write(self.prompt)            
-        self.__clear_line()
+        self.clear_line()
         self.insert_text( QString(self.interpreter.history[self.pointer]) )
 
     def mousePressEvent(self, event):

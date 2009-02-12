@@ -23,7 +23,7 @@ from config import get_font, set_font
 from config import CONF, str2type, get_conf_path, get_icon
 from shell import ShellBaseWidget
 try:
-    from qscibasex import QsciEditor as EditorBaseWidget
+    from qscibase import QsciEditor as EditorBaseWidget
 except ImportError:
     from qtbase import QtEditor as EditorBaseWidget
 
@@ -98,6 +98,8 @@ class Shell(ShellBaseWidget, WidgetMixin):
         # Parameters
         self.set_font( get_font('shell') )
         self.set_wrap_mode( CONF.get('shell', 'wrap') )
+        # Escape shortcut
+        QShortcut(QKeySequence("Escape"), self, self.clear_line)
         
     def contextMenuEvent(self, event):
         """

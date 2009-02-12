@@ -4,7 +4,6 @@ PyQtShell Console
 """
 
 __version__ = '0.1.13'
-#TODO: Pressing "escape" clear the current command line
 
 import sys, os, platform
 from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap

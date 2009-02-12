@@ -447,6 +447,15 @@ class QsciTerminal(QsciScintilla):
                self.lineLength(cline2)-len(linetext[cindex:]) )
         else:
             self.__execute_lines(lines)
+
+    def clear_line(self):
+        """
+        Clear current line
+        """
+        cline, cindex = self.getCursorPosition()
+        self.setSelection(cline, len(self.prompt),
+                          cline, self.lineLength(cline))
+        self.removeSelectedText()
             
     def clear_terminal(self):
         """Clear terminal window and write prompt"""
