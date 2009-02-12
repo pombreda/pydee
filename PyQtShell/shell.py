@@ -237,6 +237,11 @@ class ShellBaseWidget(Terminal):
         else:
             subprocess.Popen(r'%s "%s"' % (editor_path, filename))
         
+    def edit_script(self, filename, goto=None):
+        """Edit in Editor widget if avaiblable"""
+        # Reimplemented in parent class (Shell in widgets.py)
+        raise NotImplementedError
+        
     def run_command(self, cmd, history=True, multiline=False):
         """Run command in interpreter"""
         
@@ -254,21 +259,18 @@ class ShellBaseWidget(Terminal):
         # ? command
         if cmd.endswith('?'):
             cmd = 'help(%s)' % cmd[:-1]
-            
         # run command
-        if cmd.startswith('run '):
+        elif cmd.startswith('run '):
             filename = guess_filename(cmd[4:])
             cmd = 'execfile(r"%s")' % filename
-                
         # (external) edit command
-        if cmd.startswith('edit '):
+        elif cmd.startswith('edit '):
             filename = guess_filename(cmd[5:])
             self.external_editor(filename)
-        #TODO: Add local edit command (e.g. ledit)
         # local edit command
-        if cmd.startswith('ledit '):
-            filename = guess_filename(cmd[5:])
-            self.external_editor(filename)
+        elif cmd.startswith('ledit '):
+            filename = guess_filename(cmd[6:])
+            self.edit_script(filename)
         # Execute command
         elif cmd.startswith('!'):
             # System ! command
