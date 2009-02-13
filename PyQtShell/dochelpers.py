@@ -50,6 +50,8 @@ def getargtxt(obj, one_arg_per_line=True):
             if len(textlist[-1])>=32 or one_arg_per_line:
                 textlist.append('')
     if inspect.isclass(obj):
+        if len(textlist)==1:
+            return None
         textlist.remove('self'+sep)
     return textlist
     
