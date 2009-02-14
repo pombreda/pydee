@@ -28,7 +28,7 @@ This software is licensed under the terms of the GNU General Public
 License version 3 as published by the Free Software Foundation.
 """
 
-__version__ = '1.0.4'
+__version__ = '1.0.5'
 
 import os
 import os.path as osp
@@ -180,13 +180,13 @@ class UserConfig(ConfigParser):
 
         if not self.has_section(section):
             if default is NoDefault:
-                raise RuntimeError, "Unknown section"
+                raise RuntimeError("Unknown section %r" % section)
             else:
                 self.add_section(section)
         
         if not self.has_option(section, option):
             if default is NoDefault:
-                raise RuntimeError, "Unknown option"
+                raise RuntimeError("Unknown option %r" % option)
             else:
                 self.set(section, option, default)
                 return default
