@@ -390,7 +390,7 @@ class QsciTerminal(QsciScintilla):
             tokens = re.split(r'[][*-/+ {}().]', text)
             if not tokens[-1].isdigit():
                 self.show_completion(text)
-        if txt == '?':
+        elif txt == '?':
             self.show_docstring(self.__get_current_line_to_cursor())
         elif txt == '(':
             self.show_docstring(self.__get_current_line_to_cursor(), call=True)
@@ -764,7 +764,7 @@ class QsciTerminal(QsciScintilla):
         """
         if userlist_id == 1:
             cline, cindex = self.getCursorPosition()
-            self.setSelection(cline, cindex-self.completion_chars+2,
+            self.setSelection(cline, cindex-self.completion_chars+1,
                               cline, cindex)
             self.removeSelectedText()
             seltxt = unicode(seltxt)
