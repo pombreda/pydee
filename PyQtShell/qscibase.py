@@ -101,6 +101,8 @@ class QsciEditor(QsciScintilla):
         self.api = QsciAPIs(self.lex)
         is_api_ready = False
         api_path = CONF.get('editor', 'api')
+        if not os.path.isfile(api_path):
+            return False
         api_stat = CONF.get('editor', 'api_stat', None)
         current_api_stat = os.stat(api_path)
         if (api_stat is not None) and (api_stat == current_api_stat):
