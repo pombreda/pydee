@@ -146,7 +146,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
     def set_actions(self):
         """Setup actions"""
         quit_action = create_action(self, self.tr("&Quit"), self.tr("Ctrl+Q"),
-            get_std_icon("BrowserStop"), self.tr("Quit"),
+            get_std_icon("DialogCloseButton"), self.tr("Quit"),
             triggered=self.quit)
         run_action = create_action(self, self.tr("&Run..."), self.tr("Ctrl+R"),
             'run.png', self.tr("Run a Python script"),
