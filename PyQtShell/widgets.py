@@ -214,7 +214,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
                 self.emit(SIGNAL("refresh()"))
             else:
                 return
-        command = "execfile('%s')" % filename
+        command = "execfile(r'%s')" % filename
         self.setFocus()
         if silent:
             self.write(command+'\n')
@@ -597,8 +597,10 @@ class FindReplace(QWidget):
                 self.editor.replace(self.replace_edit.text())
                 self.refresh()
             self.all_check.setCheckState(Qt.Unchecked)
-    
 
+
+#TODO: Add a context-menu on the tab bar to add the following actions:
+#      close script + duplicate script + change workdir to script dir
 class Editor(QWidget, WidgetMixin):
     """
     Editor widget
@@ -829,16 +831,18 @@ class Editor(QWidget, WidgetMixin):
         if filenames is None:
             self.mainwindow.shell.restore_stds()
             basedir = os.getcwd()
-            if self.filenames and (self.filenames[-1] != self.file_path):
-                basedir = osp.dirname(self.filenames[-1])
+            if self.filenames:
+                index = self.tabwidget.currentIndex()
+                if self.filenames[index] != self.file_path:
+                    basedir = osp.dirname(self.filenames[index])
             filenames = QFileDialog.getOpenFileNames(self,
                           self.tr("Open Python script"), basedir,
                           self.tr("Python scripts")+" (*.py ; *.pyw)")
             self.mainwindow.shell.redirect_stds()
             filenames = list(filenames)
             if len(filenames):
-                self.chdir( os.path.dirname(unicode(filenames[-1])) )
-                filenames = [os.path.basename(unicode(fname)) for fname in filenames]
+#                self.chdir( os.path.dirname(unicode(filenames[-1])) )
+                filenames = [osp.normpath(unicode(fname)) for fname in filenames]
             else:
                 return
             
@@ -893,7 +897,7 @@ class Editor(QWidget, WidgetMixin):
             if filename:
                 filename = unicode(filename)
                 self.filenames[index] = filename
-                self.chdir( os.path.dirname(filename) )
+#                self.chdir( os.path.dirname(filename) )
             else:
                 return False
             self.save()
