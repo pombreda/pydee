@@ -218,7 +218,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
         self.setFocus()
         if silent:
             self.write(command+'\n')
-            self.run_command(command+'\n')
+            self.run_command(command)
         else:
             self.write(command)
             

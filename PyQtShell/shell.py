@@ -21,6 +21,7 @@ try:
 except ImportError:
     from qtbase import QtTerminal as Terminal
 
+STDOUT = sys.stdout
 
 class MultipleRedirection:
     """ Dummy file which redirects stream to multiple file """
@@ -255,7 +256,9 @@ class ShellBaseWidget(Terminal):
             if history:
                 self.interpreter.add_to_history(cmd)
             self.histidx = -1
-        
+
+        # -- Special commands type I
+        #    (transformed into commands executed in the interpreter)
         # ? command
         if cmd.endswith('?'):
             cmd = 'help(%s)' % cmd[:-1]
@@ -263,8 +266,12 @@ class ShellBaseWidget(Terminal):
         elif cmd.startswith('run '):
             filename = guess_filename(cmd[4:])
             cmd = 'execfile(r"%s")' % filename
+        # -- End of Special commands type I
+            
+        # -- Special commands type II
+        #    (don't need code execution in interpreter)
         # (external) edit command
-        elif cmd.startswith('xedit '):
+        if cmd.startswith('xedit '):
             filename = guess_filename(cmd[6:])
             self.external_editor(filename)
         # local edit command
@@ -287,8 +294,9 @@ class ShellBaseWidget(Terminal):
                 self.write(txt_out)
             self.write('\n')
             self.more = False
+        # -- End of Special commands type II
         else:
-            # Other command
+            # Command executed in the interpreter
             self.more = self.interpreter.push(cmd)
         
         self.emit(SIGNAL("refresh()"))
