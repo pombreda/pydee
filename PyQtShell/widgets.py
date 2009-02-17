@@ -599,8 +599,18 @@ class FindReplace(QWidget):
             self.all_check.setCheckState(Qt.Unchecked)
 
 
-#TODO: Add a context-menu on the tab bar to add the following actions:
-#      close script + duplicate script + change workdir to script dir
+class Tabs(QTabWidget):
+    """TabWidget with a context-menu"""
+    def __init__(self, parent, actions):
+        QTabWidget.__init__(self, parent)
+        self.menu = QMenu(self)
+        add_actions(self.menu, actions)
+        
+    def contextMenuEvent(self, event):
+        """Override Qt method"""
+        if self.menu:
+            self.menu.popup(event.globalPos())
+
 class Editor(QWidget, WidgetMixin):
     """
     Editor widget
@@ -611,7 +621,7 @@ class Editor(QWidget, WidgetMixin):
         WidgetMixin.__init__(self, parent)
         
         layout = QVBoxLayout()
-        self.tabwidget = QTabWidget()
+        self.tabwidget = Tabs(self, self.tab_actions)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh)
         layout.addWidget(self.tabwidget)
@@ -705,6 +715,9 @@ class Editor(QWidget, WidgetMixin):
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get('editor', 'wrap') )
+        workdir_action = create_action(self, self.tr("Set working directory"),
+            tip=self.tr("Change working directory to current script directory"),
+            triggered=self.set_workdir)
         menu_actions = (new_action, open_action, save_action, save_as_action,
                         exec_action, None, find_action, replace_action,
                         None, close_action, close_all_action,
@@ -714,6 +727,9 @@ class Editor(QWidget, WidgetMixin):
         self.file_dependent_actions = (save_action, save_as_action, exec_action,
                                        close_action, close_all_action,
                                        find_action, replace_action)
+        self.tab_actions = (save_action, save_as_action, exec_action,
+                            workdir_action,
+                            None, close_action)
         return (menu_actions, toolbar_actions)                
         
     def closing(self, cancelable=False):
@@ -730,6 +746,12 @@ class Editor(QWidget, WidgetMixin):
         """Show Replace Widget"""
         self.find()
         self.find_widget.show_replace()
+        
+    def set_workdir(self):
+        """Set working directory as current script directory"""
+        index = self.tabwidget.currentIndex()
+        self.chdir( os.path.dirname(self.filenames[index]) )
+        self.emit(SIGNAL("refresh()"))
         
     def load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
