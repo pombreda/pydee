@@ -1,7 +1,24 @@
 # -*- coding: utf-8 -*-
 """Utilities and wrappers around inspect module"""
 
-import inspect
+import inspect, re
+
+SYMBOLS = r"[^a-zA-Z0-9_.]"
+
+def getobj(txt, last=False):
+    """Return the last valid object name in string"""
+    tokens = re.split(SYMBOLS, txt)
+    token = ""
+    try:
+        while len(token)==0 or re.match(SYMBOLS, token):
+            token = tokens.pop()
+        if token.endswith('.'):
+            token = token[:-1]
+        if last:
+            token += txt[ txt.rfind(token) + len(token) ]
+        return token
+    except IndexError:
+        return None
 
 def getdoc(obj):
     """Wrapper around inspect.getdoc"""

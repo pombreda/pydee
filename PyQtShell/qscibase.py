@@ -17,6 +17,7 @@ STDOUT = sys.stdout
 # Local import
 import re
 from config import CONF
+from dochelpers import getobj
 
 
 class LexerPython(QsciLexerPython):
@@ -389,8 +390,7 @@ class QsciTerminal(QsciScintilla):
         if txt == '.':
             # Enable auto-completion only if last token isn't a float
             text = self.__get_current_line_to_cursor()
-            tokens = re.split(r'[][*-/+ {}().]', text)
-            if not tokens[-1].isdigit():
+            if len(text)>1 and (not text[-2].isdigit()):
                 self.show_completion(text)
         elif txt == '?':
             self.show_docstring(self.__get_current_line_to_cursor())
@@ -742,7 +742,7 @@ class QsciTerminal(QsciScintilla):
 
 
     #------ Miscellanous
-    def __get_current_line_to_cursor(self):
+    def __get_current_line_to_cursor(self, last=False):
         """
         Return the current line: from the beginning to cursor position
         """
@@ -750,8 +750,8 @@ class QsciTerminal(QsciScintilla):
         buf = self.__extract_from_text(line)
         # Removing the end of the line from cursor position:
         buf = buf[:index-len(self.prompt)]
-        # Keeping only last word, without its last character:
-        return buf.split()[-1][:-1]
+        # Keeping only last object:
+        return getobj(buf, last=last)
         
     def set_docviewer(self, docviewer):
         """Set DocViewer DockWidget reference"""
