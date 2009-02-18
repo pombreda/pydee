@@ -230,7 +230,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
             self.external_editor(filename, goto)
             return
         if filename is not None:
-            self.mainwindow.editor.load(filename)
+            self.mainwindow.editor.load(filename, goto)
         
     def change_font(self):
         """Change console font"""
@@ -848,7 +848,7 @@ class Editor(QWidget, WidgetMixin):
         else:
             return unicode(self.tr("Temporary file"))
         
-    def load(self, filenames=None):
+    def load(self, filenames=None, goto=None):
         """Load a Python script file"""
         if filenames is None:
             self.mainwindow.shell.restore_stds()
@@ -876,36 +876,39 @@ class Editor(QWidget, WidgetMixin):
             if filename in self.filenames:
                 index = self.filenames.index(filename)
                 self.tabwidget.setCurrentIndex(index)
-                self.editors[index].setFocus()
-                continue
+                editor = self.editors[index]
+                editor.setFocus()
             # --
+            else:
+                self.filenames.append(filename)
+                txt, enc = encoding.read(filename)
+                self.encodings.append(enc)
+                
+                # Editor widget creation
+                editor = EditorBaseWidget(self)
+                self.editors.append(editor)
+                editor.set_font( get_font('editor') )
+                editor.set_wrap_mode( CONF.get('editor', 'wrap') )
+                editor.setup_margin( get_font('editor', 'margin') )
+                self.connect(editor, SIGNAL('modificationChanged(bool)'),
+                             self.change)
+                editor.setup_api()
+                editor.set_text(txt)
+                editor.setModified(False)
+                
+                title = self.get_title(filename)
+                index = self.tabwidget.addTab(editor, title)
+                self.tabwidget.setTabToolTip(index, filename)
+                self.tabwidget.setTabIcon(index, get_icon('python.png'))
+                
+                self.find_widget.set_editor(editor)
+                
+                self.change()
+                self.tabwidget.setCurrentIndex(index)
+                editor.setFocus()
             
-            self.filenames.append(filename)
-            txt, enc = encoding.read(filename)
-            self.encodings.append(enc)
-            
-            # Editor widget creation
-            editor = EditorBaseWidget(self)
-            self.editors.append(editor)
-            editor.set_font( get_font('editor') )
-            editor.set_wrap_mode( CONF.get('editor', 'wrap') )
-            editor.setup_margin( get_font('editor', 'margin') )
-            self.connect(editor, SIGNAL('modificationChanged(bool)'),
-                         self.change)
-            editor.setup_api()
-            editor.set_text(txt)
-            editor.setModified(False)
-            
-            title = self.get_title(filename)
-            index = self.tabwidget.addTab(editor, title)
-            self.tabwidget.setTabToolTip(index, filename)
-            self.tabwidget.setTabIcon(index, get_icon('python.png'))
-            
-            self.find_widget.set_editor(editor)
-            
-            self.change()
-            self.tabwidget.setCurrentIndex(index)
-            editor.setFocus()
+            if goto:
+                editor.highlight_line(goto)
 
     def save_as(self):
         """Save the currently edited Python script file"""
