@@ -3,7 +3,7 @@
 PyQtShell Console
 """
 
-__version__ = '0.1.17'
+__version__ = '0.1.18'
 
 import sys, os, platform
 from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap

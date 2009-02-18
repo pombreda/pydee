@@ -455,10 +455,15 @@ class QtTerminal(QTextEdit):
                 
         elif key == Qt.Key_Tab:
             current_line = self.__get_current_line_to_cursor(last=True)
-            if len(current_line)>0 and current_line[-1] in ['"', "'"]:
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.PreviousCharacter,
+                                QTextCursor.KeepAnchor)
+            last_char = unicode(cursor.selectedText())
+            if last_char in ['"', "'"]:
                 self.show_file_completion(current_line)
-            elif len(current_line)>0 and current_line[-1] == ".":
-                self.show_completion(current_line[:-1])
+            elif last_char == ".":
+                if current_line:
+                    self.show_completion(current_line[:-1])
             else:
                 self.insert_text("    ")
             
