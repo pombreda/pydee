@@ -22,16 +22,7 @@ except ImportError:
     from qtbase import QtTerminal as Terminal
 
 STDOUT = sys.stdout
-
-class MultipleRedirection:
-    """ Dummy file which redirects stream to multiple file """
-    def __init__(self, files):
-        """ The stream is redirect to the file list 'files' """
-        self.files = files
-    def write(self, string):
-        """ Emulate write function """
-        for fileobj in self.files:
-            fileobj.write(string)
+STDERR = sys.stderr
 
 
 def guess_filename(filename):
@@ -128,7 +119,7 @@ class ShellBaseWidget(Terminal):
         """Redirects stds"""
         if not self.debug:
             sys.stdout = self.stdout
-            sys.stderr = MultipleRedirection((sys.stderr, self.stderr))
+            sys.stderr = self.stderr
             sys.stdin  = self.stdin
         
     def restore_stds(self):
@@ -170,8 +161,9 @@ class ShellBaseWidget(Terminal):
 
     def write_error(self, text, flush=False):
         """Simulate stderr"""
-        self.flush_buffer()
+#        self.flush_buffer()
         self.write(text, flush=True, error=True)
+        STDERR.write(text)
 
     def write(self, text, flush=False, error=False):
         """Simulate stdout and stderr"""
