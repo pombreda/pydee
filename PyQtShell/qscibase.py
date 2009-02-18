@@ -144,8 +144,10 @@ class QsciEditor(QsciScintilla):
         self.setWrapMode(QsciScintilla.WrapWord if enable
                          else QsciScintilla.WrapNone)
         
-    def go_to_line(self, linenb):
-        """Go to line number"""
+    def highlight_line(self, linenb):
+        """Highlight line linenb"""
+        self.setCursorPosition(linenb, 0)
+        self.setSelection(linenb, 0, linenb, self.lineLength(linenb))
         self.ensureLineVisible(linenb)
         
     def set_text(self, text):
@@ -315,6 +317,8 @@ class QsciTerminal(QsciScintilla):
         Insert text at the current cursor position
         or at the end of the command line
         """
+        if error and text.startswith('  File "<'):
+            return
         if at_end:
             # Insert text at the end of the command line
             line, col = self.__get_end_pos()
@@ -338,8 +342,16 @@ class QsciTerminal(QsciScintilla):
         event: the mouse press event (QMouseEvent)
         """
         self.setFocus()
+        ctrl = event.modifiers() & Qt.ControlModifier
         if event.button() == Qt.MidButton:
             self.__middle_mouse_button()
+        elif event.button() == Qt.LeftButton and ctrl:
+            text = unicode(self.text(self.lineAt(event.pos())))
+            if text.startswith("  File "):
+                tokens = text.split()
+                fname = tokens[1][1:-2]
+                lnb = int(tokens[3])
+                self.edit_script(fname, lnb)
         else:
             QsciScintilla.mousePressEvent(self, event)
 
