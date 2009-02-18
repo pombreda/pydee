@@ -18,7 +18,7 @@ class Interpreter(code.InteractiveConsole):
                    '# *** history: v0.3 ***',
                    '',
                    ]
-    separator = '# ---(%s)---' % time.ctime()
+    separator = '\n# ---(%s)---' % time.ctime()
         
     def __init__(self, namespace=None, exitfunc=None,
                  rawinputfunc=None):
