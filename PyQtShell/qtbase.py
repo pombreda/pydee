@@ -18,6 +18,7 @@ STDOUT = sys.stdout
 
 # Local import
 from config import get_font, CONF
+from dochelpers import getobj
 
 
 class PythonHighlighter(QSyntaxHighlighter):
@@ -453,7 +454,7 @@ class QtTerminal(QTextEdit):
             self.moveCursor(QTextCursor.End)
                 
         elif key == Qt.Key_Tab:
-            current_line = self.__get_current_line_to_cursor()
+            current_line = self.__get_current_line_to_cursor(last=True)
             if len(current_line)>0 and current_line[-1] in ['"', "'"]:
                 self.show_file_completion(current_line)
             elif len(current_line)>0 and current_line[-1] == ".":
@@ -569,11 +570,13 @@ class QtTerminal(QTextEdit):
         """Set DocViewer DockWidget reference"""
         self.docviewer = docviewer
 
-    def __get_current_line_to_cursor(self):
+    def __get_current_line_to_cursor(self, last=False):
         """
         Return the current line: from the beginning to cursor position
         """
-        return unicode(self.textCursor().block().text()).split(" ")[-1]
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.StartOfLine, QTextCursor.KeepAnchor)
+        return getobj( unicode(cursor.selectedText()), last=last )
 
     def showUserList(self, _id, words):
         """Reimplements QScintilla method"""
