@@ -196,9 +196,10 @@ class DictModelRO(QAbstractTableModel):
             if index.column()==2:
                 if isinstance(value, ndarray):
                     return QVariant(int(Qt.AlignLeft))
-                if isinstance(value, (str, unicode)):
-                    if '\n' in value:
-                        return QVariant(int(Qt.AlignLeft))
+                if len(repr(value).splitlines())<3:
+                    return QVariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+                else:
+                    return QVariant(int(Qt.AlignLeft|Qt.AlignTop))
             else:
                 return QVariant(int(Qt.AlignLeft|Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole:
