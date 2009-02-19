@@ -6,7 +6,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, os, cPickle
+import sys, os, cPickle, re
 import os.path as osp
 from PyQt4.QtGui import QWidget, QHBoxLayout, QFileDialog, QMessageBox, QFont
 from PyQt4.QtGui import QLabel, QComboBox, QPushButton, QVBoxLayout, QLineEdit
@@ -221,6 +221,13 @@ class Shell(ShellBaseWidget, WidgetMixin):
             self.run_command(command)
         else:
             self.write(command)
+            
+    def go_to_error(self, text):
+        """Go to error if relevant"""
+        match = re.match(r'  File "(.*)", line (\d*)', text)
+        if match:
+            fname, lnb = match.groups()
+            self.edit_script(fname, int(lnb))
             
     def edit_script(self, filename=None, goto=None):
         """Edit script"""
@@ -599,6 +606,31 @@ class FindReplace(QWidget):
             self.all_check.setCheckState(Qt.Unchecked)
 
 
+class SimpleEditor(EditorBaseWidget):
+    """
+    Simple Editor Widget
+    QsciEditor/QtEditor -> *SimpleEditor* -> used in Editor's tabwidget
+    """
+    def __init__(self, parent, text):
+        super(SimpleEditor, self).__init__(parent)
+        self.setup_editor(text)
+        
+    def setup_editor(self, text):
+        """Setup Editor"""
+        self.set_font( get_font('editor') )
+        self.set_wrap_mode( CONF.get('editor', 'wrap') )
+        self.setup_margin( get_font('editor', 'margin') )
+        self.setup_api()
+        self.set_text(text)
+        self.setModified(False)
+        self.connect( self, SIGNAL('modificationChanged(bool)'),
+                      self.parent().change )
+        
+    def highlight_line(self, linenb):
+        """Highlight line number linenb"""
+        line = unicode(self.get_text()).splitlines()[linenb-1]
+        self.find_text(line)
+
 class Tabs(QTabWidget):
     """TabWidget with a context-menu"""
     def __init__(self, parent, actions):
@@ -885,16 +917,8 @@ class Editor(QWidget, WidgetMixin):
                 self.encodings.append(enc)
                 
                 # Editor widget creation
-                editor = EditorBaseWidget(self)
+                editor = SimpleEditor(self, txt)
                 self.editors.append(editor)
-                editor.set_font( get_font('editor') )
-                editor.set_wrap_mode( CONF.get('editor', 'wrap') )
-                editor.setup_margin( get_font('editor', 'margin') )
-                self.connect(editor, SIGNAL('modificationChanged(bool)'),
-                             self.change)
-                editor.setup_api()
-                editor.set_text(txt)
-                editor.setModified(False)
                 
                 title = self.get_title(filename)
                 index = self.tabwidget.addTab(editor, title)
@@ -907,7 +931,7 @@ class Editor(QWidget, WidgetMixin):
                 self.tabwidget.setCurrentIndex(index)
                 editor.setFocus()
             
-            if goto:
+            if goto is not None:
                 editor.highlight_line(goto)
 
     def save_as(self):

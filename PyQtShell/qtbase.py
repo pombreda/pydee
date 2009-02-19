@@ -219,11 +219,6 @@ class QtEditor(QTextEdit):
     def setup_margin(self, font, width=None):
         """Fake QScintilla method"""
         pass
-           
-    def highlight_line(self, linenb):
-        """Highlight line linenb"""
-        line = unicode(self.toPlainText()).splitlines()[linenb]
-        self.find_text(line)
         
     def set_text(self, str):
         """Set the text of the editor"""
@@ -553,11 +548,7 @@ class QtTerminal(QTextEdit):
             if ctrl:
                 cursor = self.cursorForPosition(event.pos())
                 text = unicode(cursor.block().text())
-                if text.startswith("  File "):
-                    tokens = text.split()
-                    fname = tokens[1][1:-2]
-                    lnb = int(tokens[3])
-                    self.edit_script(fname, lnb)
+                self.go_to_error(text)
             else:
                 self.moveCursor(QTextCursor.End)
             
