@@ -186,22 +186,20 @@ class QtEditor(QTextEdit):
     """
     def __init__(self, parent=None):
         super(QtEditor, self).__init__(parent)
-        self.is_modified = False
         self.highlighter = PythonHighlighter(self, get_font('editor'))
         self.connect(self, SIGNAL('textChanged()'), self.changed)
         
     def isModified(self):
-        """Fake QScintilla method"""
-        return self.is_modified
+        """Reimplement QScintilla method"""
+        return self.document().isModified()
     
     def setModified(self, state):
-        """Fake QScintilla method"""
-        self.is_modified = state
+        """Reimplement QScintilla method"""
+        self.document().setModified(state)
         
     def changed(self):
         """Emit changed signal"""
-        self.is_modified = True # Temporary: does not support undo
-        self.emit(SIGNAL('modificationChanged(bool)'), self.is_modified)
+        self.emit(SIGNAL('modificationChanged(bool)'), self.isModified())
         
     def setCursorPosition(self, arg1, arg2):
         """Fake QScintilla method"""
@@ -415,6 +413,7 @@ class QtTerminal(QTextEdit):
         text  = event.text()
         key   = event.key()
         shift = event.modifiers() & Qt.ShiftModifier
+        ctrl = event.modifiers() & Qt.ControlModifier
         
         if key == Qt.Key_Backspace:
             if self.point:
@@ -464,7 +463,8 @@ class QtTerminal(QTextEdit):
                 self.insert_text("    ")
             
         elif key == Qt.Key_Left:
-            if self.point : 
+            if self.point:
+                
                 self.moveCursor(QTextCursor.Left)
                 self.point -= 1 
                 
