@@ -281,7 +281,7 @@ class ShellBaseWidget(Terminal):
                       .encode(locale.getpreferredencoding())
             txt_err = err.read().rstrip()
             if txt_err:
-                self.write(txt_err)
+                self.write_error(txt_err)
             else:
                 self.write(txt_out)
             self.write('\n')
