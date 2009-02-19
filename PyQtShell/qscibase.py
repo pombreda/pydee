@@ -393,7 +393,7 @@ class QsciTerminal(QsciScintilla):
             # Enable auto-completion only if last token isn't a float
             text = self.__get_current_line_to_cursor()
             if len(text)>1 and (not text[-2].isdigit()):
-                self.show_completion(text)
+                self.show_code_completion(text)
         elif txt == '?':
             self.show_docstring(self.__get_current_line_to_cursor())
         elif txt == '(':
@@ -494,7 +494,7 @@ class QsciTerminal(QsciScintilla):
             elif lastchar_index>=0:
                 text = self.__get_current_line_to_cursor()
                 if buf[lastchar_index] == '.':
-                    self.show_completion(text)
+                    self.show_code_completion(text)
                 elif buf[lastchar_index] in ['"', "'"]:
                     self.show_file_completion(text)
              
@@ -774,6 +774,10 @@ class QsciTerminal(QsciScintilla):
             seltxt = unicode(seltxt)
             self.insert_text(seltxt)
             self.completion_chars = 0
+
+    def show_completion_widget(self, textlist, text):
+        """Show completion widget"""
+        self.showUserList(1, QStringList(textlist))
 
     def show_calltip(self, text):
         """Show calltip"""

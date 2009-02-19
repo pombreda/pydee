@@ -10,7 +10,6 @@ import sys, os, subprocess
 from time import time
 import os.path as osp
 from PyQt4.QtCore import SIGNAL, QString, QEventLoop, QCoreApplication
-from PyQt4.QtCore import QStringList
 
 # Local import
 from interpreter import Interpreter
@@ -310,7 +309,7 @@ class ShellBaseWidget(Terminal):
         self.emit( SIGNAL("executing_command(bool)"), False )
         self.emit(SIGNAL("status(QString)"), QString())
     
-    def show_completion(self, text):
+    def show_code_completion(self, text):
         """
         Display a completion list based on the last token
         """
@@ -336,7 +335,7 @@ class ShellBaseWidget(Terminal):
         if len(completions) == 0:
             return
         if len(completions) > 1:
-            self.showUserList(1, QStringList(sorted(completions)))
+            self.show_completion_widget( sorted(completions), text )
             self.completion_chars = 1
         else:
             txt = completions[0]
