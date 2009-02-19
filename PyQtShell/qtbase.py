@@ -4,7 +4,7 @@
 from PyQt4.QtCore import Qt, QString, SIGNAL, QEvent, QRegExp, QPoint
 from PyQt4.QtGui import QTextEdit, QTextCursor, QColor, QFont, QCursor
 from PyQt4.QtGui import QSyntaxHighlighter, QApplication, QTextCharFormat
-from PyQt4.QtGui import QListWidget, QShortcut, QKeySequence, QToolTip
+from PyQt4.QtGui import QKeySequence, QToolTip
 from PyQt4.QtGui import QTextDocument
 
 import sys
@@ -639,6 +639,7 @@ class QtTerminal(QTextEdit):
         weight = 'bold' if font.bold() else 'normal'
         format1 = '<span style=\'font-size: %spt\'>' % font.pointSize()
         format2 = '\n<hr><span style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (font.family(), font.pointSize(), weight)
+        textlist0 = textlist
         
         if self.completion_widget:
             textlist = [txt for txt in textlist if txt.startswith(self.completion_text)]
@@ -696,7 +697,7 @@ class QtTerminal(QTextEdit):
         
         if not self.completion_widget:
             self.completion_widget = True
-            self.completion_textlist = textlist
+            self.completion_textlist = textlist0
             self.completion_objtext = objtext
             self.completion_text = ""
         self.completion_match = textlist[0]
