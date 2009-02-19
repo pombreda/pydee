@@ -144,12 +144,6 @@ class QsciEditor(QsciScintilla):
         self.setWrapMode(QsciScintilla.WrapWord if enable
                          else QsciScintilla.WrapNone)
         
-    def highlight_line(self, linenb):
-        """Highlight line linenb"""
-        self.setCursorPosition(linenb, 0)
-        self.setSelection(linenb, 0, linenb, self.lineLength(linenb))
-        self.ensureLineVisible(linenb)
-        
     def set_text(self, text):
         """Set the text of the editor"""
         self.setText(text)
@@ -347,11 +341,7 @@ class QsciTerminal(QsciScintilla):
             self.__middle_mouse_button()
         elif event.button() == Qt.LeftButton and ctrl:
             text = unicode(self.text(self.lineAt(event.pos())))
-            if text.startswith("  File "):
-                tokens = text.split()
-                fname = tokens[1][1:-2]
-                lnb = int(tokens[3])
-                self.edit_script(fname, lnb)
+            self.go_to_error(text)
         else:
             QsciScintilla.mousePressEvent(self, event)
 
