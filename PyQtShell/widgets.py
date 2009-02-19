@@ -410,8 +410,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
     def load_wdhistory(self, workdir=None):
         """Load history from a text file in user home directory"""
         if osp.isfile(self.log_path):
-            wdhistory = [line.replace('\n','')
-                         for line in file(self.log_path, 'r').readlines()]
+            wdhistory, _ = encoding.readlines(self.log_path)
             wdhistory = [name for name in wdhistory if os.path.isdir(name)]
         else:
             if workdir is None:
@@ -421,9 +420,9 @@ class WorkingDirectory(QWidget, WidgetMixin):
     
     def save_wdhistory(self):
         """Save history to a text file in user home directory"""
-        file(self.log_path, 'w').write("\n".join( \
-            [ unicode( self.pathedit.itemText(index) )
-                for index in range(self.pathedit.count()) ] ))
+        text = [ unicode( self.pathedit.itemText(index) ) \
+                 for index in range(self.pathedit.count()) ]
+        encoding.writelines(text, self.log_path)
         
     def refresh(self):
         """Refresh widget"""
