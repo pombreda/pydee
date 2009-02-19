@@ -413,27 +413,33 @@ class QtTerminal(QTextEdit):
         text  = event.text()
         key   = event.key()
         shift = event.modifiers() & Qt.ShiftModifier
+        if shift:
+            move_mode = QTextCursor.KeepAnchor
+        else:
+            move_mode = QTextCursor.MoveAnchor
         ctrl = event.modifiers() & Qt.ControlModifier
         
         if key == Qt.Key_Backspace:
-            if self.point:
-                cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.PreviousCharacter,
-                                    QTextCursor.KeepAnchor)
-                cursor.removeSelectedText()
-            
-                self.point -= 1 
-                self.line.remove(self.point, 1)
-                if self.completion_widget is not None and \
-                   self.completion_widget.isVisible():
-                    self.completion_chars -= 1
+            if self.textCursor().selectedText().isEmpty():
+                if self.point==0:
+                    return
+                self.moveCursor(QTextCursor.PreviousCharacter,
+                                QTextCursor.KeepAnchor)
+            self.textCursor().removeSelectedText()
+            self.point -= 1 
+            self.line.remove(self.point, 1)
+            if self.completion_widget is not None and \
+               self.completion_widget.isVisible():
+                self.completion_chars -= 1
 
         elif key == Qt.Key_Delete:
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.NextCharacter,
+            pos0 = self.textCursor().position()
+            if self.textCursor().selectedText().isEmpty():
+                self.moveCursor(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
-            cursor.removeSelectedText()
+            self.textCursor().removeSelectedText()
             self.line.remove(self.point, 1)
+            self.point -= pos0-self.textCursor().position()
             
         elif shift and (key == Qt.Key_Return or key == Qt.Key_Enter):
             self.write('\n')
@@ -464,24 +470,35 @@ class QtTerminal(QTextEdit):
             
         elif key == Qt.Key_Left:
             if self.point:
-                
-                self.moveCursor(QTextCursor.Left)
-                self.point -= 1 
+                if ctrl:
+                    pos0 = self.textCursor().position()
+                    self.moveCursor(QTextCursor.PreviousWord, move_mode)
+                    self.point -= pos0-self.textCursor().position()
+                else:
+                    self.moveCursor(QTextCursor.Left, move_mode)
+                    self.point -= 1 
                 
         elif key == Qt.Key_Right:
             if self.point < self.line.length():
-                self.moveCursor(QTextCursor.Right)
-                self.point += 1 
+                if ctrl:
+                    pos0 = self.textCursor().position()
+                    self.moveCursor(QTextCursor.NextWord, move_mode)
+                    self.point -= pos0-self.textCursor().position()
+                else:
+                    self.moveCursor(QTextCursor.Right, move_mode)
+                    self.point += 1 
 
-        elif key == Qt.Key_Home:
-            cursor = self.textCursor ()
-            cursor.setPosition(self.cursor_pos)
-            self.setTextCursor (cursor)
-            self.point = 0 
+        elif (key == Qt.Key_Home) or ((key == Qt.Key_Up) and ctrl):
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.StartOfLine, move_mode)
+            cursor.movePosition(QTextCursor.Right, move_mode,
+                                len(self.prompt))
+            self.setTextCursor(cursor)
+            self.point = 0
 
-        elif key == Qt.Key_End:
-            self.moveCursor(QTextCursor.EndOfLine)
-            self.point = self.line.length() 
+        elif (key == Qt.Key_End) or ((key == Qt.Key_Down) and ctrl):
+            self.moveCursor(QTextCursor.EndOfLine, move_mode)
+            self.point = self.line.length()
 
         elif key == Qt.Key_Up:
             if len(self.interpreter.history):
