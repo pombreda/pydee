@@ -116,13 +116,15 @@ class Shell(ShellBaseWidget, WidgetMixin):
             <p><i>%2</i><br>    edit foobar.py
             <p><i>%3</i><br>    xedit foobar.py
             <p><i>%4</i><br>    run foobar.py
-            <p><i>%5</i><br>    !ls
-            <p><i>%6</i><br>    object?
+            <p><i>%5</i><br>    clear x, y
+            <p><i>%6</i><br>    !ls
+            <p><i>%7</i><br>    object?
             """) \
             .arg(translate("ShellBaseWidget", 'Shell special commands:')) \
             .arg(translate("ShellBaseWidget", 'Internal editor:')) \
             .arg(translate("ShellBaseWidget", 'External editor:')) \
             .arg(translate("ShellBaseWidget", 'Run script:')) \
+            .arg(translate("ShellBaseWidget", 'Remove references:')) \
             .arg(translate("ShellBaseWidget", 'System commands:')) \
             .arg(translate("ShellBaseWidget", 'Python help:')))
 

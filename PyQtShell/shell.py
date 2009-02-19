@@ -270,6 +270,14 @@ class ShellBaseWidget(Terminal):
         elif cmd.startswith('edit '):
             filename = guess_filename(cmd[5:])
             self.edit_script(filename)
+        # remove reference (equivalent to MATLAB's clear command)
+        elif cmd.startswith('clear '):
+            varnames = cmd[6:].replace(' ', '').split(',')
+            for varname in varnames:
+                try:
+                    self.interpreter.locals.pop(varname)
+                except KeyError:
+                    pass
         # Execute command
         elif cmd.startswith('!'):
             # System ! command
