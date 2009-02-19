@@ -420,14 +420,16 @@ class QtTerminal(QTextEdit):
         ctrl = event.modifiers() & Qt.ControlModifier
         
         if key == Qt.Key_Backspace:
+            pos0 = self.textCursor().position()
             if self.textCursor().selectedText().isEmpty():
                 if self.point==0:
                     return
                 self.moveCursor(QTextCursor.PreviousCharacter,
                                 QTextCursor.KeepAnchor)
+            selected_length = self.textCursor().selectedText().length()
             self.textCursor().removeSelectedText()
-            self.point -= 1 
-            self.line.remove(self.point, 1)
+            self.point -= pos0-self.textCursor().position()
+            self.line.remove(self.point, selected_length)
             if self.completion_widget is not None and \
                self.completion_widget.isVisible():
                 self.completion_chars -= 1
@@ -437,9 +439,10 @@ class QtTerminal(QTextEdit):
             if self.textCursor().selectedText().isEmpty():
                 self.moveCursor(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
+            selected_length = self.textCursor().selectedText().length()
             self.textCursor().removeSelectedText()
-            self.line.remove(self.point, 1)
             self.point -= pos0-self.textCursor().position()
+            self.line.remove(self.point, selected_length)
             
         elif shift and (key == Qt.Key_Return or key == Qt.Key_Enter):
             self.write('\n')
