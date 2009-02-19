@@ -380,6 +380,13 @@ class QtTerminal(QTextEdit):
             self.ensureCursorVisible()
         else:
             # Insert text at current cursor position
+            if not cursor.selectedText().isEmpty():
+                # Some text is selected
+                end = cursor.selectionEnd()
+                start = cursor.selectionStart()
+                if cursor.position()==end:
+                    self.point -= end-start
+                self.line.remove(self.point, end-start)
             self.line.insert(self.point, text)
             self.point += len(text)
             cursor.insertText(text, self.format)
