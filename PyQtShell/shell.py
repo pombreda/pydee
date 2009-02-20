@@ -17,7 +17,7 @@ from dochelpers import getargtxt
 from encoding import transcode
 from config import CONF
 try:
-    from qscibasex import QsciTerminal as Terminal
+    from qscibase import QsciTerminal as Terminal
 except ImportError:
     from qtbase import QtTerminal as Terminal
 

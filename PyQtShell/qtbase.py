@@ -298,6 +298,8 @@ class QtTerminal(QTextEdit):
         self.connect(self, SIGNAL("executing_command(bool)"),
                      self.highlighter.disable)
         
+        self.busy = False
+        
         # history
         self.histidx = None
         
@@ -371,6 +373,7 @@ class QtTerminal(QTextEdit):
                     self.format.setUnderlineStyle(QTextCharFormat.NoUnderline)
             else:
                 cursor.insertText(text, self.format)
+            self.setTextCursor(cursor)
             self.ensureCursorVisible()
         else:
             # Insert text at current cursor position
@@ -416,14 +419,34 @@ class QtTerminal(QTextEdit):
         """
         Handle user input a key at a time.
         """
+        if event == QKeySequence.Copy:
+            if self.textCursor().selectedText().isEmpty():
+                # Keyboard Interrupt
+                if self.more:
+                    self.write("\nKeyboardInterrupt\n", flush=True)
+                    self.more = False
+                    self.prompt = self.p1
+                    self.write(self.prompt, flush=True)
+                    self.interpreter.resetbuffer()
+                else:
+                    self.interrupted = True
+            else:
+                # Copy
+                self.copy()
+                self.hide_completion_widget()
+            
+        if self.busy and (not self.input_mode):
+            # Ignoring all events except KeyboardInterrupt (see above)
+            return
+        
         text  = event.text()
         key   = event.key()
         shift = event.modifiers() & Qt.ShiftModifier
+        ctrl = event.modifiers() & Qt.ControlModifier
         if shift:
             move_mode = QTextCursor.KeepAnchor
         else:
             move_mode = QTextCursor.MoveAnchor
-        ctrl = event.modifiers() & Qt.ControlModifier
         
         if key == Qt.Key_Backspace:
             pos0 = self.textCursor().position()
@@ -462,11 +485,14 @@ class QtTerminal(QTextEdit):
             self.histidx = None
             
         elif key == Qt.Key_Return or key == Qt.Key_Enter:
-            self.insert_text('\n', at_end=True)
-            self.execute_command(unicode(self.line))
+            command = unicode(self.line)
             self.__clear_line_buffer()
-            self.moveCursor(QTextCursor.End)
             self.hide_completion_widget()
+            self.insert_text('\n', at_end=True)
+            self.busy = True
+            self.execute_command(command)
+            self.busy = False
+            self.moveCursor(QTextCursor.End)
             self.histidx = None
                 
         elif key == Qt.Key_Tab:
@@ -540,10 +566,6 @@ class QtTerminal(QTextEdit):
             if self.completion_widget:
                 self.show_completion_widget(pagestep=1)
                 
-        elif event == QKeySequence.Copy:
-            self.copy()
-            self.hide_completion_widget()
-            
         elif event == QKeySequence.Paste:
             self.paste()
             self.hide_completion_widget()
