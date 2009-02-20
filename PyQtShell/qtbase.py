@@ -730,7 +730,7 @@ class QtTerminal(QTextEdit):
             text += "</tr>"
         text += "</table>"
 
-        text = format1+('<b>dir(%s)</b></span>:' % objtext)+format2+text+"</span>"
+        text = format1+('<b>%s</b></span>:' % objtext)+format2+text+"</span>"
         rect = self.cursorRect()
         point = self.mapToGlobal(QPoint(rect.x(), rect.y()))
         QToolTip.showText(point, text, self)

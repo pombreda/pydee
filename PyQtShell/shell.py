@@ -316,7 +316,7 @@ class ShellBaseWidget(Terminal):
             pass
         else:
             # Object obj is valid
-            self.show_list(dir(obj), text) 
+            self.show_list(dir(obj), 'dir(%s)' % text) 
 
     def show_file_completion(self, text):
         """
@@ -324,7 +324,7 @@ class ShellBaseWidget(Terminal):
         """
         #XXX Is this working on Linux too?
         listdir = [transcode(path) for path in os.listdir(os.getcwd())]
-        self.show_list(listdir, text) 
+        self.show_list(listdir, transcode(os.getcwd()))
 
     def show_list(self, completions, text):
         """
