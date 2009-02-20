@@ -177,6 +177,8 @@ class QsciTerminal(QsciScintilla):
         
         # history
         self.histidx = -1
+        self.incremental_search_string = ""
+        self.incremental_search_active = False
         
         # Indentation
         self.setAutoIndent(True)
@@ -205,10 +207,6 @@ class QsciTerminal(QsciScintilla):
         # Lexer
         self.lexer = QsciLexerPython(self)
 
-        # Search
-        self.incremental_search_string = ""
-        self.incremental_search_active = False
-
         #self.standardCommands().clearKeys()
         self.keymap = {
             Qt.Key_Backspace : self.__qsci_delete_back,
@@ -230,10 +228,6 @@ class QsciTerminal(QsciScintilla):
                      self.__completion_list_selected)
         self.setFocus()
         self.emit(SIGNAL("status(QString)"), QString())
-        
-    def get_banner(self):
-        """Return interpreter banner and a one-line message"""
-        return (self.tr('Type "copyright", "credits" or "license" for more information.'),"")
 
     def set_font(self, font):
         """Set shell font"""

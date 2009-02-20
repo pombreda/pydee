@@ -6,9 +6,15 @@ Functions 'get_coding', 'decode', 'encode' and 'to_unicode' come from Eric4
 source code (Utilities/__init___.py) Copyright © 2003-2009 Detlev Offenbach
 """
 
-import re, os
+import re, os, locale
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
 from PyQt4.QtCore import QString
+
+def transcode(text, input_encoding=None, output_encoding='utf-8'):
+    """Transcode a text string"""
+    if input_encoding is None:
+        input_encoding = locale.getpreferredencoding()
+    return unicode(text.decode(input_encoding).encode(output_encoding))
 
 CODING_RE = re.compile(r"coding[:=]\s*([-\w_.]+)")
 CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'koi8-r', 'koi8-u',

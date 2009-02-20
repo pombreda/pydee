@@ -14,9 +14,10 @@ from PyQt4.QtCore import SIGNAL, QString, QEventLoop, QCoreApplication
 # Local import
 from interpreter import Interpreter
 from dochelpers import getargtxt
+from encoding import transcode
 from config import CONF
 try:
-    from qscibase import QsciTerminal as Terminal
+    from qscibasex import QsciTerminal as Terminal
 except ImportError:
     from qtbase import QtTerminal as Terminal
 
@@ -100,10 +101,8 @@ class ShellBaseWidget(Terminal):
         self.redirect_stds()
 
         # interpreter banner
-        moreinfo, helpmsg = self.get_banner()
-        self.write( create_banner(moreinfo, message), flush=True )
-        if helpmsg:
-            self.write(helpmsg + '\n\n', flush=True)
+        banner = create_banner(self.tr('Type "copyright", "credits" or "license" for more information.'), message)
+        self.write(banner, flush=True)
 
         # Initial commands
         for cmd in commands:
@@ -281,12 +280,9 @@ class ShellBaseWidget(Terminal):
         elif cmd.startswith('!'):
             # System ! command
             _, out, err = os.popen3(cmd[1:])
-            #txt_out = out.read().rstrip()
             #XXX: Is this working on Linux too?
-            import locale
-            txt_out = out.read().decode('cp437') \
-                      .encode(locale.getpreferredencoding())
-            txt_err = err.read().rstrip()
+            txt_out = transcode(out.read().rstrip(), 'cp437')
+            txt_err = transcode(err.read().rstrip(), 'cp437')
             if txt_err:
                 self.write_error(txt_err)
             else:
@@ -326,7 +322,9 @@ class ShellBaseWidget(Terminal):
         """
         Display a completion list for files and directories
         """
-        self.show_list(os.listdir(os.getcwd()), text) 
+        #XXX Is this working on Linux too?
+        listdir = [transcode(path) for path in os.listdir(os.getcwd())]
+        self.show_list(listdir, text) 
 
     def show_list(self, completions, text):
         """
@@ -364,4 +362,4 @@ class ShellBaseWidget(Terminal):
                         self.show_calltip(arglist)
             else:
                 self.show_calltip(obj.__doc__)
-
+                
