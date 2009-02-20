@@ -616,7 +616,7 @@ class QtTerminal(QTextEdit):
         while (not history[idx].startswith(tocursor)):
             idx = (idx + step) % len(history)
             if idx == self.histidx:
-                return None, idx
+                break
         
         return history[idx][len(tocursor):], idx
 
