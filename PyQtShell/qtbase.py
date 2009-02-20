@@ -303,10 +303,8 @@ class QtTerminal(QTextEdit):
         
         # completion widget
         self.completion_widget = None
-        self.completion_textlist = None
-        self.completion_objtext = None
+        self.completion_text = None
         self.completion_match = None
-        self.completion_text = ""
         self.hide_completion_widget()
         
         self.help_action = None
@@ -441,8 +439,7 @@ class QtTerminal(QTextEdit):
             if self.completion_widget:
                 if self.completion_text:
                     self.completion_text = self.completion_text[:-1]
-                    self.show_completion_widget(self.completion_textlist,
-                                                self.completion_objtext)
+                    self.show_completion_widget()
                 else:
                     self.hide_completion_widget()
 
@@ -528,10 +525,20 @@ class QtTerminal(QTextEdit):
             self.hide_completion_widget()
 
         elif key == Qt.Key_Up:
+            self.hide_completion_widget()
             self.__browse_history(backward=True)
                 
         elif key == Qt.Key_Down:
+            self.hide_completion_widget()
             self.__browse_history(backward=False)
+            
+        elif key == Qt.Key_PageUp:
+            if self.completion_widget:
+                self.show_completion_widget(pagestep=-1)
+            
+        elif key == Qt.Key_PageDown:
+            if self.completion_widget:
+                self.show_completion_widget(pagestep=1)
                 
         elif event == QKeySequence.Copy:
             self.copy()
@@ -575,8 +582,7 @@ class QtTerminal(QTextEdit):
             self.insert_text(text)
             if self.completion_widget:
                 self.completion_text += text
-                self.show_completion_widget(self.completion_textlist,
-                                            self.completion_objtext)
+                self.show_completion_widget()
 
     def __browse_history(self, backward):
         """Browse history"""
@@ -645,23 +651,45 @@ class QtTerminal(QTextEdit):
         cursor.movePosition(QTextCursor.StartOfLine, QTextCursor.KeepAnchor)
         return getobj( unicode(cursor.selectedText()), last=last )
 
-    def show_completion_widget(self, textlist, objtext):
+    def show_completion_widget(self, textlist=None, objtext=None, pagestep=0):
         """Show completion widget"""
+        if self.completion_widget:
+            textlist, objtext, page = self.completion_widget
+        else:
+            page = 0
+            
         font = get_font('calltips')
         weight = 'bold' if font.bold() else 'normal'
         format1 = '<span style=\'font-size: %spt\'>' % font.pointSize()
         format2 = '\n<hr><span style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (font.family(), font.pointSize(), weight)
-        textlist0 = textlist
         
         if self.completion_widget:
             textlist = [txt for txt in textlist if txt.startswith(self.completion_text)]
             if len(textlist)==0:
                 self.completion_match = ""
                 return
+        else:
+            self.completion_widget = (textlist, objtext, 0)
+            self.completion_match = ""
+            self.completion_text = ""
+        self.completion_match = textlist[0]
         
         if len(textlist) > 120:
-            textlist = textlist[:79]
-            textlist.append("...")
+            pagenb = len(textlist)/80
+            if pagenb*80 < len(textlist):
+                pagenb += 1
+            page += pagestep
+            if page == -1:
+                page = 0
+            elif page == pagenb:
+                page = pagenb-1
+            self.completion_widget = (textlist, objtext, page)
+            idx1 = page*80
+            idx2 = min([page*80 + 79, len(textlist)])
+            lastpage = (idx2 == len(textlist))
+            textlist = textlist[idx1:idx2]
+            if not lastpage:
+                textlist.append("...")
             
         if len(textlist) > 80:
             colnb = 6
@@ -707,17 +735,10 @@ class QtTerminal(QTextEdit):
         point = self.mapToGlobal(QPoint(rect.x(), rect.y()))
         QToolTip.showText(point, text, self)
         
-        if not self.completion_widget:
-            self.completion_widget = True
-            self.completion_textlist = textlist0
-            self.completion_objtext = objtext
-            self.completion_text = ""
-        self.completion_match = textlist[0]
-        
     def hide_completion_widget(self):
         """Hide completion widget"""
         QToolTip.showText(QPoint(0,0), "", self)
-        self.completion_widget = False
+        self.completion_widget = None
         
     def __completion_list_selected(self):
         """
