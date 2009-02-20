@@ -298,6 +298,10 @@ class QtTerminal(QTextEdit):
         self.connect(self, SIGNAL("executing_command(bool)"),
                      self.highlighter.disable)
         
+        # history
+        self.histidx = None
+        
+        # completion widget
         self.completion_widget = None
         self.completion_textlist = None
         self.completion_objtext = None
@@ -313,7 +317,6 @@ class QtTerminal(QTextEdit):
         self.point   = 0
         # flag: the interpreter needs more input to run the last lines. 
         self.more    = 0
-        self.pointer = 0
         self.cursor_pos   = 0
 
         # user interface setup
@@ -324,13 +327,6 @@ class QtTerminal(QTextEdit):
         self.calltips = True
         
         self.emit(SIGNAL("status(QString)"), QString())
-    
-    def get_banner(self):
-        """Return interpreter banner and a one-line message"""
-        return (self.tr('Type "copyright", "credits" or "license" for more information.'),
-                self.tr('This version of PyQtShell is based on PyQt4 only')+'\n'+
-                self.tr('Please install QScintilla to try the PyQt4/QScintilla-based version')+
-                ':'+'\n'+'http://www.riverbankcomputing.co.uk/qscintilla')      
 
     def set_wrap_mode(self, enable):
         """Set wrap mode"""
@@ -462,22 +458,19 @@ class QtTerminal(QTextEdit):
             self.hide_completion_widget()
             
         elif shift and (key == Qt.Key_Return or key == Qt.Key_Enter):
-            if self.completion_widget:
-                self.__completion_list_selected()
-            else:
-                self.write('\n')
-                self.pointer = 0
-                self.append_command(unicode(self.line))
-                self.__clear_line_buffer()
-                self.hide_completion_widget()
+            self.write('\n')
+            self.append_command(unicode(self.line))
+            self.__clear_line_buffer()
+            self.hide_completion_widget()
+            self.histidx = None
             
         elif key == Qt.Key_Return or key == Qt.Key_Enter:
             self.insert_text('\n', at_end=True)
-            self.pointer = 0
             self.execute_command(unicode(self.line))
             self.__clear_line_buffer()
             self.moveCursor(QTextCursor.End)
             self.hide_completion_widget()
+            self.histidx = None
                 
         elif key == Qt.Key_Tab:
             current_line = self.__get_current_line_to_cursor(last=True)
@@ -535,20 +528,10 @@ class QtTerminal(QTextEdit):
             self.hide_completion_widget()
 
         elif key == Qt.Key_Up:
-            if len(self.interpreter.history):
-                if self.pointer == 0:
-                    self.pointer = len(self.interpreter.history)
-                self.pointer -= 1
-                self.__recall()
-                self.hide_completion_widget()
+            self.__browse_history(backward=True)
                 
         elif key == Qt.Key_Down:
-            if len(self.interpreter.history):
-                self.pointer += 1
-                if self.pointer == len(self.interpreter.history):
-                    self.pointer = 0
-                self.__recall()
-                self.hide_completion_widget()
+            self.__browse_history(backward=False)
                 
         elif event == QKeySequence.Copy:
             self.copy()
@@ -595,12 +578,41 @@ class QtTerminal(QTextEdit):
                 self.show_completion_widget(self.completion_textlist,
                                             self.completion_objtext)
 
-    def __recall(self):
-        """
-        Display the current item from the command history.
-        """
-        self.clear_line()
-        self.insert_text( QString(self.interpreter.history[self.pointer]) )
+    def __browse_history(self, backward):
+        """Browse history"""
+        tocursor = unicode(self.line)[:self.point]
+        text, self.histidx = self.__find_in_history(tocursor,
+                                                    self.histidx, backward)
+        if text is not None:
+            # Removing text from cursor to the end of the line
+            self.moveCursor(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
+            selected_length = self.textCursor().selectedText().length()
+            self.textCursor().removeSelectedText()
+            self.line.remove(self.point, selected_length)
+            
+            # Inserting history text
+            self.line.insert(self.point, text)
+            cursor = self.textCursor()
+            pos = cursor.position()
+            cursor.insertText(text, self.format)
+            cursor.setPosition(pos)
+            self.setTextCursor(cursor)
+
+    def __find_in_history(self, tocursor, start_idx, backward):
+        """Find text 'tocursor' in history, from index 'start_idx'"""
+        history = self.interpreter.history
+        if start_idx is None:
+            start_idx = len(history)
+
+        # Finding text in history
+        step = -1 if backward else 1
+        idx = (start_idx + step) % len(history)
+        while (not history[idx].startswith(tocursor)):
+            idx = (idx + step) % len(history)
+            if idx == self.histidx:
+                return None, idx
+        
+        return history[idx][len(tocursor):], idx
 
     def mousePressEvent(self, event):
         """Keep the cursor after the last prompt"""
