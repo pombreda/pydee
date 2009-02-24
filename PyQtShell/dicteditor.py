@@ -321,7 +321,7 @@ class DictEditor(QTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, sort_by=None, title=""):
         QTableView.__init__(self, parent)
-        self.readonly = readonly
+        self.readonly = readonly or isinstance(data, tuple)
         self.sort_by = sort_by
         self.model = None
         self.delegate = None
