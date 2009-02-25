@@ -218,9 +218,9 @@ class QtEditor(QTextEdit):
         """Fake QScintilla method"""
         pass
         
-    def set_text(self, str):
+    def set_text(self, string):
         """Set the text of the editor"""
-        self.setPlainText(str)
+        self.setPlainText(string)
 
     def set_wrap_mode(self, enable):
         """Set wrap mode"""
@@ -264,7 +264,8 @@ class QtEditor(QTextEdit):
             moves = [QTextCursor.End]
         found = self.find(text, findflag)
         for move in moves:
-            if found: break
+            if found:
+                break
             self.moveCursor(move)
             found = self.find(text, findflag)
         return found
@@ -298,7 +299,9 @@ class QtTerminal(QTextEdit):
         self.connect(self, SIGNAL("executing_command(bool)"),
                      self.highlighter.disable)
         
+        # keyboard events management
         self.busy = False
+        self.eventqueue = []
         
         # history
         self.histidx = None
@@ -360,7 +363,6 @@ class QtTerminal(QTextEdit):
             cursor.movePosition(QTextCursor.End)
             if error:
                 if not text.startswith('  File "<'):
-                    #TODO: remove underlined spaces!!
                     if text.startswith('  File'):
                         cursor.insertText("  ", self.format)
                         self.format.setUnderlineStyle(QTextCharFormat.SingleUnderline)
@@ -435,14 +437,21 @@ class QtTerminal(QTextEdit):
                 self.copy()
                 self.hide_completion_widget()
             
-        if self.busy and (not self.input_mode):
-            # Ignoring all events except KeyboardInterrupt (see above)
-            return
-        
         text  = event.text()
         key   = event.key()
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
+        
+        if self.busy and (not self.input_mode):
+            # Ignoring all events except KeyboardInterrupt (see above)
+            # Keep however these events in self.eventqueue
+            self.eventqueue.append( (text, key, shift, ctrl) )
+        else:
+            self.__process_keyevent( (text, key, shift, ctrl) )
+        
+    def __process_keyevent(self, keyevent):
+        """Process keyboard event"""
+        text, key, shift, ctrl = keyevent
         if shift:
             move_mode = QTextCursor.KeepAnchor
         else:
@@ -451,7 +460,7 @@ class QtTerminal(QTextEdit):
         if key == Qt.Key_Backspace:
             pos0 = self.textCursor().position()
             if self.textCursor().selectedText().isEmpty():
-                if self.point==0:
+                if self.point == 0:
                     return
                 self.moveCursor(QTextCursor.PreviousCharacter,
                                 QTextCursor.KeepAnchor)
@@ -491,6 +500,9 @@ class QtTerminal(QTextEdit):
             self.insert_text('\n', at_end=True)
             self.busy = True
             self.execute_command(command)
+            for past_event in self.eventqueue:
+                self.__process_keyevent(past_event)
+            self.eventqueue = []
             self.busy = False
             self.moveCursor(QTextCursor.End)
             self.histidx = None
@@ -502,7 +514,7 @@ class QtTerminal(QTextEdit):
                                 QTextCursor.KeepAnchor)
             last_char = unicode(cursor.selectedText())
             if last_char in ['"', "'"]:
-                self.show_file_completion(current_line)
+                self.show_file_completion()
                 return
             elif last_char == ".":
                 if current_line:
@@ -566,19 +578,19 @@ class QtTerminal(QTextEdit):
             if self.completion_widget:
                 self.show_completion_widget(pagestep=1)
                 
-        elif event == QKeySequence.Paste:
+        elif key == Qt.Key_V and ctrl:
             self.paste()
             self.hide_completion_widget()
             
-        elif event == QKeySequence.Cut:
+        elif key == Qt.Key_X and ctrl:
             self.cut()
             self.hide_completion_widget()
             
-        elif event == QKeySequence.Undo:
+        elif key == Qt.Key_Z and ctrl:
             self.undo()
             self.hide_completion_widget()
             
-        elif event == QKeySequence.Redo:
+        elif key == Qt.Key_Y and ctrl:
             self.redo()
             self.hide_completion_widget()
                 
@@ -592,12 +604,11 @@ class QtTerminal(QTextEdit):
             self.insert_text(text)
             self.hide_completion_widget()
                 
-#        elif key == Qt.Key_Period:
-#            current_line = self.__get_current_line_to_cursor()
-#            tokens = current_line.split(" ")
-#            if not tokens[-1].isdigit():
-#                self.show_code_completion(current_line)
-#            self.insert_text(text)
+        elif key == Qt.Key_Period:
+            current_line = self.__get_current_line_to_cursor()
+            if len(current_line)>1 and (not current_line[-2].isdigit()):
+                self.show_code_completion(current_line)
+            self.insert_text(text)
 
         elif text.length():
             text = unicode(text)
@@ -686,7 +697,8 @@ class QtTerminal(QTextEdit):
         format2 = '\n<hr><span style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (font.family(), font.pointSize(), weight)
         
         if self.completion_widget:
-            textlist = [txt for txt in textlist if txt.startswith(self.completion_text)]
+            textlist = [txt for txt in textlist \
+                        if txt.startswith(self.completion_text)]
             if len(textlist)==0:
                 self.completion_match = ""
                 return
@@ -696,9 +708,11 @@ class QtTerminal(QTextEdit):
             self.completion_text = ""
         self.completion_match = textlist[0]
         
-        if len(textlist) > 120:
-            pagenb = len(textlist)/80
-            if pagenb*80 < len(textlist):
+        maxperpage = 52
+        
+        if len(textlist) > maxperpage:
+            pagenb = len(textlist)/maxperpage
+            if pagenb*maxperpage < len(textlist):
                 pagenb += 1
             page += pagestep
             if page == -1:
@@ -706,19 +720,19 @@ class QtTerminal(QTextEdit):
             elif page == pagenb:
                 page = pagenb-1
             self.completion_widget = (textlist, objtext, page)
-            idx1 = page*80
-            idx2 = min([page*80 + 79, len(textlist)])
+            idx1 = page*maxperpage
+            idx2 = min([(page+1)*maxperpage-1, len(textlist)])
             lastpage = (idx2 == len(textlist))
             textlist = textlist[idx1:idx2]
             if not lastpage:
                 textlist.append("...")
             
-        if len(textlist) > 80:
-            colnb = 6
-            rownb = len(textlist)/colnb
-            if rownb*colnb < len(textlist):
-                rownb += 1
-        elif len(textlist) > 40:
+#        if len(textlist) > 80:
+#            colnb = 6
+#            rownb = len(textlist)/colnb
+#            if rownb*colnb < len(textlist):
+#                rownb += 1
+        if len(textlist) > 40:
             colnb = 4
             rownb = len(textlist)/colnb
             if rownb*colnb < len(textlist):
@@ -746,8 +760,9 @@ class QtTerminal(QTextEdit):
                     celltext = textlist[irow+icol*rownb]
                 except IndexError:
                     celltext = ""
-                if irow==0 and icol==0:
-                    celltext = "<b><span style=\'color: #0000FF\'>" + celltext + "</span></b>"
+                if irow == 0 and icol == 0:
+                    celltext = "<b><span style=\'color: #0000FF\'>" + \
+                               celltext + "</span></b>"
                 text += celltext + "</td>"
             text += "</tr>"
         text += "</table>"
@@ -759,7 +774,7 @@ class QtTerminal(QTextEdit):
         
     def hide_completion_widget(self):
         """Hide completion widget"""
-        QToolTip.showText(QPoint(0,0), "", self)
+        QToolTip.showText(QPoint(0, 0), "", self)
         self.completion_widget = None
         
     def __completion_list_selected(self):
