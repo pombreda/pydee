@@ -490,7 +490,7 @@ class QsciTerminal(QsciScintilla):
                 if buf[lastchar_index] == '.':
                     self.show_code_completion(text)
                 elif buf[lastchar_index] in ['"', "'"]:
-                    self.show_file_completion(text)
+                    self.show_file_completion()
              
     def __qsci_delete_back(self):
         """
