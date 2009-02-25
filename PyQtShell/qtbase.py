@@ -4,7 +4,7 @@
 from PyQt4.QtCore import Qt, QString, SIGNAL, QEvent, QRegExp, QPoint
 from PyQt4.QtGui import QTextEdit, QTextCursor, QColor, QFont, QCursor
 from PyQt4.QtGui import QSyntaxHighlighter, QApplication, QTextCharFormat
-from PyQt4.QtGui import QKeySequence, QToolTip
+from PyQt4.QtGui import QKeySequence, QToolTip, QTextImageFormat
 from PyQt4.QtGui import QTextDocument
 
 import sys
@@ -17,7 +17,7 @@ except AttributeError:
 STDOUT = sys.stdout
 
 # Local import
-from config import get_font, CONF
+from config import get_font, CONF, get_image_path
 from dochelpers import getobj
 
 
@@ -291,7 +291,7 @@ class QtTerminal(QTextEdit):
         """
         parent : specifies the parent widget
         """
-        QTextEdit.__init__(self, parent)
+        super(QtTerminal, self).__init__(parent)
         self.format = QTextCharFormat()
         self.format.setFont(get_font('shell'))
         self.highlighter = PythonHighlighter(self, get_font('shell'))
@@ -302,6 +302,12 @@ class QtTerminal(QTextEdit):
         # keyboard events management
         self.busy = False
         self.eventqueue = []
+        
+        # Python icon... just for fun
+        image = QTextImageFormat()
+        image.setName(get_image_path("python-small.png"))
+        self.textCursor().insertImage(image)
+        self.textCursor().insertText(' ')
         
         # history
         self.histidx = None
