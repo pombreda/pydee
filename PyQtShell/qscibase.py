@@ -144,6 +144,15 @@ class QsciEditor(QsciScintilla):
         self.setWrapMode(QsciScintilla.WrapWord if enable
                          else QsciScintilla.WrapNone)
         
+    def set_cursor_to(self, position):
+        """
+        Set cursor to position = "Start" or "End"
+        """
+        assert position in ["Start", "End"]
+        line_nb = {"Start" : 0, "End" : self.lines() - 1}
+        self.setCursorPosition(line_nb[position], 0)
+        self.ensureCursorVisible()
+        
     def set_text(self, text):
         """Set the text of the editor"""
         self.setText(text)
