@@ -511,7 +511,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
     <message>
         <location filename="qscibase.py" line="236"/>
         <source>Type &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</source>
-        <translation>Entrer &quot;copyright&quot;, &quot;credits&quot; ou &quot;license&quot; pour des informations supplémentaires.</translation>
+        <translation type="obsolete">Entrer &quot;copyright&quot;, &quot;credits&quot; ou &quot;license&quot; pour des informations supplémentaires.</translation>
     </message>
 </context>
 <context>
@@ -542,17 +542,17 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
     <message>
         <location filename="qtbase.py" line="326"/>
         <source>Type &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</source>
-        <translation>Entrer &quot;copyright&quot;, &quot;credits&quot; ou &quot;license&quot; pour des informations supplémentaires.</translation>
+        <translation type="obsolete">Entrer &quot;copyright&quot;, &quot;credits&quot; ou &quot;license&quot; pour des informations supplémentaires.</translation>
     </message>
     <message>
         <location filename="qtbase.py" line="327"/>
         <source>This version of PyQtShell is based on PyQt4 only</source>
-        <translation>Cette version de PyQtShell utilise exclusivement PyQt4</translation>
+        <translation type="obsolete">Cette version de PyQtShell utilise exclusivement PyQt4</translation>
     </message>
     <message>
         <location filename="qtbase.py" line="329"/>
         <source>Please install QScintilla to try the PyQt4/QScintilla-based version</source>
-        <translation>Merci d&apos;installer QScintilla pour essayer la version basée sur PyQt4/QScintilla</translation>
+        <translation type="obsolete">Merci d&apos;installer QScintilla pour essayer la version basée sur PyQt4/QScintilla</translation>
     </message>
 </context>
 <context>
@@ -753,7 +753,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Aide...</translation>
     </message>
     <message>
-        <location filename="shell.py" line="242"/>
+        <location filename="shell.py" line="243"/>
         <source>Busy...</source>
         <translation>Occupé...</translation>
     </message>
@@ -766,6 +766,11 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <location filename="widgets.py" line="127"/>
         <source>Remove references:</source>
         <translation>Supprimer des références :</translation>
+    </message>
+    <message>
+        <location filename="shell.py" line="107"/>
+        <source>Type &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</source>
+        <translation type="unfinished">Entrer &quot;copyright&quot;, &quot;credits&quot; ou &quot;license&quot; pour des informations supplémentaires.</translation>
     </message>
 </context>
 <context>
@@ -799,42 +804,42 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Espace de &amp;travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1272"/>
+        <location filename="widgets.py" line="1284"/>
         <source>Auto save</source>
         <translation>Sauvegarde automatique</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1261"/>
+        <location filename="widgets.py" line="1266"/>
         <source>Sort columns</source>
         <translation>Classement des colonnes</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1263"/>
+        <location filename="widgets.py" line="1268"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1267"/>
+        <location filename="widgets.py" line="1272"/>
         <source>Exclude private references</source>
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1299"/>
+        <location filename="widgets.py" line="1317"/>
         <source>them</source>
         <translation>les</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1301"/>
+        <location filename="widgets.py" line="1319"/>
         <source>one</source>
         <translation>un</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1303"/>
+        <location filename="widgets.py" line="1321"/>
         <source>it</source>
         <translation>le</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1309"/>
+        <location filename="widgets.py" line="1327"/>
         <source>Workspace is currently keeping reference to %1 object%2.
 
 Do you want to save %3?</source>
@@ -843,79 +848,94 @@ Do you want to save %3?</source>
 Souhaitez-vous %3 sauvegarder ?</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1254"/>
+        <location filename="widgets.py" line="1259"/>
         <source>Open...</source>
         <translation>Ouvrir...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1255"/>
+        <location filename="widgets.py" line="1260"/>
         <source>Open a workspace</source>
         <translation>Ouvrir un espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1256"/>
+        <location filename="widgets.py" line="1261"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1257"/>
+        <location filename="widgets.py" line="1262"/>
         <source>Save current workspace</source>
         <translation>Enregistrer l&apos;espace de travail actuel</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1258"/>
+        <location filename="widgets.py" line="1263"/>
         <source>Save as...</source>
         <translation>Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1259"/>
+        <location filename="widgets.py" line="1264"/>
         <source>Save current workspace as...</source>
         <translation>Enregistrer l&apos;espace de travail sous un autre nom</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1274"/>
+        <location filename="widgets.py" line="1286"/>
         <source>Automatically save workspace in a temporary file when quitting</source>
         <translation>Enregistrer automatiquement l&apos;espace de travail dans un fichier temporaire en quittant</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1331"/>
+        <location filename="widgets.py" line="1349"/>
         <source>Open workspace</source>
         <translation>Ouvrir un espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1366"/>
+        <location filename="widgets.py" line="1384"/>
         <source>Workspaces</source>
         <translation>Espaces de travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1345"/>
+        <location filename="widgets.py" line="1363"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1355"/>
+        <location filename="widgets.py" line="1373"/>
         <source>Unable to load the following workspace:</source>
         <translation>Impossible d&apos;ouvrir l&apos;espace de travail suivant :</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1385"/>
+        <location filename="widgets.py" line="1403"/>
         <source>Save workspace</source>
         <translation>Enregistrer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1379"/>
+        <location filename="widgets.py" line="1397"/>
         <source>Saving workspace...</source>
         <translation>Enregistrement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1386"/>
+        <location filename="widgets.py" line="1404"/>
         <source>Unable to save current workspace</source>
         <translation>Impossible d&apos;enregistrer l&apos;espace de travail suivant</translation>
     </message>
     <message>
-        <location filename="widgets.py" line="1388"/>
+        <location filename="widgets.py" line="1406"/>
         <source>Unable to save current workspace:</source>
         <translation>Impossible d&apos;enregistrer l&apos;espace de travail suivant :</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="1276"/>
+        <source>Refresh</source>
+        <translation>Rafraîchir</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="1277"/>
+        <source>Refresh workspace</source>
+        <translation>Rafraîchir l&apos;espace de travail</translation>
+    </message>
+    <message>
+        <location filename="widgets.py" line="1280"/>
+        <source>Auto refresh</source>
+        <translation>Rafraîchissement automatique</translation>
     </message>
 </context>
 </TS>

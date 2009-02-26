@@ -113,6 +113,7 @@ DEFAULTS = [
             ('workspace',
              {
               'enable' : True,
+              'autorefresh' : True,
               'filters' : type2str(FILTERS),
               'autosave' : False,
               'excluded': EXCLUDED,

@@ -201,9 +201,12 @@ class QtEditor(QTextEdit):
         """Emit changed signal"""
         self.emit(SIGNAL('modificationChanged(bool)'), self.isModified())
         
-    def setCursorPosition(self, arg1, arg2):
-        """Fake QScintilla method"""
-        self.moveCursor(QTextCursor.End)
+    def set_cursor_to(self, position):
+        """
+        Set cursor to position = "Start" or "End"
+        """
+        assert position in ["Start", "End"]
+        self.moveCursor(getattr(QTextCursor, position))
         self.ensureCursorVisible()
     
     def lines(self):

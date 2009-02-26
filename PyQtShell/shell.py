@@ -27,7 +27,10 @@ STDERR = sys.stderr
 
 def guess_filename(filename):
     """Guess filename"""
-    if filename.startswith('"') or filename.startswith("'"):
+    stw = filename.startswith
+#    if stw('r"') or stw("r'") or stw('u"') or stw("u'"):
+#        filename = filename[1:]
+    if stw('"') or stw("'"):
         filename = filename[1:-1]
     if osp.isfile(filename):
         return filename
@@ -157,7 +160,7 @@ class ShellBaseWidget(Terminal):
         self.input_mode = False
         self.input_loop.exit()
 
-    def write_error(self, text, flush=False):
+    def write_error(self, text):
         """Simulate stderr"""
 #        self.flush_buffer()
         self.write(text, flush=True, error=True)
@@ -179,8 +182,8 @@ class ShellBaseWidget(Terminal):
         text = "".join(self.__buffer)
         self.__buffer = []
         self.insert_text(text, at_end=True, error=error)
-        self.repaint()
         QCoreApplication.processEvents()
+        self.repaint()
         if self.interrupted:
             self.interrupted = False
             raise KeyboardInterrupt
@@ -267,7 +270,10 @@ class ShellBaseWidget(Terminal):
         # local edit command
         elif cmd.startswith('edit '):
             filename = guess_filename(cmd[5:])
-            self.edit_script(filename)
+            if osp.isfile(filename):
+                self.edit_script(filename)
+            else:
+                self.write_error("No such file or directory: %s\n" % filename)
         # remove reference (equivalent to MATLAB's clear command)
         elif cmd.startswith('clear '):
             varnames = cmd[6:].replace(' ', '').split(',')
@@ -318,7 +324,7 @@ class ShellBaseWidget(Terminal):
             # Object obj is valid
             self.show_list(dir(obj), 'dir(%s)' % text) 
 
-    def show_file_completion(self, text):
+    def show_file_completion(self):
         """
         Display a completion list for files and directories
         """

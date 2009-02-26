@@ -912,7 +912,7 @@ class Editor(QWidget, WidgetMixin):
                 editor = self.editors[index]
                 editor.setFocus()
             # --
-            else:
+            elif osp.isfile(filename):
                 self.filenames.append(filename)
                 txt, enc = encoding.read(filename)
                 self.encodings.append(enc)
@@ -927,7 +927,7 @@ class Editor(QWidget, WidgetMixin):
                 self.tabwidget.setTabIcon(index, get_icon('python.png'))
                 
                 self.find_widget.set_editor(editor)
-                
+               
                 self.change()
                 self.tabwidget.setCurrentIndex(index)
                 editor.setFocus()
@@ -1011,7 +1011,7 @@ class HistoryLog(EditorBaseWidget, WidgetMixin):
     def refresh(self):
         """Refresh widget"""
         self.set_text("\n".join(self.history))
-        self.setCursorPosition(self.lines() - 1, 0)
+        self.set_cursor_to("End")
         
     def set_actions(self):
         """Setup actions"""
@@ -1156,7 +1156,7 @@ class DocViewer(QWidget, WidgetMixin):
         if hlp_text is None:
             hlp_text = self.tr("No documentation available.")
         self.editor.set_text(hlp_text)
-        self.editor.setCursorPosition(0, 0)
+        self.editor.set_cursor_to("Start")
         
     def set_actions(self):
         """Setup actions"""
@@ -1244,6 +1244,11 @@ class Workspace(DictEditor, WidgetMixin):
 
     def refresh(self):
         """Refresh widget"""
+        if CONF.get('workspace', 'autorefresh'):
+            self.refresh_editor()
+        
+    def refresh_editor(self):
+        """Refresh DictEditor"""
         if self.shell is not None:
             self.namespace = self.shell.interpreter.namespace
         self.set_data( self.namespace, wsfilter )
@@ -1266,19 +1271,32 @@ class Workspace(DictEditor, WidgetMixin):
         exclude_private_action = create_action(self,
             self.tr("Exclude private references"),
             toggled=self.toggle_exclude_private)
-        checked = CONF.get('workspace', 'exclude_private')
-        exclude_private_action.setChecked(checked)
+        exclude_private_action.setChecked( CONF.get('workspace', 'exclude_private') )
+
+        refresh_action = create_action(self, self.tr("Refresh"), None,
+            'ws_refresh.png', self.tr("Refresh workspace"),
+            triggered = self.refresh_editor)
+        
+        autorefresh_action = create_action(self, self.tr("Auto refresh"),
+                                           toggled=self.toggle_autorefresh)
+        autorefresh_action.setChecked( CONF.get('workspace', 'autorefresh') )
         
         autosave_action = create_action(self, self.tr("Auto save"),
             toggled=self.toggle_autosave,
             tip=self.tr("Automatically save workspace in a temporary file when quitting"))
-        checked = CONF.get('workspace', 'autosave')
-        save_action.setChecked(checked)
-        menu_actions = (sort_action, inplace_action, None,
+        autosave_action.setChecked( CONF.get('workspace', 'autosave') )
+        
+        menu_actions = (refresh_action, autorefresh_action, None,
+                        sort_action, inplace_action, None,
                         exclude_private_action, None, open_action, save_action,
                         save_as_action, autosave_action)
-        toolbar_actions = (open_action, save_action)
-        return (menu_actions, toolbar_actions)                
+        toolbar_actions = (refresh_action, open_action, save_action)
+        return (menu_actions, toolbar_actions)
+    
+    def toggle_autorefresh(self, checked):
+        """Toggle autorefresh mode"""
+        CONF.set('workspace', 'autorefresh', checked)
+        self.refresh()
         
     def toggle_autosave(self, checked):
         """Toggle autosave mode"""
