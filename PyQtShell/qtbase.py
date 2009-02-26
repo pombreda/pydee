@@ -447,13 +447,16 @@ class QtTerminal(QTextEdit):
         key   = event.key()
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
+        self.eventqueue.append( (text, key, shift, ctrl) )
         
         if self.busy and (not self.input_mode):
             # Ignoring all events except KeyboardInterrupt (see above)
             # Keep however these events in self.eventqueue
-            self.eventqueue.append( (text, key, shift, ctrl) )
+            pass
         else:
-            self.__process_keyevent( (text, key, shift, ctrl) )
+            while self.eventqueue:
+                past_event = self.eventqueue.pop()
+                self.__process_keyevent(past_event)
         
     def __process_keyevent(self, keyevent):
         """Process keyboard event"""
@@ -506,9 +509,6 @@ class QtTerminal(QTextEdit):
             self.insert_text('\n', at_end=True)
             self.busy = True
             self.execute_command(command)
-            for past_event in self.eventqueue:
-                self.__process_keyevent(past_event)
-            self.eventqueue = []
             self.busy = False
             self.moveCursor(QTextCursor.End)
             self.histidx = None
@@ -608,9 +608,9 @@ class QtTerminal(QTextEdit):
         elif key == Qt.Key_ParenLeft:
             self.show_docstring(self.__get_current_line_to_cursor(), call=True)
             self.insert_text(text)
-            self.hide_completion_widget()
                 
         elif key == Qt.Key_Period:
+            self.hide_completion_widget()
             current_line = self.__get_current_line_to_cursor()
             if len(current_line)>1 and (not current_line[-2].isdigit()):
                 self.show_code_completion(current_line)
