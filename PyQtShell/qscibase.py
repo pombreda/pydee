@@ -394,13 +394,13 @@ class QsciTerminal(QsciScintilla):
         self.incremental_search_active = True
         if txt == '.':
             # Enable auto-completion only if last token isn't a float
-            text = self.__get_current_line_to_cursor()
+            text = self.__get_last_obj()
             if len(text)>1 and (not text[-2].isdigit()):
                 self.show_code_completion(text)
         elif txt == '?':
-            self.show_docstring(self.__get_current_line_to_cursor())
+            self.show_docstring(self.__get_last_obj())
         elif txt == '(':
-            self.show_docstring(self.__get_current_line_to_cursor(), call=True)
+            self.show_docstring(self.__get_last_obj(), call=True)
         elif self.isListActive():
             self.completion_chars += 1
 
@@ -495,7 +495,7 @@ class QsciTerminal(QsciScintilla):
             if self.more and not buf[:index-len(self.prompt)].strip():
                 self.SendScintilla(QsciScintilla.SCI_TAB)
             elif lastchar_index>=0:
-                text = self.__get_current_line_to_cursor()
+                text = self.__get_last_obj()
                 if buf[lastchar_index] == '.':
                     self.show_code_completion(text)
                 elif buf[lastchar_index] in ['"', "'"]:
@@ -747,16 +747,20 @@ class QsciTerminal(QsciScintilla):
 
 
     #------ Miscellanous
-    def __get_current_line_to_cursor(self, last=False):
+    def __get_current_line_to_cursor(self):
         """
         Return the current line: from the beginning to cursor position
         """
         line, index = self.getCursorPosition()
         buf = self.__extract_from_text(line)
         # Removing the end of the line from cursor position:
-        buf = buf[:index-len(self.prompt)]
-        # Keeping only last object:
-        return getobj(buf, last=last)
+        return buf[:index-len(self.prompt)]
+    
+    def __get_last_obj(self, last=False):
+        """
+        Return the last valid object on the current line
+        """
+        return getobj(self.__get_current_line_to_cursor(), last=last)
         
     def set_docviewer(self, docviewer):
         """Set DocViewer DockWidget reference"""
