@@ -623,26 +623,24 @@ class QtTerminal(QTextEdit):
         history = self.interpreter.history
         if start_idx is None:
             start_idx = len(history)
-
         # Finding text in history
         step = -1 if backward else 1
-        idx = start_idx + step
-        if idx < 0:
-            if len(tocursor) == 0:
+        idx = start_idx
+        if len(tocursor) == 0:
+            idx += step
+            if idx >= len(history):
                 return "", len(history)
-            else:
-                idx = len(history)-1
-        elif idx >= len(history):
-            if len(tocursor) == 0:
-                return "", len(history)
-            else:
+            elif idx < 0:
                 idx = 0
-        while (not history[idx].startswith(tocursor)):
-            idx = (idx + step) % len(history)
-            if idx == self.histidx:
-                break
-        
-        return history[idx][len(tocursor):], idx
+            return history[idx], idx
+        else:
+            while True:
+                idx = (idx+step) % len(history)
+                entry = history[idx]
+                if entry.startswith(tocursor):
+                    return entry[len(tocursor):], idx
+                if idx == start_idx:
+                    return "", idx
 
     def mousePressEvent(self, event):
         """Keep the cursor after the last prompt"""
