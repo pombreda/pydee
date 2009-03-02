@@ -323,10 +323,6 @@ class QtTerminal(QTextEdit):
         
         self.help_action = None
         
-        # last line + last incomplete lines
-        self.line    = QString()
-        # the cursor position in the last line
-        self.point   = 0
         # flag: the interpreter needs more input to run the last lines. 
         self.more    = 0
         self.cursor_pos   = 0
@@ -388,15 +384,6 @@ class QtTerminal(QTextEdit):
             self.ensureCursorVisible()
         else:
             # Insert text at current cursor position
-            if not cursor.selectedText().isEmpty():
-                # Some text is selected
-                end = cursor.selectionEnd()
-                start = cursor.selectionStart()
-                if cursor.position()==end:
-                    self.point -= end-start
-                self.line.remove(self.point, end-start)
-            self.line.insert(self.point, text)
-            self.point += len(text)
             cursor.insertText(text, self.format)
             
     def writelines(self, text):
@@ -416,15 +403,7 @@ class QtTerminal(QTextEdit):
         cursor.insertText('\n')
         cursor.insertText(self.prompt)
         cursor.endEditBlock()
-        self.__clear_line_buffer()
         self.hide_completion_widget()
-
-    def __clear_line_buffer(self):
-        """
-        Clear input line buffer
-        """
-        self.line.truncate(0)
-        self.point = 0
 
     def keyPressEvent(self, event):
         """
@@ -445,6 +424,7 @@ class QtTerminal(QTextEdit):
                 # Copy
                 self.copy()
                 self.hide_completion_widget()
+            return
             
         text  = event.text()
         key   = event.key()
@@ -458,7 +438,7 @@ class QtTerminal(QTextEdit):
             pass
         else:
             while self.eventqueue:
-                past_event = self.eventqueue.pop()
+                past_event = self.eventqueue.pop(0)
                 self.__process_keyevent(past_event)
         
     def __process_keyevent(self, keyevent):
@@ -470,32 +450,26 @@ class QtTerminal(QTextEdit):
             move_mode = QTextCursor.MoveAnchor
         
         if key == Qt.Key_Backspace:
-            pos0 = self.textCursor().position()
             if self.textCursor().selectedText().isEmpty():
-                if self.point == 0:
+                if len(self.__get_current_line_to_cursor()) == 0:
                     return
                 self.moveCursor(QTextCursor.PreviousCharacter,
                                 QTextCursor.KeepAnchor)
             selected_length = self.textCursor().selectedText().length()
             self.textCursor().removeSelectedText()
-            self.point -= pos0-self.textCursor().position()
-            self.line.remove(self.point, selected_length)
             if self.completion_widget:
                 if self.completion_text:
-                    self.completion_text = self.completion_text[:-1]
+                    self.completion_text = self.completion_text[:-selected_length]
                     self.show_completion_widget()
                 else:
                     self.hide_completion_widget()
 
         elif key == Qt.Key_Delete:
-            pos0 = self.textCursor().position()
             if self.textCursor().selectedText().isEmpty():
                 self.moveCursor(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             selected_length = self.textCursor().selectedText().length()
             self.textCursor().removeSelectedText()
-            self.point -= pos0-self.textCursor().position()
-            self.line.remove(self.point, selected_length)
             self.hide_completion_widget()
             
         elif shift and (key == Qt.Key_Return or key == Qt.Key_Enter):
@@ -506,8 +480,9 @@ class QtTerminal(QTextEdit):
             self.histidx = None
             
         elif key == Qt.Key_Return or key == Qt.Key_Enter:
-            command = unicode(self.line)
-            self.__clear_line_buffer()
+            cursor = self.textCursor()
+            cursor.select( QTextCursor.BlockUnderCursor )
+            command = unicode( cursor.selectedText() )[len(self.prompt)+1:]
             self.hide_completion_widget()
             self.insert_text('\n', at_end=True)
             self.busy = True
@@ -517,7 +492,7 @@ class QtTerminal(QTextEdit):
             self.histidx = None
                 
         elif key == Qt.Key_Tab:
-            current_line = self.__get_current_line_to_cursor(last=True)
+            current_line = self.__get_last_obj(last=True)
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.PreviousCharacter,
                                 QTextCursor.KeepAnchor)
@@ -536,25 +511,25 @@ class QtTerminal(QTextEdit):
             self.hide_completion_widget()
             
         elif key == Qt.Key_Left:
-            if self.point:
+            if len(self.__get_current_line_to_cursor()) > 0:
                 if ctrl:
-                    pos0 = self.textCursor().position()
                     self.moveCursor(QTextCursor.PreviousWord, move_mode)
-                    self.point -= pos0-self.textCursor().position()
                 else:
                     self.moveCursor(QTextCursor.Left, move_mode)
-                    self.point -= 1 
                 self.hide_completion_widget()
+            elif (not ctrl) and (not shift):
+                cursor = self.textCursor()
+                cursor.clearSelection()
+                self.setTextCursor(cursor)
                 
         elif key == Qt.Key_Right:
-            if self.point < self.line.length():
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
+            if not cursor.selectedText().isEmpty():
                 if ctrl:
-                    pos0 = self.textCursor().position()
                     self.moveCursor(QTextCursor.NextWord, move_mode)
-                    self.point -= pos0-self.textCursor().position()
                 else:
                     self.moveCursor(QTextCursor.Right, move_mode)
-                    self.point += 1
                 self.hide_completion_widget()
 
         elif (key == Qt.Key_Home) or ((key == Qt.Key_Up) and ctrl):
@@ -563,12 +538,10 @@ class QtTerminal(QTextEdit):
             cursor.movePosition(QTextCursor.Right, move_mode,
                                 len(self.prompt))
             self.setTextCursor(cursor)
-            self.point = 0
             self.hide_completion_widget()
 
         elif (key == Qt.Key_End) or ((key == Qt.Key_Down) and ctrl):
             self.moveCursor(QTextCursor.EndOfLine, move_mode)
-            self.point = self.line.length()
             self.hide_completion_widget()
 
         elif key == Qt.Key_Up:
@@ -604,17 +577,17 @@ class QtTerminal(QTextEdit):
             self.hide_completion_widget()
                 
         elif key == Qt.Key_Question:
-            self.show_docstring(self.__get_current_line_to_cursor())
+            self.show_docstring(self.__get_last_obj())
             self.insert_text(text)
             self.hide_completion_widget()
                 
         elif key == Qt.Key_ParenLeft:
-            self.show_docstring(self.__get_current_line_to_cursor(), call=True)
+            self.show_docstring(self.__get_last_obj(), call=True)
             self.insert_text(text)
                 
         elif key == Qt.Key_Period:
             self.hide_completion_widget()
-            current_line = self.__get_current_line_to_cursor()
+            current_line = self.__get_last_obj()
             if len(current_line)>1 and (not current_line[-2].isdigit()):
                 self.show_code_completion(current_line)
             self.insert_text(text)
@@ -628,18 +601,14 @@ class QtTerminal(QTextEdit):
 
     def __browse_history(self, backward):
         """Browse history"""
-        tocursor = unicode(self.line)[:self.point]
+        tocursor = self.__get_current_line_to_cursor()
         text, self.histidx = self.__find_in_history(tocursor,
                                                     self.histidx, backward)
         if text is not None:
             # Removing text from cursor to the end of the line
             self.moveCursor(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
-            selected_length = self.textCursor().selectedText().length()
             self.textCursor().removeSelectedText()
-            self.line.remove(self.point, selected_length)
-            
             # Inserting history text
-            self.line.insert(self.point, text)
             cursor = self.textCursor()
             pos = cursor.position()
             cursor.insertText(text, self.format)
@@ -654,7 +623,17 @@ class QtTerminal(QTextEdit):
 
         # Finding text in history
         step = -1 if backward else 1
-        idx = (start_idx + step) % len(history)
+        idx = start_idx + step
+        if idx < 0:
+            if len(tocursor) == 0:
+                return "", len(history)
+            else:
+                idx = len(history)-1
+        elif idx >= len(history):
+            if len(tocursor) == 0:
+                return "", len(history)
+            else:
+                idx = 0
         while (not history[idx].startswith(tocursor)):
             idx = (idx + step) % len(history)
             if idx == self.histidx:
@@ -685,13 +664,22 @@ class QtTerminal(QTextEdit):
         """Set DocViewer DockWidget reference"""
         self.docviewer = docviewer
 
-    def __get_current_line_to_cursor(self, last=False):
+    def __get_current_line_to_cursor(self):
         """
         Return the current line: from the beginning to cursor position
         """
         cursor = self.textCursor()
+        cursor.clearSelection()
         cursor.movePosition(QTextCursor.StartOfLine, QTextCursor.KeepAnchor)
-        return getobj( unicode(cursor.selectedText()), last=last )
+        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor,
+                            len(self.prompt))
+        return unicode(cursor.selectedText())
+    
+    def __get_last_obj(self, last=False):
+        """
+        Return the last valid object on the current line
+        """
+        return getobj(self.__get_current_line_to_cursor(), last=last)
 
     def show_completion_widget(self, textlist=None, objtext=None, pagestep=0):
         """Show completion widget"""
