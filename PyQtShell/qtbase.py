@@ -448,6 +448,11 @@ class QtTerminal(QTextEdit):
             move_mode = QTextCursor.KeepAnchor
         else:
             move_mode = QTextCursor.MoveAnchor
+            
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.EndOfLine)
+        if not cursor.atEnd() and len(text):
+            self.moveCursor(QTextCursor.End)
         
         if key == Qt.Key_Backspace:
             if self.textCursor().selectedText().isEmpty():
@@ -523,9 +528,7 @@ class QtTerminal(QTextEdit):
                 self.setTextCursor(cursor)
                 
         elif key == Qt.Key_Right:
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
-            if not cursor.selectedText().isEmpty():
+            if not self.textCursor().atEnd():
                 if ctrl:
                     self.moveCursor(QTextCursor.NextWord, move_mode)
                 else:
