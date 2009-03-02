@@ -97,7 +97,6 @@ class PythonHighlighter(QSyntaxHighlighter):
         """
         Set QTextEdit font
         """
-        #TODO: change font for already displayed text
         base_format = QTextCharFormat()
         if font is None:
             base_format.setFontFamily("courier")
@@ -351,6 +350,8 @@ class QtTerminal(QTextEdit):
         """Set shell font"""
         if self.highlighter is not None:
             self.highlighter.set_font(font)
+            self.format.setFont(font)
+            self.highlighter.rehighlight()
             
     def clear_terminal(self):
         """Clear terminal window and write prompt"""
