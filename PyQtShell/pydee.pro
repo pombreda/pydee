@@ -1,10 +1,10 @@
 SOURCES	     += arrayeditor.py
 SOURCES	     += config.py
-SOURCES	     += console.py
+SOURCES	     += pydee.py
 SOURCES	     += dicteditor.py
 SOURCES	     += qsciwidgets.py
 SOURCES	     += qthelpers.py
 SOURCES	     += qtwidgets.py
 SOURCES	     += shell.py
 SOURCES	     += widgets.py
-TRANSLATIONS += console_fr.ts
+TRANSLATIONS += pydee_fr.ts
