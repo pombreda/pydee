@@ -1309,6 +1309,8 @@ class Workspace(DictEditor, WidgetMixin):
             self.save()
         else:
             workspace = wsfilter(self.namespace)
+            if workspace is None:
+                return True
             refnb = len(workspace)
             if refnb > 1:
                 srefnb = str(refnb)
