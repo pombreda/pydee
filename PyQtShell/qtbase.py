@@ -188,10 +188,6 @@ class QtEditor(QTextEdit):
         self.highlighter = PythonHighlighter(self, get_font('editor'))
         self.connect(self, SIGNAL('textChanged()'), self.changed)
         
-    def insertFromMimeData(self, source):
-        """Drag and *drop* implementation"""
-        self.textCursor().insertText( source.text() )
-        
     def isModified(self):
         """Reimplement QScintilla method"""
         return self.document().isModified()
