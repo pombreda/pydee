@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-PyQtShell Console
+Pydee
 """
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 import sys, os, platform
 from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap
@@ -52,7 +52,7 @@ class ConsoleWindow(QMainWindow):
             # Status bar
             status = self.statusBar()
             status.setObjectName("StatusBar")
-            status.showMessage(self.tr("Welcome to PyQtShell demo!"), 5000)
+            status.showMessage(self.tr("Welcome to Pydee!"), 5000)
             action = create_action(self, self.tr("Status bar"),
                                    toggled=self.toggle_statusbar)
             self.view_menu.addAction(action)
@@ -133,7 +133,7 @@ class ConsoleWindow(QMainWindow):
         
         # Window set-up
         self.setWindowIcon(get_icon('console.png'))
-        self.setWindowTitle(self.tr('Python Console'))
+        self.setWindowTitle(self.tr('Pydee'))
         section = 'lightwindow' if self.light else 'window'
         width, height = CONF.get(section, 'size')
         self.resize( QSize(width, height) )
@@ -218,22 +218,22 @@ class ConsoleWindow(QMainWindow):
             add_actions(self.toolbar, actions)
         
     def about(self):
-        """About PyQtShell console"""
+        """About Pydee"""
         try:
             from PyQt4.Qsci import QSCINTILLA_VERSION_STR as qsci
             qsci = ", QScintilla "+ qsci
         except ImportError:
             qsci = ""
         QMessageBox.about(self,
-            self.tr("About %1").arg(self.tr('PyQtShell Console')),
+            self.tr("About %1").arg(self.tr('Pydee')),
             self.tr("""<b>%1</b> v %2
-            <br>Enhanced Python interpreter emulation
+            <br>PYthon Development EnvironmEnt
             <p>Copyright &copy; 2009 Pierre Raybaut - GPLv3
             <p>Bug reports and feature requests: <a href="http://code.google.com/p/pyqtshell/">Google Code</a><br>
             Discussions around the project: <a href="http://groups.google.com/group/pyqtshell">Google Group</a>
             <p>This project will soon be part of <a href="http://www.google.fr">Python(x,y) distribution</a>
             <p>Python %3, Qt %4, PyQt %5%6 on %7""") \
-            .arg(self.tr('PyQtShell Console')).arg(__version__) \
+            .arg(self.tr('Pydee')).arg(__version__) \
             .arg(platform.python_version()).arg(QT_VERSION_STR) \
             .arg(PYQT_VERSION_STR).arg(qsci).arg(platform.system()))
             
@@ -248,7 +248,7 @@ def get_options():
     return commands, message
     """
     import optparse
-    parser = optparse.OptionParser("PyQtShell Console")
+    parser = optparse.OptionParser("Pydee")
     parser.add_option('-l', '--light', dest="light", action='store_true',
                       default=False,
                       help="Light version (all add-ons are disabled)")
@@ -332,7 +332,7 @@ def get_options():
 
 def main():
     """
-    PyQtShell demo
+    Pydee
     """
     app = QApplication(sys.argv)
     locale = QLocale.system().name()
@@ -342,7 +342,7 @@ def main():
         app.installTranslator(qt_translator)
     app_translator = QTranslator()
     app_path = os.path.dirname(__file__)
-    if app_translator.load("console_" + locale, app_path):
+    if app_translator.load("pydee_" + locale, app_path):
         app.installTranslator(app_translator)
     commands, message, options = get_options()
     window = ConsoleWindow(commands, message, workdir=options.working_directory,

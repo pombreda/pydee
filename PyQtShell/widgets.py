@@ -201,7 +201,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
         add_actions(self.menu, menu_actions)
         return menu_actions, toolbar_actions
         
-    def run_script(self, filename=None, silent=False):
+    def run_script(self, filename=None, silent=False, set_focus=False):
         """Run a Python script"""
         if filename is None:
             self.restore_stds()
@@ -217,7 +217,8 @@ class Shell(ShellBaseWidget, WidgetMixin):
             else:
                 return
         command = "execfile(r'%s')" % filename
-        self.setFocus()
+        if set_focus:
+            self.setFocus()
         if silent:
             self.write(command+'\n')
             self.run_command(command)
@@ -742,6 +743,10 @@ class Editor(QWidget, WidgetMixin):
         exec_action = create_action(self, self.tr("&Execute"), "F5",
             'execute.png', self.tr("Execute current script"),
             triggered=self.exec_script)
+        exec_interact_action = create_action(self,
+            self.tr("Execute and &interact"), "Shift+F5", 'execute.png',
+            self.tr("Execute current script and set focus to shell"),
+            triggered=self.exec_script_and_interact)
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set editor font style"),
             triggered=self.change_font)
@@ -752,7 +757,8 @@ class Editor(QWidget, WidgetMixin):
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
         menu_actions = (new_action, open_action, save_action, save_as_action,
-                        exec_action, None, find_action, replace_action,
+                        exec_action, exec_interact_action,
+                        None, find_action, replace_action,
                         None, close_action, close_all_action,
                         None, font_action, wrap_action)
         toolbar_actions = (new_action, open_action, save_action, exec_action,
@@ -828,11 +834,16 @@ class Editor(QWidget, WidgetMixin):
             encoding.write(unicode(text), fname, 'utf-8')
             self.load(fname)
     
-    def exec_script(self):
+    def exec_script(self, set_focus=False):
         """Execute current script"""
-        if self.save():
+        if self.save:
             index = self.tabwidget.currentIndex()
-            self.mainwindow.shell.run_script(self.filenames[index], silent=True)
+            self.mainwindow.shell.run_script(self.filenames[index],
+                                             silent=True, set_focus=set_focus)
+    
+    def exec_script_and_interact(self):
+        """Execute current script and set focus to shell"""
+        self.exec_script(set_focus=True)
 
     def save_if_changed(self, cancelable=False):
         """Ask user to save file if modified"""
