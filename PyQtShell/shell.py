@@ -160,7 +160,7 @@ class ShellBaseWidget(Terminal):
 
     def write_error(self, text):
         """Simulate stderr"""
-#        self.flush_buffer()
+#        self.flush()
         self.write(text, flush=True, error=True)
         STDERR.write(text)
 
@@ -172,10 +172,10 @@ class ShellBaseWidget(Terminal):
         self.__buffer.append(text)
         ts = time()
         if flush or ts-self.__timestamp > 0.05:
-            self.flush_buffer(error=error)
+            self.flush(error=error)
             self.__timestamp = ts
 
-    def flush_buffer(self, error=False):
+    def flush(self, error=False):
         """Flush buffer, write text to console"""
         text = "".join(self.__buffer)
         self.__buffer = []
