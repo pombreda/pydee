@@ -635,13 +635,13 @@ class QtTerminal(QTextEdit):
                 idx = 0
             return history[idx], idx
         else:
-            while True:
-                idx = (idx+step) % len(history)
+            for index in xrange(len(history)):
+                idx = (start_idx+step*index) % len(history)
                 entry = history[idx]
                 if entry.startswith(tocursor):
                     return entry[len(tocursor):], idx
-                if idx == start_idx:
-                    return "", idx
+            else:
+                return None, start_idx
 
     def mousePressEvent(self, event):
         """Keep the cursor after the last prompt"""
