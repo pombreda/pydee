@@ -229,7 +229,8 @@ class ConsoleWindow(QMainWindow):
             self.tr("""<b>%1</b> v %2
             <br>PYthon Development EnvironmEnt
             <p>Copyright &copy; 2009 Pierre Raybaut - GPLv3
-            <p>Bug reports and feature requests: <a href="http://code.google.com/p/pyqtshell/">Google Code</a><br>
+            <p>Pydee is based on PyQtShell module v %2
+            <br>Bug reports and feature requests: <a href="http://code.google.com/p/pyqtshell/">Google Code</a><br>
             Discussions around the project: <a href="http://groups.google.com/group/pyqtshell">Google Group</a>
             <p>This project will soon be part of <a href="http://www.google.fr">Python(x,y) distribution</a>
             <p>Python %3, Qt %4, PyQt %5%6 on %7""") \

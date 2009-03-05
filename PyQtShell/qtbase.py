@@ -7,6 +7,8 @@ from PyQt4.QtGui import QSyntaxHighlighter, QApplication, QTextCharFormat
 from PyQt4.QtGui import QKeySequence, QToolTip, QTextImageFormat
 from PyQt4.QtGui import QTextDocument
 
+import __builtin__
+
 import sys
 try:
     PS1 = sys.ps1
@@ -21,6 +23,8 @@ from config import get_font, CONF, get_image_path
 from dochelpers import getobj
 
 
+#TODO: Improve "PythonHighlighter" performance... very slow for large files!
+#      --> maybe grab some ideas from "idlelib/ColorDelegator.py"
 class PythonHighlighter(QSyntaxHighlighter):
     """
     Copyright (c) 2007-8 Qtrac Ltd. All rights reserved.
@@ -41,18 +45,6 @@ class PythonHighlighter(QSyntaxHighlighter):
             "not", "or", "pass", "print", "raise", "return", "try",
             "while", "with", "yield"]
 
-    BUILTINS = ["abs", "all", "any", "basestring", "bool", "callable",
-            "chr", "classmethod", "cmp", "compile", "complex", "delattr",
-            "dict", "dir", "divmod", "enumerate", "eval", "execfile",
-            "exit", "file", "filter", "float", "frozenset", "getattr",
-            "globals", "hasattr", "hex", "id", "int", "isinstance",
-            "issubclass", "iter", "len", "list", "locals", "long", "map",
-            "max", "min", "object", "oct", "open", "ord", "pow",
-            "property", "range", "reduce", "repr", "reversed", "round",
-            "set", "setattr", "slice", "sorted", "staticmethod", "str",
-            "sum", "super", "tuple", "type", "unichr", "unicode", "vars",
-            "xrange", "zip"] 
-
     CONSTANTS = ["False", "True", "None", "NotImplemented", "Ellipsis"]
 
 
@@ -67,9 +59,10 @@ class PythonHighlighter(QSyntaxHighlighter):
                 "|".join([r"\b%s\b" % keyword \
                 for keyword in PythonHighlighter.KEYWORDS])),
                 "keyword"))
+        builtinlist = [str(name) for name in dir(__builtin__)
+                       if not name.startswith('_')]
         PythonHighlighter.Rules.append((QRegExp(
-                "|".join([r"\b%s\b" % builtin \
-                for builtin in PythonHighlighter.BUILTINS])),
+                r"([^.'\"\\#]\b|^)(" + "|".join(builtinlist) + r")\b"),
                 "builtin"))
         PythonHighlighter.Rules.append((QRegExp(
                 "|".join([r"\b%s\b" % constant \
@@ -83,7 +76,7 @@ class PythonHighlighter(QSyntaxHighlighter):
         PythonHighlighter.Rules.append((QRegExp(
                 r"\bPyQt4\b|\bQt?[A-Z][a-z]\w+\b"), "pyqt"))
         PythonHighlighter.Rules.append((QRegExp(r"\b@\w+\b"), "decorator"))
-        PythonHighlighter.Rules.append((QRegExp(r"#.*"), "comment"))       
+        PythonHighlighter.Rules.append((QRegExp(r"#[^\n]*"), "comment"))       
         string_re = QRegExp(r"""(?:'[^']*'|"[^"]*")""")
         string_re.setMinimal(True)
         PythonHighlighter.Rules.append((string_re, "string"))

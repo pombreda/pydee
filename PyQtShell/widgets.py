@@ -656,6 +656,29 @@ class SimpleEditor(EditorBaseWidget):
         else:
             self.textCursor().insertText( source.text() )
 
+    def check_syntax(self, filename):
+        """Check module syntax"""
+        f = open(filename, 'r')
+        source = f.read()
+        f.close()
+        if '\r' in source:
+            source = re.sub(r"\r\n", "\n", source)
+            source = re.sub(r"\r", "\n", source)
+        if source and source[-1] != '\n':
+            source = source + '\n'
+        try:
+            # If successful, return the compiled code
+            if compile(source, filename, "exec"):
+                return None
+        except (SyntaxError, OverflowError), err:
+            try:
+                msg, (_errorfilename, lineno, _offset, _line) = err
+                self.highlight_line(lineno)
+            except:
+                msg = "*** " + str(err)
+            return self.tr("There's an error in your program:") + "\n" + msg
+
+
 class Tabs(QTabWidget):
     """TabWidget with a context-menu"""
     def __init__(self, parent, actions):
@@ -763,6 +786,9 @@ class Editor(QWidget, WidgetMixin):
         close_all_action = create_action(self, self.tr("Close all"),
             "Ctrl+Maj+W", 'close_all.png', self.tr("Close all opened scripts"),
             triggered = self.close_all)
+        check_action = create_action(self, self.tr("&Check syntax"), "F5",
+            'check.png', self.tr("Check current script for syntax errors"),
+            triggered=self.check_script)
         exec_action = create_action(self, self.tr("&Execute"), "F9",
             'execute.png', self.tr("Execute current script"),
             triggered=self.exec_script)
@@ -780,16 +806,19 @@ class Editor(QWidget, WidgetMixin):
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
         menu_actions = (new_action, open_action, save_action, save_as_action,
-                        exec_action, exec_interact_action,
+                        None, check_action, exec_action, exec_interact_action,
                         None, find_action, replace_action,
                         None, close_action, close_all_action,
                         None, font_action, wrap_action)
         toolbar_actions = (new_action, open_action, save_action, exec_action,
                            find_action, None)
-        self.file_dependent_actions = (save_action, save_as_action, exec_action,
+        self.file_dependent_actions = (save_action, save_as_action,
+                                       check_action, exec_action,
+                                       exec_interact_action,
                                        close_action, close_all_action,
                                        find_action, replace_action)
-        self.tab_actions = (save_action, save_as_action, exec_action,
+        self.tab_actions = (save_action, save_as_action,
+                            check_action,exec_action,
                             workdir_action,
                             None, close_action)
         return (menu_actions, toolbar_actions)                
@@ -856,6 +885,18 @@ class Editor(QWidget, WidgetMixin):
             text = "\r\n".join([unicode(qstr) for qstr in default])
             encoding.write(unicode(text), fname, 'utf-8')
             self.load(fname)
+    
+    def check_script(self):
+        """Check current script for syntax errors"""
+        if self.save():
+            index = self.tabwidget.currentIndex()
+            errors = self.editors[index].check_syntax(self.filenames[index])
+            title = self.tr("Check syntax")
+            if errors:
+                QMessageBox.critical(self, title, errors)
+            else:
+                QMessageBox.information(self, title,
+                                        self.tr("There is no error in your program.")) 
     
     def exec_script(self, set_focus=False):
         """Execute current script"""
