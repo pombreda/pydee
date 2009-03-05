@@ -23,7 +23,7 @@ from config import get_font, set_font
 from config import CONF, str2type, get_conf_path, get_icon
 from shell import ShellBaseWidget
 try:
-    from qscibase import QsciEditor as EditorBaseWidget
+    from qscibasex import QsciEditor as EditorBaseWidget
 except ImportError:
     from qtbase import QtEditor as EditorBaseWidget
 
@@ -608,6 +608,13 @@ class FindReplace(QWidget):
             self.all_check.setCheckState(Qt.Unchecked)
 
 
+def mimedata2url(source):
+    """Extract url list from MIME data"""
+    if source.hasUrls():
+        paths = [unicode(url.toString()) for url in source.urls()]
+        return [path[8:] for path in paths if path.startswith(r"file://") \
+                and (path.endswith(".py") or path.endswith(".pyw"))]
+
 class SimpleEditor(EditorBaseWidget):
     """
     Simple Editor Widget
@@ -632,6 +639,22 @@ class SimpleEditor(EditorBaseWidget):
         """Highlight line number linenb"""
         line = unicode(self.get_text()).splitlines()[linenb-1]
         self.find_text(line)
+        
+    def canInsertFromMimeData(self, source):
+        """Reimplement Qt method"""
+        if source.hasUrls():
+            if mimedata2url(source):
+                return True
+        return EditorBaseWidget.canInsertFromMimeData(self, source)
+
+    def insertFromMimeData(self, source):
+        """Drag and *drop* implementation"""
+        if source.hasUrls():
+            files = mimedata2url(source)
+            if files:
+                self.emit(SIGNAL("drop_files(PyQt_PyObject)"), files)
+        else:
+            self.textCursor().insertText( source.text() )
 
 class Tabs(QTabWidget):
     """TabWidget with a context-menu"""
@@ -930,6 +953,8 @@ class Editor(QWidget, WidgetMixin):
                 
                 # Editor widget creation
                 editor = SimpleEditor(self, txt)
+                self.connect(editor, SIGNAL("drop_files(PyQt_PyObject)"),
+                             self.load)
                 self.editors.append(editor)
                 
                 title = self.get_title(filename)
