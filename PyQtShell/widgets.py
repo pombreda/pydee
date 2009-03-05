@@ -740,11 +740,11 @@ class Editor(QWidget, WidgetMixin):
         close_all_action = create_action(self, self.tr("Close all"),
             "Ctrl+Maj+W", 'close_all.png', self.tr("Close all opened scripts"),
             triggered = self.close_all)
-        exec_action = create_action(self, self.tr("&Execute"), "F5",
+        exec_action = create_action(self, self.tr("&Execute"), "F9",
             'execute.png', self.tr("Execute current script"),
             triggered=self.exec_script)
         exec_interact_action = create_action(self,
-            self.tr("Execute and &interact"), "Shift+F5", 'execute.png',
+            self.tr("Execute and &interact"), "Shift+F9", 'execute.png',
             self.tr("Execute current script and set focus to shell"),
             triggered=self.exec_script_and_interact)
         font_action = create_action(self, self.tr("&Font..."), None,
@@ -836,7 +836,7 @@ class Editor(QWidget, WidgetMixin):
     
     def exec_script(self, set_focus=False):
         """Execute current script"""
-        if self.save:
+        if self.save():
             index = self.tabwidget.currentIndex()
             self.mainwindow.shell.run_script(self.filenames[index],
                                              silent=True, set_focus=set_focus)
