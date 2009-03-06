@@ -26,6 +26,7 @@ try:
     from qscibase import QsciEditor as EditorBaseWidget
 except ImportError:
     from qtbase import QtEditor as EditorBaseWidget
+from dicteditor import DictEditor, DictEditorDialog
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -85,6 +86,16 @@ class WidgetMixin(object):
         self.mainwindow.workdir.chdir(dirname)
 
 
+#TODO: PYTHONPATH editor
+#      --> HKEY_CURRENT_USER\Environment --> PYTHONPATH
+def environ2dict():
+    """os.environ --> Dict"""
+    env_var = dict(os.environ)
+    for key in env_var:
+        if ";" in env_var[key]:
+            env_var[key] = [path.strip() for path in env_var[key].split(';')]
+    return env_var
+
 class Shell(ShellBaseWidget, WidgetMixin):
     """
     Shell widget
@@ -102,9 +113,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
         QShortcut(QKeySequence("Escape"), self, self.clear_line)
         
     def contextMenuEvent(self, event):
-        """
-        Re-implemented to hide context menu
-        """
+        """Reimplement Qt method"""
         self.menu.popup(event.globalPos())
         event.accept()
 
@@ -153,6 +162,9 @@ class Shell(ShellBaseWidget, WidgetMixin):
         run_action = create_action(self, self.tr("&Run..."), self.tr("Ctrl+R"),
             'run.png', self.tr("Run a Python script"),
             triggered=self.run_script)
+        environ_action = create_action(self,self.tr("Environment variables..."),
+            tip = self.tr("Show environment variables"),
+            triggered=self.show_env)
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set shell font style"),
             triggered=self.change_font)
@@ -169,7 +181,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
         calltips_action = create_action(self, self.tr("Balloon tips"),
             toggled=self.toggle_calltips)
         calltips_action.setChecked( CONF.get('shell', 'calltips') )
-        menu_actions = (run_action, None,
+        menu_actions = (run_action, environ_action, None,
                         font_action, history_action, wrap_action,
                         calltips_action, exteditor_action,
                         None, quit_action)
@@ -200,6 +212,10 @@ class Shell(ShellBaseWidget, WidgetMixin):
         add_actions(self.menu, (None,))
         add_actions(self.menu, menu_actions)
         return menu_actions, toolbar_actions
+    
+    def show_env(self):
+        dlg = DictEditorDialog( environ2dict(), width=600, readonly=True )
+        dlg.exec_()
         
     def run_script(self, filename=None, silent=False, set_focus=False):
         """Run a Python script"""
@@ -1284,7 +1300,6 @@ def wsfilter(obj_in, rec=0):
 #            obj_out = tuple(obj_out)
     return obj_out            
 
-from dicteditor import DictEditor
 
 class Workspace(DictEditor, WidgetMixin):
     """
@@ -1298,6 +1313,7 @@ class Workspace(DictEditor, WidgetMixin):
         DictEditor.__init__(self, parent, None)
         WidgetMixin.__init__(self, parent)
         self.load_temp_namespace()
+        QShortcut(QKeySequence("Del"), self, self.remove_item)
         
     def get_name(self, raw=True):
         """Return widget name"""
@@ -1327,7 +1343,8 @@ class Workspace(DictEditor, WidgetMixin):
         """Refresh DictEditor"""
         if self.shell is not None:
             self.namespace = self.shell.interpreter.namespace
-        self.set_data( self.namespace, wsfilter )
+        self.set_filter( wsfilter )
+        self.set_data( self.namespace )
         self.adjust_columns()
         
     def set_actions(self):
@@ -1338,12 +1355,7 @@ class Workspace(DictEditor, WidgetMixin):
             self.tr("Save current workspace"), triggered = self.save)
         save_as_action = create_action(self, self.tr("Save as..."), None,
             'ws_save_as.png',  self.tr("Save current workspace as..."),
-            triggered = self.save_as)
-        sort_action = create_action(self, self.tr("Sort columns"),
-            toggled=self.setSortingEnabled)
-        inplace_action = create_action(self, self.tr("Always edit in-place"),
-            toggled=self.set_inplace_editor)
-        
+            triggered = self.save_as)        
         exclude_private_action = create_action(self,
             self.tr("Exclude private references"),
             toggled=self.toggle_exclude_private)
@@ -1363,7 +1375,7 @@ class Workspace(DictEditor, WidgetMixin):
         autosave_action.setChecked( CONF.get('workspace', 'autosave') )
         
         menu_actions = (refresh_action, autorefresh_action, None,
-                        sort_action, inplace_action, None,
+                        self.sort_action, self.inplace_action, None,
                         exclude_private_action, None, open_action, save_action,
                         save_as_action, autosave_action)
         toolbar_actions = (refresh_action, open_action, save_action)

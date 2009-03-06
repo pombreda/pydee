@@ -10,19 +10,19 @@ Dictionary Editor Widget and Dialog based on PyQt4
 
 from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
 from PyQt4.QtCore import SIGNAL, SLOT
-from PyQt4.QtGui import QHBoxLayout, QTableView, QItemDelegate
-from PyQt4.QtGui import QLineEdit, QVBoxLayout, QWidget, QColor, QCheckBox
-from PyQt4.QtGui import QDialog, QDialogButtonBox
+from PyQt4.QtGui import QMessageBox, QTableView, QItemDelegate
+from PyQt4.QtGui import QLineEdit, QVBoxLayout, QWidget, QColor
+from PyQt4.QtGui import QDialog, QDialogButtonBox, QMenu, QInputDialog
 
 # Local import
 from config import get_icon, get_font
-from qthelpers import translate
+from qthelpers import translate, add_actions, create_action
 
 class FakeObject(object):
     """Fake class used in replacement of missing modules"""
     pass
 try:
-    from numpy import ndarray
+    from numpy import ndarray, array
 except ImportError:
     class ndarray(FakeObject):
         """Fake ndarray"""
@@ -91,7 +91,7 @@ def get_type(item):
 
 class DictModelRO(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
-    def __init__(self, parent, data, dictfilter=None, sortkeys=True, title=""):
+    def __init__(self, parent, data, sortkeys=True, title=""):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
@@ -100,13 +100,19 @@ class DictModelRO(QAbstractTableModel):
         self.showndata = None
         self.keys = None
         self.title = title
+        if not isinstance(self.title, (str, unicode)):
+            self.title = ""
         if self.title:
-            self.title += ' - '
+            self.title = self.title + ' - '
         self.sizes = None
         self.types = None
-        self.set_data(data, dictfilter)
+        self.set_data(data)
+        
+    def get_data(self):
+        """Return model data"""
+        return self._data
             
-    def set_data(self, data, dictfilter):
+    def set_data(self, data, dictfilter=None):
         """Set model data"""
         self._data = data
         if dictfilter is not None:
@@ -321,6 +327,7 @@ class DictEditor(QTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, sort_by=None, title=""):
         QTableView.__init__(self, parent)
+        self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
         self.sort_by = sort_by
         self.model = None
@@ -334,6 +341,103 @@ class DictEditor(QTableView):
         self.setItemDelegate(self.delegate)
         self.horizontalHeader().setStretchLastSection(True)
         self.adjust_columns()
+        self.menu = self.setup_menu()
+        
+    def setup_menu(self):
+        """Setup context menu"""
+        self.edit_action = create_action(self, 
+                                      translate("DictEditor", "Edit"),
+                                      triggered=self.edit_item)
+        self.insert_action = create_action(self, 
+                                      translate("DictEditor", "Insert"),
+                                      triggered=self.insert_item)
+        self.remove_action = create_action(self, 
+                                      translate("DictEditor", "Remove"),
+                                      icon=get_icon('close.png'),
+                                      triggered=self.remove_item)
+        self.sort_action = create_action(self,
+                                    translate("DictEditor", "Sort columns"),
+                                    toggled=self.setSortingEnabled)
+        self.inplace_action = create_action(self,
+                                       translate("DictEditor",
+                                                 "Always edit in-place"),
+                                       toggled=self.set_inplace_editor)
+        menu = QMenu(self)
+        add_actions( menu, (self.edit_action, self.insert_action,
+                            self.remove_action,
+                            None, self.sort_action, self.inplace_action) )
+        return menu
+    
+    def edit_item(self):
+        """Edit item"""
+        index = self.currentIndex()
+        if not index.isValid():
+            return
+        self.edit(index)
+    
+    def remove_item(self):
+        """Remove item"""
+        indexes = self.selectedIndexes()
+        if not indexes:
+            return
+        for index in indexes:
+            if not index.isValid():
+                return
+        answer = QMessageBox.question(self,
+            translate("DictEditor", "Remove"),
+            translate("DictEditor", "Do you want to remove selected item%1?") \
+            .arg('s' if len(indexes)>1 else ''),
+            QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            data = self.model.get_data()
+            for index in indexes:
+                data.pop( self.model.keys[ index.row() ] )
+            self.set_data(data)
+            
+    def insert_item(self):
+        """Insert item"""
+        index = self.currentIndex()
+        if not index.isValid():
+            row = self.model.rowCount()
+        else:
+            row = index.row()
+        data = self.model.get_data()
+        if isinstance(data, list):
+            key = row
+            data.insert(row, '')
+        elif isinstance(data, dict):
+            key, valid = QInputDialog.getText(self,
+                              translate("DictEditor", 'Insert'),
+                              translate("DictEditor", 'Key:'),
+                              QLineEdit.Normal)
+            if valid and not key.isEmpty():
+                key = try_to_eval(unicode(key))
+            else:
+                return
+        else:
+            return
+        value, valid = QInputDialog.getText(self,
+                  translate("DictEditor", 'Insert'),
+                  translate("DictEditor", 'Value:'),
+                  QLineEdit.Normal)
+        if valid and not value.isEmpty():
+            data[key] = try_to_eval(unicode(value))
+            self.set_data(data)
+            
+    def refresh_menu(self):
+        """Refresh context menu"""
+        data = self.model.get_data()
+        index = self.currentIndex()
+        condition = (not isinstance(data, tuple)) \
+                    and index.isValid()
+        self.edit_action.setEnabled( condition )
+        self.remove_action.setEnabled( condition )
+        
+    def contextMenuEvent(self, event):
+        """Reimplement Qt method"""
+        self.refresh_menu()
+        self.menu.popup(event.globalPos())
+        event.accept()
         
     def adjust_columns(self):
         """Resize two first columns to contents"""
@@ -347,31 +451,21 @@ class DictEditor(QTableView):
         else:
             self.delegate.inplace = False
         
-    def set_data(self, data, dictfilter=None):
+    def set_filter(self, dictfilter=None):
+        """Set table dict filter"""
+        self.dictfilter = dictfilter
+        
+    def set_data(self, data):
         """Set table data"""
         if data is not None:
-            self.model.set_data(data, dictfilter)
+            self.model.set_data(data, self.dictfilter)
 
 class DictEditorWidget(QWidget):
     """Dictionary Editor Dialog"""
     def __init__(self, parent, data, readonly=False, sort_by=None, title=""):
         QWidget.__init__(self, parent)
-
-        # Options
-        layout_opts = QHBoxLayout()
-        self.cb_sort = QCheckBox(translate("DictEditor", "Sort columns"))
-        layout_opts.addWidget(self.cb_sort)
-        self.cb_inline = QCheckBox(translate("DictEditor",
-                                             "Always edit in-place"))
-        layout_opts.addWidget(self.cb_inline)
-
-        layout = QVBoxLayout()
-        layout.addLayout(layout_opts)
         self.editor = DictEditor(self, data, readonly, sort_by, title)
-        self.connect(self.cb_sort, SIGNAL("stateChanged(int)"),
-                     self.editor.setSortingEnabled)
-        self.connect(self.cb_inline, SIGNAL("stateChanged(int)"),
-                     self.editor.set_inplace_editor)
+        layout = QVBoxLayout()
         layout.addWidget(self.editor)
         self.setLayout(layout)
         
@@ -386,12 +480,12 @@ class DictEditorWidget(QWidget):
 
 class DictEditorDialog(QDialog):
     """Dictionary/List Editor Dialog"""
-    def __init__(self, data, title=""):
+    def __init__(self, data, title="", width=450, readonly=False):
         QDialog.__init__(self)
         import copy
         self.copy = copy.deepcopy(data)
         self.widget = DictEditorWidget(self, self.copy, sort_by='type',
-                                       title=title)
+                                       title=title, readonly=readonly)
         
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
@@ -407,7 +501,7 @@ class DictEditorDialog(QDialog):
         row_height = 30
         error_margin = 20
         height = constant + row_height*min([20, len(data)]) + error_margin
-        self.resize(400, height)
+        self.resize(width, height)
         
         self.setWindowTitle(self.widget.get_title())
         self.setWindowIcon(get_icon('dictedit.png'))
