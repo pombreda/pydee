@@ -16,8 +16,10 @@ from interpreter import Interpreter
 from dochelpers import getargtxt
 from encoding import transcode
 from config import CONF
-#from qscibase import QsciTerminal as Terminal
-from qtbase import QtTerminal as Terminal
+try:
+    from qscibasex import QsciTerminal as Terminal
+except ImportError:
+    from qtbase import QtTerminal as Terminal
 
 STDOUT = sys.stdout
 STDERR = sys.stderr
@@ -218,6 +220,28 @@ class ShellBaseWidget(Terminal):
         
         self.multiline_entry = []
         
+    def execute_lines(self, lines):
+        """
+        Private method to execute a set of lines as multiple commands
+        lines: multiple lines of text to be executed as single
+            commands (string)
+        """
+        if isinstance(lines, list):
+            lines = "\n".join(lines)
+        for line in lines.splitlines(True):
+            if line.endswith("\r\n"):
+                fullline = True
+                cmd = line[:-2]
+            elif line.endswith("\r") or line.endswith("\n"):
+                fullline = True
+                cmd = line[:-1]
+            else:
+                fullline = False
+            
+            self.insert_text(line, at_end=True)
+            if fullline:
+                self.execute_command(cmd)
+                
     def external_editor(self, filename, goto=None):
         """Edit in an external editor
         Recommended: SciTE (e.g. to go to line where an error did occur)"""

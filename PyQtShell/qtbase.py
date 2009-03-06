@@ -314,9 +314,6 @@ class QtTerminal(QTextEdit):
         # flag: the interpreter needs more input to run the last lines. 
         self.more    = 0
         self.cursor_pos   = 0
-
-        # user interface setup
-        #self.setLineWrapMode(QTextEdit.NoWrap)
         
         # Call-tips
         self.docviewer = None
@@ -395,6 +392,14 @@ class QtTerminal(QTextEdit):
         cursor.endEditBlock()
         self.hide_completion_widget()
 
+    def paste(self):
+        """Reimplemented slot to handle multiline paste action"""
+        lines = unicode(QApplication.clipboard().text())
+        lines = self.__get_current_line_to_cursor() + lines + \
+                self.__get_current_line_from_cursor()
+        self.clear_line()
+        self.execute_lines(lines)
+            
     def keyPressEvent(self, event):
         """
         Handle user input a key at a time.
@@ -635,13 +640,19 @@ class QtTerminal(QTextEdit):
     def mousePressEvent(self, event):
         """Keep the cursor after the last prompt"""
         ctrl = event.modifiers() & Qt.ControlModifier
-        if event.button() == Qt.LeftButton:
-            if ctrl:
-                cursor = self.cursorForPosition(event.pos())
-                text = unicode(cursor.block().text())
-                self.go_to_error(text)
+        if (event.button() == Qt.LeftButton) and ctrl:
+            cursor = self.cursorForPosition(event.pos())
+            text = unicode(cursor.block().text())
+            self.go_to_error(text)
+        else:
+            cursor = self.cursorForPosition(event.pos())
+            cursor.movePosition(QTextCursor.StartOfLine, QTextCursor.KeepAnchor)
+            if cursor.selectedText().length() >= len(self.prompt):
+                QTextEdit.mousePressEvent(self, event)
             else:
-                self.moveCursor(QTextCursor.End)
+                cursor.movePosition(QTextCursor.EndOfLine)
+                if not cursor.atEnd():
+                    QTextEdit.mousePressEvent(self, event)
             
     def contentsContextMenuEvent(self,ev):
         """Suppress the right button context menu"""
@@ -664,6 +675,15 @@ class QtTerminal(QTextEdit):
         cursor.movePosition(QTextCursor.StartOfLine, QTextCursor.KeepAnchor)
         cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor,
                             len(self.prompt))
+        return unicode(cursor.selectedText())
+    
+    def __get_current_line_from_cursor(self):
+        """
+        Return the current line: from cursor position to the end of the line
+        """
+        cursor = self.textCursor()
+        cursor.clearSelection()
+        cursor.movePosition(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
         return unicode(cursor.selectedText())
     
     def __get_last_obj(self, last=False):

@@ -285,30 +285,6 @@ class QsciTerminal(QsciScintilla):
         return (cline, cindex) == self.__get_end_pos()
 
 
-    #------ Command Execution
-    def __execute_lines(self, lines):
-        """
-        Private method to execute a set of lines as multiple commands
-        lines: multiple lines of text to be executed as single
-            commands (string)
-        """
-        if isinstance(lines, list):
-            lines = "\n".join(lines)
-        for line in lines.splitlines(True):
-            if line.endswith("\r\n"):
-                fullline = True
-                cmd = line[:-2]
-            elif line.endswith("\r") or line.endswith("\n"):
-                fullline = True
-                cmd = line[:-1]
-            else:
-                fullline = False
-            
-            self.insert_text(line, at_end=True)
-            if fullline:
-                self.execute_command(cmd)
-        
-        
     #------ Text Insertion
     def insert_text(self, text, at_end=False, error=False):
         """
@@ -454,12 +430,12 @@ class QsciTerminal(QsciScintilla):
                               cline, self.lineLength(cline))
             self.removeSelectedText()
             lines = self.__remove_prompts(lines)
-            self.__execute_lines(lines)
+            self.execute_lines(lines)
             cline2, _ = self.getCursorPosition()
             self.setCursorPosition(cline2,
                self.lineLength(cline2)-len(linetext[cindex:]) )
         else:
-            self.__execute_lines(lines)
+            self.execute_lines(lines)
 
     def clear_line(self):
         """
@@ -479,7 +455,7 @@ class QsciTerminal(QsciScintilla):
         """Private method to handle the middle mouse button press"""
         lines = unicode(QApplication.clipboard().text(
             QClipboard.Selection))
-        self.__execute_lines(lines)
+        self.execute_lines(lines)
     
 
     #------ QScintilla Key Management                                          
