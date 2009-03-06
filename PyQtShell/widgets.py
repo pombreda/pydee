@@ -23,7 +23,7 @@ from config import get_font, set_font
 from config import CONF, str2type, get_conf_path, get_icon
 from shell import ShellBaseWidget
 try:
-    from qscibasex import QsciEditor as EditorBaseWidget
+    from qscibase import QsciEditor as EditorBaseWidget
 except ImportError:
     from qtbase import QtEditor as EditorBaseWidget
 
@@ -628,7 +628,6 @@ class SimpleEditor(EditorBaseWidget):
         """Setup Editor"""
         self.set_font( get_font('editor') )
         self.set_wrap_mode( CONF.get('editor', 'wrap') )
-        self.setup_margin( get_font('editor', 'margin') )
         self.setup_api()
         self.set_text(text)
         self.setModified(False)
@@ -1067,7 +1066,7 @@ class HistoryLog(EditorBaseWidget, WidgetMixin):
         self.setReadOnly(True)
         self.set_font( get_font('history') )
         self.set_wrap_mode( CONF.get('history', 'wrap') )
-        self.setup_margin( get_font('history', 'margin'), 3 )
+        self.setup_margin( get_font('history', 'margin'), 4 )
         self.history = self.mainwindow.shell.interpreter.rawhistory
         self.refresh()
         

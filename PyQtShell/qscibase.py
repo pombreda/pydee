@@ -16,7 +16,7 @@ STDOUT = sys.stdout
 
 # Local import
 import re
-from config import CONF
+from config import CONF, get_font
 from dochelpers import getobj
 
 
@@ -86,8 +86,6 @@ class QsciEditor(QsciScintilla):
         # Auto-completion
         self.setAutoCompletionThreshold(-1)
         self.setAutoCompletionSource(QsciScintilla.AcsAll)
-        
-        self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
 
         # Lexer
         self.lex = LexerPython(self)
@@ -96,6 +94,8 @@ class QsciEditor(QsciScintilla):
         
         self.setMinimumWidth(200)
         self.setMinimumHeight(100)
+        
+        self.connect( self, SIGNAL('linesChanged()'), self.lines_changed )
         
     def setup_api(self):
         """Load and prepare API"""
@@ -118,6 +118,10 @@ class QsciEditor(QsciScintilla):
                              self.api.savePrepared)
         return is_api_ready
 
+    def lines_changed(self):
+        """Update margin"""
+        self.setup_margin( get_font('editor', 'margin') )
+
     def setup_margin(self, font, width=None):
         """Set margin font and width"""
         if font is None:
@@ -127,12 +131,9 @@ class QsciEditor(QsciScintilla):
             self.setMarginLineNumbers(1, True)
             self.setMarginsFont(font)
             if width is None:
-                linenb = self.lines()
-                if linenb < 10:
-                    linenb = 100
-                from math import ceil, log
-                width = ceil(log(linenb, 10))+1
-            self.setMarginWidth(1, QString('0'*int(width+1)))
+                from math import log
+                width = log(self.lines(), 10) + 2
+            self.setMarginWidth(1, QString('0'*int(width)))
 
     def set_font(self, font):
         """Set shell font"""
