@@ -79,7 +79,7 @@ DEFAULTS = [
               'margin/font/family/posix' : 'Bitstream Vera Sans Mono',
               'margin/font/family/mac' : 'Monaco',
               'margin/font/size' : 8,
-              'margin/font/bold' : True,
+              'margin/font/bold' : False,
               'wrap' : True,
               'api' : osp.join(APP_PATH, 'python.api'),
               }),

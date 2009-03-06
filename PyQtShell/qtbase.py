@@ -135,7 +135,7 @@ class PythonHighlighter(QSyntaxHighlighter):
             self.setCurrentBlockState(error)
             self.setFormat(0, text_length, self.formats["error"])
             return
-    
+        
         for regex, format in PythonHighlighter.Rules:
             i = text.indexOf(regex)
             while i >= 0:
@@ -209,10 +209,6 @@ class QtEditor(QTextEdit):
         """Fake QScintilla method"""
         pass
     
-    def setup_margin(self, font, width=None):
-        """Fake QScintilla method"""
-        pass
-        
     def set_text(self, string):
         """Set the text of the editor"""
         self.setPlainText(string)
