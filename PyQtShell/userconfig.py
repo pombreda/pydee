@@ -25,10 +25,10 @@ Module handling configuration files based on ConfigParser
 
 Copyright © 2009 Pierre Raybaut
 This software is licensed under the terms of the GNU General Public
-License version 3 as published by the Free Software Foundation.
+License version 2 as published by the Free Software Foundation.
 """
 
-__version__ = '1.0.6'
+__version__ = '1.0.7'
 
 import os, re
 import os.path as osp

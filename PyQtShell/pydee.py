@@ -1,9 +1,26 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+#    Copyright © 2009 Pierre Raybaut
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#    
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#    
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 Pydee
 """
 
-__version__ = '0.2.2'
+__version__ = '0.2.3'
 
 import sys, os, platform
 from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap
@@ -228,11 +245,11 @@ class ConsoleWindow(QMainWindow):
             self.tr("About %1").arg(self.tr('Pydee')),
             self.tr("""<b>%1</b> v %2
             <br>PYthon Development EnvironmEnt
-            <p>Copyright &copy; 2009 Pierre Raybaut - GPLv3
+            <p>Copyright &copy; 2009 Pierre Raybaut - GPLv2
             <p>Pydee is based on PyQtShell module v %2
             <br>Bug reports and feature requests: <a href="http://code.google.com/p/pyqtshell/">Google Code</a><br>
             Discussions around the project: <a href="http://groups.google.com/group/pyqtshell">Google Group</a>
-            <p>This project will soon be part of <a href="http://www.google.fr">Python(x,y) distribution</a>
+            <p>This project will soon be part of <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
             <p>Python %3, Qt %4, PyQt %5%6 on %7""") \
             .arg(self.tr('Pydee')).arg(__version__) \
             .arg(platform.python_version()).arg(QT_VERSION_STR) \
