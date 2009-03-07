@@ -25,7 +25,7 @@ Interactive Python shell and related widgets based on PyQt4
 
 Copyright © 2009 Pierre Raybaut
 This software is licensed under the terms of the GNU General Public
-License version 3 as published by the Free Software Foundation.
+License version 2 as published by the Free Software Foundation.
 """
 
 name = 'PyQtShell'
@@ -71,7 +71,7 @@ setup(
       author = "Pierre Raybaut",
       author_email = 'contact@pythonxy.com',
       url = 'http://code.google.com/p/%s/' % name.lower(),
-      license = 'GPLv3',
+      license = 'GPLv2',
       keywords = keywords,
       platforms = ['any'],
       py_modules = py_modules,
