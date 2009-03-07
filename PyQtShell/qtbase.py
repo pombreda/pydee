@@ -172,6 +172,13 @@ class PythonHighlighter(QSyntaxHighlighter):
         QApplication.restoreOverrideCursor()
 
 
+def mimedata2url(source):
+    """Extract url list from MIME data"""
+    if source.hasUrls():
+        paths = [unicode(url.toString()) for url in source.urls()]
+        return [path[8:] for path in paths if path.startswith(r"file://") \
+                and (path.endswith(".py") or path.endswith(".pyw"))]
+
 class QtEditor(QTextEdit):
     """
     Qt-based Editor Widget
@@ -272,6 +279,24 @@ class QtEditor(QTextEdit):
         cursor.removeSelectedText()
         cursor.insertText(text)
         cursor.endEditBlock()
+        
+    def canInsertFromMimeData(self, source):
+        """Reimplement Qt method
+        Drag and *drop* implementation"""
+        if source.hasUrls():
+            if mimedata2url(source):
+                return True
+        return QTextEdit.canInsertFromMimeData(self, source)
+
+    def insertFromMimeData(self, source):
+        """Reimplement Qt method
+        Drag and *drop* implementation"""
+        if source.hasUrls():
+            files = mimedata2url(source)
+            if files:
+                self.emit(SIGNAL("drop_files(PyQt_PyObject)"), files)
+        else:
+            self.textCursor().insertText( source.text() )
 
 
 class QtTerminal(QTextEdit):
@@ -657,10 +682,29 @@ class QtTerminal(QTextEdit):
     def contentsContextMenuEvent(self,ev):
         """Suppress the right button context menu"""
         pass
+        
+    def canInsertFromMimeData(self, source):
+        """Reimplement Qt method
+        Drag and *drop* implementation"""
+        if source.hasUrls():
+            if mimedata2url(source):
+                return True
+        return QTextEdit.canInsertFromMimeData(self, source)
 
     def insertFromMimeData(self, source):
-        """Drag and *drop* implementation"""
-        self.insert_text( source.text() )
+        """Reimplement Qt method
+        Drag and *drop* implementation"""
+        if source.hasUrls():
+            files = mimedata2url(source)
+            if files:
+                files = ["r'%s'" % path for path in files]
+                if len(files) == 1:
+                    text = files[0]
+                else:
+                    text = "[" + ", ".join(files) + "]"
+                self.insert_text(text)
+        else:
+            self.insert_text( source.text() )
     
     def set_docviewer(self, docviewer):
         """Set DocViewer DockWidget reference"""

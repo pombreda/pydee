@@ -163,7 +163,8 @@ class Shell(ShellBaseWidget, WidgetMixin):
             'run.png', self.tr("Run a Python script"),
             triggered=self.run_script)
         environ_action = create_action(self,self.tr("Environment variables..."),
-            tip = self.tr("Show environment variables"),
+            icon = 'environ.png',
+            tip = self.tr("Show environment variables (read-only)"),
             triggered=self.show_env)
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set shell font style"),
@@ -624,13 +625,6 @@ class FindReplace(QWidget):
             self.all_check.setCheckState(Qt.Unchecked)
 
 
-def mimedata2url(source):
-    """Extract url list from MIME data"""
-    if source.hasUrls():
-        paths = [unicode(url.toString()) for url in source.urls()]
-        return [path[8:] for path in paths if path.startswith(r"file://") \
-                and (path.endswith(".py") or path.endswith(".pyw"))]
-
 class SimpleEditor(EditorBaseWidget):
     """
     Simple Editor Widget
@@ -654,22 +648,6 @@ class SimpleEditor(EditorBaseWidget):
         """Highlight line number linenb"""
         line = unicode(self.get_text()).splitlines()[linenb-1]
         self.find_text(line)
-        
-    def canInsertFromMimeData(self, source):
-        """Reimplement Qt method"""
-        if source.hasUrls():
-            if mimedata2url(source):
-                return True
-        return EditorBaseWidget.canInsertFromMimeData(self, source)
-
-    def insertFromMimeData(self, source):
-        """Drag and *drop* implementation"""
-        if source.hasUrls():
-            files = mimedata2url(source)
-            if files:
-                self.emit(SIGNAL("drop_files(PyQt_PyObject)"), files)
-        else:
-            self.textCursor().insertText( source.text() )
 
     def check_syntax(self, filename):
         """Check module syntax"""
@@ -807,8 +785,10 @@ class Editor(QWidget, WidgetMixin):
         exec_action = create_action(self, self.tr("&Execute"), "F9",
             'execute.png', self.tr("Execute current script"),
             triggered=self.exec_script)
+        #TODO: Add an action to execute selected text -> in toolbar
         exec_interact_action = create_action(self,
-            self.tr("Execute and &interact"), "Shift+F9", 'execute.png',
+            self.tr("Execute and &interact"), "Shift+F9",
+            'execute_interact.png',
             self.tr("Execute current script and set focus to shell"),
             triggered=self.exec_script_and_interact)
         font_action = create_action(self, self.tr("&Font..."), None,
