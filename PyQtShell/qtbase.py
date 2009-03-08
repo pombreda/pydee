@@ -517,17 +517,17 @@ class QtTerminal(QTextEdit):
             self.histidx = None
                 
         elif key == Qt.Key_Tab:
-            current_line = self.__get_last_obj(last=True)
+            last_obj = self.__get_last_obj()
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.PreviousCharacter,
                                 QTextCursor.KeepAnchor)
             last_char = unicode(cursor.selectedText())
-            if last_char in ['"', "'"]:
+            if last_obj and last_obj in "\'\"":
                 self.show_file_completion()
                 return
             elif last_char == ".":
-                if current_line:
-                    self.show_code_completion(current_line[:-1])
+                if last_obj:
+                    self.show_code_completion(last_obj[:-1])
                     return
             elif self.completion_widget:
                 self.__completion_list_selected()

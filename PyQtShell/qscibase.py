@@ -186,7 +186,7 @@ class QsciTerminal(QsciScintilla):
         self.setUtf8(True)
         
         # history
-        self.histidx = -1
+        self.histidx = None
         self.incremental_search_string = ""
         self.incremental_search_active = False
         
@@ -618,7 +618,7 @@ class QsciTerminal(QsciScintilla):
                         self.incremental_search_string = buf
                         self.__use_history()
             else:
-                if self.histidx < 0:
+                if self.histidx is None:
                     self.histidx = len(self.interpreter.history)
                 if self.histidx > 0:
                     self.histidx = self.histidx - 1

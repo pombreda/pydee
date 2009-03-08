@@ -3,7 +3,7 @@
 
 import inspect, re
 
-SYMBOLS = r"[^a-zA-Z0-9_.]"
+SYMBOLS = r"[^\'\"a-zA-Z0-9_.]"
 
 def getobj(txt, last=False):
     """Return the last valid object name in string"""
@@ -15,6 +15,7 @@ def getobj(txt, last=False):
         if token.endswith('.'):
             token = token[:-1]
         if last:
+            #XXX: remove this statement as well as the "last" argument
             token += txt[ txt.rfind(token) + len(token) ]
         return token
     except IndexError:
