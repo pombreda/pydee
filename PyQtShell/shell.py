@@ -270,9 +270,11 @@ class ShellBaseWidget(Terminal):
         else:
             if history:
                 self.interpreter.add_to_history(cmd)
-            self.histidx = -1
+            self.histidx = None
 
         # -- Special commands type I
+        #FIXME: use regexp instead of startswith for special commands detection
+        #       --> will allow user to use "edit" or "run" as object name
         #    (transformed into commands executed in the interpreter)
         # ? command
         if cmd.endswith('?'):
