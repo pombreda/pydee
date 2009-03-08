@@ -311,8 +311,11 @@ class ShellBaseWidget(Terminal):
             # System ! command
             _, out, err = os.popen3(cmd[1:])
             #XXX: Is this working on Linux too?
-            txt_out = transcode(out.read(), 'cp437')
-            txt_err = transcode(err.read().rstrip(), 'cp437')
+            txt_out = out.read()
+            txt_err = err.read()
+            if os.name == 'nt':
+                txt_out = transcode(txt_out, 'cp437')
+                txt_err = transcode(txt_err.rstrip(), 'cp437')
             if txt_err:
                 self.write_error(txt_err)
             else:
