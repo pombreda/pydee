@@ -372,7 +372,7 @@ class QsciTerminal(QsciScintilla):
         if txt == '.':
             # Enable auto-completion only if last token isn't a float
             text = self.__get_last_obj()
-            if len(text)>1 and (not text[-2].isdigit()):
+            if text and len(text)>1 and (not text[-2].isdigit()):
                 self.show_code_completion(text)
         elif txt == '?':
             self.show_docstring(self.__get_last_obj())
