@@ -100,8 +100,6 @@ class DictModelRO(QAbstractTableModel):
         self.showndata = None
         self.keys = None
         self.title = title
-        if not isinstance(self.title, (str, unicode)):
-            self.title = ""
         if self.title:
             self.title = self.title + ' - '
         self.sizes = None
@@ -529,7 +527,7 @@ def main():
             'float': 1.2233,
             'array': numpy.random.rand(10, 10),
             }
-    dialog = DictEditorDialog(dico)
+    dialog = DictEditorDialog(dico, title="Bad title")
     if dialog.exec_():
         print "Accepted:", dialog.get_copy()
     else:
