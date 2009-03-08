@@ -469,9 +469,9 @@ class QtTerminal(QTextEdit):
         else:
             move_mode = QTextCursor.MoveAnchor
             
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.EndOfLine)
-        if not cursor.atEnd() and len(text):
+        # Is cursor on the last line?
+        if not self.__is_cursor_on_last_line() and len(text):
+            # No? Moving it to the end of the last line, then!
             self.moveCursor(QTextCursor.End)
         
         if key == Qt.Key_Backspace:
@@ -610,9 +610,9 @@ class QtTerminal(QTextEdit):
                 
         elif key == Qt.Key_Period:
             self.hide_completion_widget()
-            current_line = self.__get_last_obj()
-            if len(current_line)>1 and (not current_line[-2].isdigit()):
-                self.show_code_completion(current_line)
+            last_obj = self.__get_last_obj()
+            if last_obj and len(last_obj)>1 and (not last_obj[-2].isdigit()):
+                self.show_code_completion(last_obj)
             self.insert_text(text)
 
         elif text.length():
@@ -704,11 +704,25 @@ class QtTerminal(QTextEdit):
                     text = "[" + ", ".join(files) + "]"
                 self.insert_text(text)
         else:
-            self.insert_text( source.text() )
+            lines = unicode(source.text())
+            if not self.__is_cursor_on_last_line():
+                self.moveCursor(QTextCursor.End)
+            lines = self.__get_current_line_to_cursor() + lines + \
+                    self.__get_current_line_from_cursor()
+            self.clear_line()
+            self.execute_lines(lines)
     
     def set_docviewer(self, docviewer):
         """Set DocViewer DockWidget reference"""
         self.docviewer = docviewer
+
+    def __is_cursor_on_last_line(self):
+        """
+        Private method to check if the cursor is on the last line.
+        """
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.EndOfLine)
+        return cursor.atEnd()
 
     def __get_current_line_to_cursor(self):
         """
