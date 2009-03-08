@@ -149,7 +149,7 @@ class ConsoleWindow(QMainWindow):
                 help_menu.addAction(self.shell.help_action)
         
         # Window set-up
-        self.setWindowIcon(get_icon('console.png'))
+        self.setWindowIcon(get_icon('pydee.png'))
         self.setWindowTitle(self.tr('Pydee'))
         section = 'lightwindow' if self.light else 'window'
         width, height = CONF.get(section, 'size')
