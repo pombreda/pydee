@@ -428,10 +428,11 @@ class DictEditor(QTableView):
         """Refresh context menu"""
         data = self.model.get_data()
         index = self.currentIndex()
-        condition = (not isinstance(data, tuple)) \
-                    and index.isValid()
+        condition = (not isinstance(data, tuple)) and index.isValid() \
+                    and not self.readonly
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
+        self.insert_action.setEnabled( not self.readonly )
         
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
@@ -491,9 +492,13 @@ class DictEditorDialog(QDialog):
         layout.addWidget(self.widget)
         
         # Buttons configuration
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel )
+        buttons = QDialogButtonBox.Ok
+        if not readonly:
+            buttons = buttons | QDialogButtonBox.Cancel
+        bbox = QDialogButtonBox(buttons)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        if not readonly:
+            self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
         layout.addWidget(bbox)
 
         self.setLayout(layout)
