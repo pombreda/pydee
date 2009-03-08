@@ -755,10 +755,10 @@ class Editor(QWidget, WidgetMixin):
 
     def set_actions(self):
         """Setup actions"""
-        new_action = create_action(self, self.tr("New..."), None,
+        new_action = create_action(self, self.tr("New..."), "Ctrl+N",
             'new.png', self.tr("Create a new Python script"),
             triggered = self.new)
-        open_action = create_action(self, self.tr("Open..."), None,
+        open_action = create_action(self, self.tr("Open..."), "Ctrl+O",
             'open.png', self.tr("Open a Python script"),
             triggered = self.load)
         save_action = create_action(self, self.tr("Save"), "Ctrl+S",
@@ -785,12 +785,15 @@ class Editor(QWidget, WidgetMixin):
         exec_action = create_action(self, self.tr("&Execute"), "F9",
             'execute.png', self.tr("Execute current script"),
             triggered=self.exec_script)
-        #TODO: Add an action to execute selected text -> in toolbar
         exec_interact_action = create_action(self,
             self.tr("Execute and &interact"), "Shift+F9",
             'execute_interact.png',
             self.tr("Execute current script and set focus to shell"),
             triggered=self.exec_script_and_interact)
+        exec_selected_action = create_action(self,
+            self.tr("Execute selection"), "Ctrl+F9", 'execute_selection.png',
+            self.tr("Execute selected text in current script and set focus to shell"),
+            triggered=self.exec_selected_text)
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set editor font style"),
             triggered=self.change_font)
@@ -802,14 +805,16 @@ class Editor(QWidget, WidgetMixin):
             triggered=self.set_workdir)
         menu_actions = (new_action, open_action, save_action, save_as_action,
                         None, check_action, exec_action, exec_interact_action,
+                        exec_selected_action,
                         None, find_action, replace_action,
                         None, close_action, close_all_action,
                         None, font_action, wrap_action)
         toolbar_actions = (new_action, open_action, save_action, exec_action,
-                           find_action, None)
+                           exec_selected_action, find_action, None)
         self.file_dependent_actions = (save_action, save_as_action,
                                        check_action, exec_action,
                                        exec_interact_action,
+                                       exec_selected_action,
                                        close_action, close_all_action,
                                        find_action, replace_action)
         self.tab_actions = (save_action, save_as_action,
@@ -903,6 +908,13 @@ class Editor(QWidget, WidgetMixin):
     def exec_script_and_interact(self):
         """Execute current script and set focus to shell"""
         self.exec_script(set_focus=True)
+        
+    def exec_selected_text(self):
+        """Execute selected text in current script and set focus to shell"""
+        index = self.tabwidget.currentIndex()
+        lines = unicode( self.editors[index].selectedText() )
+        self.mainwindow.shell.execute_lines(lines)
+        self.mainwindow.shell.setFocus()
 
     def save_if_changed(self, cancelable=False):
         """Ask user to save file if modified"""
