@@ -86,7 +86,7 @@ class WidgetMixin(object):
         self.mainwindow.workdir.chdir(dirname)
 
 
-#TODO: PYTHONPATH editor
+#TODO: PYTHONPATH editor for Windows
 #      --> HKEY_CURRENT_USER\Environment --> PYTHONPATH
 def environ2dict():
     """os.environ --> Dict"""
@@ -95,6 +95,13 @@ def environ2dict():
         if ";" in env_var[key]:
             env_var[key] = [path.strip() for path in env_var[key].split(';')]
     return env_var
+
+def dict2environ(env_var):
+    """Dict --> os.environ"""
+    for key in env_var:
+        if isinstance(env_var[key], list):
+            env_var[key] = ";".join(env_var[key])
+    os.environ = env_var
 
 class Shell(ShellBaseWidget, WidgetMixin):
     """
@@ -164,7 +171,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
             triggered=self.run_script)
         environ_action = create_action(self,self.tr("Environment variables..."),
             icon = 'environ.png',
-            tip = self.tr("Show environment variables (read-only)"),
+            tip = self.tr("Show and edit environment variables (for current session)"),
             triggered=self.show_env)
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set shell font style"),
@@ -215,8 +222,11 @@ class Shell(ShellBaseWidget, WidgetMixin):
         return menu_actions, toolbar_actions
     
     def show_env(self):
-        dlg = DictEditorDialog( environ2dict(), width=600, readonly=True )
-        dlg.exec_()
+        """Show environment variables"""
+        dlg = DictEditorDialog( environ2dict(), width=600,
+                                title=self.tr("Environment variables") )
+        if dlg.exec_():
+            dict2environ( dlg.get_copy() )
         
     def run_script(self, filename=None, silent=False, set_focus=False):
         """Run a Python script"""
@@ -257,7 +267,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
             self.external_editor(filename, goto)
             return
         if filename is not None:
-            self.mainwindow.editor.load(filename, goto)
+            self.mainwindow.editor.load(os.path.abspath(filename), goto)
         
     def change_font(self):
         """Change console font"""
@@ -841,7 +851,7 @@ class Editor(QWidget, WidgetMixin):
     def set_workdir(self):
         """Set working directory as current script directory"""
         index = self.tabwidget.currentIndex()
-        self.chdir( os.path.dirname(self.filenames[index]) )
+        self.chdir( os.path.dirname(os.path.abspath(self.filenames[index])) )
         self.emit(SIGNAL("refresh()"))
         
     def load_temp_file(self):
