@@ -20,7 +20,7 @@
 Pydee
 """
 
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 import sys, os, platform
 from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap

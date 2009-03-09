@@ -183,7 +183,8 @@ class QtEditor(QTextEdit):
     """
     Qt-based Editor Widget
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, margin=True):
+        # The 'margin' argument is here only for QScintilla compatibility
         super(QtEditor, self).__init__(parent)
         self.highlighter = PythonHighlighter(self, get_font('editor'))
         self.connect(self, SIGNAL('textChanged()'), self.changed)
@@ -297,6 +298,10 @@ class QtEditor(QTextEdit):
                 self.emit(SIGNAL("drop_files(PyQt_PyObject)"), files)
         else:
             self.textCursor().insertText( source.text() )
+            
+    def keyPressEvent(self, event):
+        """Reimplement Qt method"""
+        QTextEdit.keyPressEvent(self, event)
 
 
 class QtTerminal(QTextEdit):
