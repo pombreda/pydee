@@ -23,7 +23,7 @@ from config import get_font, set_font
 from config import CONF, str2type, get_conf_path, get_icon
 from shell import ShellBaseWidget
 try:
-    from qscibasex import QsciEditor as EditorBaseWidget
+    from qscibase import QsciEditor as EditorBaseWidget
 except ImportError:
     from qtbase import QtEditor as EditorBaseWidget
 from dicteditor import DictEditor, DictEditorDialog
@@ -220,6 +220,12 @@ class Shell(ShellBaseWidget, WidgetMixin):
         add_actions(self.menu, (None,))
         add_actions(self.menu, menu_actions)
         return menu_actions, toolbar_actions
+    
+    def get_dockwidget_properties(self):
+        """Return QDockWidget properties"""
+        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
+                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
+                Qt.BottomDockWidgetArea)
     
     def show_env(self):
         """Show environment variables"""
@@ -761,7 +767,7 @@ class Editor(QWidget, WidgetMixin):
         """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.TopDockWidgetArea)
+                Qt.BottomDockWidgetArea)
 
     def set_actions(self):
         """Setup actions"""
