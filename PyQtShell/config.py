@@ -139,7 +139,7 @@ DEFAULTS = [
             ]
 
 DEV = osp.isfile(osp.join(osp.join(APP_PATH, osp.pardir), 'setup.py'))
-#DEV = False
+DEV = False
 from userconfig import UserConfig
 CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.19', load=(not DEV))
 

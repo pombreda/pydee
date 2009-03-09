@@ -26,7 +26,12 @@ try:
     from qscibase import QsciEditor as EditorBaseWidget
 except ImportError:
     from qtbase import QtEditor as EditorBaseWidget
-from dicteditor import DictEditor, DictEditorDialog
+from dicteditor import DictEditor
+from environ import EnvDialog
+try:
+    from environ import WinUserEnvDialog
+except ImportError:
+    WinUserEnvDialog = None
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -85,23 +90,6 @@ class WidgetMixin(object):
         """Change working directory"""
         self.mainwindow.workdir.chdir(dirname)
 
-
-#TODO: PYTHONPATH editor for Windows
-#      --> HKEY_CURRENT_USER\Environment --> PYTHONPATH
-def environ2dict():
-    """os.environ --> Dict"""
-    env_var = dict(os.environ)
-    for key in env_var:
-        if ";" in env_var[key]:
-            env_var[key] = [path.strip() for path in env_var[key].split(';')]
-    return env_var
-
-def dict2environ(env_var):
-    """Dict --> os.environ"""
-    for key in env_var:
-        if isinstance(env_var[key], list):
-            env_var[key] = ";".join(env_var[key])
-    os.environ = env_var
 
 class Shell(ShellBaseWidget, WidgetMixin):
     """
@@ -189,11 +177,17 @@ class Shell(ShellBaseWidget, WidgetMixin):
         calltips_action = create_action(self, self.tr("Balloon tips"),
             toggled=self.toggle_calltips)
         calltips_action.setChecked( CONF.get('shell', 'calltips') )
-        menu_actions = (run_action, environ_action, None,
+        menu_actions = [run_action, environ_action, None,
                         font_action, history_action, wrap_action,
                         calltips_action, exteditor_action,
-                        None, quit_action)
+                        None, quit_action]
         toolbar_actions = (run_action,)
+        if WinUserEnvDialog is not None:
+            winenv_action = create_action(self,self.tr("Windows user environment variables..."),
+                icon = 'win_env.png',
+                tip = self.tr("Show and edit current user environment variables in Windows registry (i.e. for all sessions)"),
+                triggered=self.win_env)
+            menu_actions.insert(2, winenv_action)
         
         # Create a little context menu
         self.menu = QMenu(self)
@@ -229,10 +223,13 @@ class Shell(ShellBaseWidget, WidgetMixin):
     
     def show_env(self):
         """Show environment variables"""
-        dlg = DictEditorDialog( environ2dict(), width=600,
-                                title=self.tr("Environment variables") )
-        if dlg.exec_():
-            dict2environ( dlg.get_copy() )
+        dlg = EnvDialog()
+        dlg.exec_()
+    
+    def win_env(self):
+        """Show Windows current user environment variables"""
+        dlg = WinUserEnvDialog(self)
+        dlg.exec_()
         
     def run_script(self, filename=None, silent=False, set_focus=False):
         """Run a Python script"""
