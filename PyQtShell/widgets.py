@@ -23,7 +23,7 @@ from config import get_font, set_font
 from config import CONF, str2type, get_conf_path, get_icon
 from shell import ShellBaseWidget
 try:
-    from qscibase import QsciEditor as EditorBaseWidget
+    from qscibasex import QsciEditor as EditorBaseWidget
 except ImportError:
     from qtbase import QtEditor as EditorBaseWidget
 from dicteditor import DictEditor, DictEditorDialog
@@ -1084,7 +1084,6 @@ class HistoryLog(EditorBaseWidget, WidgetMixin):
         self.setReadOnly(True)
         self.set_font( get_font('history') )
         self.set_wrap_mode( CONF.get('history', 'wrap') )
-        self.setup_margin( get_font('history', 'margin'), 4 )
         self.history = self.mainwindow.shell.interpreter.rawhistory
         self.refresh()
         
@@ -1154,11 +1153,10 @@ class DocViewer(QWidget, WidgetMixin):
         WidgetMixin.__init__(self, parent)
 
         # Read-only editor
-        self.editor = EditorBaseWidget(self)
+        self.editor = EditorBaseWidget(self, margin=False)
         self.editor.setReadOnly(True)
         self.editor.set_font( get_font('docviewer') )
         self.editor.set_wrap_mode( CONF.get('docviewer', 'wrap') )
-        self.editor.setup_margin(None)
         
         # Object name
         layout_edit = QHBoxLayout()

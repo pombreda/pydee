@@ -71,7 +71,7 @@ class QsciEditor(QsciScintilla):
     """
     QScintilla Editor Widget
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, margin=True):
         QsciScintilla.__init__(self, parent)
         
         self.setUtf8(True)
@@ -81,7 +81,10 @@ class QsciEditor(QsciScintilla):
         self.setIndentationsUseTabs(False)
         self.setIndentationWidth(4)
         self.setTabIndents(True)
+        self.setBackspaceUnindents(True)
         self.setTabWidth(4)
+        self.setIndentationGuides(True)
+        self.setIndentationGuidesForegroundColor(Qt.lightGray)
         
         # Auto-completion
         self.setAutoCompletionThreshold(-1)
@@ -95,7 +98,10 @@ class QsciEditor(QsciScintilla):
         self.setMinimumWidth(200)
         self.setMinimumHeight(100)
         
-        self.connect( self, SIGNAL('linesChanged()'), self.lines_changed )
+        if margin:
+            self.connect( self, SIGNAL('linesChanged()'), self.lines_changed )
+        else:
+            self.setup_margin(None)
         
     def setup_api(self):
         """Load and prepare API"""
