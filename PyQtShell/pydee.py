@@ -20,7 +20,7 @@
 Pydee
 """
 
-__version__ = '0.2.4'
+__version__ = '0.2.5'
 
 import sys, os, platform
 from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap
@@ -281,16 +281,16 @@ def get_options():
                       help="Modules to import (comma separated)")
     parser.add_option('-p', '--pylab', dest="pylab", action='store_true',
                       default=False,
-                      help="Import pylab in interactive mode")
+                      help="Import pylab in interactive mode and add option --numpy")
     parser.add_option('-o', '--os', dest="os", action='store_true',
                       default=False,
                       help="Import os and os.path as osp")
     parser.add_option('--numpy', dest="numpy", action='store_true',
                       default=False,
-                      help="Import numpy as np (and *)")
+                      help="Import numpy as N")
     parser.add_option('--scipy', dest="scipy", action='store_true',
                       default=False,
-                      help="Import numpy as np, scipy as sp (and *)")
+                      help="Import numpy as N, scipy as S")
     parser.add_option('-d', '--debug', dest="debug", action='store_true',
                       default=False,
                       help="Debug mode (stds are not redirected)")
@@ -314,21 +314,19 @@ def get_options():
                          'rcParams["backend"]="Qt4Agg"',
                          'from pylab import *',
                          ])
+        options.numpy = True
         messagelist.append('pylab')
     if options.os:
         commands.extend(['import os',
                          'import os.path as osp'])
         messagelist.append('os')
-    if options.numpy:
-        commands.extend(['from numpy import *',
-                         'import numpy as np'])
-        messagelist.append('numpy')
     if options.scipy:
-        commands.extend(['from numpy import *',
-                         'import numpy as np',
-                         'from scipy import *',
-                         'import scipy as sp'])
-        messagelist.append('numpy/scipy')
+        commands.extend(['import scipy as S'])
+        options.numpy = True
+        messagelist.append('scipy')
+    if options.numpy:
+        commands.extend(['import numpy as N'])
+        messagelist.append('numpy')
         
     # Adding PYTHONSTARTUP file to initial commands
     if options.startup is not None:
