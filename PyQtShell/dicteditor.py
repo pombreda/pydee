@@ -479,7 +479,7 @@ class DictEditorWidget(QWidget):
 
 class DictEditorDialog(QDialog):
     """Dictionary/List Editor Dialog"""
-    def __init__(self, data, title="", width=450, readonly=False):
+    def __init__(self, data, title="", width=500, readonly=False):
         QDialog.__init__(self)
         import copy
         self.copy = copy.deepcopy(data)

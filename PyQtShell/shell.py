@@ -310,7 +310,6 @@ class ShellBaseWidget(Terminal):
         elif cmd.startswith('!'):
             # System ! command
             _, out, err = os.popen3(cmd[1:])
-            #XXX: Is this working on Linux too?
             txt_out = out.read()
             txt_err = err.read()
             if os.name == 'nt':
