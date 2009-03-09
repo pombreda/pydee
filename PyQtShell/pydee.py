@@ -86,8 +86,11 @@ class ConsoleWindow(QMainWindow):
         # Shell widget: window's central widget
         self.shell = Shell(self, namespace, commands, message,
                            debug, self.closing)
-        self.setCentralWidget(self.shell)
-        self.widgetlist.append(self.shell)
+        if not light:
+            self.add_dockwidget(self.shell)
+        else:
+            self.setCentralWidget(self.shell)
+#        self.widgetlist.append(self.shell)
         
         # Working directory changer widget
         self.workdir = WorkingDirectory( self, workdir )
