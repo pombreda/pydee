@@ -658,7 +658,7 @@ class QtTerminal(QTextEdit):
             return history[idx], idx
         else:
             for index in xrange(len(history)):
-                idx = (start_idx+step*index) % len(history)
+                idx = (start_idx+step*(index+1)) % len(history)
                 entry = history[idx]
                 if entry.startswith(tocursor):
                     return entry[len(tocursor):], idx
