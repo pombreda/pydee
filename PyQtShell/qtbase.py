@@ -298,10 +298,6 @@ class QtEditor(QTextEdit):
                 self.emit(SIGNAL("drop_files(PyQt_PyObject)"), files)
         else:
             self.textCursor().insertText( source.text() )
-            
-    def keyPressEvent(self, event):
-        """Reimplement Qt method"""
-        QTextEdit.keyPressEvent(self, event)
 
 
 class QtTerminal(QTextEdit):
@@ -616,8 +612,10 @@ class QtTerminal(QTextEdit):
         elif key == Qt.Key_Period:
             self.hide_completion_widget()
             last_obj = self.__get_last_obj()
-            if last_obj and len(last_obj)>1 and (not last_obj[-2].isdigit()):
-                self.show_code_completion(last_obj)
+            if last_obj:
+                if len(last_obj)==1 or \
+                   (len(last_obj)>1 and (not last_obj[-2].isdigit())):
+                    self.show_code_completion(last_obj)
             self.insert_text(text)
 
         elif text.length():
