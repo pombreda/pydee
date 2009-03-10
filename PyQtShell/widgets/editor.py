@@ -307,7 +307,7 @@ class Editor(QWidget, WidgetMixin):
         """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.BottomDockWidgetArea)
+                Qt.LeftDockWidgetArea)
 
     def set_actions(self):
         """Setup actions"""
@@ -645,7 +645,7 @@ class HistoryLog(EditorBaseWidget, WidgetMixin):
         """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.TopDockWidgetArea)
+                Qt.RightDockWidgetArea)
         
     def refresh(self):
         """Refresh widget"""
@@ -740,7 +740,7 @@ class DocViewer(QWidget, WidgetMixin):
         """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.TopDockWidgetArea)
+                Qt.LeftDockWidgetArea)
         
     def load_dvhistory(self, obj=None):
         """Load history from a text file in user home directory"""

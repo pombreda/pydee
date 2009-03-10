@@ -7,4 +7,6 @@
 \pypi.txt
 \makepyqt.pyw
 \Thumbs.db
-\clone.py
+\clone.
+syntax: glob
+Capture-Standard Platform Icons.png

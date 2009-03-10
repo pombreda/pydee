@@ -93,7 +93,7 @@ class Workspace(DictEditor, WidgetMixin):
         """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.TopDockWidgetArea)
+                Qt.LeftDockWidgetArea)
         
     def set_shell(self, shell):
         """Bind to shell widget"""
