@@ -12,6 +12,13 @@ def translate(context, string):
     """Translation"""
     return QApplication.translate(context, string)
 
+def toggle_actions(actions, enable):
+    """Enable/disable actions"""
+    if actions is not None:
+        for action in actions:
+            if action is not None:
+                action.setEnabled(enable)
+
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None):
     """Create a QAction"""

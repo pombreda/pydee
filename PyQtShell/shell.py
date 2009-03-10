@@ -17,9 +17,9 @@ from dochelpers import getargtxt
 from encoding import transcode
 from config import CONF
 try:
-    from qscibasex import QsciTerminal as Terminal
+    from PyQtShell.widgets.qscibasex import QsciTerminal as Terminal
 except ImportError:
-    from qtbase import QtTerminal as Terminal
+    from PyQtShell.widgets.qtbase import QtTerminal as Terminal
 
 STDOUT = sys.stdout
 STDERR = sys.stderr

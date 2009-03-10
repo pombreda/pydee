@@ -29,7 +29,7 @@ License version 2 as published by the Free Software Foundation.
 """
 
 name = 'PyQtShell'
-from PyQtShell.pydee import __version__ as version
+from PyQtShell import __version__ as version
 google_url = 'http://%s.googlecode.com' % name.lower()
 download_url = '%s/files/%s-%s-py2.5.egg' % (google_url, name, version)
 py_modules = ['xyinstall']
