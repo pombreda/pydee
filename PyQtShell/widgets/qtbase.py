@@ -328,6 +328,7 @@ class QtTerminal(QTextEdit):
         
         # history
         self.histidx = None
+        self.hist_wholeline = False
         
         # completion widget
         self.completion_widget = None
@@ -627,19 +628,25 @@ class QtTerminal(QTextEdit):
 
     def __browse_history(self, backward):
         """Browse history"""
+        if self.__get_current_line_from_cursor() and self.hist_wholeline:
+            self.hist_wholeline = False
         tocursor = self.__get_current_line_to_cursor()
         text, self.histidx = self.__find_in_history(tocursor,
                                                     self.histidx, backward)
         if text is not None:
-            # Removing text from cursor to the end of the line
-            self.moveCursor(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
-            self.textCursor().removeSelectedText()
-            # Inserting history text
-            cursor = self.textCursor()
-            pos = cursor.position()
-            cursor.insertText(text, self.format)
-            cursor.setPosition(pos)
-            self.setTextCursor(cursor)
+            if self.hist_wholeline:
+                self.clear_line()
+                self.insert_text(text)
+            else:
+                # Removing text from cursor to the end of the line
+                self.moveCursor(QTextCursor.EndOfLine, QTextCursor.KeepAnchor)
+                self.textCursor().removeSelectedText()
+                # Inserting history text
+                cursor = self.textCursor()
+                pos = cursor.position()
+                cursor.insertText(text, self.format)
+                cursor.setPosition(pos)
+                self.setTextCursor(cursor)
 
     def __find_in_history(self, tocursor, start_idx, backward):
         """Find text 'tocursor' in history, from index 'start_idx'"""
@@ -649,12 +656,13 @@ class QtTerminal(QTextEdit):
         # Finding text in history
         step = -1 if backward else 1
         idx = start_idx
-        if len(tocursor) == 0:
+        if len(tocursor) == 0 or self.hist_wholeline:
             idx += step
             if idx >= len(history):
                 return "", len(history)
             elif idx < 0:
                 idx = 0
+            self.hist_wholeline = True
             return history[idx], idx
         else:
             for index in xrange(len(history)):
