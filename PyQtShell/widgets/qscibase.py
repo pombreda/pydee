@@ -16,8 +16,8 @@ STDOUT = sys.stdout
 
 # Local import
 import re
-from config import CONF, get_font
-from dochelpers import getobj
+from PyQtShell.config import CONF, get_font
+from PyQtShell.dochelpers import getobj
 
 
 class LexerPython(QsciLexerPython):

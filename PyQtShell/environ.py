@@ -8,8 +8,8 @@ from PyQt4.QtGui import QDialog, QMessageBox, QApplication
 import os
 
 # Local imports
-from dicteditor import DictEditorDialog
-from qthelpers import translate
+from PyQtShell.widgets.dicteditor import DictEditorDialog
+from PyQtShell.qthelpers import translate
 
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""

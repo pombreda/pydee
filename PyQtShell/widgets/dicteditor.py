@@ -15,14 +15,15 @@ from PyQt4.QtGui import QLineEdit, QVBoxLayout, QWidget, QColor
 from PyQt4.QtGui import QDialog, QDialogButtonBox, QMenu, QInputDialog
 
 # Local import
-from config import get_icon, get_font
-from qthelpers import translate, add_actions, create_action
+from PyQtShell.config import get_icon, get_font
+from PyQtShell.qthelpers import translate, add_actions, create_action
 
 class FakeObject(object):
     """Fake class used in replacement of missing modules"""
     pass
 try:
     from numpy import ndarray, array
+    from PyQtShell.widgets.arrayeditor import ArrayEditor
 except ImportError:
     class ndarray(FakeObject):
         """Fake ndarray"""
@@ -290,7 +291,6 @@ class DictDelegate(QItemDelegate):
             return None
         elif isinstance(value, ndarray) and ndarray is not FakeObject \
                                         and not self.inplace:
-            from arrayeditor import ArrayEditor
             editor = ArrayEditor(value, key)
             if editor.exec_():
                 index.model().set_value(index, editor.get_copy())

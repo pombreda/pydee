@@ -19,8 +19,8 @@ except AttributeError:
 STDOUT = sys.stdout
 
 # Local import
-from config import get_font, CONF, get_image_path
-from dochelpers import getobj
+from PyQtShell.config import get_font, CONF, get_image_path
+from PyQtShell.dochelpers import getobj
 
 
 #TODO: Improve "PythonHighlighter" performance... very slow for large files!

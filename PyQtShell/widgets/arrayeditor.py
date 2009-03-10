@@ -16,7 +16,7 @@ from PyQt4.QtGui import QDialog, QDialogButtonBox, QMessageBox, QDoubleValidator
 import numpy as np
 
 # Local import
-from config import get_icon, get_font
+from PyQtShell.config import get_icon, get_font
 
 
 class ArrayModel(QAbstractTableModel):
