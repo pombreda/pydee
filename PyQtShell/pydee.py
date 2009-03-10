@@ -241,6 +241,15 @@ class ConsoleWindow(QMainWindow):
         self.view_menu.addAction(dockwidget.toggleViewAction())
         self.connect(dockwidget, SIGNAL('visibilityChanged(bool)'),
                      child.visibility_changed)
+        
+        # Tabifying Matplotlib figures
+        from PyQtShell.widgets.figure import MatplotlibFigure
+        if isinstance(child, MatplotlibFigure):
+            dockwidget.setVisible(True)
+            if self.widgetlist:
+                last_object = self.widgetlist[-1]
+                self.tabifyDockWidget(self.dockdict[last_object], dockwidget)
+                
         self.widgetlist.append(child)
         self.dockdict[child] = dockwidget
     
