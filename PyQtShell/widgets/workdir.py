@@ -80,7 +80,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
     def get_dockwidget_properties(self):
         """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea,
-                Qt.BottomDockWidgetArea)
+                Qt.TopDockWidgetArea)
         
     def set_actions(self):
         """Setup actions"""

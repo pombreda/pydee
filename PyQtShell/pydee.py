@@ -21,6 +21,10 @@ Pydee
 """
 
 import sys, os, platform
+
+# For debugging purpose only
+STDOUT = sys.stdout
+
 from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap
 from PyQt4.QtGui import QMessageBox, QMenu, QIcon
 from PyQt4.QtCore import SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt
@@ -38,19 +42,26 @@ from PyQtShell.qthelpers import create_action, add_actions, get_std_icon
 from PyQtShell.config import get_icon, get_image_path, CONF
 
 
+#TODO: Add an option "force tabified" in view_menu
 class ConsoleWindow(QMainWindow):
     """Console QDialog"""
-    def __init__(self, commands=None, message="",
-                 workdir=None, debug=False, light=False):
+    def __init__(self, commands=None, message="", options=None):
         super(ConsoleWindow, self).__init__()
         self.commands = commands
         self.message = message
-        self.workdir = workdir
-        self.debug = debug
-        self.light = light
-
-        self.filename = None
+        self.workdir = options.working_directory
+        self.debug = options.debug
+        self.light = options.light
         
+        self.filename = None
+
+#        corners = ( (Qt.TopLeftCorner, Qt.LeftDockWidgetArea),
+#                    (Qt.BottomLeftCorner, Qt.LeftDockWidgetArea),
+#                    (Qt.TopRightCorner, Qt.RightDockWidgetArea),
+#                    (Qt.BottomRightCorner, Qt.RightDockWidgetArea) )
+#        for corner, area in corners:
+#            self.setCorner(corner, area)
+                       
     def setup(self):
         """Setup main window"""
         namespace = None
@@ -60,6 +71,9 @@ class ConsoleWindow(QMainWindow):
         
         # List of satellite widgets (registered in add_dockwidget):
         self.widgetlist = []
+        
+        # Dictionary: mapping widget <--> dockwidget
+        self.dockdict = {}
         
         # Flag used if closing() is called by the exit() shell command
         self.already_closed = False
@@ -96,11 +110,11 @@ class ConsoleWindow(QMainWindow):
         # Shell widget: window's central widget
         self.shell = Shell(self, namespace, self.commands, self.message,
                            self.debug, self.closing)
-        if not self.light:
-            self.add_dockwidget(self.shell)
-        else:
-            self.setCentralWidget(self.shell)
-#        self.widgetlist.append(self.shell)
+#        if not self.light:
+#            self.add_dockwidget(self.shell)
+#        else:
+        self.setCentralWidget(self.shell)
+        self.widgetlist.append(self.shell)
         
         # Working directory changer widget
         self.workdir = WorkingDirectory( self, self.workdir )
@@ -163,12 +177,16 @@ class ConsoleWindow(QMainWindow):
         
         # Window set-up
         self.setWindowIcon(get_icon('pydee.png'))
-        self.setWindowTitle(self.tr('Pydee'))
+        title = self.tr("Pydee")
+        if self.message:
+            title += " (%s)" % self.message[self.message.find(':')+2:]
+        self.setWindowTitle(title)
         section = 'lightwindow' if self.light else 'window'
         width, height = CONF.get(section, 'size')
         self.resize( QSize(width, height) )
         posx, posy = CONF.get(section, 'position')
         self.move( QPoint(posx, posy) )
+        
         if not self.light:
             hexstate = CONF.get(section, 'state')
             self.restoreState( QByteArray().fromHex(hexstate) )
@@ -224,6 +242,7 @@ class ConsoleWindow(QMainWindow):
         self.connect(dockwidget, SIGNAL('visibilityChanged(bool)'),
                      child.visibility_changed)
         self.widgetlist.append(child)
+        self.dockdict[child] = dockwidget
     
     def add_toolbar(self, widget):
         """Add toolbar including a widget"""
@@ -378,9 +397,7 @@ if __name__ == "__main__":
     COMMANDS, MESSAGE, OPTIONS = get_options()
     
     # Main window
-    MAINWINDOW = ConsoleWindow(COMMANDS, MESSAGE,
-                               workdir=OPTIONS.working_directory,
-                               light=OPTIONS.light, debug=OPTIONS.debug)
+    MAINWINDOW = ConsoleWindow(COMMANDS, MESSAGE, OPTIONS)
     
     #----Patching matplotlib's FigureManager
     if OPTIONS.pylab:
@@ -391,7 +408,7 @@ if __name__ == "__main__":
         # ****************************************************************
         # *  FigureManagerQT
         # ****************************************************************
-        class FigureManagerQT( backend_qt4.FigureManagerBase ):
+        class FigureManagerQT( backend_qt4.FigureManagerQT ):
             """
             Patching matplotlib...
             """
@@ -399,7 +416,7 @@ if __name__ == "__main__":
                 if backend_qt4.DEBUG: print 'FigureManagerQT.%s' % backend_qt4.fn_name()
                 backend_qt4.FigureManagerBase.__init__( self, canvas, num )
                 self.canvas = canvas
-                self.window = MatplotlibFigure(None, canvas, num)
+                self.window = MatplotlibFigure(MAINWINDOW, canvas, num)
                 self.window.setAttribute(Qt.WA_DeleteOnClose)
         
                 image = os.path.join( matplotlib.rcParams['datapath'],'images','matplotlib.png' )
@@ -415,14 +432,13 @@ if __name__ == "__main__":
         
                 self.toolbar = self._get_toolbar(self.canvas, self.window)
                 self.window.addToolBar(self.toolbar)
-        #        QObject.connect(self.toolbar, SIGNAL("message"),
-        #                self.window.statusBar().showMessage)
+                QObject.connect(self.toolbar, SIGNAL("message"),
+                        self.window.statusBar().showMessage)
         
         #        self.window.setCentralWidget(self.canvas)
         
                 if matplotlib.is_interactive():
                     MAINWINDOW.add_dockwidget(self.window)
-    #                    self.window.show()
         
                 # attach a show method to the figure for pylab ease of use
                 self.canvas.figure.show = lambda *args: self.window.show()
@@ -431,41 +447,19 @@ if __name__ == "__main__":
                     # This will be called whenever the current axes is changed
                     if self.toolbar != None: self.toolbar.update()
                 self.canvas.figure.add_axobserver( notify_axes_change )
-        
-            def _widgetclosed( self ):
-                if self.window._destroying: return
-                self.window._destroying = True
-                backend_qt4.Gcf.destroy(self.num)
-        
-            def _get_toolbar(self, canvas, parent):
-                # must be inited after the window, drawingArea and figure
-                # attrs are set
-                if matplotlib.rcParams['toolbar'] == 'classic':
-                    print "Classic toolbar is not supported"
-                elif matplotlib.rcParams['toolbar'] == 'toolbar2':
-                    toolbar = backend_qt4.NavigationToolbar2QT(canvas, parent, False)
-                else:
-                    toolbar = None
-                return toolbar
-        
-            def resize(self, width, height):
-                'set the canvas size in pixels'
-                self.window.resize(width, height)
-        
-            def destroy( self, *args ):
-                if self.window._destroying: return
-                self.window._destroying = True
-                QObject.disconnect( self.window, SIGNAL( 'destroyed()' ),
-                                    self._widgetclosed )
-                if self.toolbar: self.toolbar.destroy()
-                if backend_qt4.DEBUG: print "destroy figure manager"
-                self.window.close()
-        
-            def set_window_title(self, title):
-                self.window.setWindowTitle(title)
-        
-        backend_qt4.FigureManagerQT = FigureManagerQT
         # ****************************************************************
+        backend_qt4.FigureManagerQT = FigureManagerQT
+        
+        # ****************************************************************
+        # *  NavigationToolbar2QT
+        # ****************************************************************
+        class NavigationToolbar2QT( backend_qt4.NavigationToolbar2QT ):
+            def save_figure( self ):
+                MAINWINDOW.shell.restore_stds()
+                super(NavigationToolbar2QT, self).save_figure()
+                MAINWINDOW.shell.redirect_stds()
+        # ****************************************************************
+        backend_qt4.NavigationToolbar2QT = NavigationToolbar2QT
         
     MAINWINDOW.setup()
     MAINWINDOW.show()

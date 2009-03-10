@@ -157,7 +157,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
         """Return QDockWidget properties"""
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.BottomDockWidgetArea)
+                Qt.RightDockWidgetArea)
     
     def show_env(self):
         """Show environment variables"""
