@@ -17,6 +17,7 @@ class MatplotlibFigure(QWidget, WidgetMixin):
     """
     Matplotlib Figure Dockwidget
     """
+    ID = 'figure'
     def __init__(self, parent, canvas, num):
         QWidget.__init__(self, None) # Bug if parent is not None!!
         WidgetMixin.__init__(self, parent)
@@ -42,7 +43,7 @@ class MatplotlibFigure(QWidget, WidgetMixin):
     def set_statusbar(self):
         """Set status bar"""
         statusbar = QLabel('')
-        statusbar.setFont(get_font('figure'))
+        statusbar.setFont(get_font(self.ID))
         return statusbar
         
     def statusBar(self):

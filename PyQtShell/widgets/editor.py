@@ -244,6 +244,7 @@ class Editor(QWidget, WidgetMixin):
     """
     Editor widget
     """
+    ID = 'editor'
     file_path = get_conf_path('.temp.py')
     def __init__(self, parent):
         QWidget.__init__(self, parent)
@@ -264,7 +265,7 @@ class Editor(QWidget, WidgetMixin):
         self.encodings = []
         self.editors = []
         
-        filenames = CONF.get('editor', 'filenames', [])
+        filenames = CONF.get(self.ID, 'filenames', [])
         if filenames:
             self.load(filenames)
         else:
@@ -355,7 +356,7 @@ class Editor(QWidget, WidgetMixin):
             triggered=self.change_font)
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked( CONF.get('editor', 'wrap') )
+        wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
@@ -381,7 +382,7 @@ class Editor(QWidget, WidgetMixin):
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        CONF.set('editor', 'filenames', self.filenames)
+        CONF.set(self.ID, 'filenames', self.filenames)
         return self.save_if_changed(cancelable)
         
     def find(self):
@@ -606,12 +607,12 @@ class Editor(QWidget, WidgetMixin):
         
     def change_font(self):
         """Change editor font"""
-        font, valid = QFontDialog.getFont(get_font('editor'),
+        font, valid = QFontDialog.getFont(get_font(self.ID),
                           self, self.tr("Select a new font"))
         if valid:
             for index in range(0, self.tabwidget.count()):
                 self.editors[index].set_font(font)
-            set_font(font, 'editor')
+            set_font(font, self.ID)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
@@ -624,12 +625,13 @@ class HistoryLog(EditorBaseWidget, WidgetMixin):
     """
     History log widget
     """
+    ID = 'history'
     def __init__(self, parent):
         EditorBaseWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
         self.setReadOnly(True)
-        self.set_font( get_font('history') )
-        self.set_wrap_mode( CONF.get('history', 'wrap') )
+        self.set_font( get_font(self.ID) )
+        self.set_wrap_mode( CONF.get(self.ID, 'wrap') )
         self.history = self.mainwindow.shell.interpreter.rawhistory
         self.refresh()
         
@@ -693,6 +695,7 @@ class DocViewer(QWidget, WidgetMixin):
     """
     Docstrings viewer widget
     """
+    ID = 'docviewer'
     log_path = get_conf_path('.docviewer')
     def __init__(self, parent):
         QWidget.__init__(self, parent)
@@ -701,8 +704,8 @@ class DocViewer(QWidget, WidgetMixin):
         # Read-only editor
         self.editor = EditorBaseWidget(self, margin=False)
         self.editor.setReadOnly(True)
-        self.editor.set_font( get_font('docviewer') )
-        self.editor.set_wrap_mode( CONF.get('docviewer', 'wrap') )
+        self.editor.set_font( get_font(self.ID) )
+        self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )
         
         # Object name
         layout_edit = QHBoxLayout()
@@ -710,7 +713,7 @@ class DocViewer(QWidget, WidgetMixin):
         self.combo = DocComboBox(self)
         self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         layout_edit.addWidget(self.combo)
-        self.combo.setMaxCount(CONF.get('docviewer', 'max_history_entries'))
+        self.combo.setMaxCount(CONF.get(self.ID, 'max_history_entries'))
         dvhistory = self.load_dvhistory()
         self.combo.addItems( dvhistory )
         

@@ -16,8 +16,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from PyQtShell.config import CONF, get_conf_path
-from PyQtShell.config import str2type
+from PyQtShell.config import CONF, get_conf_path, str2type
 from PyQtShell.qthelpers import create_action
 
 # Package local imports
@@ -71,6 +70,7 @@ class Workspace(DictEditor, WidgetMixin):
     """
     Workspace widget (namespace explorer)
     """
+    ID = 'workspace'
     file_path = get_conf_path('.temp.ws')
     def __init__(self, parent):
         self.shell = None
@@ -102,7 +102,7 @@ class Workspace(DictEditor, WidgetMixin):
 
     def refresh(self):
         """Refresh widget"""
-        if CONF.get('workspace', 'autorefresh'):
+        if CONF.get(self.ID, 'autorefresh'):
             self.refresh_editor()
         
     def refresh_editor(self):
@@ -125,7 +125,7 @@ class Workspace(DictEditor, WidgetMixin):
         exclude_private_action = create_action(self,
             self.tr("Exclude private references"),
             toggled=self.toggle_exclude_private)
-        exclude_private_action.setChecked( CONF.get('workspace', 'exclude_private') )
+        exclude_private_action.setChecked( CONF.get(self.ID, 'exclude_private') )
 
         refresh_action = create_action(self, self.tr("Refresh"), None,
             'ws_refresh.png', self.tr("Refresh workspace"),
@@ -133,12 +133,12 @@ class Workspace(DictEditor, WidgetMixin):
         
         autorefresh_action = create_action(self, self.tr("Auto refresh"),
                                            toggled=self.toggle_autorefresh)
-        autorefresh_action.setChecked( CONF.get('workspace', 'autorefresh') )
+        autorefresh_action.setChecked( CONF.get(self.ID, 'autorefresh') )
         
         autosave_action = create_action(self, self.tr("Auto save"),
             toggled=self.toggle_autosave,
             tip=self.tr("Automatically save workspace in a temporary file when quitting"))
-        autosave_action.setChecked( CONF.get('workspace', 'autosave') )
+        autosave_action.setChecked( CONF.get(self.ID, 'autosave') )
         
         menu_actions = (refresh_action, autorefresh_action, None,
                         self.sort_action, self.inplace_action, None,
@@ -149,16 +149,16 @@ class Workspace(DictEditor, WidgetMixin):
     
     def toggle_autorefresh(self, checked):
         """Toggle autorefresh mode"""
-        CONF.set('workspace', 'autorefresh', checked)
+        CONF.set(self.ID, 'autorefresh', checked)
         self.refresh()
         
     def toggle_autosave(self, checked):
         """Toggle autosave mode"""
-        CONF.set('workspace', 'autosave', checked)
+        CONF.set(self.ID, 'autosave', checked)
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        if CONF.get('workspace', 'autosave'):
+        if CONF.get(self.ID, 'autosave'):
             # Saving workspace
             self.save()
         else:
@@ -266,6 +266,6 @@ class Workspace(DictEditor, WidgetMixin):
         
     def toggle_exclude_private(self, checked):
         """Toggle exclude private references"""
-        CONF.set('workspace', 'exclude_private', checked)
+        CONF.set(self.ID, 'exclude_private', checked)
         self.refresh()
 
