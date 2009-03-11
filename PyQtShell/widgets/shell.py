@@ -142,13 +142,20 @@ class Shell(ShellBaseWidget, WidgetMixin):
             menu_actions.insert(2, winenv_action)
         
         # Create a little context menu
+        def keybinding(attr):
+            ks = getattr(QKeySequence, attr)
+            return QKeySequence.keyBindings(ks)[0].toString()
+        
         self.menu = QMenu(self)
         cut_action   = create_action(self, translate("ShellBaseWidget", "Cut"),
+                           shortcut=keybinding('Cut'),
                            icon=get_icon('cut.png'), triggered=self.cut)
         copy_action  = create_action(self, translate("ShellBaseWidget", "Copy"),
+                           shortcut=keybinding('Copy'),
                            icon=get_icon('copy.png'), triggered=self.copy)
         paste_action = create_action(self,
                            translate("ShellBaseWidget", "Paste"),
+                           shortcut=keybinding('Paste'),
                            icon=get_icon('paste.png'), triggered=self.paste)
         clear_action = create_action(self,
                            translate("ShellBaseWidget", "Clear shell"),
@@ -158,6 +165,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
                            triggered=self.clear_terminal)
         self.help_action = create_action(self,
                            translate("ShellBaseWidget", "Help..."),
+                           shortcut="F1",
                            icon=get_std_icon('DialogHelpButton'),
                            triggered=self.help)
         add_actions(self.menu, (cut_action, copy_action, paste_action,
