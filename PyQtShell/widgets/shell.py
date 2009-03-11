@@ -33,15 +33,18 @@ class Shell(ShellBaseWidget, WidgetMixin):
     """
     Shell widget
     """
+    ID = 'shell'
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None):
         self.menu = None
         ShellBaseWidget.__init__(self, parent, namespace, commands, message,
                                  debug, exitfunc)
         WidgetMixin.__init__(self, parent)
+        
         # Parameters
-        self.set_font( get_font('shell') )
-        self.set_wrap_mode( CONF.get('shell', 'wrap') )
+        self.set_font( get_font(self.ID) )
+        self.set_wrap_mode( CONF.get(self.ID, 'wrap') )
+        
         # Escape shortcut
         QShortcut(QKeySequence("Escape"), self, self.clear_line)
         
@@ -111,10 +114,10 @@ class Shell(ShellBaseWidget, WidgetMixin):
             triggered=self.change_exteditor)
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked( CONF.get('shell', 'wrap') )
+        wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
         calltips_action = create_action(self, self.tr("Balloon tips"),
             toggled=self.toggle_calltips)
-        calltips_action.setChecked( CONF.get('shell', 'calltips') )
+        calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
         menu_actions = [run_action, environ_action, None,
                         font_action, history_action, wrap_action,
                         calltips_action, exteditor_action,
@@ -212,11 +215,11 @@ class Shell(ShellBaseWidget, WidgetMixin):
         
     def change_font(self):
         """Change console font"""
-        font, valid = QFontDialog.getFont(get_font('shell'),
+        font, valid = QFontDialog.getFont(get_font(self.ID),
                        self, self.tr("Select a new font"))
         if valid:
             self.set_font(font)
-            set_font(font, 'shell')
+            set_font(font, self.ID)
 
     def change_history_depth(self):
         "Change history max entries"""
@@ -231,9 +234,9 @@ class Shell(ShellBaseWidget, WidgetMixin):
         path, valid = QInputDialog.getText(self, self.tr('External editor'),
                           self.tr('External editor executable path:'),
                           QLineEdit.Normal,
-                          CONF.get('shell', 'external_editor'))
+                          CONF.get(self.ID, 'external_editor'))
         if valid:
-            CONF.set('shell', 'external_editor', unicode(path))
+            CONF.set(self.ID, 'external_editor', unicode(path))
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""

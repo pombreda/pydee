@@ -5,8 +5,8 @@ PyQtShell configuration management
 
 import os
 import os.path as osp
-from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont
-from PyQt4.QtGui import QFontDatabase
+from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
+from PyQt4.QtCore import QSize
 
 APP_PATH = osp.dirname(__file__)
 
@@ -46,6 +46,7 @@ DEFAULTS = [
               }),
             ('shell',
              {
+              'minimum_size' : (400, 300),
               'working_dir_history' : 10,
               'font/family/nt' : ['Consolas', 'Courier New'],
               'font/family/posix' : 'Bitstream Vera Sans Mono',
@@ -72,12 +73,13 @@ DEFAULTS = [
               }),
             ('editor',
              {
+              'minimum_size' : (400, 300),
               'enable' : True,
               'font/family/nt' : ['Consolas', 'Courier New'],
               'font/family/posix' : 'Bitstream Vera Sans Mono',
               'font/family/mac' : 'Monaco',
-              'font/size' : 9,
-              'font/bold' : True,
+              'font/size' : 10,
+              'font/bold' : False,
               'margin/font/family/nt' : ['Consolas', 'Courier New'],
               'margin/font/family/posix' : 'Bitstream Vera Sans Mono',
               'margin/font/family/mac' : 'Monaco',
@@ -88,13 +90,14 @@ DEFAULTS = [
               }),
             ('history',
              {
+              'minimum_size' : (400, 300),
               'enable' : True,
               'max_entries' : 100,
               'font/family/nt' : ['Consolas', 'Courier New'],
               'font/family/posix' : 'Bitstream Vera Sans Mono',
               'font/family/mac' : 'Monaco',
-              'font/size' : 9,
-              'font/bold' : True,
+              'font/size' : 10,
+              'font/bold' : False,
               'margin/font/family/nt' : ['Consolas', 'Courier New'],
               'margin/font/family/posix' : 'Bitstream Vera Sans Mono',
               'margin/font/family/mac' : 'Monaco',
@@ -104,17 +107,19 @@ DEFAULTS = [
               }),
             ('docviewer',
              {
+              'minimum_size' : (400, 300),
               'enable' : True,
               'max_history_entries' : 20,
               'font/family/nt' : ['Consolas', 'Courier New'],
               'font/family/posix' : 'Bitstream Vera Sans Mono',
               'font/family/mac' : 'Monaco',
-              'font/size' : 9,
-              'font/bold' : True,
+              'font/size' : 10,
+              'font/bold' : False,
               'wrap' : True,
               }),
             ('workspace',
              {
+              'minimum_size' : (400, 300),
               'enable' : True,
               'autorefresh' : True,
               'filters' : type2str(FILTERS),
@@ -125,10 +130,10 @@ DEFAULTS = [
               }),
             ('arrayeditor',
              {
-              'font/family/nt' : 'Courier New',
+              'font/family/nt' : ['Consolas', 'Courier New'],
               'font/family/posix' : 'Bitstream Vera Sans Mono',
               'font/family/mac' : 'Monaco',
-              'font/size' : 9,
+              'font/size' : 8,
               'font/bold' : False,
               }),
             ('dicteditor',
@@ -137,10 +142,11 @@ DEFAULTS = [
               'font/family/posix' : 'Bitstream Vera Sans Mono',
               'font/family/mac' : 'Monaco',
               'font/size' : 8,
-              'font/bold' : True,
+              'font/bold' : False,
               }),
             ('figure',
              {
+              'minimum_size' : (100, 100),
               'font/family/nt' : SANS_SERIF,
               'font/family/posix' : SANS_SERIF,
               'font/family/mac' : SANS_SERIF,
