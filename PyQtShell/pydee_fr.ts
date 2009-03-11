@@ -42,67 +42,67 @@
 <context>
     <name>ConsoleWindow</name>
     <message>
-        <location filename="pydee.py" line="87"/>
+        <location filename="pydee.py" line="88"/>
         <source>&amp;View</source>
         <translation>&amp;Affichage</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="82"/>
+        <location filename="pydee.py" line="83"/>
         <source>Toolbar</source>
         <translation>Barre d&apos;outils</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="96"/>
+        <location filename="pydee.py" line="97"/>
         <source>Status bar</source>
         <translation>Barre de status</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="171"/>
+        <location filename="pydee.py" line="172"/>
         <source>About...</source>
         <translation>À propos de...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="274"/>
+        <location filename="pydee.py" line="286"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="105"/>
+        <location filename="pydee.py" line="106"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="142"/>
+        <location filename="pydee.py" line="143"/>
         <source>Loading workspace widget...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="134"/>
+        <location filename="pydee.py" line="135"/>
         <source>Loading editor widget...</source>
         <translation>Chargement de l&apos;éditeur...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="152"/>
+        <location filename="pydee.py" line="153"/>
         <source>Loading history widget...</source>
         <translation>Chargement de l&apos;historique...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="160"/>
+        <location filename="pydee.py" line="161"/>
         <source>Loading docviewer widget...</source>
         <translation>Chargement de l&apos;aide...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="95"/>
+        <location filename="pydee.py" line="96"/>
         <source>Welcome to Pydee!</source>
         <translation>Bienvenue dans Pydee !</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="283"/>
+        <location filename="pydee.py" line="295"/>
         <source>Pydee</source>
         <translation>Pydee</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="283"/>
+        <location filename="pydee.py" line="295"/>
         <source>&lt;b&gt;%1&lt;/b&gt; v %2
             &lt;br&gt;PYthon Development EnvironmEnt
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut - GPLv2
@@ -759,14 +759,19 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>WinUserEnvDialog</name>
     <message>
-        <location filename="environ.py" line="74"/>
+        <location filename="environ.py" line="77"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
         <location filename="environ.py" line="75"/>
         <source>If you accept changes, this will modify the current user environment variables (in Windows registry). Use it with precautions, at your own risks.</source>
-        <translation>Si vous acceptez les changements effectués, cela modifiera les variables d&apos;environnement de l&apos;utilisateur courant (dans le registre Windows). Utilisez cette fonctionnalité avec précautions et à vos risques et périls.</translation>
+        <translation type="obsolete">Si vous acceptez les changements effectués, cela modifiera les variables d&apos;environnement de l&apos;utilisateur courant (dans le registre Windows). Utilisez cette fonctionnalité avec précautions et à vos risques et périls.</translation>
+    </message>
+    <message>
+        <location filename="environ.py" line="78"/>
+        <source>If you accept changes, this will modify the current user environment variables (in Windows registry) - it requires a session restart. Use it with precautions, at your own risks.</source>
+        <translation>Si vous acceptez les changements effectués, cela modifiera les variables d&apos;environnement de l&apos;utilisateur courant (dans le registre Windows) - cela nécessite une réouverture de session. Utilisez cette fonctionnalité avec précautions et à vos risques et périls.</translation>
     </message>
 </context>
 <context>

@@ -39,7 +39,7 @@ class EnvDialog(DictEditorDialog):
 try:
     #---- Windows platform
     from _winreg import OpenKey, EnumValue, QueryInfoKey, SetValueEx, QueryValueEx
-    from _winreg import HKEY_CURRENT_USER, KEY_SET_VALUE
+    from _winreg import HKEY_CURRENT_USER, KEY_SET_VALUE, REG_EXPAND_SZ
 
     def get_user_env():
         """Return HKCU (current user) environment variables"""
@@ -59,7 +59,10 @@ try:
         types = dict()
         key = OpenKey(HKEY_CURRENT_USER, "Environment")
         for name in reg:
-            _, types[name] = QueryValueEx(key, name)
+            try:
+                _, types[name] = QueryValueEx(key, name)
+            except WindowsError:
+                types[name] = REG_EXPAND_SZ
         key = OpenKey(HKEY_CURRENT_USER, "Environment", 0, KEY_SET_VALUE)
         for name in reg:
             SetValueEx(key, name, 0, types[name], reg[name])
@@ -72,7 +75,7 @@ try:
             if parent is None:
                 parent = self
             QMessageBox.warning(parent, translate("WinUserEnvDialog", "Warning"),
-                translate("WinUserEnvDialog", "If you accept changes, this will modify the current user environment variables (in Windows registry). Use it with precautions, at your own risks."))
+                translate("WinUserEnvDialog", "If you accept changes, this will modify the current user environment variables (in Windows registry) - it requires a session restart. Use it with precautions, at your own risks."))
             
         def accept(self):
             """Reimplement Qt method"""
