@@ -318,7 +318,7 @@ class ShellBaseWidget(Terminal):
                 txt_err = transcode(txt_err.rstrip(), 'cp437')
             if txt_err:
                 self.write_error(txt_err)
-            else:
+            if txt_out:
                 self.write(txt_out)
             self.write('\n')
             self.more = False
