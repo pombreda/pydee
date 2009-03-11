@@ -26,4 +26,4 @@ This software is licensed under the terms of the GNU General Public
 License version 2 as published by the Free Software Foundation.
 """
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'

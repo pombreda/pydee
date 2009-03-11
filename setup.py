@@ -33,7 +33,7 @@ from PyQtShell import __version__ as version
 google_url = 'http://%s.googlecode.com' % name.lower()
 download_url = '%s/files/%s-%s-py2.5.egg' % (google_url, name, version)
 py_modules = ['xyinstall']
-packages = ['PyQtShell']
+packages = ['PyQtShell', 'PyQtShell.widgets']
 package_data={'PyQtShell': ['images/*.png', '*.qm', 'python.api']}
 scripts = ['pydee.pyw']
 import os

@@ -387,8 +387,8 @@ def get_options():
     return commands, message, options
 
 
-if __name__ == "__main__":
-    #----Pydee application
+def main():
+    """Pydee application"""
     APP = QApplication(sys.argv)
     
     # Translation
@@ -473,3 +473,7 @@ if __name__ == "__main__":
     MAINWINDOW.setup()
     MAINWINDOW.show()
     sys.exit(APP.exec_())
+
+
+if __name__ == "__main__":
+    main()
