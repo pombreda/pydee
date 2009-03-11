@@ -197,7 +197,7 @@ def font_is_installed(font):
     """
     Check if font is installed
     """
-    return [fam for fam in QFontDatabase().families() if str(fam)==font]
+    return [fam for fam in QFontDatabase().families() if unicode(fam)==font]
     
 def get_font(section, option=None):
     """
@@ -229,6 +229,6 @@ def set_font(font, section, option=None):
         option = 'font'
     else:
         option += '/font'
-    CONF.set(section, option+'/family/'+os.name, str(font.family()))
+    CONF.set(section, option+'/family/'+os.name, unicode(font.family()))
     CONF.set(section, option+'/size', float(font.pointSize()))
     CONF.set(section, option+'/bold', int(font.bold()))
