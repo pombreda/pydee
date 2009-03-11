@@ -8,6 +8,7 @@
 
 from PyQt4.QtGui import QMessageBox, QShortcut, QKeySequence, QMenu
 from PyQt4.QtGui import QFileDialog, QFontDialog, QInputDialog, QLineEdit
+from PyQt4.QtGui import QApplication, QCursor
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os, re, sys
@@ -47,6 +48,16 @@ class Shell(ShellBaseWidget, WidgetMixin):
         
         # Escape shortcut
         QShortcut(QKeySequence("Escape"), self, self.clear_line)
+        
+        self.connect(self, SIGNAL("executing_command(bool)"),
+                     self.change_cursor)
+        
+    def change_cursor(self, state):
+        """Change widget cursor"""
+        if state:
+            QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
+        else:
+            QApplication.restoreOverrideCursor()
         
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
