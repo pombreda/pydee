@@ -42,7 +42,6 @@ from PyQtShell.qthelpers import create_action, add_actions, get_std_icon
 from PyQtShell.config import get_icon, get_image_path, CONF
 
 
-#TODO: Add an option "force tabified" in view_menu
 class ConsoleWindow(QMainWindow):
     """Console QDialog"""
     def __init__(self, commands=None, message="", options=None):
@@ -405,7 +404,18 @@ def get_options():
 
 def main():
     """Pydee application"""
-    APP = QApplication(sys.argv)
+    APP = QApplication(sys.argv)    
+
+    #----Patching PyQt4's QApplication
+    # Ok, that is *ugly*... but it can be useful to avoid freezing Pydee by
+    # instantiating another QApplication inside it.
+    class FakeQApplication(object):
+        def __init__(self, argv):
+            pass
+        def exec_(self):
+            pass
+    from PyQt4 import QtGui
+    QtGui.QApplication = FakeQApplication
     
     # Translation
     LOCALE = QLocale.system().name()
