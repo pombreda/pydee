@@ -285,7 +285,8 @@ class DictDelegate(QItemDelegate):
         value = index.model().get_value(index)
         key = index.model().get_key(index)
         if isinstance(value, (list, tuple, dict)) and not self.inplace:
-            editor = DictEditorDialog(value, key)
+            editor = DictEditorDialog(value, key,
+                                      icon=self.parent().windowIcon())
             if editor.exec_():
                 index.model().set_value(index, editor.get_copy())
             return None
@@ -479,7 +480,8 @@ class DictEditorWidget(QWidget):
 
 class DictEditorDialog(QDialog):
     """Dictionary/List Editor Dialog"""
-    def __init__(self, data, title="", width=500, readonly=False):
+    def __init__(self, data, title="", width=500,
+                 readonly=False, icon='dictedit.png'):
         QDialog.__init__(self)
         import copy
         self.copy = copy.deepcopy(data)
@@ -507,7 +509,9 @@ class DictEditorDialog(QDialog):
         self.resize(width, height)
         
         self.setWindowTitle(self.widget.get_title())
-        self.setWindowIcon(get_icon('dictedit.png'))
+        if isinstance(icon, (str, unicode)):
+            icon = get_icon(icon)
+        self.setWindowIcon(icon)
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         
