@@ -6,7 +6,6 @@ PyQtShell configuration management
 import os
 import os.path as osp
 from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
-from PyQt4.QtCore import QSize
 
 APP_PATH = osp.dirname(__file__)
 
