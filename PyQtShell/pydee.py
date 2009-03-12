@@ -361,12 +361,7 @@ def get_options():
                 print "Warning: module '%s' was not found" % mod
                 continue
     if options.pylab:
-        commands.extend([
-                         'from matplotlib import rcParams',
-                         'rcParams["interactive"]=True',
-                         'rcParams["backend"]="Qt4Agg"',
-                         'from pylab import *',
-                         ])
+        commands.append('from pylab import *')
         options.numpy = True
         messagelist.append('pylab')
     if options.os:
@@ -374,11 +369,11 @@ def get_options():
                          'import os.path as osp'])
         messagelist.append('os')
     if options.scipy:
-        commands.extend(['import scipy as S'])
+        commands.append('import scipy as S')
         options.numpy = True
         messagelist.append('scipy')
     if options.numpy:
-        commands.extend(['import numpy as N'])
+        commands.append('import numpy as N')
         messagelist.append('numpy')
         
     # Adding PYTHONSTARTUP file to initial commands
@@ -424,6 +419,12 @@ def main():
     
     #----Patching matplotlib's FigureManager
     if OPTIONS.pylab:
+        # Customizing matplotlib's parameters
+        from matplotlib import rcParams
+        rcParams["interactive"]=True # interactive mode
+        rcParams["backend"]="Qt4Agg" # using Qt4 to render figures
+        
+        # Monkey patching matplotlib's figure manager for better integration
         from matplotlib.backends import backend_qt4
         from PyQtShell.widgets.figure import MatplotlibFigure
         import matplotlib
