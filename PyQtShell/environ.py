@@ -29,7 +29,8 @@ class EnvDialog(DictEditorDialog):
     """Environment variables Dialog"""
     def __init__(self):
         super(EnvDialog, self).__init__(envdict2listdict( dict(os.environ) ),
-                                        title="os.environ", width=600)
+                                        title="os.environ", width=600,
+                                        icon='environ.png')
     def accept(self):
         """Reimplement Qt method"""
         os.environ = listdict2envdict( self.get_copy() )
