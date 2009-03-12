@@ -405,18 +405,6 @@ def get_options():
 def main():
     """Pydee application"""
     APP = QApplication(sys.argv)    
-
-    #----Patching PyQt4's QApplication
-    # Ok, that is *ugly*... but it can be useful to avoid freezing Pydee by
-    # instantiating another QApplication inside it.
-    class FakeQApplication(object):
-        def __init__(self, argv):
-            pass
-        def exec_(self):
-            pass
-    from PyQt4 import QtGui
-    QtGui.QApplication = FakeQApplication
-    
     # Translation
     LOCALE = QLocale.system().name()
     QT_TRANSLATOR = QTranslator()
