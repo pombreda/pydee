@@ -25,11 +25,11 @@ import sys, os, platform
 # For debugging purpose only
 STDOUT = sys.stdout
 
-from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap
-from PyQt4.QtGui import QMessageBox, QMenu, QIcon, QLabel
-from PyQt4.QtCore import SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt
-from PyQt4.QtCore import QLibraryInfo, QLocale, QTranslator, QSize, QByteArray
-from PyQt4.QtCore import QObject
+from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
+                         QMessageBox, QMenu, QIcon, QLabel, QCursor)
+from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
+                          QLibraryInfo, QLocale, QTranslator, QSize, QByteArray,
+                          QObject)
 
 # Local import
 from PyQtShell import __version__
@@ -488,6 +488,9 @@ def main():
                 mainwindow.shell.restore_stds()
                 super(NavigationToolbar2QT, self).save_figure()
                 mainwindow.shell.redirect_stds()
+            def set_cursor( self, cursor ):
+                if backend_qt4.DEBUG: print 'Set cursor' , cursor
+                self.parent().setCursor( QCursor(backend_qt4.cursord[cursor]) )
         # ****************************************************************
         backend_qt4.NavigationToolbar2QT = NavigationToolbar2QT
         
