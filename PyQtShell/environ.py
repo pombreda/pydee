@@ -76,11 +76,21 @@ try:
             if parent is None:
                 parent = self
             QMessageBox.warning(parent, translate("WinUserEnvDialog", "Warning"),
-                translate("WinUserEnvDialog", "If you accept changes, this will modify the current user environment variables (in Windows registry) - it requires a session restart. Use it with precautions, at your own risks."))
+                translate("WinUserEnvDialog", "If you accept changes, this will modify the current user environment variables (in Windows registry). Use it with precautions, at your own risks."))
             
         def accept(self):
             """Reimplement Qt method"""
             set_user_env( listdict2envdict(self.get_copy()) )
+            try:
+                from win32gui import SendMessageTimeout
+                from win32con import (HWND_BROADCAST, WM_SETTINGCHANGE,
+                                      SMTO_ABORTIFHUNG)
+                SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
+                                   "Environment", SMTO_ABORTIFHUNG, 5000)
+            except ImportError:
+                QMessageBox.warning(self, translate("WinUserEnvDialog", "Warning"),
+                    translate("WinUserEnvDialog",
+                              "Module pywin32 was not found: restart session to take these changes into account."))
             QDialog.accept(self)
 
 except ImportError:
