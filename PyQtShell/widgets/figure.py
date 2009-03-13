@@ -43,7 +43,7 @@ class MatplotlibFigure(QWidget, WidgetMixin):
     def set_statusbar(self):
         """Set status bar"""
         statusbar = QLabel('')
-        statusbar.setFont(get_font(self.ID))
+        statusbar.setFont(get_font(self.ID, 'statusbar'))
         return statusbar
         
     def statusBar(self):

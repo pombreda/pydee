@@ -29,6 +29,11 @@ def str2type(strings):
 
 SANS_SERIF = ['Bitstream Vera Sans', 'Lucida Grande', 'Verdana', 'Geneva',
               'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
+SANS_SERIF.insert(0, unicode(QFont().family()))
+
+MONOSPACE = ['Bitstream Vera Sans Mono', 'Monaco', 'Consolas', 'Andale Mono',
+             'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal',
+             'monospace']
 
 DEFAULTS = [
             ('window',
@@ -47,9 +52,7 @@ DEFAULTS = [
              {
               'minimum_size' : (400, 300),
               'working_dir_history' : 10,
-              'font/family/nt' : ['Consolas', 'Courier New'],
-              'font/family/posix' : 'Bitstream Vera Sans Mono',
-              'font/family/mac' : 'Monaco',
+              'font/family' : MONOSPACE,
               'font/size' : 10,
               'font/bold' : False,
               'wrap' : True,
@@ -63,9 +66,7 @@ DEFAULTS = [
               }),
             ('calltips',
              {
-              'font/family/nt' : ['Consolas', 'Courier New'],
-              'font/family/posix' : 'Bitstream Vera Sans Mono',
-              'font/family/mac' : 'Monaco',
+              'font/family' : MONOSPACE,
               'font/size' : 8,
               'font/bold' : False,
               'size' : 600,
@@ -74,14 +75,10 @@ DEFAULTS = [
              {
               'minimum_size' : (400, 300),
               'enable' : True,
-              'font/family/nt' : ['Consolas', 'Courier New'],
-              'font/family/posix' : 'Bitstream Vera Sans Mono',
-              'font/family/mac' : 'Monaco',
+              'font/family' : MONOSPACE,
               'font/size' : 10,
               'font/bold' : False,
-              'margin/font/family/nt' : ['Consolas', 'Courier New'],
-              'margin/font/family/posix' : 'Bitstream Vera Sans Mono',
-              'margin/font/family/mac' : 'Monaco',
+              'margin/font/family' : MONOSPACE,
               'margin/font/size' : 8,
               'margin/font/bold' : False,
               'wrap' : True,
@@ -92,14 +89,10 @@ DEFAULTS = [
               'minimum_size' : (400, 300),
               'enable' : True,
               'max_entries' : 100,
-              'font/family/nt' : ['Consolas', 'Courier New'],
-              'font/family/posix' : 'Bitstream Vera Sans Mono',
-              'font/family/mac' : 'Monaco',
+              'font/family' : MONOSPACE,
               'font/size' : 10,
               'font/bold' : False,
-              'margin/font/family/nt' : ['Consolas', 'Courier New'],
-              'margin/font/family/posix' : 'Bitstream Vera Sans Mono',
-              'margin/font/family/mac' : 'Monaco',
+              'margin/font/family' : MONOSPACE,
               'margin/font/size' : 8,
               'margin/font/bold' : True,
               'wrap' : True,
@@ -109,9 +102,7 @@ DEFAULTS = [
               'minimum_size' : (400, 300),
               'enable' : True,
               'max_history_entries' : 20,
-              'font/family/nt' : ['Consolas', 'Courier New'],
-              'font/family/posix' : 'Bitstream Vera Sans Mono',
-              'font/family/mac' : 'Monaco',
+              'font/family' : MONOSPACE,
               'font/size' : 10,
               'font/bold' : False,
               'wrap' : True,
@@ -129,35 +120,32 @@ DEFAULTS = [
               }),
             ('arrayeditor',
              {
-              'font/family/nt' : ['Consolas', 'Courier New'],
-              'font/family/posix' : 'Bitstream Vera Sans Mono',
-              'font/family/mac' : 'Monaco',
+              'font/family' : MONOSPACE,
               'font/size' : 8,
               'font/bold' : False,
               }),
             ('dicteditor',
              {
-              'font/family/nt' : ['Consolas', 'Courier New'],
-              'font/family/posix' : 'Bitstream Vera Sans Mono',
-              'font/family/mac' : 'Monaco',
+              'font/family' : MONOSPACE,
               'font/size' : 8,
               'font/bold' : False,
               }),
             ('figure',
              {
               'minimum_size' : (100, 100),
-              'font/family/nt' : SANS_SERIF,
-              'font/family/posix' : SANS_SERIF,
-              'font/family/mac' : SANS_SERIF,
-              'font/size' : 8,
+              'font/family' : SANS_SERIF,
+              'font/size' : 11,
               'font/bold' : False,
+              'statusbar/font/family' : SANS_SERIF,
+              'statusbar/font/size' : 8,
+              'statusbar/font/bold' : False,
               }),
             ]
 
 DEV = osp.isfile(osp.join(osp.join(APP_PATH, osp.pardir), 'setup.py'))
 #DEV = False
 from userconfig import UserConfig
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.0.19', load=(not DEV))
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.1.0', load=(not DEV))
 
 def get_conf_path(filename):
     """
@@ -206,7 +194,7 @@ def get_font(section, option=None):
         option = 'font'
     else:
         option += '/font'
-    families = CONF.get(section, option+'/family/'+os.name)
+    families = CONF.get(section, option+'/family')
     if not isinstance(families, list):
         families = [ families ]
     family = None
