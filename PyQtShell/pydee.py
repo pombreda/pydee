@@ -26,7 +26,7 @@ import sys, os, platform
 STDOUT = sys.stdout
 
 from PyQt4.QtGui import QApplication, QMainWindow, QSplashScreen, QPixmap
-from PyQt4.QtGui import QMessageBox, QMenu, QIcon
+from PyQt4.QtGui import QMessageBox, QMenu, QIcon, QLabel
 from PyQt4.QtCore import SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt
 from PyQt4.QtCore import QLibraryInfo, QLocale, QTranslator, QSize, QByteArray
 from PyQt4.QtCore import QObject
@@ -39,7 +39,7 @@ from PyQtShell.widgets.workdir import WorkingDirectory
 from PyQtShell.widgets.editor import Editor, HistoryLog, DocViewer
 from PyQtShell.widgets.workspace import Workspace
 from PyQtShell.qthelpers import create_action, add_actions, get_std_icon
-from PyQtShell.config import get_icon, get_image_path, CONF
+from PyQtShell.config import get_font, get_icon, get_image_path, CONF
 
 
 class ConsoleWindow(QMainWindow):
@@ -399,30 +399,36 @@ def get_options():
 
 def main():
     """Pydee application"""
-    APP = QApplication(sys.argv)    
+    app = QApplication(sys.argv)    
     # Translation
-    LOCALE = QLocale.system().name()
-    QT_TRANSLATOR = QTranslator()
-    if QT_TRANSLATOR.load("qt_" + LOCALE,
+    locale = QLocale.system().name()
+    qt_translator = QTranslator()
+    if qt_translator.load("qt_" + locale,
                           QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
-        APP.installTranslator(QT_TRANSLATOR)
-    APP_TRANSLATOR = QTranslator()
-    APP_PATH = os.path.dirname(__file__)
-    if APP_TRANSLATOR.load("pydee_" + LOCALE, APP_PATH):
-        APP.installTranslator(APP_TRANSLATOR)
+        app.installTranslator(qt_translator)
+    app_translator = QTranslator()
+    app_path = os.path.dirname(__file__)
+    if app_translator.load("pydee_" + locale, app_path):
+        app.installTranslator(app_translator)
     
     # Options
-    COMMANDS, MESSAGE, OPTIONS = get_options()
+    commands, message, options = get_options()
     
     # Main window
-    MAINWINDOW = ConsoleWindow(COMMANDS, MESSAGE, OPTIONS)
+    mainwindow = ConsoleWindow(commands, message, options)
     
     #----Patching matplotlib's FigureManager
-    if OPTIONS.pylab:
+    if options.pylab:
         # Customizing matplotlib's parameters
         from matplotlib import rcParams
         rcParams["interactive"]=True # interactive mode
         rcParams["backend"]="Qt4Agg" # using Qt4 to render figures
+        font = get_font('figure')
+        rcParams["font.sans-serif"].insert(0, unicode(font.family()))
+        rcParams["font.size"] = int(font.pointSize())
+        bgcolor = unicode( \
+                    QLabel().palette().color(QLabel().backgroundRole()).name() )
+        rcParams['figure.facecolor'] = CONF.get('figure', 'facecolor', bgcolor)
         
         # Monkey patching matplotlib's figure manager for better integration
         from matplotlib.backends import backend_qt4
@@ -440,7 +446,7 @@ def main():
                 if backend_qt4.DEBUG: print 'FigureManagerQT.%s' % backend_qt4.fn_name()
                 backend_qt4.FigureManagerBase.__init__( self, canvas, num )
                 self.canvas = canvas
-                self.window = MatplotlibFigure(MAINWINDOW, canvas, num)
+                self.window = MatplotlibFigure(mainwindow, canvas, num)
                 self.window.setAttribute(Qt.WA_DeleteOnClose)
         
                 image = os.path.join( matplotlib.rcParams['datapath'],'images','matplotlib.png' )
@@ -462,7 +468,7 @@ def main():
         #        self.window.setCentralWidget(self.canvas)
         
                 if matplotlib.is_interactive():
-                    MAINWINDOW.add_dockwidget(self.window)
+                    mainwindow.add_dockwidget(self.window)
         
                 # attach a show method to the figure for pylab ease of use
                 self.canvas.figure.show = lambda *args: self.window.show()
@@ -479,15 +485,15 @@ def main():
         # ****************************************************************
         class NavigationToolbar2QT( backend_qt4.NavigationToolbar2QT ):
             def save_figure( self ):
-                MAINWINDOW.shell.restore_stds()
+                mainwindow.shell.restore_stds()
                 super(NavigationToolbar2QT, self).save_figure()
-                MAINWINDOW.shell.redirect_stds()
+                mainwindow.shell.redirect_stds()
         # ****************************************************************
         backend_qt4.NavigationToolbar2QT = NavigationToolbar2QT
         
-    MAINWINDOW.setup()
-    MAINWINDOW.show()
-    sys.exit(APP.exec_())
+    mainwindow.setup()
+    mainwindow.show()
+    sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
