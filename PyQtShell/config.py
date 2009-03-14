@@ -31,9 +31,11 @@ SANS_SERIF = ['Bitstream Vera Sans', 'Lucida Grande', 'Verdana', 'Geneva',
               'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
 SANS_SERIF.insert(0, unicode(QFont().family()))
 
-MONOSPACE = ['Bitstream Vera Sans Mono', 'Monaco', 'Consolas', 'Andale Mono',
-             'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal',
-             'monospace']
+MONOSPACE = ['Consolas', 'Courier New', 'Bitstream Vera Sans Mono',
+             'Andale Mono', 'Monaco', 'Nimbus Mono L', 'Courier', 
+             'Fixed', 'monospace', 'Terminal']
+DEFAULT_SIZE = 9
+SIZE_DELTA = {'Consolas' : 1}
 
 DEFAULTS = [
             ('window',
@@ -53,7 +55,7 @@ DEFAULTS = [
               'minimum_size' : (400, 300),
               'working_dir_history' : 10,
               'font/family' : MONOSPACE,
-              'font/size' : 10,
+              'font/size' : DEFAULT_SIZE,
               'font/bold' : False,
               'wrap' : True,
               'calltips' : True,
@@ -67,7 +69,7 @@ DEFAULTS = [
             ('calltips',
              {
               'font/family' : MONOSPACE,
-              'font/size' : 8,
+              'font/size' : DEFAULT_SIZE-2,
               'font/bold' : False,
               'size' : 600,
               }),
@@ -76,10 +78,10 @@ DEFAULTS = [
               'minimum_size' : (400, 300),
               'enable' : True,
               'font/family' : MONOSPACE,
-              'font/size' : 10,
+              'font/size' : DEFAULT_SIZE,
               'font/bold' : False,
               'margin/font/family' : MONOSPACE,
-              'margin/font/size' : 8,
+              'margin/font/size' : DEFAULT_SIZE-2,
               'margin/font/bold' : False,
               'wrap' : True,
               'api' : osp.join(APP_PATH, 'python.api'),
@@ -90,10 +92,10 @@ DEFAULTS = [
               'enable' : True,
               'max_entries' : 100,
               'font/family' : MONOSPACE,
-              'font/size' : 10,
+              'font/size' : DEFAULT_SIZE,
               'font/bold' : False,
               'margin/font/family' : MONOSPACE,
-              'margin/font/size' : 8,
+              'margin/font/size' : DEFAULT_SIZE-2,
               'margin/font/bold' : True,
               'wrap' : True,
               }),
@@ -103,7 +105,7 @@ DEFAULTS = [
               'enable' : True,
               'max_history_entries' : 20,
               'font/family' : MONOSPACE,
-              'font/size' : 10,
+              'font/size' : DEFAULT_SIZE,
               'font/bold' : False,
               'wrap' : True,
               }),
@@ -121,13 +123,13 @@ DEFAULTS = [
             ('arrayeditor',
              {
               'font/family' : MONOSPACE,
-              'font/size' : 8,
+              'font/size' : DEFAULT_SIZE-2,
               'font/bold' : False,
               }),
             ('dicteditor',
              {
               'font/family' : MONOSPACE,
-              'font/size' : 8,
+              'font/size' : DEFAULT_SIZE-2,
               'font/bold' : False,
               }),
             ('figure',
@@ -206,7 +208,8 @@ def get_font(section, option=None):
     weight = QFont.Normal
     if CONF.get(section, option+'/bold'):
         weight = QFont.Bold
-    return QFont(family, CONF.get(section, option+'/size'), weight)
+    size = CONF.get(section, option+'/size') + SIZE_DELTA.get(family, 0)
+    return QFont(family, size, weight)
 
 def set_font(font, section, option=None):
     """
