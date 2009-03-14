@@ -35,7 +35,7 @@ MONOSPACE = ['Consolas', 'Courier New', 'Bitstream Vera Sans Mono',
              'Andale Mono', 'Monaco', 'Nimbus Mono L', 'Courier', 
              'Fixed', 'monospace', 'Terminal']
 DEFAULT_SIZE = 9
-SIZE_DELTA = {'Consolas' : 1}
+SIZE_DELTA = {'Consolas' : 1, 'Bitstream Vera Sans Mono' : 1}
 
 DEFAULTS = [
             ('window',
