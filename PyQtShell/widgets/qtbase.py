@@ -2,10 +2,10 @@
 """Editor and terminal base widgets used only if QScintilla is not installed"""
 
 from PyQt4.QtCore import Qt, QString, SIGNAL, QEvent, QRegExp, QPoint
-from PyQt4.QtGui import QTextEdit, QTextCursor, QColor, QFont, QCursor
-from PyQt4.QtGui import QSyntaxHighlighter, QApplication, QTextCharFormat
-from PyQt4.QtGui import QKeySequence, QToolTip, QTextImageFormat
-from PyQt4.QtGui import QTextDocument
+from PyQt4.QtGui import (QTextEdit, QTextCursor, QColor, QFont, QCursor,
+                         QSyntaxHighlighter, QApplication, QTextCharFormat,
+                         QKeySequence, QToolTip, QTextImageFormat,
+                         QTextDocument)
 
 import __builtin__
 
@@ -21,6 +21,7 @@ STDOUT = sys.stdout
 # Local import
 from PyQtShell.config import get_font, CONF, get_image_path
 from PyQtShell.dochelpers import getobj
+from PyQtShell.qthelpers import mimedata2url
 
 
 #TODO: Improve "PythonHighlighter" performance... very slow for large files!
@@ -172,13 +173,6 @@ class PythonHighlighter(QSyntaxHighlighter):
         QApplication.restoreOverrideCursor()
 
 
-def mimedata2url(source):
-    """Extract url list from MIME data"""
-    if source.hasUrls():
-        paths = [unicode(url.toString()) for url in source.urls()]
-        return [path[8:] for path in paths if path.startswith(r"file://") \
-                and (path.endswith(".py") or path.endswith(".pyw"))]
-
 class QtEditor(QTextEdit):
     """
     Qt-based Editor Widget
@@ -280,24 +274,6 @@ class QtEditor(QTextEdit):
         cursor.removeSelectedText()
         cursor.insertText(text)
         cursor.endEditBlock()
-        
-    def canInsertFromMimeData(self, source):
-        """Reimplement Qt method
-        Drag and *drop* implementation"""
-        if source.hasUrls():
-            if mimedata2url(source):
-                return True
-        return QTextEdit.canInsertFromMimeData(self, source)
-
-    def insertFromMimeData(self, source):
-        """Reimplement Qt method
-        Drag and *drop* implementation"""
-        if source.hasUrls():
-            files = mimedata2url(source)
-            if files:
-                self.emit(SIGNAL("drop_files(PyQt_PyObject)"), files)
-        else:
-            self.textCursor().insertText( source.text() )
 
 
 class QtTerminal(QTextEdit):

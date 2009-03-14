@@ -178,6 +178,12 @@ class QsciEditor(QsciScintilla):
         return self.findFirst(text, False, case, words,
                               True, forward, -1, -1, True)
     
+    def insert_text(self, text):
+        """Insert text at cursor position"""
+        line, col = self.getCursorPosition()
+        self.insertAt(text, line, col)
+        self.setCursorPosition(line, col + len(str(text)))
+        
     
 #TODO: Do not allow user to ctrl-leftarrow back into the command prompt (or past)
 class QsciTerminal(QsciScintilla):

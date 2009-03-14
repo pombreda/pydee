@@ -6,10 +6,10 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel
-from PyQt4.QtGui import QFileDialog, QPushButton, QLineEdit, QTabWidget, QMenu
-from PyQt4.QtGui import QShortcut, QKeySequence, QCheckBox, QMessageBox
-from PyQt4.QtGui import QFontDialog, QComboBox, QSizePolicy
+from PyQt4.QtGui import (QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel,
+                         QFileDialog, QPushButton, QLineEdit, QTabWidget, QMenu,
+                         QShortcut, QKeySequence, QCheckBox, QMessageBox,
+                         QFontDialog, QComboBox, QSizePolicy)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os, sys, re
@@ -21,7 +21,8 @@ STDOUT = sys.stdout
 # Local imports
 from PyQtShell import encoding
 from PyQtShell.config import CONF, get_conf_path, get_icon, get_font, set_font
-from PyQtShell.qthelpers import get_std_icon, create_action, add_actions
+from PyQtShell.qthelpers import (get_std_icon, create_action, add_actions,
+                                 mimedata2url)
 from PyQtShell.dochelpers import getdoc, getsource
 try:
     from PyQtShell.widgets.qscibase import QsciEditor as EditorBaseWidget
@@ -270,6 +271,9 @@ class Editor(QWidget, WidgetMixin):
             self.load(filenames)
         else:
             self.load_temp_file()
+            
+        # Accepting drops
+        self.setAcceptDrops(True)
         
     def refresh(self, index):
         """Refresh tabwidget"""
@@ -558,8 +562,6 @@ class Editor(QWidget, WidgetMixin):
                 
                 # Editor widget creation
                 editor = SimpleEditor(self, txt)
-                self.connect(editor, SIGNAL("drop_files(PyQt_PyObject)"),
-                             self.load)
                 self.editors.append(editor)
                 
                 title = self.get_title(filename)
@@ -619,6 +621,27 @@ class Editor(QWidget, WidgetMixin):
         if hasattr(self, 'tabwidget'):
             for index in range(0, self.tabwidget.count()):
                 self.editors[index].set_wrap_mode(checked)
+    
+    def dragEnterEvent(self, event):
+        """Reimplement Qt method
+        Inform Qt about the types of data that the widget accepts"""
+        source = event.mimeData()
+        if source.hasUrls() or source.hasText():
+            event.acceptProposedAction()
+            
+    def dropEvent(self, event):
+        """Reimplement Qt method
+        Unpack dropped data and handle it"""
+        source = event.mimeData()
+        if source.hasUrls():
+            files = mimedata2url(source)
+            if files:
+                self.load(files)
+        elif source.hasText():
+            if self.tabwidget.count():
+                editor = self.editors[self.tabwidget.currentIndex()]
+                editor.insert_text( source.text() )
+        event.acceptProposedAction()
 
 
 class HistoryLog(EditorBaseWidget, WidgetMixin):

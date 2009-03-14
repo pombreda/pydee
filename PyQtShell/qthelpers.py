@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Qt utilities"""
 
-from PyQt4.QtGui import QAction, QStyle, QWidget, QIcon, QApplication
-from PyQt4.QtGui import QVBoxLayout, QHBoxLayout, QLineEdit, QLabel
+from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
+                         QVBoxLayout, QHBoxLayout, QLineEdit, QLabel)
 from PyQt4.QtCore import SIGNAL
 
 # Local import
@@ -11,6 +11,13 @@ from config import get_icon
 def translate(context, string):
     """Translation"""
     return QApplication.translate(context, string)
+
+def mimedata2url(source):
+    """Extract url list from MIME data"""
+    if source.hasUrls():
+        paths = [unicode(url.toString()) for url in source.urls()]
+        return [path[8:] for path in paths if path.startswith(r"file://") \
+                and (path.endswith(".py") or path.endswith(".pyw"))]
 
 def toggle_actions(actions, enable):
     """Enable/disable actions"""
