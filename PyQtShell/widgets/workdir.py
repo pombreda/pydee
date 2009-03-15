@@ -6,8 +6,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QWidget, QHBoxLayout, QPushButton, QLabel, QSizePolicy
-from PyQt4.QtGui import QFileDialog
+from PyQt4.QtGui import (QWidget, QHBoxLayout, QPushButton, QLabel, QSizePolicy,
+                         QFileDialog)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os, sys

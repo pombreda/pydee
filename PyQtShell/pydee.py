@@ -31,7 +31,7 @@ from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QLibraryInfo, QLocale, QTranslator, QSize, QByteArray,
                           QObject)
 
-# Local import
+# Local imports
 from PyQtShell import __version__
 from PyQtShell import encoding
 from PyQtShell.widgets.shell import Shell
@@ -53,13 +53,6 @@ class ConsoleWindow(QMainWindow):
         self.light = options.light
         
         self.filename = None
-
-#        corners = ( (Qt.TopLeftCorner, Qt.LeftDockWidgetArea),
-#                    (Qt.BottomLeftCorner, Qt.LeftDockWidgetArea),
-#                    (Qt.TopRightCorner, Qt.RightDockWidgetArea),
-#                    (Qt.BottomRightCorner, Qt.RightDockWidgetArea) )
-#        for corner, area in corners:
-#            self.setCorner(corner, area)
                        
     def setup(self):
         """Setup main window"""
@@ -109,9 +102,6 @@ class ConsoleWindow(QMainWindow):
         # Shell widget: window's central widget
         self.shell = Shell(self, namespace, self.commands, self.message,
                            self.debug, self.closing)
-#        if not self.light:
-#            self.add_dockwidget(self.shell)
-#        else:
         self.setCentralWidget(self.shell)
         self.set_minimumsize(self.shell)
         self.widgetlist.append(self.shell)
