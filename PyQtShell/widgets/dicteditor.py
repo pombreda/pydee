@@ -8,11 +8,11 @@ Dictionary Editor Widget and Dialog based on PyQt4
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
-from PyQt4.QtCore import SIGNAL, SLOT
-from PyQt4.QtGui import QMessageBox, QTableView, QItemDelegate
-from PyQt4.QtGui import QLineEdit, QVBoxLayout, QWidget, QColor
-from PyQt4.QtGui import QDialog, QDialogButtonBox, QMenu, QInputDialog
+from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
+                          SIGNAL, SLOT)
+from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
+                         QVBoxLayout, QWidget, QColor, QDialog,
+                         QDialogButtonBox, QMenu, QInputDialog)
 
 # Local import
 from PyQtShell.config import get_icon, get_font

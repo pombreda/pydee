@@ -10,9 +10,9 @@ NumPy Array Editor Dialog based on PyQt4
 
 from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
 from PyQt4.QtCore import SIGNAL, SLOT
-from PyQt4.QtGui import QHBoxLayout, QColor, QLabel, QTableView, QItemDelegate
-from PyQt4.QtGui import QLineEdit, QCheckBox, QGridLayout, QPushButton
-from PyQt4.QtGui import QDialog, QDialogButtonBox, QMessageBox, QDoubleValidator
+from PyQt4.QtGui import (QHBoxLayout, QColor, QLabel, QTableView, QItemDelegate,
+                         QLineEdit, QCheckBox, QGridLayout, QDoubleValidator,
+                         QDialog, QDialogButtonBox, QMessageBox, QPushButton)
 import numpy as np
 
 # Local import

@@ -5,8 +5,8 @@
 Matplotlib patch
 """
 
-from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton
-from PyQt4.QtGui import QSizePolicy
+from PyQt4.QtGui import (QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
+                         QSizePolicy)
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local imports
