@@ -44,15 +44,21 @@ from PyQtShell.config import get_font, get_icon, get_image_path, CONF
 
 class ConsoleWindow(QMainWindow):
     """Console QDialog"""
-    def __init__(self, commands=None, message="", options=None):
+    def __init__(self, commands=None, intitle="", message="", options=None):
         super(ConsoleWindow, self).__init__()
+        
         self.commands = commands
         self.message = message
         self.workdir = options.working_directory
         self.debug = options.debug
         self.light = options.light
         
-        self.filename = None
+        # Set Window title and icon
+        title = self.tr("Pydee")
+        if intitle:
+            title += " (%s)" % intitle
+        self.setWindowTitle(title)
+        self.setWindowIcon(get_icon('pydee.png'))
                        
     def setup(self):
         """Setup main window"""
@@ -170,11 +176,6 @@ class ConsoleWindow(QMainWindow):
                 help_menu.addAction(self.shell.help_action)
         
         # Window set-up
-        self.setWindowIcon(get_icon('pydee.png'))
-        title = self.tr("Pydee")
-        if self.message:
-            title += " (%s)" % self.message[self.message.find(':')+2:]
-        self.setWindowTitle(title)
         section = 'lightwindow' if self.light else 'window'
         width, height = CONF.get(section, 'size')
         self.resize( QSize(width, height) )
@@ -322,6 +323,9 @@ def get_options():
                       help="Startup script (overrides PYTHONSTARTUP)")
     parser.add_option('-m', '--modules', dest="module_list", default='',
                       help="Modules to import (comma separated)")
+    parser.add_option('-a', '--all', dest="all", action='store_true',
+                      default=False,
+                      help="Import all optional modules (options below)")
     parser.add_option('-p', '--pylab', dest="pylab", action='store_true',
                       default=False,
                       help="Import pylab in interactive mode and add option --numpy")
@@ -338,8 +342,23 @@ def get_options():
                       default=False,
                       help="Debug mode (stds are not redirected)")
     options, _args = parser.parse_args()
+    
     messagelist = []
+    intitlelist = []
     commands = []
+    
+    # Option --all
+    if options.all:
+        intitlelist.append('all')
+        messagelist.append('import all optional modules')
+        commands.extend(['import sys',
+                         'import time',
+                         'import re'])
+        options.os = True
+        options.pylab = True
+        options.scipy = True
+    
+    # Option --modules (import modules)
     if options.module_list:
         for mod in options.module_list.split(','):
             mod = mod.strip()
@@ -350,21 +369,28 @@ def get_options():
             except ImportError:
                 print "Warning: module '%s' was not found" % mod
                 continue
-    if options.pylab:
-        commands.append('from pylab import *')
-        options.numpy = True
-        messagelist.append('pylab')
+
+    # Option --os
     if options.os:
         commands.extend(['import os',
                          'import os.path as osp'])
-        messagelist.append('os')
-    if options.scipy:
-        commands.append('import scipy as S')
+        if not options.all:
+            messagelist.append('os')
+    
+    # Options --pylab, --numpy, --scipy
+    def addoption(name, command):
+        commands.append(command)
+        if not options.all:
+            messagelist.append('%s (%s)' % (name, command))
+            intitlelist.append(name)
+    if options.pylab:
         options.numpy = True
-        messagelist.append('scipy')
+        addoption('pylab', 'from pylab import *')
+    if options.scipy:
+        options.numpy = True
+        addoption('scipy', 'import scipy as S')
     if options.numpy:
-        commands.append('import numpy as N')
-        messagelist.append('numpy')
+        addoption('numpy', 'import numpy as N')
         
     # Adding PYTHONSTARTUP file to initial commands
     if options.startup is not None:
@@ -378,13 +404,18 @@ def get_options():
         commands.extend( lines )
         messagelist.append(msg+' (%s)' % os.path.basename(filename))
         
+    # Options shown in console
+    message = ""
     if messagelist:
         message = 'Option%s: ' % ('s' if len(messagelist)>1 else '')
         message += ", ".join(messagelist)
-    else:
-        message = ""
+        
+    # Options shown in Pydee's application title bar
+    intitle = ""
+    if intitlelist:
+        intitle = ", ".join(intitlelist)
 
-    return commands, message, options
+    return commands, intitle, message, options
 
 
 def main():
@@ -402,10 +433,10 @@ def main():
         app.installTranslator(app_translator)
     
     # Options
-    commands, message, options = get_options()
+    commands, intitle, message, options = get_options()
     
     # Main window
-    mainwindow = ConsoleWindow(commands, message, options)
+    mainwindow = ConsoleWindow(commands, intitle, message, options)
     
     #----Patching matplotlib's FigureManager
     if options.pylab:
