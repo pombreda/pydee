@@ -3,9 +3,12 @@
 PyQtShell configuration management
 """
 
-import os
+import os, sys
 import os.path as osp
 from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
+
+# Local import
+from userconfig import UserConfig
 
 APP_PATH = osp.dirname(__file__)
 
@@ -34,8 +37,8 @@ SANS_SERIF.insert(0, unicode(QFont().family()))
 MONOSPACE = ['Consolas', 'Courier New', 'Bitstream Vera Sans Mono',
              'Andale Mono', 'Monaco', 'Nimbus Mono L', 'Courier', 
              'Fixed', 'monospace', 'Terminal']
-DEFAULT_SIZE = 9
-SIZE_DELTA = {'Consolas' : 1, 'Bitstream Vera Sans Mono' : 1}
+MEDIUM = 10
+SMALL = 8
 
 DEFAULTS = [
             ('window',
@@ -55,7 +58,7 @@ DEFAULTS = [
               'minimum_size' : (400, 300),
               'working_dir_history' : 10,
               'font/family' : MONOSPACE,
-              'font/size' : DEFAULT_SIZE,
+              'font/size' : MEDIUM,
               'font/bold' : False,
               'wrap' : True,
               'calltips' : True,
@@ -69,7 +72,7 @@ DEFAULTS = [
             ('calltips',
              {
               'font/family' : MONOSPACE,
-              'font/size' : DEFAULT_SIZE-2,
+              'font/size' : SMALL,
               'font/bold' : False,
               'size' : 600,
               }),
@@ -78,10 +81,10 @@ DEFAULTS = [
               'minimum_size' : (400, 300),
               'enable' : True,
               'font/family' : MONOSPACE,
-              'font/size' : DEFAULT_SIZE,
+              'font/size' : MEDIUM,
               'font/bold' : False,
               'margin/font/family' : MONOSPACE,
-              'margin/font/size' : DEFAULT_SIZE-2,
+              'margin/font/size' : SMALL,
               'margin/font/bold' : False,
               'wrap' : True,
               'api' : osp.join(APP_PATH, 'python.api'),
@@ -92,10 +95,10 @@ DEFAULTS = [
               'enable' : True,
               'max_entries' : 100,
               'font/family' : MONOSPACE,
-              'font/size' : DEFAULT_SIZE,
+              'font/size' : MEDIUM,
               'font/bold' : False,
               'margin/font/family' : MONOSPACE,
-              'margin/font/size' : DEFAULT_SIZE-2,
+              'margin/font/size' : SMALL,
               'margin/font/bold' : True,
               'wrap' : True,
               }),
@@ -105,7 +108,7 @@ DEFAULTS = [
               'enable' : True,
               'max_history_entries' : 20,
               'font/family' : MONOSPACE,
-              'font/size' : DEFAULT_SIZE,
+              'font/size' : MEDIUM,
               'font/bold' : False,
               'wrap' : True,
               }),
@@ -123,13 +126,13 @@ DEFAULTS = [
             ('arrayeditor',
              {
               'font/family' : MONOSPACE,
-              'font/size' : DEFAULT_SIZE-2,
+              'font/size' : SMALL,
               'font/bold' : False,
               }),
             ('dicteditor',
              {
               'font/family' : MONOSPACE,
-              'font/size' : DEFAULT_SIZE-2,
+              'font/size' : SMALL,
               'font/bold' : False,
               }),
             ('figure',
@@ -144,24 +147,19 @@ DEFAULTS = [
               }),
             ]
 
-DEV = osp.isfile(osp.join(osp.join(APP_PATH, osp.pardir), 'setup.py'))
+DEV = not __file__.startswith(sys.prefix)
 #DEV = False
-from userconfig import UserConfig
 CONF = UserConfig('PyQtShell', DEFAULTS, version='0.1.0', load=(not DEV))
 
 def get_conf_path(filename):
-    """
-    Return absolute path for configuration file with specified filename
-    """
+    """Return absolute path for configuration file with specified filename"""
     conf_dir = osp.join(osp.expanduser('~'), '.PyQtShell')
     if not osp.isdir(conf_dir):
         os.mkdir(conf_dir)
     return osp.join(conf_dir, filename)
 
 def get_image_path( name, default="not_found.png" ):
-    """
-    Return image absolute path
-    """
+    """Return image absolute path"""
     img_path = osp.join(APP_PATH, 'images')
     full_path = osp.join(img_path, name)
     if osp.isfile(full_path):
@@ -169,52 +167,45 @@ def get_image_path( name, default="not_found.png" ):
     return osp.abspath(osp.join(img_path, default))
 
 def get_icon( name, default="not_found.png" ):
-    """
-    Return image inside a QIcon object
-    """
+    """Return image inside a QIcon object"""
     return QIcon(get_image_path(name, default))
 
 def get_image_label( name, default="not_found.png" ):
-    """
-    Return image inside a QLabel object
-    """
+    """Return image inside a QLabel object"""
     label = QLabel()
     label.setPixmap(QPixmap(get_image_path(name, default)))
     return label
 
 def font_is_installed(font):
-    """
-    Check if font is installed
-    """
+    """Check if font is installed"""
     return [fam for fam in QFontDatabase().families() if unicode(fam)==font]
     
+def get_family(families):
+    """Return the first installed font family in family list"""
+    if not isinstance(families, list):
+        families = [ families ]
+    for family in families:
+        if font_is_installed(family):
+            return family
+    else:
+        print "Warning: None of the following fonts is installed: %r" % families
+        return QFont()
+    
 def get_font(section, option=None):
-    """
-    Get console font properties depending on OS and user options
-    """
+    """Get console font properties depending on OS and user options"""
     if option is None:
         option = 'font'
     else:
         option += '/font'
-    families = CONF.get(section, option+'/family')
-    if not isinstance(families, list):
-        families = [ families ]
-    family = None
-    for family in families:
-        if font_is_installed(family):
-            break
-    else:
-        print "Warning: font '%s' is not installed\n" % family
+    family = get_family( CONF.get(section, option+"/family") )
     weight = QFont.Normal
     if CONF.get(section, option+'/bold'):
         weight = QFont.Bold
-    size = CONF.get(section, option+'/size') + SIZE_DELTA.get(family, 0)
+    size = CONF.get(section, option+'/size')
     return QFont(family, size, weight)
 
 def set_font(font, section, option=None):
-    """
-    Set font
-    """
+    """Set font"""
     if option is None:
         option = 'font'
     else:
