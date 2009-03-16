@@ -364,7 +364,11 @@ class QtTerminal(QTextEdit):
     def clear_terminal(self):
         """Clear terminal window and write prompt"""
         self.clear()
-        self.write(self.prompt, flush=True)
+        self.setUndoRedoEnabled(False)
+        cursor = self.textCursor()
+        cursor.insertBlock()
+        cursor.insertText(self.prompt)
+        self.setUndoRedoEnabled(True)
         
     def insert_text(self, text, at_end=False, error=False):
         """
@@ -409,7 +413,7 @@ class QtTerminal(QTextEdit):
         cursor.select( QTextCursor.BlockUnderCursor )
         cursor.beginEditBlock()
         cursor.removeSelectedText()
-        cursor.insertText('\n')
+        cursor.insertBlock()
         cursor.insertText(self.prompt)
         cursor.endEditBlock()
         self.hide_completion_widget()
