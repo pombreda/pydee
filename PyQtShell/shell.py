@@ -124,6 +124,7 @@ class ShellBaseWidget(Terminal):
 
         # interpreter banner
         banner = create_banner(self.tr('Type "copyright", "credits" or "license" for more information.'), message)
+        self.setUndoRedoEnabled(False) #-disable undo/redo for a time being
         self.write(banner, flush=True)
 
         # Initial commands
@@ -133,6 +134,7 @@ class ShellBaseWidget(Terminal):
         # First prompt
         self.prompt = self.p1
         self.write(self.prompt, flush=True)
+        self.setUndoRedoEnabled(True) #-enable undo/redo
         self.emit(SIGNAL("refresh()"))
   
     def redirect_stds(self):
