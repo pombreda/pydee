@@ -241,7 +241,7 @@ class Workspace(DictEditor, WidgetMixin):
                 self.namespace = namespace
             else:
                 for key in namespace:
-                    self.shell.namespace[key] = namespace[key]
+                    self.shell.interpreter.namespace[key] = namespace[key]
         except (EOFError, ValueError):
             os.remove(self.filename)
             QMessageBox.critical(self, title,
