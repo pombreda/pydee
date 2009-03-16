@@ -24,6 +24,7 @@ PyQtShell configuration management
 
 import os, sys
 import os.path as osp
+from datetime import date
 from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 # Local import
@@ -31,7 +32,7 @@ from userconfig import UserConfig
 
 APP_PATH = osp.dirname(__file__)
 
-FILTERS = [int, long, float, list, dict, tuple, str, unicode]
+FILTERS = [int, long, float, list, dict, tuple, str, unicode, date]
 try:
     from numpy import ndarray
     FILTERS.append(ndarray)

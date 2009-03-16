@@ -30,13 +30,14 @@ Dictionary Editor Widget and Dialog based on PyQt4
 from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
                           SIGNAL, SLOT)
 from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
-                         QVBoxLayout, QWidget, QColor, QDialog,
+                         QVBoxLayout, QWidget, QColor, QDialog, QDateEdit,
                          QDialogButtonBox, QMenu, QInputDialog)
 
 # Local import
 from PyQtShell.config import get_icon, get_font
 from PyQtShell.qthelpers import translate, add_actions, create_action
 
+#----Numpy arrays support
 class FakeObject(object):
     """Fake class used in replacement of missing modules"""
     pass
@@ -48,6 +49,21 @@ except ImportError:
         """Fake ndarray"""
         pass
 
+#----Date objects support
+from datetime import date, datetime
+try:
+    from dateutil.parser import parse as dateparse
+except ImportError:
+    from string import atoi
+    def dateparse(datestr):
+        """Just for 'year, month, day' strings"""
+        vals = datestr.replace(' ','').split(',')
+        return datetime(*map(atoi,vals))
+def datestr_to_value(value):
+    rp = value.rfind('(')+1
+    return dateparse(value[rp:-1]).date()
+
+#----Background colors for supported types 
 COLORS = {
           bool: Qt.magenta,
           (int, float, long): Qt.blue,
@@ -56,6 +72,7 @@ COLORS = {
           tuple: Qt.lightGray,
           (str, unicode): Qt.darkRed,
           ndarray: Qt.green,
+          date: Qt.darkYellow
           }
 
 def sort_against(lista, listb, reverse=False):
@@ -87,6 +104,8 @@ def display_to_value(value, default_value):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
+        elif isinstance(default_value, date):
+            value = datestr_to_value(value)
         else:
             value = try_to_eval(value)
     except ValueError:
@@ -303,18 +322,29 @@ class DictDelegate(QItemDelegate):
             return None
         value = index.model().get_value(index)
         key = index.model().get_key(index)
+        #---editor = DictEditor
         if isinstance(value, (list, tuple, dict)) and not self.inplace:
             editor = DictEditorDialog(value, key,
                                       icon=self.parent().windowIcon())
             if editor.exec_():
                 index.model().set_value(index, editor.get_copy())
             return None
+        #---editor = ArrayEditor
         elif isinstance(value, ndarray) and ndarray is not FakeObject \
                                         and not self.inplace:
             editor = ArrayEditor(value, key)
             if editor.exec_():
                 index.model().set_value(index, editor.get_copy())
             return None
+        #---editor = QDateEdit
+        elif isinstance(value, date) and not self.inplace:
+            editor = QDateEdit(value, parent)
+            editor.setCalendarPopup(True)
+            editor.setFont(get_font('dicteditor'))
+            self.connect(editor, SIGNAL("returnPressed()"),
+                         self.commitAndCloseEditor)
+            return editor
+        #---editor = QLineEdit
         else:
             editor = QLineEdit(parent)
             editor.setFont(get_font('dicteditor'))
@@ -330,15 +360,24 @@ class DictDelegate(QItemDelegate):
         self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
 
     def setEditorData(self, editor, index):
-        """Overriding method setEditorData"""
+        """Overriding method setEditorData
+        Model --> Editor"""
         if isinstance(editor, QLineEdit):
             text = index.model().data(index, Qt.DisplayRole).toString()
             editor.setText(text)
+        elif isinstance(editor, QDateEdit):
+            value = index.model().get_value(index)
+            editor.setDate(value)
 
     def setModelData(self, editor, model, index):
-        """Overriding method setModelData"""
+        """Overriding method setModelData
+        Editor --> Model"""
         if isinstance(editor, QLineEdit):
             model.setData(index, QVariant(editor.text()))
+        elif isinstance(editor, QDateEdit):
+            qdate = editor.date()
+            index.model().set_value(index,
+                date(qdate.year(), qdate.month(), qdate.day()) )
 
 
 class DictEditor(QTableView):
@@ -549,6 +588,7 @@ def main():
             'dict': {'d': 1, 'a': None, 'b': [1, 2]},
             'float': 1.2233,
             'array': numpy.random.rand(10, 10),
+            'date': date(1945, 5, 8),
             }
     dialog = DictEditorDialog(dico, title="Bad title")
     if dialog.exec_():
