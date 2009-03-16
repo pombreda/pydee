@@ -270,6 +270,10 @@ class QsciTerminal(QsciScintilla):
         self.setFocus()
         self.emit(SIGNAL("status(QString)"), QString())
 
+    def setUndoRedoEnabled(self, state):
+        """Fake Qt method (QTextEdit)"""
+        pass
+
     def set_font(self, font):
         """Set shell font"""
         self.lexer.setFont(font)
