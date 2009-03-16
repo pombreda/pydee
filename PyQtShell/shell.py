@@ -374,9 +374,12 @@ class ShellBaseWidget(Terminal):
         """
         Display a completion list for files and directories
         """
-        #XXX Is this working on Linux too?
-        listdir = [transcode(path) for path in os.listdir(os.getcwd())]
-        self.show_list(listdir, transcode(os.getcwd()))
+        cwd = os.getcwd()
+        listdir = os.listdir(cwd)
+        if os.name == 'nt':
+            listdir = [transcode(path) for path in listdir]
+            cwd = transcode(cwd)
+        self.show_list(listdir, cwd)
 
     def show_list(self, completions, text):
         """
