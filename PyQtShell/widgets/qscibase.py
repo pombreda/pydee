@@ -86,6 +86,7 @@ class LexerPython(QsciLexerPython):
         return QStringList() << '.'
 
 
+#FIXME: The Delete key doesn's work in the editor
 class QsciEditor(QsciScintilla):
     """
     QScintilla Editor Widget

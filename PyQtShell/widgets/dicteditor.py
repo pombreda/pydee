@@ -28,10 +28,10 @@ Dictionary Editor Widget and Dialog based on PyQt4
 # pylint: disable-msg=R0201
 
 from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
-                          SIGNAL, SLOT)
+                          SIGNAL, SLOT, QDateTime)
 from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
                          QVBoxLayout, QWidget, QColor, QDialog, QDateEdit,
-                         QDialogButtonBox, QMenu, QInputDialog)
+                         QDialogButtonBox, QMenu, QInputDialog, QDateTimeEdit)
 
 # Local import
 from PyQtShell.config import get_icon, get_font
@@ -49,7 +49,7 @@ except ImportError:
         """Fake ndarray"""
         pass
 
-#----Date objects support
+#----date and datetime objects support
 from datetime import date, datetime
 try:
     from dateutil.parser import parse as dateparse
@@ -57,11 +57,10 @@ except ImportError:
     from string import atoi
     def dateparse(datestr):
         """Just for 'year, month, day' strings"""
-        vals = datestr.replace(' ','').split(',')
-        return datetime(*map(atoi,vals))
-def datestr_to_value(value):
+        return datetime( *map(atoi, datestr.split(',')) )
+def datestr_to_datetime(value):
     rp = value.rfind('(')+1
-    return dateparse(value[rp:-1]).date()
+    return dateparse(value[rp:-1])
 
 #----Background colors for supported types 
 COLORS = {
@@ -110,8 +109,10 @@ def display_to_value(value, default_value):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
+        elif isinstance(default_value, datetime):
+            value = datestr_to_datetime(value)
         elif isinstance(default_value, date):
-            value = datestr_to_value(value)
+            value = datestr_to_datetime(value).date()
         else:
             value = try_to_eval(value)
     except ValueError:
@@ -343,6 +344,14 @@ class DictDelegate(QItemDelegate):
                 index.model().set_value(index, editor.get_copy())
             return None
         #---editor = QDateEdit
+        elif isinstance(value, datetime) and not self.inplace:
+            editor = QDateTimeEdit(value, parent)
+            editor.setCalendarPopup(True)
+            editor.setFont(get_font('dicteditor'))
+            self.connect(editor, SIGNAL("returnPressed()"),
+                         self.commitAndCloseEditor)
+            return editor
+        #---editor = QDateEdit
         elif isinstance(value, date) and not self.inplace:
             editor = QDateEdit(value, parent)
             editor.setCalendarPopup(True)
@@ -374,6 +383,9 @@ class DictDelegate(QItemDelegate):
         elif isinstance(editor, QDateEdit):
             value = index.model().get_value(index)
             editor.setDate(value)
+        elif isinstance(editor, QDateTimeEdit):
+            value = index.model().get_value(index)
+            editor.setDateTime(QDateTime(value.date(), value.time()))
 
     def setModelData(self, editor, model, index):
         """Overriding method setModelData
@@ -384,6 +396,13 @@ class DictDelegate(QItemDelegate):
             qdate = editor.date()
             index.model().set_value(index,
                 date(qdate.year(), qdate.month(), qdate.day()) )
+        elif isinstance(editor, QDateTimeEdit):
+            qdatetime = editor.dateTime()
+            qdate = qdatetime.date()
+            qtime = qdatetime.time()
+            index.model().set_value(index,
+                datetime(qdate.year(), qdate.month(), qdate.day(),
+                         qtime.hour(), qtime.minute(), qtime.second()) )
 
 
 class DictEditor(QTableView):
@@ -596,6 +615,7 @@ def main():
             'float': 1.2233,
             'array': numpy.random.rand(10, 10),
             'date': date(1945, 5, 8),
+            'datetime': datetime(1945, 5, 8),
             }
     dialog = DictEditorDialog(dico, title="Bad title")
     if dialog.exec_():
