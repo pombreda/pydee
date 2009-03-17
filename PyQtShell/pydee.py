@@ -112,7 +112,6 @@ class ConsoleWindow(QMainWindow):
         self.shell = Shell(self, namespace, self.commands, self.message,
                            self.debug, self.closing)
         self.setCentralWidget(self.shell)
-        self.set_minimumsize(self.shell)
         self.widgetlist.append(self.shell)
         
         # Working directory changer widget
@@ -134,7 +133,6 @@ class ConsoleWindow(QMainWindow):
                 self.set_splash(self.tr("Loading editor widget..."))
                 self.editor = Editor( self )
                 self.add_dockwidget(self.editor)
-                self.set_minimumsize(self.editor)
                 self.add_to_menubar(self.editor)
                 self.add_to_toolbar(self.editor)
         
@@ -143,7 +141,6 @@ class ConsoleWindow(QMainWindow):
                 self.set_splash(self.tr("Loading workspace widget..."))
                 self.workspace.set_shell(self.shell)
                 self.add_dockwidget(self.workspace)
-                self.set_minimumsize(self.workspace)
                 self.add_to_menubar(self.workspace)
                 self.add_to_toolbar(self.workspace)
                 self.connect(self.shell, SIGNAL("refresh()"),
@@ -154,7 +151,6 @@ class ConsoleWindow(QMainWindow):
                 self.set_splash(self.tr("Loading history widget..."))
                 self.historylog = HistoryLog( self )
                 self.add_dockwidget(self.historylog)
-                self.set_minimumsize(self.historylog)
                 self.connect(self.shell, SIGNAL("refresh()"),
                              self.historylog.refresh)
         
@@ -163,7 +159,6 @@ class ConsoleWindow(QMainWindow):
                 self.set_splash(self.tr("Loading docviewer widget..."))
                 self.docviewer = DocViewer( self )
                 self.add_dockwidget(self.docviewer)
-                self.set_minimumsize(self.docviewer)
                 self.shell.set_docviewer(self.docviewer)
         
         if not self.light:
@@ -263,17 +258,6 @@ class ConsoleWindow(QMainWindow):
                 
         self.widgetlist.append(child)
         self.dockdict[child] = dockwidget
-        
-    def set_minimumsize(self, child):
-        """Set widget minimum size"""
-        size = CONF.get(child.ID, "minimum_size", None)
-        if size is not None:
-            width, height = size
-            if child in self.dockdict:
-                widget = self.dockdict[child]
-            else:
-                widget = child
-            widget.setMinimumSize( QSize(width, height) )
     
     def add_toolbar(self, widget):
         """Add toolbar including a widget"""
