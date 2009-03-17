@@ -24,7 +24,7 @@ Matplotlib figure integration
 """
 
 from PyQt4.QtGui import (QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
-                         QSizePolicy)
+                         QSizePolicy, QDockWidget)
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local imports
@@ -85,6 +85,10 @@ class MatplotlibFigure(QWidget, WidgetMixin):
         return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
                 Qt.TopDockWidgetArea)
+    
+    def get_dockwidget_features(self):
+        """Return QDockWidget features"""
+        return QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable
         
     def refresh(self):
         """Refresh widget"""

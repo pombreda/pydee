@@ -64,6 +64,12 @@ class WidgetMixin(object):
     def get_dockwidget_properties(self):
         """Return QDockWidget properties"""
         raise NotImplementedError
+    
+    def get_dockwidget_features(self):
+        """Return QDockWidget features"""
+        return QDockWidget.DockWidgetClosable | \
+               QDockWidget.DockWidgetFloatable | \
+               QDockWidget.DockWidgetMovable
         
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
@@ -71,7 +77,10 @@ class WidgetMixin(object):
         dock = QDockWidget(self.get_name(raw=False), self.mainwindow)
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(allowed_areas)
+        dock.setFeatures( self.get_dockwidget_features() )
         dock.setWidget(self)
+        self.connect(dock, SIGNAL('visibilityChanged(bool)'),
+                     self.visibility_changed)
         self.dockwidget = dock
         return (dock, location)
 
