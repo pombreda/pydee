@@ -335,6 +335,8 @@ class Editor(QWidget, WidgetMixin):
 
     def set_actions(self):
         """Setup actions"""
+        #TODO: Add an action to comment/uncomment selection/current line
+        #      and implement it in Qsci/Qt-Editor widgets
         new_action = create_action(self, self.tr("New..."), "Ctrl+N",
             'new.png', self.tr("Create a new Python script"),
             triggered = self.new)
