@@ -60,6 +60,14 @@ MONOSPACE = ['Consolas', 'Courier New', 'Bitstream Vera Sans Mono',
 MEDIUM = 10
 SMALL = 8
 
+try:
+    from matplotlib import rcParams
+    width, height = rcParams['figure.figsize']
+    dpi = rcParams['figure.dpi']
+    MPL_SIZE = (width*dpi, height*dpi)
+except ImportError:
+    MPL_SIZE = (400, 300)
+
 DEFAULTS = [
             ('window',
              {
@@ -158,6 +166,7 @@ DEFAULTS = [
             ('figure',
              {
               'minimum_size' : (100, 100),
+              'size' : MPL_SIZE,
               'font/family' : SANS_SERIF,
               'font/size' : 11,
               'font/bold' : False,

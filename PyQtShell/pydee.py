@@ -245,7 +245,17 @@ class ConsoleWindow(QMainWindow):
             # Tabifying
             if self.widgetlist:
                 last_object = self.widgetlist[-1]
-                self.tabifyDockWidget(self.dockdict[last_object], dockwidget)
+                if self.dockdict[last_object].isWindow():
+                    # last_object is floating
+                    dockwidget.setFloating(True)
+                    size = QSize(*CONF.get('figure', 'size'))
+                    if isinstance(last_object, MatplotlibFigure):
+                        size = last_object.size()
+                    dockwidget.resize(size)
+                else:
+                    # last_object is docked
+                    self.tabifyDockWidget(self.dockdict[last_object],
+                                          dockwidget)
         else:
             # Matplotlib figures are not added to view menu
             # because closing a figure will not hide it but delete it
