@@ -83,7 +83,6 @@ DEFAULTS = [
               }),
             ('shell',
              {
-              'minimum_size' : (400, 300),
               'working_dir_history' : 10,
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
@@ -106,7 +105,6 @@ DEFAULTS = [
               }),
             ('editor',
              {
-              'minimum_size' : (400, 300),
               'enable' : True,
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
@@ -119,7 +117,6 @@ DEFAULTS = [
               }),
             ('history',
              {
-              'minimum_size' : (400, 300),
               'enable' : True,
               'max_entries' : 100,
               'font/family' : MONOSPACE,
@@ -132,7 +129,6 @@ DEFAULTS = [
               }),
             ('docviewer',
              {
-              'minimum_size' : (400, 300),
               'enable' : True,
               'max_history_entries' : 20,
               'font/family' : MONOSPACE,
@@ -142,7 +138,6 @@ DEFAULTS = [
               }),
             ('workspace',
              {
-              'minimum_size' : (400, 300),
               'enable' : True,
               'autorefresh' : True,
               'filters' : type2str(FILTERS),
@@ -165,7 +160,6 @@ DEFAULTS = [
               }),
             ('figure',
              {
-              'minimum_size' : (100, 100),
               'size' : MPL_SIZE,
               'font/family' : SANS_SERIF,
               'font/size' : 11,
