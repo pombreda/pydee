@@ -237,17 +237,19 @@ class ConsoleWindow(QMainWindow):
         """Add QDockWidget and toggleViewAction"""
         dockwidget, location = child.create_dockwidget()
         self.addDockWidget(location, dockwidget)
-        self.view_menu.addAction(dockwidget.toggleViewAction())
-        self.connect(dockwidget, SIGNAL('visibilityChanged(bool)'),
-                     child.visibility_changed)
         
-        # Tabifying Matplotlib figures
+        # Matplotlib figures
         from PyQtShell.widgets.figure import MatplotlibFigure
         if isinstance(child, MatplotlibFigure):
             dockwidget.setVisible(True)
+            # Tabifying
             if self.widgetlist:
                 last_object = self.widgetlist[-1]
                 self.tabifyDockWidget(self.dockdict[last_object], dockwidget)
+        else:
+            # Matplotlib figures are not added to view menu
+            # because closing a figure will not hide it but delete it
+            self.view_menu.addAction(dockwidget.toggleViewAction())
                 
         self.widgetlist.append(child)
         self.dockdict[child] = dockwidget
