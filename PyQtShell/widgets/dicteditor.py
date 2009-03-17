@@ -138,7 +138,7 @@ class DictModelRO(QAbstractTableModel):
         self._data = None
         self.showndata = None
         self.keys = None
-        self.title = title
+        self.title = unicode(title) # in case title is not a string
         if self.title:
             self.title = self.title + ' - '
         self.sizes = None
