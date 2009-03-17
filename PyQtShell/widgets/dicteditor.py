@@ -79,6 +79,12 @@ def sort_against(lista, listb, reverse=False):
     """Arrange lista items in the same order as sorted(listb)"""
     return [item for _, item in sorted(zip(listb, lista), reverse=reverse)]
 
+def unsorted_unique(lista):
+    """Removes duplicates from lista neglecting its initial ordering"""
+    set = {}
+    map(set.__setitem__,lista,[])
+    return set.keys()
+
 def value_to_display(value):
     """Convert value for display purpose"""
     if not isinstance(value, (str, unicode)):
@@ -447,8 +453,9 @@ class DictEditor(QTableView):
             QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             data = self.model.get_data()
-            for index in indexes:
-                data.pop( self.model.keys[ index.row() ] )
+            idx_rows = unsorted_unique(map(lambda idx: idx.row(),indexes))
+            for idx_row in idx_rows:
+                data.pop( self.model.keys[ idx_row ] )
             self.set_data(data)
             
     def insert_item(self):
