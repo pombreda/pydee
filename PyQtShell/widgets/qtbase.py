@@ -569,12 +569,18 @@ class QtTerminal(QTextEdit):
             self.hide_completion_widget()
 
         elif key == Qt.Key_Up:
-            self.hide_completion_widget()
-            self.__browse_history(backward=True)
+            if self.__is_cursor_on_last_line():
+                self.hide_completion_widget()
+                self.__browse_history(backward=True)
+            else:
+                self.moveCursor(QTextCursor.Up, move_mode)
                 
         elif key == Qt.Key_Down:
-            self.hide_completion_widget()
-            self.__browse_history(backward=False)
+            if self.__is_cursor_on_last_line():
+                self.hide_completion_widget()
+                self.__browse_history(backward=False)
+            else:
+                self.moveCursor(QTextCursor.Down, move_mode)
             
         elif key == Qt.Key_PageUp:
             if self.completion_widget:

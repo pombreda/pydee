@@ -472,7 +472,7 @@ class DictEditor(QTableView):
             QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             data = self.model.get_data()
-            idx_rows = unsorted_unique(map(lambda idx: idx.row(),indexes))
+            idx_rows = unsorted_unique(map(lambda idx: idx.row(), indexes))
             for idx_row in idx_rows:
                 data.pop( self.model.keys[ idx_row ] )
             self.set_data(data)
