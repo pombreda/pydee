@@ -36,7 +36,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from PyQtShell.config import CONF, get_conf_path, str2type
-from PyQtShell.qthelpers import create_action
+from PyQtShell.qthelpers import create_action, get_std_icon
 
 # Package local imports
 from PyQtShell.widgets.base import WidgetMixin
@@ -118,6 +118,17 @@ class Workspace(DictEditor, WidgetMixin):
         """Bind to shell widget"""
         self.shell = shell
         self.refresh()
+        
+    def clear(self):
+        """Clear workspace"""
+        answer = QMessageBox.question(self, self.tr("Clear workspace"),
+                    self.tr("Do you want to clear all data from workspace?"),
+                    QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            keys = wsfilter(self.namespace).keys()
+            for key in keys:
+                self.namespace.pop(key)
+            self.refresh()
 
     def refresh(self):
         """Refresh widget"""
@@ -159,10 +170,16 @@ class Workspace(DictEditor, WidgetMixin):
             tip=self.tr("Automatically save workspace in a temporary file when quitting"))
         autosave_action.setChecked( CONF.get(self.ID, 'autosave') )
         
+        clear_action = create_action(self, self.tr("Clear workspace"),
+                                 icon=get_std_icon("TrashIcon"),
+                                 tip=self.tr("Clear all data from workspace"),
+                                 triggered=self.clear)
+        
         menu_actions = (refresh_action, autorefresh_action, None,
                         self.sort_action, self.inplace_action, None,
                         exclude_private_action, None, open_action, save_action,
-                        save_as_action, autosave_action)
+                        save_as_action, autosave_action,
+                        None, clear_action)
         toolbar_actions = (refresh_action, open_action, save_action)
         return (menu_actions, toolbar_actions)
     
