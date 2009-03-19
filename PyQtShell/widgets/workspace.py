@@ -71,7 +71,10 @@ def wsfilter(obj_in, rec=0):
                     value = wsfilter(value, rec+1)
                     if value is not NoValue:
                         obj_out[key] = value
-            elif not isinstance(value, filters) or not isinstance(key, filters):
+            elif isinstance(value, filters) and isinstance(key, filters):
+                # Just for rec == 1
+                obj_out[key] = value
+            else:
                 return NoValue
 #    elif isinstance(obj_in, (list, tuple)):
 #        obj_out = []
