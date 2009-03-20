@@ -28,7 +28,7 @@
 from PyQt4.QtGui import (QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel,
                          QFileDialog, QPushButton, QLineEdit, QTabWidget, QMenu,
                          QShortcut, QKeySequence, QCheckBox, QMessageBox,
-                         QFontDialog, QComboBox, QSizePolicy)
+                         QFontDialog, QComboBox, QSizePolicy, QToolBar)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os, sys, re
@@ -267,10 +267,15 @@ class Editor(QWidget, WidgetMixin):
     ID = 'editor'
     file_path = get_conf_path('.temp.py')
     def __init__(self, parent):
+        self.dock_toolbar_actions = None
         QWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
         
         layout = QVBoxLayout()
+        self.dock_toolbar = QToolBar(self)
+        add_actions(self.dock_toolbar, self.dock_toolbar_actions)
+        layout.addWidget(self.dock_toolbar)
+        
         self.tabwidget = Tabs(self, self.tab_actions)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh)
@@ -306,6 +311,14 @@ class Editor(QWidget, WidgetMixin):
         else:
             editor = None
         self.find_widget.set_editor(editor)
+
+    def visibility_changed(self, enable):
+        """DockWidget visibility has changed"""
+        WidgetMixin.visibility_changed(self, enable)
+        if self.dockwidget.isWindow():
+            self.dock_toolbar.show()
+        else:
+            self.dock_toolbar.hide()
 
     def change(self, state=None):
         """Change tab title depending on modified state"""
@@ -397,8 +410,13 @@ class Editor(QWidget, WidgetMixin):
                         None, find_action, replace_action,
                         None, close_action, close_all_action,
                         None, font_action, wrap_action)
-        toolbar_actions = (new_action, open_action, save_action, exec_action,
-                           exec_selected_action, find_action, None)
+        toolbar_actions = [new_action, open_action, save_action,
+                        None, find_action, check_action, exec_action,
+                        exec_selected_action]
+        self.dock_toolbar_actions = toolbar_actions + \
+                                    [exec_interact_action,
+                                     comment_action, uncomment_action,
+                                     None, close_action]
         self.file_dependent_actions = (save_action, save_as_action,
                                        check_action, exec_action,
                                        exec_interact_action,
