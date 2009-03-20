@@ -355,12 +355,6 @@ class Editor(QWidget, WidgetMixin):
         replace_action = create_action(self, self.tr("Replace text"), "Ctrl+H",
             tip = self.tr("Replace text in current script"),
             triggered = self.replace)
-        comment_action = create_action(self, self.tr("Comment selection"), "Ctrl+K",
-            tip = self.tr("Comment current selection"),
-            triggered = self.comment_selection)
-        uncomment_action = create_action(self, self.tr("Uncomment selection"), "Shift+Ctrl+K",
-            tip = self.tr("Uncomment current selection"),
-            triggered = self.uncomment_selection)
         close_action = create_action(self, self.tr("Close"), "Ctrl+W",
             'close.png', self.tr("Close current script"),
             triggered = self.close)
@@ -382,6 +376,12 @@ class Editor(QWidget, WidgetMixin):
             self.tr("Execute selection"), "Ctrl+F9", 'execute_selection.png',
             self.tr("Execute selected text in current script and set focus to shell"),
             triggered=self.exec_selected_text)
+        comment_action = create_action(self, self.tr("Comment"), "Ctrl+K",
+            'comment.png', self.tr("Comment current line or selection"),
+            triggered = self.comment)
+        uncomment_action = create_action(self, self.tr("Uncomment"), "Shift+Ctrl+K",
+            'uncomment.png', self.tr("Uncomment current line or selection"),
+            triggered = self.uncomment)
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set editor font style"),
             triggered=self.change_font)
@@ -393,9 +393,8 @@ class Editor(QWidget, WidgetMixin):
             triggered=self.set_workdir)
         menu_actions = (new_action, open_action, save_action, save_as_action,
                         None, check_action, exec_action, exec_interact_action,
-                        exec_selected_action,
+                        exec_selected_action, comment_action, uncomment_action,
                         None, find_action, replace_action,
-                        comment_action, uncomment_action,
                         None, close_action, close_all_action,
                         None, font_action, wrap_action)
         toolbar_actions = (new_action, open_action, save_action, exec_action,
@@ -423,17 +422,17 @@ class Editor(QWidget, WidgetMixin):
         self.find_widget.show()
         self.find_widget.edit.setFocus()
     
-    def comment_selection(self):
-        """Add comment symbol at the beginning of selected lines"""
+    def comment(self):
+        """Comment current line or selection"""
         if self.tabwidget.count():
             index = self.tabwidget.currentIndex()
-            self.editors[index].comment_selection()
+            self.editors[index].comment()
 
-    def uncomment_selection(self):
-        """Remove comment symbol from the beginning of selected lines"""
+    def uncomment(self):
+        """Uncomment current line or selection"""
         if self.tabwidget.count():
             index = self.tabwidget.currentIndex()
-            self.editors[index].uncomment_selection()
+            self.editors[index].uncomment()
 
     def replace(self):
         """Show Replace Widget"""

@@ -89,7 +89,6 @@ class LexerPython(QsciLexerPython):
         return QStringList() << '.'
 
 
-#FIXME: The Delete key doesn's work in the editor
 class QsciEditor(QsciScintilla):
     """
     QScintilla Editor Widget
@@ -208,59 +207,65 @@ class QsciEditor(QsciScintilla):
         self.insertAt(text, line, col)
         self.setCursorPosition(line, col + len(str(text)))
     
-    def comment_selection(self):
-        """Add a comment symbol at the beginning of
-        each selected line"""
+    def comment(self):
+        """Comment current line or selection"""
         comment_str = self.lex.COMMENT_STRING
-        selection = self.getSelection()
-        if not self.hasSelectedText():
-            line, index = self.getCursorPosition()
-            lines_to_comment = [line,]
+        if self.hasSelectedText():
+            # Comment selection
+            line_from, _, line_to, index_to = self.getSelection()
+            if index_to == 0:
+                end_line = line_to - 1
+            else:
+                end_line = line_to
+            self.beginUndoAction()
+            for line in range(line_from, end_line+1):
+                self.insertAt(comment_str, line, 0)
+            self.setSelection(line_from, 0, end_line+1, 0)
+            self.endUndoAction()
         else:
+            # Comment current line
+            line, _index = self.getCursorPosition()
+            self.beginUndoAction()
+            self.insertAt(comment_str, line, 0)
+            self.endUndoAction()
+
+    def uncomment(self):
+        """Uncomment current line or selection"""
+        comment_str = self.lex.COMMENT_STRING
+        if self.hasSelectedText():
+            # Uncomment selection
             line_from, index_from, line_to, index_to = self.getSelection()
             if index_to == 0:
                 end_line = line_to - 1
             else:
                 end_line = line_to
-            lines_to_comment = range(line_from, line_to+1)
-        newsel = list(selection)
-        if comment_str:
-            for line in lines_to_comment:
+            self.beginUndoAction()
+            for line in range(line_from, end_line+1):
                 if not self.text(line).startsWith(comment_str):
-                    self.insertAt(comment_str, line, 0)
-                    if line is lines_to_comment[-1]:
-                        newsel[3] += len(comment_str)
-        self.setSelection(*newsel)
-
-    def uncomment_selection(self):
-        """Remove the comment symbol from the beginning of
-        each selected line"""
-        comment_str = self.lex.COMMENT_STRING
-        lines_to_uncomment = []
-        selection = self.getSelection()
-        if not self.hasSelectedText():
-            line, index = self.getCursorPosition()
-            lines_to_uncomment.append(line)
-        else:
-            line_from, index_from, line_to, index_to = self.getSelection()
-            if index_to == 0:
-                end_line = line_to - 1
-            else:
-                end_line = line_to
-            lines_to_uncomment = range(line_from, line_to+1)
-        newsel = list(selection)
-        if comment_str:
-            for line in lines_to_uncomment:
+                    continue
                 self.setSelection(line, 0, line, len(comment_str))
-                if self.selectedText().toUtf8() == comment_str:
-                    self.removeSelectedText()
-                    if line is lines_to_uncomment[0]:
-                        newsel[1] -= len(comment_str)
-                    elif line is lines_to_uncomment[-1]:
-                        newsel[3] -= len(comment_str)
-        self.setSelection(*newsel)
+                self.removeSelectedText()
+                if line == line_from:
+                    index_from -= len(comment_str)
+                    if index_from < 0:
+                        index_from = 0
+                if line == line_to:
+                    index_to -= len(comment_str)
+                    if index_to < 0:
+                        index_to = 0
+            self.setSelection(line_from, index_from, line_to, index_to)
+            self.endUndoAction()
+        else:
+            # Uncomment current line
+            line, _index = self.getCursorPosition()
+            if not self.text(line).startsWith(comment_str):
+                return
+            self.beginUndoAction()
+            self.setSelection(line, 0, line, len(comment_str))
+            self.removeSelectedText()
+            self.endUndoAction()
 
-#TODO: Do not allow user to ctrl-leftarrow back into the command prompt (or past)
+
 class QsciTerminal(QsciScintilla):
     """
     Terminal based on QScintilla
