@@ -80,6 +80,9 @@ class Shell(ShellBaseWidget, WidgetMixin):
         
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
+        state = self.hasSelectedText()
+        self.copy_action.setEnabled(state)
+        self.cut_action.setEnabled(state)
         self.menu.popup(event.globalPos())
         event.accept()
 
@@ -166,10 +169,12 @@ class Shell(ShellBaseWidget, WidgetMixin):
             return QKeySequence.keyBindings(ks)[0].toString()
         
         self.menu = QMenu(self)
-        cut_action   = create_action(self, translate("ShellBaseWidget", "Cut"),
+        self.cut_action = create_action(self,
+                           translate("ShellBaseWidget", "Cut"),
                            shortcut=keybinding('Cut'),
                            icon=get_icon('cut.png'), triggered=self.cut)
-        copy_action  = create_action(self, translate("ShellBaseWidget", "Copy"),
+        self.copy_action = create_action(self,
+                           translate("ShellBaseWidget", "Copy"),
                            shortcut=keybinding('Copy'),
                            icon=get_icon('copy.png'), triggered=self.copy)
         paste_action = create_action(self,
@@ -187,7 +192,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
                            shortcut="F1",
                            icon=get_std_icon('DialogHelpButton'),
                            triggered=self.help)
-        add_actions(self.menu, (cut_action, copy_action, paste_action,
+        add_actions(self.menu, (self.cut_action, self.copy_action, paste_action,
                                 None, clear_action, None, self.help_action) )
 
         add_actions(self.menu, (None,))
