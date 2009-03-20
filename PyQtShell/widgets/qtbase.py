@@ -43,6 +43,33 @@ from PyQtShell.dochelpers import getobj
 from PyQtShell.qthelpers import mimedata2url
 
 
+class AlmostQsciScintilla(QTextEdit):
+    """Reimplement some of QScintilla editor widget features"""
+    def __init__(self, parent=None):
+        super(AlmostQsciScintilla, self).__init__(parent)
+        
+    def isModified(self):
+        """Reimplement QScintilla method
+        Returns true if the text has been modified"""
+        return self.document().isModified()
+    
+    def setModified(self, state):
+        """Reimplement QScintilla method
+        Sets the modified state of the text edit to state"""
+        self.document().setModified(state)
+        
+    def hasSelectedText(self):
+        """Reimplements QScintilla method
+        Returns true if some text is selected"""
+        return len(self.selectedText()) != 0
+    
+    def selectedText(self):
+        """Reimplements QScintilla method
+        Returns the selected text or an empty string
+        if there is no currently selected text"""
+        return self.textCursor().selectedText()
+
+
 #TODO: Improve "PythonHighlighter" performance... very slow for large files!
 #      --> maybe grab some ideas from "idlelib/ColorDelegator.py"
 class PythonHighlighter(QSyntaxHighlighter):
@@ -191,7 +218,7 @@ class PythonHighlighter(QSyntaxHighlighter):
         QApplication.restoreOverrideCursor()
 
 
-class QtEditor(QTextEdit):
+class QtEditor(AlmostQsciScintilla):
     """
     Qt-based Editor Widget
     """
@@ -200,14 +227,6 @@ class QtEditor(QTextEdit):
         super(QtEditor, self).__init__(parent)
         self.highlighter = PythonHighlighter(self, get_font('editor'))
         self.connect(self, SIGNAL('textChanged()'), self.changed)
-        
-    def isModified(self):
-        """Reimplement QScintilla method"""
-        return self.document().isModified()
-    
-    def setModified(self, state):
-        """Reimplement QScintilla method"""
-        self.document().setModified(state)
         
     def changed(self):
         """Emit changed signal"""
@@ -280,18 +299,7 @@ class QtEditor(QTextEdit):
             self.moveCursor(move)
             found = self.find(text, findflag)
         return found
-    
-    def hasSelectedText(self):
-        """Reimplements QScintilla method
-        Returns true if some text is selected"""
-        return len(self.selectedText()) != 0
-    
-    def selectedText(self):
-        """Reimplements QScintilla method
-        Returns the selected text or an empty string
-        if there is no currently selected text"""
-        return self.textCursor().selectedText()
-    
+        
     def replace(self, text):
         """Reimplements QScintilla method"""
         cursor = self.textCursor()
@@ -333,7 +341,7 @@ class QtEditor(QTextEdit):
         user_cursor.endEditBlock()
 
 
-class QtTerminal(QTextEdit):
+class QtTerminal(AlmostQsciScintilla):
     """
     Terminal based on Qt only
     """    
