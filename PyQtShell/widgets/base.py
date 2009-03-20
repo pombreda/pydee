@@ -143,8 +143,11 @@ class PathComboBox(EditableComboBox):
     """
     def __init__(self, parent):
         super(PathComboBox, self).__init__(parent)
+        self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.tips = {True: self.tr("Press enter to validate this path"),
-                     False: self.tr('This path is incorrect.\nEnter a correct directory path.\nThen press enter to validate')}
+                     False: self.tr('This path is incorrect.\n'
+                                    'Enter a correct directory path.\n'
+                                    'Then press enter to validate')}
         
     def is_valid(self, qstr):
         """Return True if string is valid"""

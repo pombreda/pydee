@@ -58,6 +58,8 @@ class WorkingDirectory(QWidget, WidgetMixin):
             # Not a dock widget
             layout.addWidget( QLabel(self.get_name()+':') )
         
+        layout.addWidget( QLabel(self.tr("Working directory:")) )
+        
         # Path combo box
         self.pathedit = PathComboBox(self)
         self.pathedit.setMaxCount(CONF.get('shell', 'working_dir_history'))
@@ -90,7 +92,7 @@ class WorkingDirectory(QWidget, WidgetMixin):
         
         self.setLayout(layout)
         
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
         
     def get_name(self, raw=True):
         """Return widget name"""
