@@ -355,6 +355,12 @@ class Editor(QWidget, WidgetMixin):
         replace_action = create_action(self, self.tr("Replace text"), "Ctrl+H",
             tip = self.tr("Replace text in current script"),
             triggered = self.replace)
+        comment_action = create_action(self, self.tr("Comment selection"), "Ctrl+K",
+            tip = self.tr("Comment current selection"),
+            triggered = self.comment_selection)
+        uncomment_action = create_action(self, self.tr("Uncomment selection"), "Shift+Ctrl+K",
+            tip = self.tr("Uncomment current selection"),
+            triggered = self.uncomment_selection)
         close_action = create_action(self, self.tr("Close"), "Ctrl+W",
             'close.png', self.tr("Close current script"),
             triggered = self.close)
@@ -389,6 +395,7 @@ class Editor(QWidget, WidgetMixin):
                         None, check_action, exec_action, exec_interact_action,
                         exec_selected_action,
                         None, find_action, replace_action,
+                        comment_action, uncomment_action,
                         None, close_action, close_all_action,
                         None, font_action, wrap_action)
         toolbar_actions = (new_action, open_action, save_action, exec_action,
@@ -398,12 +405,13 @@ class Editor(QWidget, WidgetMixin):
                                        exec_interact_action,
                                        exec_selected_action,
                                        close_action, close_all_action,
-                                       find_action, replace_action)
+                                       find_action, replace_action,
+                                       comment_action, uncomment_action)
         self.tab_actions = (save_action, save_as_action,
                             check_action,exec_action,
                             workdir_action,
                             None, close_action)
-        return (menu_actions, toolbar_actions)                
+        return (menu_actions, toolbar_actions)        
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -414,7 +422,19 @@ class Editor(QWidget, WidgetMixin):
         """Show Find Widget"""
         self.find_widget.show()
         self.find_widget.edit.setFocus()
-        
+    
+    def comment_selection(self):
+        """Add comment symbol at the beginning of selected lines"""
+        if self.tabwidget.count():
+            index = self.tabwidget.currentIndex()
+            self.editors[index].comment_selection()
+
+    def uncomment_selection(self):
+        """Remove comment symbol from the beginning of selected lines"""
+        if self.tabwidget.count():
+            index = self.tabwidget.currentIndex()
+            self.editors[index].uncomment_selection()
+
     def replace(self):
         """Show Replace Widget"""
         self.find()

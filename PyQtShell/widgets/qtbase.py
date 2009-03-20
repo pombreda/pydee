@@ -67,6 +67,7 @@ class PythonHighlighter(QSyntaxHighlighter):
 
     CONSTANTS = ["False", "True", "None", "NotImplemented", "Ellipsis"]
 
+    COMMENT_STRING = "#"
 
     def __init__(self, parent=None, font=None):
         super(PythonHighlighter, self).__init__(parent)
@@ -294,6 +295,15 @@ class QtEditor(QTextEdit):
         cursor.insertText(text)
         cursor.endEditBlock()
 
+    def comment_selection(self):
+        """Add a comment symbol at the beginning of
+        each selected line"""
+        raise NotImplementedError()
+    
+    def uncomment_selection(self):
+        """Remove the comment symbol from the beginning of
+        each selected line"""
+        raise NotImplementedError()
 
 class QtTerminal(QTextEdit):
     """

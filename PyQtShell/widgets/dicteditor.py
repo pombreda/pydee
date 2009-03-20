@@ -115,7 +115,7 @@ def display_to_value(value, default_value):
             value = datestr_to_datetime(value).date()
         else:
             value = try_to_eval(value)
-    except ValueError:
+    except (ValueError, SyntaxError):
         value = try_to_eval(value)
     return value
 
