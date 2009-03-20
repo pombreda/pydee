@@ -43,6 +43,9 @@ class LexerPython(QsciLexerPython):
     """ 
     Subclass to implement some additional lexer dependant methods.
     """
+    
+    COMMENT_STRING = '#'
+    
     def getIndentationDifference(self, line, editor):
         """
         Private method to determine the difference for the new indentation.
@@ -105,6 +108,7 @@ class QsciEditor(QsciScintilla):
         self.setTabWidth(4)
         self.setIndentationGuides(True)
         self.setIndentationGuidesForegroundColor(Qt.lightGray)
+        self.setFolding(QsciScintilla.BoxedFoldStyle)
         
         # Auto-completion
         self.setAutoCompletionThreshold(-1)
@@ -203,8 +207,59 @@ class QsciEditor(QsciScintilla):
         line, col = self.getCursorPosition()
         self.insertAt(text, line, col)
         self.setCursorPosition(line, col + len(str(text)))
-        
     
+    def comment_selection(self):
+        """Add a comment symbol at the beginning of
+        each selected line"""
+        comment_str = self.lex.COMMENT_STRING
+        selection = self.getSelection()
+        if not self.hasSelectedText():
+            line, index = self.getCursorPosition()
+            lines_to_comment = [line,]
+        else:
+            line_from, index_from, line_to, index_to = self.getSelection()
+            if index_to == 0:
+                end_line = line_to - 1
+            else:
+                end_line = line_to
+            lines_to_comment = range(line_from, line_to+1)
+        newsel = list(selection)
+        if comment_str:
+            for line in lines_to_comment:
+                if not self.text(line).startsWith(comment_str):
+                    self.insertAt(comment_str, line, 0)
+                    if line is lines_to_comment[-1]:
+                        newsel[3] += len(comment_str)
+        self.setSelection(*newsel)
+
+    def uncomment_selection(self):
+        """Remove the comment symbol from the beginning of
+        each selected line"""
+        comment_str = self.lex.COMMENT_STRING
+        lines_to_uncomment = []
+        selection = self.getSelection()
+        if not self.hasSelectedText():
+            line, index = self.getCursorPosition()
+            lines_to_uncomment.append(line)
+        else:
+            line_from, index_from, line_to, index_to = self.getSelection()
+            if index_to == 0:
+                end_line = line_to - 1
+            else:
+                end_line = line_to
+            lines_to_uncomment = range(line_from, line_to+1)
+        newsel = list(selection)
+        if comment_str:
+            for line in lines_to_uncomment:
+                self.setSelection(line, 0, line, len(comment_str))
+                if self.selectedText().toUtf8() == comment_str:
+                    self.removeSelectedText()
+                    if line is lines_to_uncomment[0]:
+                        newsel[1] -= len(comment_str)
+                    elif line is lines_to_uncomment[-1]:
+                        newsel[3] -= len(comment_str)
+        self.setSelection(*newsel)
+
 #TODO: Do not allow user to ctrl-leftarrow back into the command prompt (or past)
 class QsciTerminal(QsciScintilla):
     """
