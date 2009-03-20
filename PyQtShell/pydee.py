@@ -73,9 +73,6 @@ class ConsoleWindow(QMainWindow):
         # List of satellite widgets (registered in add_dockwidget):
         self.widgetlist = []
         
-        # Dictionary: mapping widget <--> dockwidget
-        self.dockdict = {}
-        
         # Flag used if closing() is called by the exit() shell command
         self.already_closed = False
 
@@ -240,7 +237,7 @@ class ConsoleWindow(QMainWindow):
             # Tabifying
             if self.widgetlist:
                 last_object = self.widgetlist[-1]
-                if self.dockdict[last_object].isWindow():
+                if last_object.dockwidget.isWindow():
                     # last_object is floating
                     dockwidget.setFloating(True)
                     size = QSize(*CONF.get('figure', 'size'))
@@ -249,15 +246,13 @@ class ConsoleWindow(QMainWindow):
                     dockwidget.resize(size)
                 else:
                     # last_object is docked
-                    self.tabifyDockWidget(self.dockdict[last_object],
-                                          dockwidget)
+                    self.tabifyDockWidget(last_object.dockwidget, dockwidget)
         else:
             # Matplotlib figures are not added to view menu
             # because closing a figure will not hide it but delete it
             self.view_menu.addAction(dockwidget.toggleViewAction())
                 
         self.widgetlist.append(child)
-        self.dockdict[child] = dockwidget
     
     def add_toolbar(self, widget):
         """Add toolbar including a widget"""
