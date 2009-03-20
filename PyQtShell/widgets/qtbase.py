@@ -67,8 +67,6 @@ class PythonHighlighter(QSyntaxHighlighter):
 
     CONSTANTS = ["False", "True", "None", "NotImplemented", "Ellipsis"]
 
-    COMMENT_STRING = "#"
-
     def __init__(self, parent=None, font=None):
         super(PythonHighlighter, self).__init__(parent)
         
@@ -255,7 +253,7 @@ class QtEditor(QTextEdit):
         if event.type() == QEvent.KeyPress and \
            event.key() == Qt.Key_Tab:
             cursor = self.textCursor()
-            cursor.insertText("    ")
+            cursor.insertText(" "*4)
             return True
         return QTextEdit.event(self, event)
     
@@ -283,8 +281,15 @@ class QtEditor(QTextEdit):
             found = self.find(text, findflag)
         return found
     
+    def hasSelectedText(self):
+        """Reimplements QScintilla method
+        Returns true if some text is selected"""
+        return len(self.selectedText()) != 0
+    
     def selectedText(self):
-        """Reimplements QScintilla method"""
+        """Reimplements QScintilla method
+        Returns the selected text or an empty string
+        if there is no currently selected text"""
         return self.textCursor().selectedText()
     
     def replace(self, text):
@@ -295,15 +300,38 @@ class QtEditor(QTextEdit):
         cursor.insertText(text)
         cursor.endEditBlock()
 
-    def comment_selection(self):
-        """Add a comment symbol at the beginning of
-        each selected line"""
-        raise NotImplementedError()
-    
-    def uncomment_selection(self):
-        """Remove the comment symbol from the beginning of
-        each selected line"""
-        raise NotImplementedError()
+    def comment(self):
+        """Comment current line or selection"""
+        self._walk_the_lines(True, "#")
+
+    def uncomment(self):
+        """Uncomment current line or selection"""
+        self._walk_the_lines(False, "#")
+            
+    def _walk_the_lines(self, insert, text):
+        """Walk current/selected lines and insert or remove text"""
+        user_cursor = self.textCursor()
+        user_cursor.beginEditBlock()
+        start = user_cursor.position()
+        end = user_cursor.anchor()
+        if start > end:
+            start, end = end, start
+        block = self.document().findBlock(start)
+        while block.isValid():
+            cursor = QTextCursor(block)
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            if insert:
+                cursor.insertText(text)
+            else:
+                cursor.movePosition(QTextCursor.NextCharacter,
+                        QTextCursor.KeepAnchor, len(text))
+                if cursor.selectedText() == text:
+                    cursor.removeSelectedText()        
+            block = block.next()
+            if block.position() > end:
+                break
+        user_cursor.endEditBlock()
+
 
 class QtTerminal(QTextEdit):
     """
