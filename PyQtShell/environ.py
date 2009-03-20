@@ -33,7 +33,7 @@ from PyQtShell.qthelpers import translate
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""
     for key in envdict:
-        if ";" in envdict[key]:
+        if os.path.pathsep in envdict[key]:
             envdict[key] = [path.strip() for path in envdict[key].split(';')]
     return envdict
 
@@ -41,7 +41,7 @@ def listdict2envdict(listdict):
     """Dict of lists --> Dict"""
     for key in listdict:
         if isinstance(listdict[key], list):
-            listdict[key] = ";".join(listdict[key])
+            listdict[key] = os.path.pathsep.join(listdict[key])
     return listdict
 
 class EnvDialog(DictEditorDialog):
