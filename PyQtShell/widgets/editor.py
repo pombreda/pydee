@@ -299,17 +299,25 @@ class Editor(QWidget, WidgetMixin):
         # Accepting drops
         self.setAcceptDrops(True)
         
-    def refresh(self, index):
+    def refresh(self, index=None):
         """Refresh tabwidget"""
+        if index is None:
+            index = self.tabwidget.currentIndex()
         # Enable/disable file dependent actions
         enable = index != -1
         for action in self.file_dependent_actions:
             action.setEnabled(enable)
         # Set current editor
+        title = self.get_name()
         if self.tabwidget.count():
-            editor = self.editors[self.tabwidget.currentIndex()]
+            index = self.tabwidget.currentIndex()
+            editor = self.editors[index]
+            title += " - "+osp.basename(self.filenames[index])
         else:
             editor = None
+        if self.dockwidget:
+            self.dockwidget.setWindowTitle(title)
+            
         self.find_widget.set_editor(editor)
 
     def visibility_changed(self, enable):
@@ -348,8 +356,6 @@ class Editor(QWidget, WidgetMixin):
 
     def set_actions(self):
         """Setup actions"""
-        #TODO: Add an action to comment/uncomment selection/current line
-        #      and implement it in Qsci/Qt-Editor widgets
         new_action = create_action(self, self.tr("New..."), "Ctrl+N",
             'new.png', self.tr("Create a new Python script"),
             triggered = self.new)
@@ -636,6 +642,8 @@ class Editor(QWidget, WidgetMixin):
             
             if goto is not None:
                 editor.highlight_line(goto)
+        
+        self.refresh()
 
     def save_as(self):
         """Save the currently edited Python script file"""

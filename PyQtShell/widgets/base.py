@@ -55,6 +55,10 @@ class WidgetMixin(object):
     def get_name(self, raw=True):
         """Return widget name"""
         raise NotImplementedError
+        
+    def refresh(self):
+        """Refresh widget"""
+        raise NotImplementedError
     
     def set_actions(self):
         """Setup actions"""
@@ -82,6 +86,7 @@ class WidgetMixin(object):
         self.connect(dock, SIGNAL('visibilityChanged(bool)'),
                      self.visibility_changed)
         self.dockwidget = dock
+        self.refresh()
         return (dock, location)
 
     def visibility_changed(self, enable):
