@@ -109,6 +109,10 @@ class QsciEditor(QsciScintilla):
         self.setIndentationGuidesForegroundColor(Qt.lightGray)
         self.setFolding(QsciScintilla.BoxedFoldStyle)
         
+        # 80-columns edge
+        self.setEdgeColumn(80)
+        self.setEdgeMode(QsciScintilla.EdgeLine)
+        
         # Auto-completion
         self.setAutoCompletionThreshold(-1)
         self.setAutoCompletionSource(QsciScintilla.AcsAll)
