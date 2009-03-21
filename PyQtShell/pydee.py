@@ -116,6 +116,8 @@ class ConsoleWindow(QMainWindow):
         self.addToolBar(self.workdir) # new mainwindow toolbar
         self.connect(self.shell, SIGNAL("refresh()"),
                      self.workdir.refresh)
+        if not self.light:
+            self.view_menu.addAction(self.workdir.toggleViewAction())
         
         if not self.light:
             # Shell widget (...)
