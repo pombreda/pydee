@@ -267,6 +267,7 @@ class Editor(QWidget, WidgetMixin):
     ID = 'editor'
     file_path = get_conf_path('.temp.py')
     def __init__(self, parent):
+        self.file_dependent_actions = []
         self.dock_toolbar_actions = None
         QWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
@@ -285,7 +286,6 @@ class Editor(QWidget, WidgetMixin):
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
         
-        self.file_dependent_actions = []
         self.filenames = []
         self.encodings = []
         self.editors = []
@@ -301,11 +301,11 @@ class Editor(QWidget, WidgetMixin):
         
     def refresh(self, index):
         """Refresh tabwidget"""
-        # Doesn't work... references must be lost somewhere...
+        # Enable/disable file dependent actions
         enable = index != -1
         for action in self.file_dependent_actions:
             action.setEnabled(enable)
-        # The following works
+        # Set current editor
         if self.tabwidget.count():
             editor = self.editors[self.tabwidget.currentIndex()]
         else:
@@ -405,6 +405,7 @@ class Editor(QWidget, WidgetMixin):
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
         menu_actions = (new_action, open_action, save_action, save_as_action,
+                        workdir_action,
                         None, check_action, exec_action, exec_interact_action,
                         exec_selected_action, comment_action, uncomment_action,
                         None, find_action, replace_action,
@@ -420,7 +421,7 @@ class Editor(QWidget, WidgetMixin):
         self.file_dependent_actions = (save_action, save_as_action,
                                        check_action, exec_action,
                                        exec_interact_action,
-                                       exec_selected_action,
+                                       exec_selected_action, workdir_action,
                                        close_action, close_all_action,
                                        find_action, replace_action,
                                        comment_action, uncomment_action)
