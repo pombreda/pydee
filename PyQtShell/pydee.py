@@ -104,7 +104,7 @@ class ConsoleWindow(QMainWindow):
                 self.set_splash(self.tr("Loading workspace..."))
                 self.workspace = Workspace(self)
                 namespace = self.workspace.namespace
-        
+                
         # Shell widget: window's central widget
         self.shell = Shell(self, namespace, self.commands, self.message,
                            self.debug, self.closing)
@@ -113,9 +113,9 @@ class ConsoleWindow(QMainWindow):
         
         # Working directory changer widget
         self.workdir = WorkingDirectory( self, self.workdir )
+        self.addToolBar(self.workdir) # new mainwindow toolbar
         self.connect(self.shell, SIGNAL("refresh()"),
                      self.workdir.refresh)
-        self.add_toolbar(self.workdir)
         
         if not self.light:
             # Shell widget (...)

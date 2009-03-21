@@ -25,7 +25,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QWidget, QHBoxLayout, QPushButton, QLabel, QSizePolicy,
+from PyQt4.QtGui import (QToolBar, QHBoxLayout, QPushButton, QLabel, QSizePolicy,
                          QFileDialog)
 from PyQt4.QtCore import Qt, SIGNAL
 
@@ -38,27 +38,22 @@ STDOUT = sys.stdout
 # Local imports
 from PyQtShell import encoding
 from PyQtShell.config import CONF, get_conf_path
-from PyQtShell.qthelpers import get_std_icon
+from PyQtShell.qthelpers import get_std_icon, create_action
 
 # Package local imports
 from PyQtShell.widgets.base import WidgetMixin, PathComboBox
 
 
-class WorkingDirectory(QWidget, WidgetMixin):
+class WorkingDirectory(QToolBar, WidgetMixin):
     """
     Working directory changer widget
     """
     log_path = get_conf_path('.workingdir')
     def __init__(self, parent, workdir=None):
-        QWidget.__init__(self, parent)
+        QToolBar.__init__(self, "WD_Toolbar", parent)
         WidgetMixin.__init__(self, parent)
         
-        layout = QHBoxLayout()
-        if self.mainwindow is None:
-            # Not a dock widget
-            layout.addWidget( QLabel(self.get_name()+':') )
-        
-        layout.addWidget( QLabel(self.tr("Working directory:")) )
+        self.addWidget( QLabel(self.tr("Working directory:")+" ") )
         
         # Path combo box
         self.pathedit = PathComboBox(self)
@@ -72,25 +67,21 @@ class WorkingDirectory(QWidget, WidgetMixin):
         self.chdir( workdir )
         self.pathedit.addItems( wdhistory )
         self.refresh()
-        layout.addWidget(self.pathedit)
+        self.addWidget(self.pathedit)
         
-        # Browse button
-        self.browse_btn = QPushButton(get_std_icon('DirOpenIcon'), '')
-        self.browse_btn.setFixedWidth(30)
-        self.browse_btn.setToolTip(self.tr('Browse a working directory'))
-        self.connect(self.browse_btn, SIGNAL('clicked()'),
-                     self.select_directory)
-        layout.addWidget(self.browse_btn)
+        # Browse action
+        browse_action = create_action(self, "browse", None,
+                                      get_std_icon('DirOpenIcon'),
+                                      self.tr('Browse a working directory'),
+                                      triggered=self.select_directory)
+        self.addAction(browse_action)
         
-        # Parent dir button
-        self.parent_btn = QPushButton(get_std_icon('FileDialogToParent'), '')
-        self.parent_btn.setFixedWidth(30)
-        self.parent_btn.setToolTip(self.tr('Change to parent directory'))
-        self.connect(self.parent_btn, SIGNAL('clicked()'),
-                     self.parent_directory)
-        layout.addWidget(self.parent_btn)
-        
-        self.setLayout(layout)
+        # Parent dir action
+        parent_action = create_action(self, "parent", None,
+                                      get_std_icon('FileDialogToParent', 16),
+                                      self.tr('Change to parent directory'),
+                                      triggered=self.parent_directory)
+        self.addAction(parent_action)
         
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
         
@@ -159,19 +150,3 @@ class WorkingDirectory(QWidget, WidgetMixin):
         sys.path.append(os.getcwd())
         self.refresh()
 
-
-def tests():
-    """
-    Testing Working Directory Widget
-    """
-    from PyQt4.QtGui import QApplication
-    app = QApplication([])
-    
-    # Working directory changer test:
-    dialog = WorkingDirectory(None)
-    dialog.show()
-    sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    tests()
-        
