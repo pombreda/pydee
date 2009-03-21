@@ -48,10 +48,13 @@ class WorkingDirectory(QToolBar, WidgetMixin):
     """
     Working directory changer widget
     """
+    object_name = "WD_Toolbar"
     log_path = get_conf_path('.workingdir')
     def __init__(self, parent, workdir=None):
-        QToolBar.__init__(self, "WD_Toolbar", parent)
+        QToolBar.__init__(self, self.object_name, parent)
         WidgetMixin.__init__(self, parent)
+        
+        self.setObjectName(self.object_name) # Used to save Window state
         
         self.addWidget( QLabel(self.tr("Working directory:")+" ") )
         
