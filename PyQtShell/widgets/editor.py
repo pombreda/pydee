@@ -396,6 +396,8 @@ class Editor(QWidget, WidgetMixin):
     def change(self, state=None):
         """Change tab title depending on modified state"""
         index = self.tabwidget.currentIndex()
+        if index == -1:
+            return
         if state is None:
             state = self.editors[index].isModified()
         title = self.get_title(self.filenames[index])
@@ -418,49 +420,49 @@ class Editor(QWidget, WidgetMixin):
 
     def set_actions(self):
         """Setup actions"""
-        new_action = create_action(self, self.tr("New..."), "Ctrl+N",
+        self.new_action = create_action(self, self.tr("New..."), "Ctrl+N",
             'new.png', self.tr("Create a new Python script"),
             triggered = self.new)
-        open_action = create_action(self, self.tr("Open..."), "Ctrl+O",
+        self.open_action = create_action(self, self.tr("Open..."), "Ctrl+O",
             'open.png', self.tr("Open a Python script"),
             triggered = self.load)
         self.save_action = create_action(self, self.tr("Save"), "Ctrl+S",
             'save.png', self.tr("Save current script"),
             triggered = self.save)
-        save_as_action = create_action(self, self.tr("Save as..."), None,
+        self.save_as_action = create_action(self, self.tr("Save as..."), None,
             'saveas.png', self.tr("Save current script as..."),
             triggered = self.save_as)
-        find_action = create_action(self, self.tr("Find text"), "Ctrl+F",
+        self.find_action = create_action(self, self.tr("Find text"), "Ctrl+F",
             'find.png', self.tr("Find text in current script"),
             triggered = self.find)
-        replace_action = create_action(self, self.tr("Replace text"), "Ctrl+H",
+        self.replace_action = create_action(self, self.tr("Replace text"), "Ctrl+H",
             'replace.png', self.tr("Replace text in current script"),
             triggered = self.replace)
-        close_action = create_action(self, self.tr("Close"), "Ctrl+W",
+        self.close_action = create_action(self, self.tr("Close"), "Ctrl+W",
             'close.png', self.tr("Close current script"),
             triggered = self.close)
-        close_all_action = create_action(self, self.tr("Close all"),
+        self.close_all_action = create_action(self, self.tr("Close all"),
             "Ctrl+Maj+W", 'close_all.png', self.tr("Close all opened scripts"),
             triggered = self.close_all)
-        check_action = create_action(self, self.tr("&Check syntax"), "F5",
+        self.check_action = create_action(self, self.tr("&Check syntax"), "F5",
             'check.png', self.tr("Check current script for syntax errors"),
             triggered=self.check_script)
-        exec_action = create_action(self, self.tr("&Execute"), "F9",
+        self.exec_action = create_action(self, self.tr("&Execute"), "F9",
             'execute.png', self.tr("Execute current script"),
             triggered=self.exec_script)
-        exec_interact_action = create_action(self,
+        self.exec_interact_action = create_action(self,
             self.tr("Execute and &interact"), "Shift+F9",
             'execute_interact.png',
             self.tr("Execute current script and set focus to shell"),
             triggered=self.exec_script_and_interact)
-        exec_selected_action = create_action(self,
+        self.exec_selected_action = create_action(self,
             self.tr("Execute selection"), "Ctrl+F9", 'execute_selection.png',
             self.tr("Execute selected text in current script and set focus to shell"),
             triggered=self.exec_selected_text)
-        comment_action = create_action(self, self.tr("Comment"), "Ctrl+K",
+        self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+K",
             'comment.png', self.tr("Comment current line or selection"),
             triggered = self.comment)
-        uncomment_action = create_action(self, self.tr("Uncomment"), "Shift+Ctrl+K",
+        self.uncomment_action = create_action(self, self.tr("Uncomment"), "Shift+Ctrl+K",
             'uncomment.png', self.tr("Uncomment current line or selection"),
             triggered = self.uncomment)
         font_action = create_action(self, self.tr("&Font..."), None,
@@ -472,31 +474,29 @@ class Editor(QWidget, WidgetMixin):
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
-        menu_actions = (new_action, open_action, self.save_action,
-                        save_as_action, workdir_action,
-                        None, check_action, exec_action, exec_interact_action,
-                        exec_selected_action, comment_action, uncomment_action,
-                        None, find_action, replace_action,
-                        None, close_action, close_all_action,
+        menu_actions = (self.check_action, self.exec_action, self.exec_interact_action,
+                        self.exec_selected_action, self.comment_action, self.uncomment_action,
+                        None, self.find_action, self.replace_action,
                         None, font_action, wrap_action)
-        toolbar_actions = [new_action, open_action, self.save_action,
-                        None, find_action, check_action, exec_action,
-                        exec_selected_action]
+        toolbar_actions = [self.new_action, self.open_action, self.save_action,
+                        None, self.find_action, self.replace_action,
+                        None, self.check_action, self.exec_action,
+                        self.exec_selected_action]
         self.dock_toolbar_actions = toolbar_actions + \
-                                    [exec_interact_action,
-                                     comment_action, uncomment_action,
-                                     None, close_action]
-        self.file_dependent_actions = (self.save_action, save_as_action,
-                                       check_action, exec_action,
-                                       exec_interact_action,
-                                       exec_selected_action, workdir_action,
-                                       close_action, close_all_action,
-                                       find_action, replace_action,
-                                       comment_action, uncomment_action)
-        self.tab_actions = (self.save_action, save_as_action,
-                            check_action,exec_action,
+                                    [self.exec_interact_action,
+                                     self.comment_action, self.uncomment_action,
+                                     None, self.close_action]
+        self.file_dependent_actions = (self.save_action, self.save_as_action,
+                                       self.check_action, self.exec_action,
+                                       self.exec_interact_action,
+                                       self.exec_selected_action, workdir_action,
+                                       self.close_action, self.close_all_action,
+                                       self.find_action, self.replace_action,
+                                       self.comment_action, self.uncomment_action)
+        self.tab_actions = (self.save_action, self.save_as_action,
+                            self.check_action, self.exec_action,
                             workdir_action,
-                            None, close_action)
+                            None, self.close_action)
         return (menu_actions, toolbar_actions)        
         
     def closing(self, cancelable=False):
@@ -670,6 +670,10 @@ class Editor(QWidget, WidgetMixin):
                 filenames = [osp.normpath(unicode(fname)) for fname in filenames]
             else:
                 return
+            
+        if self.dockwidget:
+            self.dockwidget.setVisible(True)
+            self.dockwidget.setFocus()
             
         if not isinstance(filenames, list):
             filenames = [filenames]
