@@ -73,11 +73,13 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 
 def add_actions(target, actions):
     """Add actions to a menu"""
+    previous_action = None
     for action in actions:
-        if action is None:
+        if (action is None) and (previous_action is not None):
             target.addSeparator()
         else:
             target.addAction(action)
+        previous_action = action
 
 def get_std_icon(name, size=None):
     """Get standard platform icon

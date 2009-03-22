@@ -45,7 +45,6 @@ from PyQtShell.qthelpers import create_action, add_actions, get_std_icon
 from PyQtShell.config import get_font, get_icon, get_image_path, CONF
 
 
-#TODO: Change menubar for a more classic one: File, Edit, ...
 class ConsoleWindow(QMainWindow):
     """Console QDialog"""
     def __init__(self, commands=None, intitle="", message="", options=None):
@@ -82,8 +81,11 @@ class ConsoleWindow(QMainWindow):
             self.toolbar = self.addToolBar(self.tr("Toolbar"))
             self.toolbar.setObjectName("MainToolbar")
             self.toolbar.setIconSize( QSize(24, 24) )
-        
-            # Window menu
+            
+            # File menu
+            self.file_menu = self.menuBar().addMenu(self.tr("&File"))            
+                    
+            # View menu
             self.view_menu = QMenu(self.tr("&View"))
             
             # Toolbar (...)
@@ -122,24 +124,21 @@ class ConsoleWindow(QMainWindow):
         
         if not self.light:
             # Shell widget (...)
-            self.add_to_menubar(self.shell)
             self.connect(self.shell, SIGNAL("status(QString)"), 
                          self.send_to_statusbar)
 
             # Editor widget
-            if CONF.get('editor', 'enable'):
-                self.set_splash(self.tr("Loading editor widget..."))
-                self.editor = Editor( self )
-                self.add_dockwidget(self.editor)
-                self.add_to_menubar(self.editor)
-                self.add_to_toolbar(self.editor)
+            self.set_splash(self.tr("Loading editor widget..."))
+            self.editor = Editor( self )
+            self.add_dockwidget(self.editor)
+            self.add_to_menubar(self.editor, self.tr("&Edit"))
+            self.add_to_toolbar(self.editor)
         
             # Workspace
             if CONF.get('workspace', 'enable'):
                 self.set_splash(self.tr("Loading workspace widget..."))
                 self.workspace.set_shell(self.shell)
                 self.add_dockwidget(self.workspace)
-                self.add_to_menubar(self.workspace)
                 self.toolbar.addSeparator()
                 self.add_to_toolbar(self.workspace)
                 self.connect(self.shell, SIGNAL("refresh()"),
@@ -161,6 +160,24 @@ class ConsoleWindow(QMainWindow):
                 self.shell.set_docviewer(self.docviewer)
         
         if not self.light:
+            # File menu
+            #TODO: Add a recent files action list
+            add_actions(self.file_menu, [self.editor.new_action,
+                                         self.editor.open_action,
+                                         self.editor.save_action,
+                                         self.editor.save_as_action, None,
+                                         self.editor.close_action,
+                                         self.editor.close_all_action, None,
+                                         self.shell.quit_action,
+                                         ])
+            
+            # Console menu
+            self.shell.menu_actions = self.shell.menu_actions[:-2]
+            self.add_to_menubar(self.shell)
+            
+            # Workspace menu
+            self.add_to_menubar(self.workspace)
+            
             # View menu
             self.menuBar().addMenu(self.view_menu)
         
@@ -172,7 +189,7 @@ class ConsoleWindow(QMainWindow):
                 triggered=self.about))
             if self.shell.help_action is not None:
                 help_menu.addAction(self.shell.help_action)
-        
+                
         # Window set-up
         section = 'lightwindow' if self.light else 'window'
         width, height = CONF.get(section, 'size')
@@ -265,11 +282,13 @@ class ConsoleWindow(QMainWindow):
         if not self.light:
             self.view_menu.addAction(toolbar.toggleViewAction())
         
-    def add_to_menubar(self, widget):
+    def add_to_menubar(self, widget, title=None):
         """Add menu and actions to menubar"""
         actions = widget.menu_actions
         if actions is not None:
-            menu = self.menuBar().addMenu(widget.get_name())
+            if not title:
+                title = widget.get_name()
+            menu = self.menuBar().addMenu(title)
             add_actions(menu, actions)
 
     def add_to_toolbar(self, widget):

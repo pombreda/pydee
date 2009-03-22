@@ -121,7 +121,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
     
     def set_actions(self):
         """Setup actions"""
-        quit_action = create_action(self,
+        self.quit_action = create_action(self,
                             self.tr("&Quit"), self.tr("Ctrl+Q"),
                             get_std_icon("DialogCloseButton"), self.tr("Quit"),
                             triggered=self.quit)
@@ -157,7 +157,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
         menu_actions = [run_action, environ_action, None,
                         font_action, history_action, wrap_action,
                         calltips_action, exteditor_action,
-                        None, quit_action]
+                        None, self.quit_action]
         toolbar_actions = []
         if WinUserEnvDialog is not None:
             winenv_action = create_action(self,
@@ -196,7 +196,6 @@ class Shell(ShellBaseWidget, WidgetMixin):
         add_actions(self.menu, (self.cut_action, self.copy_action, paste_action,
                                 None, clear_action, None, self.help_action) )
 
-        add_actions(self.menu, (None,))
         add_actions(self.menu, menu_actions)
         return menu_actions, toolbar_actions
     
