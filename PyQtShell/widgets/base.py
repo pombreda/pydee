@@ -52,7 +52,7 @@ class WidgetMixin(object):
         # Must return True or False (if cancelable)
         raise NotImplementedError
         
-    def get_name(self, raw=True):
+    def get_name(self):
         """Return widget name"""
         raise NotImplementedError
         
@@ -78,7 +78,7 @@ class WidgetMixin(object):
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
         allowed_areas, location = self.get_dockwidget_properties()
-        dock = QDockWidget(self.get_name(raw=False), self.mainwindow)
+        dock = QDockWidget(self.get_name(), self.mainwindow)
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(allowed_areas)
         dock.setFeatures( self.get_dockwidget_features() )
