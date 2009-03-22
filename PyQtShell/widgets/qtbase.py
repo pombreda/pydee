@@ -47,6 +47,13 @@ class AlmostQsciScintilla(QTextEdit):
     """Reimplement some of QScintilla editor widget features"""
     def __init__(self, parent=None):
         super(AlmostQsciScintilla, self).__init__(parent)
+        # Undo/Redo
+        self.undo_available = False
+        self.redo_available = False
+        self.connect(self, SIGNAL("undoAvailable(bool)"), self.set_undo)
+        self.connect(self, SIGNAL("redoAvailable(bool)"), self.set_redo)
+        # Indentation
+        self.document().setIndentWidth(4)
         
     def isModified(self):
         """Reimplement QScintilla method
@@ -68,6 +75,28 @@ class AlmostQsciScintilla(QTextEdit):
         Returns the selected text or an empty string
         if there is no currently selected text"""
         return self.textCursor().selectedText()
+    
+    def removeSelectedText(self):
+        """Delete selected text"""
+        self.textCursor().removeSelectedText()
+        
+    def set_undo(self, state):
+        """Set undo availablity"""
+        self.undo_available = state
+        
+    def set_redo(self, state):
+        """Set redo availablity"""
+        self.redo_available = state
+        
+    def isUndoAvailable(self):
+        """Reimplements QScintilla method
+        Returns true if there is something that can be undone"""
+        return self.undo_available
+        
+    def isRedoAvailable(self):
+        """Reimplements QScintilla method
+        Returns true if there is something that can be redone"""
+        return self.redo_available
 
 
 #TODO: Improve "PythonHighlighter" performance... very slow for large files!
