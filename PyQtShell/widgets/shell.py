@@ -39,7 +39,6 @@ STDOUT = sys.stdout
 from PyQtShell.config import CONF, get_font, get_icon, set_font
 from PyQtShell.qthelpers import (get_std_icon, create_action,add_actions,
                                  translate, keybinding)
-from PyQtShell.shell import ShellBaseWidget
 from PyQtShell.environ import EnvDialog
 try:
     from PyQtShell.environ import WinUserEnvDialog
@@ -47,6 +46,7 @@ except ImportError:
     WinUserEnvDialog = None
 
 # Local package imports
+from PyQtShell.widgets.shellbase import ShellBaseWidget
 from PyQtShell.widgets.base import WidgetMixin
 
 class Shell(ShellBaseWidget, WidgetMixin):
