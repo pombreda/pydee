@@ -239,9 +239,13 @@ class Shell(ShellBaseWidget, WidgetMixin):
         else:
             self.write(command)
             
+    def get_error_match(self, text):
+        """Return error match"""
+        return re.match(r'  File "(.*)", line (\d*)', text)
+            
     def go_to_error(self, text):
         """Go to error if relevant"""
-        match = re.match(r'  File "(.*)", line (\d*)', text)
+        match = self.get_error_match(text)
         if match:
             fname, lnb = match.groups()
             self.edit_script(fname, int(lnb))

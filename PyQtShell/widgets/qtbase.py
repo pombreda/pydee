@@ -386,6 +386,8 @@ class QtTerminal(AlmostQsciScintilla):
         self.connect(self, SIGNAL("executing_command(bool)"),
                      self.highlighter.disable)
         
+        self.setMouseTracking(True)
+        
         # keyboard events management
         self.busy = False
         self.eventqueue = []
@@ -752,6 +754,16 @@ class QtTerminal(AlmostQsciScintilla):
                     return entry[len(tocursor):], idx
             else:
                 return None, start_idx
+
+    def mouseMoveEvent(self, event):
+        """Show Pointing Hand Cursor on error messages"""
+        if event.modifiers() & Qt.ControlModifier:
+            cursor = self.cursorForPosition(event.pos())
+            text = unicode(cursor.block().text())
+            if self.get_error_match(text):
+                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+                return
+        QApplication.restoreOverrideCursor()
 
     def mousePressEvent(self, event):
         """Keep the cursor after the last prompt"""
