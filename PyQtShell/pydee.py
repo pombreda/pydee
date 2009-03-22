@@ -10,13 +10,13 @@
 #    the Free Software Foundation; either version 2 of the License, or
 #    (at your option) any later version.
 #
-#    Foobar is distributed in the hope that it will be useful,
+#    PyQtShell is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with Foobar; if not, write to the Free Software
+#    along with PyQtShell; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
@@ -45,6 +45,7 @@ from PyQtShell.qthelpers import create_action, add_actions, get_std_icon
 from PyQtShell.config import get_font, get_icon, get_image_path, CONF
 
 
+#TODO: Change menubar for a more classic one: File, Edit, ...
 class ConsoleWindow(QMainWindow):
     """Console QDialog"""
     def __init__(self, commands=None, intitle="", message="", options=None):
