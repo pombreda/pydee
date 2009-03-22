@@ -90,7 +90,10 @@ class WidgetMixin(object):
         return (dock, location)
 
     def visibility_changed(self, enable):
-        """DockWidget visibility has changed"""
+        """DockWidget visibility has changed
+        enable: this parameter is not used because we want to detect if
+        DockWiget is visible or not, with 'not toplevel = visible'"""
+        enable = self.dockwidget.isVisible()
         toggle_actions(self.menu_actions, enable)
         toggle_actions(self.toolbar_actions, enable)
     
