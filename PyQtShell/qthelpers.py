@@ -21,7 +21,8 @@
 """Qt utilities"""
 
 from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
-                         QVBoxLayout, QHBoxLayout, QLineEdit, QLabel)
+                         QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
+                         QKeySequence)
 from PyQt4.QtCore import SIGNAL
 
 # Local import
@@ -30,6 +31,11 @@ from config import get_icon
 def translate(context, string):
     """Translation"""
     return QApplication.translate(context, string)
+
+def keybinding(attr):
+    """Return keybinding"""
+    ks = getattr(QKeySequence, attr)
+    return QKeySequence.keyBindings(ks)[0].toString()
 
 def mimedata2url(source):
     """Extract url list from MIME data"""

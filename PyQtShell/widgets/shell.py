@@ -38,7 +38,7 @@ STDOUT = sys.stdout
 # Local imports
 from PyQtShell.config import CONF, get_font, get_icon, set_font
 from PyQtShell.qthelpers import (get_std_icon, create_action,add_actions,
-                                 translate)
+                                 translate, keybinding)
 from PyQtShell.shell import ShellBaseWidget
 from PyQtShell.environ import EnvDialog
 try:
@@ -163,11 +163,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
                 triggered=self.win_env)
             menu_actions.insert(2, winenv_action)
         
-        # Create a little context menu
-        def keybinding(attr):
-            ks = getattr(QKeySequence, attr)
-            return QKeySequence.keyBindings(ks)[0].toString()
-        
+        # Create a little context menu        
         self.menu = QMenu(self)
         self.cut_action = create_action(self,
                            translate("ShellBaseWidget", "Cut"),
