@@ -26,7 +26,7 @@
 # pylint: disable-msg=R0201
 
 import sys, os
-from PyQt4.QtGui import QKeySequence, QApplication, QClipboard
+from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QCursor
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
@@ -410,6 +410,15 @@ class QsciTerminal(QsciScintilla):
         
 
     #------ Re-implemented Qt Methods
+    def mouseMoveEvent(self, event):
+        """Show Pointing Hand Cursor on error messages"""
+        if event.modifiers() & Qt.ControlModifier:
+            text = unicode(self.text(self.lineAt(event.pos())))
+            if self.get_error_match(text):
+                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+                return
+        QApplication.restoreOverrideCursor()
+
     def mousePressEvent(self, event):
         """
         Re-implemented to handle the mouse press event.
