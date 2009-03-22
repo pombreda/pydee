@@ -103,13 +103,9 @@ class Workspace(DictEditor, WidgetMixin):
         self.load_temp_namespace()
         QShortcut(QKeySequence("Ctrl+E"), self, self.remove_item)
         
-    def get_name(self, raw=True):
+    def get_name(self):
         """Return widget name"""
-        name = self.tr('&Workspace')
-        if raw:
-            return name
-        else:
-            return name.replace("&", "")
+        return self.tr('Workspace')
     
     def get_dockwidget_properties(self):
         """Return QDockWidget properties"""
@@ -217,7 +213,7 @@ class Workspace(DictEditor, WidgetMixin):
                 buttons = QMessageBox.Yes | QMessageBox.No
                 if cancelable:
                     buttons = buttons | QMessageBox.Cancel
-                answer = QMessageBox.question(self, self.get_name(raw=False),
+                answer = QMessageBox.question(self, self.get_name(),
                    self.tr("Workspace is currently keeping reference to %1 object%2.\n\nDo you want to save %3?") \
                    .arg(srefnb).arg(s_or_not).arg(it_or_them), buttons)
                 if answer == QMessageBox.Yes:

@@ -88,7 +88,7 @@ class WorkingDirectory(QToolBar, WidgetMixin):
         
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
         
-    def get_name(self, raw=True):
+    def get_name(self):
         """Return widget name"""
         return self.tr('Working directory')
     

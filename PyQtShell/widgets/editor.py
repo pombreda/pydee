@@ -44,7 +44,7 @@ from PyQtShell.qthelpers import (get_std_icon, create_action, add_actions,
                                  mimedata2url, keybinding, translate)
 from PyQtShell.dochelpers import getdoc, getsource
 try:
-    from PyQtShell.widgets.qscibasex import QsciEditor as EditorBaseWidget
+    from PyQtShell.widgets.qscibase import QsciEditor as EditorBaseWidget
 except ImportError:
     from PyQtShell.widgets.qtbase import QtEditor as EditorBaseWidget
 
@@ -402,13 +402,9 @@ class Editor(QWidget, WidgetMixin):
             title = title[:-1]
         self.tabwidget.setTabText(index, title)
         
-    def get_name(self, raw=True):
+    def get_name(self):
         """Return widget name"""
-        name = self.tr('&Editor')
-        if raw:
-            return name
-        else:
-            return name.replace("&", "")
+        return self.tr('Editor')
     
     def get_dockwidget_properties(self):
         """Return QDockWidget properties"""
@@ -615,7 +611,7 @@ class Editor(QWidget, WidgetMixin):
             if filename == self.file_path:
                 self.save()
             if self.editors[index].isModified():
-                answer = QMessageBox.question(self, self.get_name(raw=False),
+                answer = QMessageBox.question(self, self.get_name(),
                     osp.basename(filename)+' '+ \
                     self.tr(" has been modified.\nDo you want to save changes?"),
                     buttons)
@@ -787,13 +783,9 @@ class HistoryLog(SimpleEditor, WidgetMixin):
         self.history = self.mainwindow.shell.interpreter.rawhistory
         self.refresh()
         
-    def get_name(self, raw=True):
+    def get_name(self):
         """Return widget name"""
-        name = self.tr('&History log')
-        if raw:
-            return name
-        else:
-            return name.replace("&", "")
+        return self.tr('History log')
     
     def get_dockwidget_properties(self):
         """Return QDockWidget properties"""
@@ -883,13 +875,9 @@ class DocViewer(QWidget, WidgetMixin):
         layout.addWidget(self.editor)
         self.setLayout(layout)
         
-    def get_name(self, raw=True):
+    def get_name(self):
         """Return widget name"""
-        name = self.tr('&Doc')
-        if raw:
-            return name
-        else:
-            return name.replace("&", "")
+        return self.tr('Doc')
     
     def get_dockwidget_properties(self):
         """Return QDockWidget properties"""

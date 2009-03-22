@@ -106,13 +106,9 @@ class Shell(ShellBaseWidget, WidgetMixin):
             .arg(translate("ShellBaseWidget", 'System commands:')) \
             .arg(translate("ShellBaseWidget", 'Python help:')))
 
-    def get_name(self, raw=True):
+    def get_name(self):
         """Return widget name"""
-        name = self.tr("&Console")
-        if raw:
-            return name
-        else:
-            return name.replace("&", "")
+        return self.tr("Console")
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""

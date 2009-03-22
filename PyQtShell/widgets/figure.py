@@ -76,7 +76,7 @@ class MatplotlibFigure(QWidget, WidgetMixin):
         """Fake Qt method --> for matplotlib"""
         self.h_layout.insertWidget(0, toolbar)
         
-    def get_name(self, raw=True):
+    def get_name(self):
         """Return widget name"""
         return self.tr("Figure %d" % self.num)
         
