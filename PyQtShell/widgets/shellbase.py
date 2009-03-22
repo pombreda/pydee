@@ -31,10 +31,10 @@ import os.path as osp
 from PyQt4.QtCore import SIGNAL, QString, QEventLoop, QCoreApplication
 
 # Local import
-from interpreter import Interpreter
-from dochelpers import getargtxt
-from encoding import transcode
-from config import CONF
+from PyQtShell.interpreter import Interpreter
+from PyQtShell.dochelpers import getargtxt
+from PyQtShell.encoding import transcode
+from PyQtShell.config import CONF
 try:
     from PyQtShell.widgets.qscibasex import QsciTerminal as Terminal
 except ImportError:
