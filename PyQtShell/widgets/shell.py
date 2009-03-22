@@ -121,28 +121,35 @@ class Shell(ShellBaseWidget, WidgetMixin):
     
     def set_actions(self):
         """Setup actions"""
-        quit_action = create_action(self, self.tr("&Quit"), self.tr("Ctrl+Q"),
-            get_std_icon("DialogCloseButton"), self.tr("Quit"),
-            triggered=self.quit)
-        run_action = create_action(self, self.tr("&Run..."), self.tr("Ctrl+R"),
-            'run.png', self.tr("Run a Python script"),
-            triggered=self.run_script)
-        environ_action = create_action(self,self.tr("Environment variables..."),
-            icon = 'environ.png',
-            tip = self.tr("Show and edit environment variables (for current session)"),
-            triggered=self.show_env)
-        font_action = create_action(self, self.tr("&Font..."), None,
-            'font.png', self.tr("Set shell font style"),
-            triggered=self.change_font)
-        history_action = create_action(self, self.tr("History..."), None,
-            'history.png', self.tr("Set history max entries"),
-            triggered=self.change_history_depth)
+        quit_action = create_action(self,
+                            self.tr("&Quit"), self.tr("Ctrl+Q"),
+                            get_std_icon("DialogCloseButton"), self.tr("Quit"),
+                            triggered=self.quit)
+        run_action = create_action(self,
+                            self.tr("&Run..."), self.tr("Ctrl+R"),
+                            'run.png', self.tr("Run a Python script"),
+                            triggered=self.run_script)
+        environ_action = create_action(self,
+                            self.tr("Environment variables..."),
+                            icon = 'environ.png',
+                            tip = self.tr("Show and edit environment variables"
+                                          " (for current session)"),
+                            triggered=self.show_env)
+        font_action = create_action(self,
+                            self.tr("&Font..."), None,
+                            'font.png', self.tr("Set shell font style"),
+                            triggered=self.change_font)
+        history_action = create_action(self,
+                            self.tr("History..."), None,
+                            'history.png', self.tr("Set history max entries"),
+                            triggered=self.change_history_depth)
         exteditor_action = create_action(self,
-            self.tr("External editor path..."), None,
-            None, self.tr("Set external editor executable path"),
-            triggered=self.change_exteditor)
-        wrap_action = create_action(self, self.tr("Wrap lines"),
-            toggled=self.toggle_wrap_mode)
+                            self.tr("External editor path..."), None, None,
+                            self.tr("Set external editor executable path"),
+                            triggered=self.change_exteditor)
+        wrap_action = create_action(self,
+                            self.tr("Wrap lines"),
+                            toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
         calltips_action = create_action(self, self.tr("Balloon tips"),
             toggled=self.toggle_calltips)
@@ -151,11 +158,13 @@ class Shell(ShellBaseWidget, WidgetMixin):
                         font_action, history_action, wrap_action,
                         calltips_action, exteditor_action,
                         None, quit_action]
-        toolbar_actions = (run_action,)
+        toolbar_actions = []
         if WinUserEnvDialog is not None:
-            winenv_action = create_action(self,self.tr("Windows user environment variables..."),
+            winenv_action = create_action(self,
+                self.tr("Windows user environment variables..."),
                 icon = 'win_env.png',
-                tip = self.tr("Show and edit current user environment variables in Windows registry (i.e. for all sessions)"),
+                tip = self.tr("Show and edit current user environment variables"
+                              " in Windows registry (i.e. for all sessions)"),
                 triggered=self.win_env)
             menu_actions.insert(2, winenv_action)
         

@@ -123,8 +123,6 @@ class ConsoleWindow(QMainWindow):
         if not self.light:
             # Shell widget (...)
             self.add_to_menubar(self.shell)
-            self.add_to_toolbar(self.shell)
-            self.toolbar.addSeparator()
             self.connect(self.shell, SIGNAL("status(QString)"), 
                          self.send_to_statusbar)
 
@@ -142,6 +140,7 @@ class ConsoleWindow(QMainWindow):
                 self.workspace.set_shell(self.shell)
                 self.add_dockwidget(self.workspace)
                 self.add_to_menubar(self.workspace)
+                self.toolbar.addSeparator()
                 self.add_to_toolbar(self.workspace)
                 self.connect(self.shell, SIGNAL("refresh()"),
                              self.workspace.refresh)

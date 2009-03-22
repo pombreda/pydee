@@ -574,27 +574,27 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Modifier le nombre d&apos;entrées maximum de l&apos;historique</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="215"/>
+        <location filename="widgets/shell.py" line="217"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="216"/>
+        <location filename="widgets/shell.py" line="218"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="254"/>
+        <location filename="widgets/shell.py" line="256"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="261"/>
+        <location filename="widgets/shell.py" line="263"/>
         <source>History</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="262"/>
+        <location filename="widgets/shell.py" line="264"/>
         <source>Maximum entries</source>
         <translation>Nombre maximum d&apos;entrées</translation>
     </message>
@@ -629,12 +629,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Modifier le chemin d&apos;accès de l&apos;éditeur externe</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="269"/>
+        <location filename="widgets/shell.py" line="271"/>
         <source>External editor</source>
         <translation>Éditeur externe</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="270"/>
+        <location filename="widgets/shell.py" line="272"/>
         <source>External editor executable path:</source>
         <translation>Chemin d&apos;accès de l&apos;exécutable :</translation>
     </message>
@@ -654,12 +654,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Afficher et modifier les variables d&apos;environnement (pour la session en cours)</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="156"/>
+        <location filename="widgets/shell.py" line="157"/>
         <source>Windows user environment variables...</source>
         <translation>Variables d&apos;environnement de l&apos;utilisateur courant...</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="158"/>
+        <location filename="widgets/shell.py" line="160"/>
         <source>Show and edit current user environment variables in Windows registry (i.e. for all sessions)</source>
         <translation>Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire dans la base de registre)</translation>
     </message>
@@ -689,27 +689,27 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>ShellBaseWidget</name>
     <message>
-        <location filename="widgets/shell.py" line="165"/>
+        <location filename="widgets/shell.py" line="167"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="169"/>
+        <location filename="widgets/shell.py" line="171"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="173"/>
+        <location filename="widgets/shell.py" line="175"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="177"/>
+        <location filename="widgets/shell.py" line="179"/>
         <source>Clear shell</source>
         <translation>Effacer la console</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="180"/>
+        <location filename="widgets/shell.py" line="182"/>
         <source>Clear shell contents (&apos;cls&apos; command)</source>
         <translation>Effacer le contenu de la console</translation>
     </message>
@@ -744,7 +744,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Aide Python :</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="183"/>
+        <location filename="widgets/shell.py" line="185"/>
         <source>Help...</source>
         <translation>Aide...</translation>
     </message>

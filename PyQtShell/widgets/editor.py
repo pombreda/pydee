@@ -365,10 +365,11 @@ class Editor(QWidget, WidgetMixin):
         """Refresh tabwidget"""
         if index is None:
             index = self.tabwidget.currentIndex()
-        # Enable/disable file dependent actions
-        enable = index != -1
-        for action in self.file_dependent_actions:
-            action.setEnabled(enable)
+        # Enable/disable file dependent actions (only if dockwidget is visible)
+        if self.dockwidget and self.dockwidget.isVisible():
+            enable = index != -1
+            for action in self.file_dependent_actions:
+                action.setEnabled(enable)
         # Set current editor
         title = self.get_name()
         if self.tabwidget.count():
@@ -381,6 +382,7 @@ class Editor(QWidget, WidgetMixin):
             self.dockwidget.setWindowTitle(title)
             
         self.find_widget.set_editor(editor)
+        self.change()
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
@@ -389,6 +391,7 @@ class Editor(QWidget, WidgetMixin):
             self.dock_toolbar.show()
         else:
             self.dock_toolbar.hide()
+        self.refresh()
 
     def change(self, state=None):
         """Change tab title depending on modified state"""
@@ -401,6 +404,7 @@ class Editor(QWidget, WidgetMixin):
         elif title.endswith('*'):
             title = title[:-1]
         self.tabwidget.setTabText(index, title)
+        self.save_action.setEnabled(state)
         
     def get_name(self):
         """Return widget name"""
@@ -420,7 +424,7 @@ class Editor(QWidget, WidgetMixin):
         open_action = create_action(self, self.tr("Open..."), "Ctrl+O",
             'open.png', self.tr("Open a Python script"),
             triggered = self.load)
-        save_action = create_action(self, self.tr("Save"), "Ctrl+S",
+        self.save_action = create_action(self, self.tr("Save"), "Ctrl+S",
             'save.png', self.tr("Save current script"),
             triggered = self.save)
         save_as_action = create_action(self, self.tr("Save as..."), None,
@@ -468,28 +472,28 @@ class Editor(QWidget, WidgetMixin):
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
-        menu_actions = (new_action, open_action, save_action, save_as_action,
-                        workdir_action,
+        menu_actions = (new_action, open_action, self.save_action,
+                        save_as_action, workdir_action,
                         None, check_action, exec_action, exec_interact_action,
                         exec_selected_action, comment_action, uncomment_action,
                         None, find_action, replace_action,
                         None, close_action, close_all_action,
                         None, font_action, wrap_action)
-        toolbar_actions = [new_action, open_action, save_action,
+        toolbar_actions = [new_action, open_action, self.save_action,
                         None, find_action, check_action, exec_action,
                         exec_selected_action]
         self.dock_toolbar_actions = toolbar_actions + \
                                     [exec_interact_action,
                                      comment_action, uncomment_action,
                                      None, close_action]
-        self.file_dependent_actions = (save_action, save_as_action,
+        self.file_dependent_actions = (self.save_action, save_as_action,
                                        check_action, exec_action,
                                        exec_interact_action,
                                        exec_selected_action, workdir_action,
                                        close_action, close_all_action,
                                        find_action, replace_action,
                                        comment_action, uncomment_action)
-        self.tab_actions = (save_action, save_as_action,
+        self.tab_actions = (self.save_action, save_as_action,
                             check_action,exec_action,
                             workdir_action,
                             None, close_action)
@@ -700,8 +704,6 @@ class Editor(QWidget, WidgetMixin):
             
             if goto is not None:
                 editor.highlight_line(goto)
-        
-        self.refresh()
 
     def save_as(self):
         """Save the currently edited Python script file"""
