@@ -97,6 +97,39 @@ class AlmostQsciScintilla(QTextEdit):
         """Reimplements QScintilla method
         Returns true if there is something that can be redone"""
         return self.redo_available
+    
+    def find_text(self, text, changed=True,
+                  forward=True, case=False, words=False):
+        """Find text"""
+        findflag = QTextDocument.FindFlag()
+        if not forward:
+            findflag = findflag | QTextDocument.FindBackward
+        if case:
+            findflag = findflag | QTextDocument.FindCaseSensitively
+        if words:
+            findflag = findflag | QTextDocument.FindWholeWords
+        if forward:
+            moves = [QTextCursor.NextWord, QTextCursor.Start]
+            if changed:
+                self.moveCursor(QTextCursor.PreviousWord)
+        else:
+            moves = [QTextCursor.End]
+        found = self.find(text, findflag)
+        for move in moves:
+            if found:
+                break
+            self.moveCursor(move)
+            found = self.find(text, findflag)
+        return found
+        
+    def replace(self, text):
+        """Reimplements QScintilla method"""
+        cursor = self.textCursor()
+        cursor.beginEditBlock()
+        cursor.removeSelectedText()
+        cursor.insertText(text)
+        cursor.endEditBlock()
+
 
 
 #TODO: Improve "PythonHighlighter" performance... very slow for large files!
@@ -305,38 +338,6 @@ class QtEditor(AlmostQsciScintilla):
             return True
         return QTextEdit.event(self, event)
     
-    def find_text(self, text, changed=True,
-                  forward=True, case=False, words=False):
-        """Find text"""
-        findflag = QTextDocument.FindFlag()
-        if not forward:
-            findflag = findflag | QTextDocument.FindBackward
-        if case:
-            findflag = findflag | QTextDocument.FindCaseSensitively
-        if words:
-            findflag = findflag | QTextDocument.FindWholeWords
-        if forward:
-            moves = [QTextCursor.NextWord, QTextCursor.Start]
-            if changed:
-                self.moveCursor(QTextCursor.PreviousWord)
-        else:
-            moves = [QTextCursor.End]
-        found = self.find(text, findflag)
-        for move in moves:
-            if found:
-                break
-            self.moveCursor(move)
-            found = self.find(text, findflag)
-        return found
-        
-    def replace(self, text):
-        """Reimplements QScintilla method"""
-        cursor = self.textCursor()
-        cursor.beginEditBlock()
-        cursor.removeSelectedText()
-        cursor.insertText(text)
-        cursor.endEditBlock()
-
     def comment(self):
         """Comment current line or selection"""
         self._walk_the_lines(True, "#")
@@ -552,6 +553,10 @@ class QtTerminal(AlmostQsciScintilla):
             # No? Moving it to the end of the last line, then!
             self.moveCursor(QTextCursor.End)
         
+        if key == Qt.Key_Escape:
+            self.clear_line()
+            return
+        
         if key == Qt.Key_Backspace:
             if self.textCursor().selectedText().isEmpty():
                 if len(self.__get_current_line_to_cursor()) == 0:
@@ -760,7 +765,7 @@ class QtTerminal(AlmostQsciScintilla):
         if event.modifiers() & Qt.ControlModifier:
             cursor = self.cursorForPosition(event.pos())
             text = unicode(cursor.block().text())
-            if self.get_error_match(text):
+            if self.parent().get_error_match(text):
                 QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
                 return
         QApplication.restoreOverrideCursor()
@@ -771,7 +776,7 @@ class QtTerminal(AlmostQsciScintilla):
         if (event.button() == Qt.LeftButton) and ctrl:
             cursor = self.cursorForPosition(event.pos())
             text = unicode(cursor.block().text())
-            self.go_to_error(text)
+            self.parent().go_to_error(text)
         else:
             cursor = self.cursorForPosition(event.pos())
             cursor.movePosition(QTextCursor.StartOfLine, QTextCursor.KeepAnchor)

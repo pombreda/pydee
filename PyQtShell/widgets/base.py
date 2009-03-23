@@ -254,10 +254,11 @@ class FindReplace(QWidget):
     def show(self):
         """Overrides Qt Method"""
         QWidget.show(self)
-        text = self.editor.selectedText()
-        if len(text)>0:
-            self.edit.setText(text)
-            self.refresh()
+        if self.editor is not None:
+            text = self.editor.selectedText()
+            if len(text)>0:
+                self.edit.setText(text)
+                self.refresh()
         
     def hide(self):
         """Overrides Qt Method"""

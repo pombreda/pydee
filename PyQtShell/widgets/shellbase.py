@@ -28,13 +28,17 @@
 import sys, os, subprocess
 from time import time
 import os.path as osp
+
+from PyQt4.QtGui import QMenu, QMessageBox, QKeySequence
 from PyQt4.QtCore import SIGNAL, QString, QEventLoop, QCoreApplication
 
 # Local import
+from PyQtShell.qthelpers import (translate, keybinding, create_action,
+                                 get_std_icon, add_actions)
 from PyQtShell.interpreter import Interpreter
 from PyQtShell.dochelpers import getargtxt
 from PyQtShell.encoding import transcode
-from PyQtShell.config import CONF
+from PyQtShell.config import CONF, get_icon
 try:
     from PyQtShell.widgets.qscibasex import QsciTerminal as Terminal
 except ImportError:
@@ -95,6 +99,10 @@ class ShellBaseWidget(Terminal):
         self.__timestamp = 0.0
         Terminal.__init__(self, parent)
         
+        # Context menu
+        self.menu = None
+        self.setup_context_menu()
+        
         # raw_input support
         self.input_loop = None
         self.input_mode = False
@@ -137,6 +145,70 @@ class ShellBaseWidget(Terminal):
         self.setUndoRedoEnabled(True) #-enable undo/redo
         self.emit(SIGNAL("refresh()"))
   
+    def setup_context_menu(self):
+        """Setup shell context menu"""
+        # Create a little context menu        
+        self.menu = QMenu(self)
+        self.cut_action = create_action(self,
+                           translate("ShellBaseWidget", "Cut"),
+                           shortcut=keybinding('Cut'),
+                           icon=get_icon('cut.png'), triggered=self.cut)
+        self.copy_action = create_action(self,
+                           translate("ShellBaseWidget", "Copy"),
+                           shortcut=keybinding('Copy'),
+                           icon=get_icon('copy.png'), triggered=self.copy)
+        paste_action = create_action(self,
+                           translate("ShellBaseWidget", "Paste"),
+                           shortcut=keybinding('Paste'),
+                           icon=get_icon('paste.png'), triggered=self.paste)
+        clear_line_action = create_action(self,
+                           self.tr("Clear line"),
+                           QKeySequence("Escape"),
+                           tip=translate("ShellBaseWidget", "Clear line"),
+                           triggered=self.clear_line)
+        clear_action = create_action(self,
+                           translate("ShellBaseWidget", "Clear shell"),
+                           icon=get_std_icon("TrashIcon"),
+                           tip=translate("ShellBaseWidget",
+                                   "Clear shell contents ('cls' command)"),
+                           triggered=self.clear_terminal)
+        self.help_action = create_action(self,
+                           translate("ShellBaseWidget", "Help..."),
+                           shortcut="F1",
+                           icon=get_std_icon('DialogHelpButton'),
+                           triggered=self.help)
+        add_actions(self.menu, (self.cut_action, self.copy_action, paste_action,
+                                clear_line_action,
+                                None, clear_action, None, self.help_action) )
+
+    def help(self):
+        """Help on PyQtShell console"""
+        QMessageBox.about(self,
+            translate("ShellBaseWidget", "Help"),
+            self.tr("""<b>%1</b>
+            <p><i>%2</i><br>    edit foobar.py
+            <p><i>%3</i><br>    xedit foobar.py
+            <p><i>%4</i><br>    run foobar.py
+            <p><i>%5</i><br>    clear x, y
+            <p><i>%6</i><br>    !ls
+            <p><i>%7</i><br>    object?
+            """) \
+            .arg(translate("ShellBaseWidget", 'Shell special commands:')) \
+            .arg(translate("ShellBaseWidget", 'Internal editor:')) \
+            .arg(translate("ShellBaseWidget", 'External editor:')) \
+            .arg(translate("ShellBaseWidget", 'Run script:')) \
+            .arg(translate("ShellBaseWidget", 'Remove references:')) \
+            .arg(translate("ShellBaseWidget", 'System commands:')) \
+            .arg(translate("ShellBaseWidget", 'Python help:')))
+          
+    def contextMenuEvent(self, event):
+        """Reimplement Qt method"""
+        state = self.hasSelectedText()
+        self.copy_action.setEnabled(state)
+        self.cut_action.setEnabled(state)
+        self.menu.popup(event.globalPos())
+        event.accept()
+
     def redirect_stds(self):
         """Redirects stds"""
         if not self.debug:
