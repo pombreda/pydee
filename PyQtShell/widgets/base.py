@@ -176,7 +176,7 @@ class PathComboBox(EditableComboBox):
                 self.set_default_style()
                 if hasattr(self.parent(), 'mainwindow'):
                     if self.parent().mainwindow is not None:
-                        self.parent().mainwindow.shell.setFocus()
+                        self.parent().mainwindow.shell.shell.setFocus()
         else:
             QComboBox.keyPressEvent(self, event)
 
