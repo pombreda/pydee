@@ -28,7 +28,7 @@
 from PyQt4.QtGui import (QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel,
                          QFileDialog, QPushButton, QLineEdit, QTabWidget, QMenu,
                          QShortcut, QKeySequence, QCheckBox, QMessageBox,
-                         QFontDialog, QComboBox, QSizePolicy, QToolBar)
+                         QFontDialog, QComboBox, QSizePolicy, QToolBar, QAction)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os, sys, re
@@ -348,6 +348,15 @@ class Editor(QWidget, WidgetMixin):
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
         
+        # Recent files
+        self.recent_files = CONF.get('editor', 'recent_files', [])
+        # Changing working directory to the most recent file directory
+        for filename in self.recent_files:
+            dir = os.path.dirname(filename)
+            if os.path.isdir(dir):
+                os.chdir(dir)
+                break
+
         self.filenames = []
         self.encodings = []
         self.editors = []
@@ -360,6 +369,15 @@ class Editor(QWidget, WidgetMixin):
             
         # Accepting drops
         self.setAcceptDrops(True)
+
+    def add_recent_file(self, fname):
+        """Add to recent file list"""
+        if fname is None:
+            return
+        if not fname in self.recent_files:
+            self.recent_files.insert(0, fname)
+            if len(self.recent_files) > 9:
+                self.recent_files.pop(-1)
         
     def refresh(self, index=None):
         """Refresh tabwidget"""
@@ -502,6 +520,7 @@ class Editor(QWidget, WidgetMixin):
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         CONF.set(self.ID, 'filenames', self.filenames)
+        CONF.set(self.ID, 'recent_files', self.recent_files)
         return self.save_if_changed(cancelable)
         
     def find(self):
@@ -529,8 +548,10 @@ class Editor(QWidget, WidgetMixin):
     def set_workdir(self):
         """Set working directory as current script directory"""
         index = self.tabwidget.currentIndex()
-        self.chdir( os.path.dirname(os.path.abspath(self.filenames[index])) )
-        self.emit(SIGNAL("refresh()"))
+        if index:
+            filename = self.filenames[index]
+            self.chdir( os.path.dirname(os.path.abspath(filename)) )
+            self.emit(SIGNAL("refresh()"))
         
     def load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
@@ -589,8 +610,7 @@ class Editor(QWidget, WidgetMixin):
     def exec_script(self, set_focus=False):
         """Execute current script"""
         if self.save():
-            index = self.tabwidget.currentIndex()
-            self.mainwindow.shell.run_script(self.filenames[index],
+            self.mainwindow.shell.run_script(self.get_current_filename(),
                                              silent=True, set_focus=set_focus)
     
     def exec_script_and_interact(self):
@@ -653,7 +673,12 @@ class Editor(QWidget, WidgetMixin):
         
     def load(self, filenames=None, goto=None):
         """Load a Python script file"""
-        if filenames is None:
+        if not filenames:
+            # Recent files action
+            action = self.sender()
+            if isinstance(action, QAction):
+                filenames = unicode(action.data().toString())
+        if not filenames:
             self.mainwindow.shell.restore_stds()
             basedir = os.getcwd()
             if self.filenames:
@@ -705,6 +730,7 @@ class Editor(QWidget, WidgetMixin):
                 self.change()
                 self.tabwidget.setCurrentIndex(index)
                 editor.setFocus()
+                self.add_recent_file(filename)
             
             if goto is not None:
                 editor.highlight_line(goto)

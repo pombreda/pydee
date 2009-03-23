@@ -32,7 +32,7 @@ from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
                          QMessageBox, QMenu, QIcon, QLabel, QCursor)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QLibraryInfo, QLocale, QTranslator, QSize, QByteArray,
-                          QObject)
+                          QObject, QVariant)
 
 # Local imports
 from PyQtShell import __version__
@@ -83,7 +83,9 @@ class ConsoleWindow(QMainWindow):
             self.toolbar.setIconSize( QSize(24, 24) )
             
             # File menu
-            self.file_menu = self.menuBar().addMenu(self.tr("&File"))            
+            self.file_menu = self.menuBar().addMenu(self.tr("&File"))
+            self.connect(self.file_menu, SIGNAL("aboutToShow()"),
+                         self.update_file_menu)
                     
             # View menu
             self.view_menu = QMenu(self.tr("&View"))
@@ -162,14 +164,14 @@ class ConsoleWindow(QMainWindow):
         if not self.light:
             # File menu
             #TODO: Add a recent files action list
-            add_actions(self.file_menu, [self.editor.new_action,
-                                         self.editor.open_action,
-                                         self.editor.save_action,
-                                         self.editor.save_as_action, None,
-                                         self.editor.close_action,
-                                         self.editor.close_all_action, None,
-                                         self.shell.quit_action,
-                                         ])
+            self.file_menu_actions = [self.editor.new_action,
+                                      self.editor.open_action,
+                                      self.editor.save_action,
+                                      self.editor.save_as_action, None,
+                                      self.editor.close_action,
+                                      self.editor.close_all_action, None,
+                                      self.shell.quit_action,
+                                      ]
             
             # Console menu
             self.shell.menu_actions = self.shell.menu_actions[:-2]
@@ -204,6 +206,27 @@ class ConsoleWindow(QMainWindow):
         self.splash.hide()
         # Give focus to shell widget
         self.shell.setFocus()
+        
+    def update_file_menu(self):
+        """Update file menu to show recent files"""
+        self.file_menu.clear()
+        add_actions(self.file_menu, self.file_menu_actions[:-1])
+        recent_files = []
+        for fname in self.editor.recent_files:
+            if (fname not in self.editor.filenames) and os.path.isfile(fname):
+                recent_files.append(fname)
+        if recent_files:
+            self.file_menu.addSeparator()
+            for i, fname in enumerate(recent_files):
+                action = create_action(self,
+                                       "&%d %s" % (i+1,
+                                                   os.path.basename(fname)),
+                                       icon=get_icon("python.png"),
+                                       triggered=self.editor.load)
+                action.setData(QVariant(fname))
+                self.file_menu.addAction(action)
+        self.file_menu.addSeparator()
+        self.file_menu.addAction(self.file_menu_actions[-1])
         
     def set_splash(self, message):
         """Set splash message"""
