@@ -179,55 +179,65 @@
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="441"/>
+        <location filename="widgets/dicteditor.py" line="444"/>
         <source>Sort columns</source>
         <translation>Classement des colonnes</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="445"/>
+        <location filename="widgets/dicteditor.py" line="448"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="431"/>
+        <location filename="widgets/dicteditor.py" line="434"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="503"/>
+        <location filename="widgets/dicteditor.py" line="549"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="469"/>
+        <location filename="widgets/dicteditor.py" line="481"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="471"/>
+        <location filename="widgets/dicteditor.py" line="483"/>
         <source>Do you want to remove selected item%1?</source>
         <translation>Souhaitez-vous supprimer la sélection ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="494"/>
+        <location filename="widgets/dicteditor.py" line="540"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="504"/>
+        <location filename="widgets/dicteditor.py" line="550"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="503"/>
+        <source>Rename</source>
+        <translation>Renommer</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="454"/>
+        <source>Duplicate</source>
+        <translation>Dupliquer</translation>
     </message>
 </context>
 <context>
     <name>DocComboBox</name>
     <message>
-        <location filename="widgets/editor.py" line="691"/>
+        <location filename="widgets/editor.py" line="692"/>
         <source>Press enter to validate this object name</source>
         <translation>Appuyer sur Entrée pour valider ce nom d&apos;objet</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="694"/>
+        <location filename="widgets/editor.py" line="695"/>
         <source>This object name is incorrect</source>
         <translation>Ce nom d&apos;objet n&apos;est pas valide</translation>
     </message>
@@ -235,7 +245,7 @@
 <context>
     <name>DocViewer</name>
     <message>
-        <location filename="widgets/editor.py" line="736"/>
+        <location filename="widgets/editor.py" line="737"/>
         <source>Object</source>
         <translation>Objet</translation>
     </message>
@@ -245,7 +255,7 @@
         <translation>Afficher les sources</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="820"/>
+        <location filename="widgets/editor.py" line="821"/>
         <source>No documentation available.</source>
         <translation>Aucune documentation disponible.</translation>
     </message>
@@ -258,12 +268,12 @@
 <context>
     <name>EditableComboBox</name>
     <message>
-        <location filename="widgets/base.py" line="117"/>
+        <location filename="widgets/base.py" line="118"/>
         <source>Press enter to validate this entry</source>
         <translation>Appuyer sur Entrée pour valider cette saisie</translation>
     </message>
     <message>
-        <location filename="widgets/base.py" line="120"/>
+        <location filename="widgets/base.py" line="121"/>
         <source>This entry is incorrect</source>
         <translation>Cette saisie n&apos;est pas correcte</translation>
     </message>
@@ -505,22 +515,22 @@ Do you want to save changes?</source>
 <context>
     <name>FindReplace</name>
     <message>
-        <location filename="widgets/base.py" line="207"/>
+        <location filename="widgets/base.py" line="211"/>
         <source>Case Sensitive</source>
         <translation>Respecter la casse</translation>
     </message>
     <message>
-        <location filename="widgets/base.py" line="209"/>
+        <location filename="widgets/base.py" line="213"/>
         <source>Whole words</source>
         <translation>Mots entiers</translation>
     </message>
     <message>
-        <location filename="widgets/base.py" line="220"/>
+        <location filename="widgets/base.py" line="224"/>
         <source>Replace with:</source>
         <translation>Remplacer par :</translation>
     </message>
     <message>
-        <location filename="widgets/base.py" line="227"/>
+        <location filename="widgets/base.py" line="231"/>
         <source>Replace all</source>
         <translation>Remplacer tout</translation>
     </message>
@@ -564,12 +574,12 @@ Do you want to save changes?</source>
 <context>
     <name>PathComboBox</name>
     <message>
-        <location filename="widgets/base.py" line="157"/>
+        <location filename="widgets/base.py" line="161"/>
         <source>Press enter to validate this path</source>
         <translation>Appuyez sur Entrée pour valider ce chemin d&apos;accès</translation>
     </message>
     <message>
-        <location filename="widgets/base.py" line="162"/>
+        <location filename="widgets/base.py" line="166"/>
         <source>This path is incorrect.
 Enter a correct directory path.
 Then press enter to validate</source>
@@ -580,122 +590,122 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>Shell</name>
     <message>
-        <location filename="widgets/shell.py" line="111"/>
+        <location filename="widgets/shell.py" line="109"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="112"/>
+        <location filename="widgets/shell.py" line="110"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="121"/>
+        <location filename="widgets/shell.py" line="119"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="122"/>
+        <location filename="widgets/shell.py" line="120"/>
         <source>Set shell font style</source>
         <translation>Changer la police d&apos;écriture de la console</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="125"/>
+        <location filename="widgets/shell.py" line="123"/>
         <source>History...</source>
         <translation>Historique...</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="126"/>
+        <location filename="widgets/shell.py" line="124"/>
         <source>Set history max entries</source>
         <translation>Modifier le nombre d&apos;entrées maximum de l&apos;historique</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="179"/>
+        <location filename="widgets/shell.py" line="177"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="180"/>
+        <location filename="widgets/shell.py" line="178"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="222"/>
+        <location filename="widgets/shell.py" line="220"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="229"/>
+        <location filename="widgets/shell.py" line="227"/>
         <source>History</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="230"/>
+        <location filename="widgets/shell.py" line="228"/>
         <source>Maximum entries</source>
         <translation>Nombre maximum d&apos;entrées</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="133"/>
+        <location filename="widgets/shell.py" line="131"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="107"/>
+        <location filename="widgets/shell.py" line="105"/>
         <source>&amp;Quit</source>
         <translation>&amp;Quitter</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="107"/>
+        <location filename="widgets/shell.py" line="105"/>
         <source>Ctrl+Q</source>
         <translation>Ctrl+Q</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="108"/>
+        <location filename="widgets/shell.py" line="106"/>
         <source>Quit</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="129"/>
+        <location filename="widgets/shell.py" line="127"/>
         <source>External editor path...</source>
         <translation>Éditeur externe...</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="130"/>
+        <location filename="widgets/shell.py" line="128"/>
         <source>Set external editor executable path</source>
         <translation>Modifier le chemin d&apos;accès de l&apos;éditeur externe</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="237"/>
+        <location filename="widgets/shell.py" line="235"/>
         <source>External editor</source>
         <translation>Éditeur externe</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="238"/>
+        <location filename="widgets/shell.py" line="236"/>
         <source>External editor executable path:</source>
         <translation>Chemin d&apos;accès de l&apos;exécutable :</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="136"/>
+        <location filename="widgets/shell.py" line="134"/>
         <source>Balloon tips</source>
         <translation>Info-bulles</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="115"/>
+        <location filename="widgets/shell.py" line="113"/>
         <source>Environment variables...</source>
         <translation>Variables d&apos;environnement...</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="118"/>
+        <location filename="widgets/shell.py" line="116"/>
         <source>Show and edit environment variables (for current session)</source>
         <translation>Afficher et modifier les variables d&apos;environnement (pour la session en cours)</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="146"/>
+        <location filename="widgets/shell.py" line="144"/>
         <source>Windows user environment variables...</source>
         <translation>Variables d&apos;environnement de l&apos;utilisateur courant...</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="149"/>
+        <location filename="widgets/shell.py" line="147"/>
         <source>Show and edit current user environment variables in Windows registry (i.e. for all sessions)</source>
         <translation>Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire dans la base de registre)</translation>
     </message>
@@ -712,12 +722,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation type="obsolete">&lt;b&gt;%1&lt;/b&gt;            &lt;p&gt;&lt;i&gt;%2&lt;/i&gt;&lt;br&gt;    edit foobar.py            &lt;p&gt;&lt;i&gt;%3&lt;/i&gt;&lt;br&gt;    xedit foobar.py            &lt;p&gt;&lt;i&gt;%4&lt;/i&gt;&lt;br&gt;    run foobar.py            &lt;p&gt;&lt;i&gt;%5&lt;/i&gt;&lt;br&gt;    clear x, y            &lt;p&gt;&lt;i&gt;%6&lt;/i&gt;&lt;br&gt;    !ls            &lt;p&gt;&lt;i&gt;%7&lt;/i&gt;&lt;br&gt;    object?</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="111"/>
+        <location filename="widgets/shell.py" line="109"/>
         <source>Ctrl+R</source>
         <translation>Ctrl+R</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="95"/>
+        <location filename="widgets/shell.py" line="93"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
@@ -889,27 +899,27 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>WorkingDirectory</name>
     <message>
-        <location filename="widgets/workdir.py" line="78"/>
+        <location filename="widgets/workdir.py" line="77"/>
         <source>Browse a working directory</source>
         <translation>Sélectionner un répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workdir.py" line="85"/>
+        <location filename="widgets/workdir.py" line="84"/>
         <source>Change to parent directory</source>
         <translation>Aller au répertoire parent</translation>
     </message>
     <message>
-        <location filename="widgets/workdir.py" line="140"/>
+        <location filename="widgets/workdir.py" line="137"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/workdir.py" line="95"/>
+        <location filename="widgets/workdir.py" line="92"/>
         <source>Working directory</source>
         <translation>Répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workdir.py" line="59"/>
+        <location filename="widgets/workdir.py" line="58"/>
         <source>Working directory:</source>
         <translation>Répertoire de travail :</translation>
     </message>
