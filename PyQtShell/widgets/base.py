@@ -27,7 +27,7 @@
 
 from PyQt4.QtGui import (QDockWidget, QComboBox, QFont, QToolTip, QPushButton,
                          QHBoxLayout, QGridLayout, QLabel, QWidget, QLineEdit,
-                         QShortcut, QKeySequence, QCheckBox)
+                         QShortcut, QKeySequence, QCheckBox, QSizePolicy)
 from PyQt4.QtCore import SIGNAL, Qt
 
 import sys
@@ -38,6 +38,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from PyQtShell.qthelpers import toggle_actions, get_std_icon
+from PyQtShell.config import CONF
 
 
 class WidgetMixin(object):
@@ -153,7 +154,10 @@ class PathComboBox(EditableComboBox):
     """
     def __init__(self, parent):
         super(PathComboBox, self).__init__(parent)
-        self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        if CONF.get('shell', 'working_dir_adjusttocontents', False):
+            self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        else:
+            self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: self.tr("Press enter to validate this path"),
                      False: self.tr('This path is incorrect.\n'
                                     'Enter a correct directory path.\n'

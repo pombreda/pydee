@@ -84,6 +84,7 @@ DEFAULTS = [
             ('shell',
              {
               'working_dir_history' : 10,
+              'working_dir_adjusttocontents' : False,
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
               'font/bold' : False,

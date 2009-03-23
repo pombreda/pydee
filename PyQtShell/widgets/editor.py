@@ -688,6 +688,7 @@ class DocComboBox(EditableComboBox):
     """
     def __init__(self, parent):
         super(DocComboBox, self).__init__(parent)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         self.tips = {True: self.tr("Press enter to validate this object name"),
                      False: self.tr('This object name is incorrect')}
         
@@ -735,7 +736,6 @@ class DocViewer(QWidget, WidgetMixin):
         layout_edit = QHBoxLayout()
         layout_edit.addWidget(QLabel(self.tr("Object")))
         self.combo = DocComboBox(self)
-        self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         layout_edit.addWidget(self.combo)
         self.combo.setMaxCount(CONF.get(self.ID, 'max_history_entries'))
         dvhistory = self.load_dvhistory()

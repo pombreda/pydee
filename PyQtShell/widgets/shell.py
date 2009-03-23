@@ -25,9 +25,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QMessageBox, QShortcut, QKeySequence, QMenu, QWidget,
-                         QFileDialog, QFontDialog, QInputDialog, QLineEdit,
-                         QApplication, QCursor, QVBoxLayout)
+from PyQt4.QtGui import (QWidget, QApplication, QCursor, QVBoxLayout,
+                         QFileDialog, QFontDialog, QInputDialog, QLineEdit)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os, re, sys
@@ -36,9 +35,8 @@ import os, re, sys
 STDOUT = sys.stdout
 
 # Local imports
-from PyQtShell.config import CONF, get_font, get_icon, set_font
-from PyQtShell.qthelpers import (get_std_icon, create_action,add_actions,
-                                 translate, keybinding)
+from PyQtShell.config import CONF, get_font, set_font
+from PyQtShell.qthelpers import (get_std_icon, create_action,add_actions)
 from PyQtShell.environ import EnvDialog
 try:
     from PyQtShell.environ import WinUserEnvDialog
