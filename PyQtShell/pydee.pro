@@ -6,6 +6,7 @@ SOURCES	     += widgets/editor.py
 SOURCES	     += widgets/figure.py
 SOURCES	     += widgets/qscibase.py
 SOURCES	     += widgets/qtbase.py
+SOURCES	     += widgets/shellbase.py
 SOURCES	     += widgets/shell.py
 SOURCES	     += widgets/workdir.py
 SOURCES	     += widgets/workspace.py

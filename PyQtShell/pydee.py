@@ -41,7 +41,8 @@ from PyQtShell.widgets.shell import Shell
 from PyQtShell.widgets.workdir import WorkingDirectory
 from PyQtShell.widgets.editor import Editor, HistoryLog, DocViewer
 from PyQtShell.widgets.workspace import Workspace
-from PyQtShell.qthelpers import create_action, add_actions, get_std_icon
+from PyQtShell.qthelpers import (create_action, add_actions, get_std_icon,
+                                 keybinding, translate)
 from PyQtShell.config import get_font, get_icon, get_image_path, CONF
 
 
@@ -86,6 +87,48 @@ class ConsoleWindow(QMainWindow):
             self.file_menu = self.menuBar().addMenu(self.tr("&File"))
             self.connect(self.file_menu, SIGNAL("aboutToShow()"),
                          self.update_file_menu)
+            
+            # Edit menu
+            self.edit_menu = self.menuBar().addMenu(self.tr("&Edit"))
+            self.connect(self.edit_menu, SIGNAL("aboutToShow()"),
+                         self.update_edit_menu)
+            _text = translate("FindReplace", "Find text")
+            self.find_action = create_action(self, _text,"Ctrl+F", 'find.png',
+                                             _text, triggered = self.find)
+            _text = translate("FindReplace", "Replace text")
+            self.replace_action = create_action(self, _text, "Ctrl+H",
+                                                'replace.png', _text,
+                                                triggered = self.replace)
+            def create_edit_action(text):
+                return create_action(self, translate("SimpleEditor", text),
+                                     shortcut=keybinding(text),
+                                     icon=get_icon('%s.png' % text.lower()),
+                                     triggered=self.global_callback,
+                                     data=text.lower())
+            self.undo_action = create_edit_action("Undo")
+            self.redo_action = create_edit_action("Redo")
+            self.copy_action = create_edit_action("Copy")
+            self.cut_action = create_edit_action("Cut")
+            self.paste_action = create_edit_action("Paste")
+            self.delete_action = create_action(self,
+                                       translate("SimpleEditor", "Delete"),
+                                       shortcut=keybinding('Delete'),
+                                       icon=get_icon('close.png'),
+                                       triggered=self.global_callback,
+                                       data="removeSelectedText")
+            self.selectall_action = create_action(self,
+                                       translate("SimpleEditor", "Select all"),
+                                       shortcut=keybinding('SelectAll'),
+                                       icon=get_icon('selectall.png'),
+                                       triggered=self.global_callback,
+                                       data="selectAll")
+            self.edit_menu_actions = [self.undo_action, self.redo_action,
+                                 None, self.cut_action, self.copy_action,
+                                 self.paste_action, self.delete_action, None,
+                                 self.selectall_action, None,
+                                 self.find_action, self.replace_action,
+                                 ]
+            add_actions(self.edit_menu, self.edit_menu_actions)
                     
             # View menu
             self.view_menu = QMenu(self.tr("&View"))
@@ -133,13 +176,13 @@ class ConsoleWindow(QMainWindow):
             self.set_splash(self.tr("Loading editor widget..."))
             self.editor = Editor( self )
             self.add_dockwidget(self.editor)
-            self.add_to_menubar(self.editor, self.tr("&Edit"))
+            self.add_to_menubar(self.editor, self.tr("&Source"))
             self.add_to_toolbar(self.editor)
         
             # Workspace
             if CONF.get('workspace', 'enable'):
                 self.set_splash(self.tr("Loading workspace widget..."))
-                self.workspace.set_shell(self.shell)
+                self.workspace.set_interpreter(self.shell.shell.interpreter)
                 self.add_dockwidget(self.workspace)
                 self.toolbar.addSeparator()
                 self.add_to_toolbar(self.workspace)
@@ -159,7 +202,7 @@ class ConsoleWindow(QMainWindow):
                 self.set_splash(self.tr("Loading docviewer widget..."))
                 self.docviewer = DocViewer( self )
                 self.add_dockwidget(self.docviewer)
-                self.shell.set_docviewer(self.docviewer)
+                self.shell.shell.set_docviewer(self.docviewer)
         
         if not self.light:
             # File menu
@@ -171,7 +214,7 @@ class ConsoleWindow(QMainWindow):
                                       self.editor.close_all_action, None,
                                       self.shell.quit_action,
                                       ]
-            
+
             # Console menu
             self.shell.menu_actions = self.shell.menu_actions[:-2]
             self.add_to_menubar(self.shell)
@@ -188,8 +231,8 @@ class ConsoleWindow(QMainWindow):
                 self.tr("About %1...").arg("Pydee"),
                 icon=get_std_icon('MessageBoxInformation'),
                 triggered=self.about))
-            if self.shell.help_action is not None:
-                help_menu.addAction(self.shell.help_action)
+            if self.shell.shell.help_action is not None:
+                help_menu.addAction(self.shell.shell.help_action)
                 
         # Window set-up
         section = 'lightwindow' if self.light else 'window'
@@ -204,7 +247,7 @@ class ConsoleWindow(QMainWindow):
             
         self.splash.hide()
         # Give focus to shell widget
-        self.shell.setFocus()
+        self.shell.shell.setFocus()
         
     def update_file_menu(self):
         """Update file menu to show recent files"""
@@ -226,6 +269,32 @@ class ConsoleWindow(QMainWindow):
                 self.file_menu.addAction(action)
         self.file_menu.addSeparator()
         self.file_menu.addAction(self.file_menu_actions[-1])
+        
+    def update_edit_menu(self):
+        """Update edit menu"""
+        widget = self.which_has_focus()
+        not_readonly = widget in [self.editor, self.shell]
+        
+        # Editor has focus and there is no file opened in it
+        no_file = (widget == self.editor) and not self.editor.tabwidget.count()
+        for child in self.edit_menu.actions():
+            child.setEnabled(not no_file)
+        if no_file:
+            return
+
+        self.replace_action.setEnabled(not_readonly and widget != self.shell)
+        editor = self.get_editor(widget)
+        
+        undoredo = (editor is not None) and not_readonly \
+                              and widget != self.shell
+        self.undo_action.setEnabled( undoredo and editor.isUndoAvailable() )
+        self.redo_action.setEnabled( undoredo and editor.isRedoAvailable() )
+        
+        has_selection = (editor is not None) and editor.hasSelectedText()
+        self.copy_action.setEnabled(has_selection)
+        self.cut_action.setEnabled(has_selection and not_readonly)
+        self.paste_action.setEnabled(not_readonly)    
+        self.delete_action.setEnabled(has_selection and not_readonly)
         
     def set_splash(self, message):
         """Set splash message"""
@@ -351,16 +420,6 @@ class ConsoleWindow(QMainWindow):
         """Show a message in the status bar"""
         self.statusBar().showMessage(message)
         
-    # The following two methods will be useful for global edit features
-    def get_editor_widget(self, widget_name):
-        """Return editor widget associated to widget_name"""
-        if widget_name == "editor":
-            if self.editor.tabwidget.count():
-                return self.editor.editors[ self.editor.tabwidget.currentIndex() ]
-        elif widget_name in ['shell', 'historylog']:
-            return getattr(self, widget_name)
-        elif widget_name == "docviewer":
-            return self.docviewer.editor
     def which_has_focus(self, widget_list=['shell', 'editor', 'docviewer',
                                            'historylog'],
                         default_widget = 'editor'):
@@ -374,26 +433,44 @@ class ConsoleWindow(QMainWindow):
                 if children_has_focus(child, iter):
                     return True
             return False
-        widget_list = ['shell', 'editor', 'docviewer', 'historylog']
         for widget_name in widget_list:
             widget = getattr(self, widget_name)
             callback = getattr( widget, "hasFocus" )
             has_focus = callback() or children_has_focus(widget)
             if has_focus:
-                break
-        if not has_focus:
-            widget_name = default_widget
-        return self.get_editor_widget(widget_name)
+                return getattr(self, widget_name)
+    
     def find(self):
         """Global find callback"""
-        editor = self.which_has_focus()
-        #TODO: Implement Global find callback (and other edit features:
-        #                                      copy, paste, cut, ...)
-        # To make this work, a lot of changes will be made to PyQtShell.widgets:
-        # -> docviewer, historylog and shell will be QVBoxLayouts with an
-        #    hidden FindReplace instance on bottom of the layout
-#        if editor:
-#            self.editor.find_widget.set_editor(editor)
+        widget = self.which_has_focus()
+        if widget:
+            widget.find_widget.show()
+            widget.find_widget.edit.setFocus()
+            return widget
+        
+    def replace(self):
+        """Global replace callback"""
+        widget = self.find()
+        if widget:
+            widget.find_widget.show_replace()
+    
+    def get_editor(self, widget):
+        """Return editor for given widget"""
+        if widget == self.shell:
+            return self.shell.shell
+        elif widget in [self.docviewer, self.historylog]:
+            return widget.editor
+        elif widget == self.editor:
+            if self.editor.tabwidget.count():
+                return self.editor.editors[self.editor.tabwidget.currentIndex()]
+
+    def global_callback(self):
+        """Global callback"""
+        widget = self.which_has_focus()
+        if widget:
+            action = self.sender()
+            callback = unicode(action.data().toString())
+            getattr( self.get_editor(widget), callback )()
         
         
 def get_options():

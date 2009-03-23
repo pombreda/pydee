@@ -25,9 +25,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QMessageBox, QShortcut, QKeySequence, QMenu,
+from PyQt4.QtGui import (QMessageBox, QShortcut, QKeySequence, QMenu, QWidget,
                          QFileDialog, QFontDialog, QInputDialog, QLineEdit,
-                         QApplication, QCursor)
+                         QApplication, QCursor, QVBoxLayout)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os, re, sys
@@ -47,26 +47,36 @@ except ImportError:
 
 # Local package imports
 from PyQtShell.widgets.shellbase import ShellBaseWidget
-from PyQtShell.widgets.base import WidgetMixin
+from PyQtShell.widgets.base import WidgetMixin, FindReplace
 
-class Shell(ShellBaseWidget, WidgetMixin):
+class Shell(QWidget, WidgetMixin):
     """
     Shell widget
     """
     ID = 'shell'
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None):
-        self.menu = None
-        ShellBaseWidget.__init__(self, parent, namespace, commands, message,
-                                 debug, exitfunc)
+        # Shell
+        self.shell = ShellBaseWidget(parent, namespace, commands,
+                                     message, debug, exitfunc)
+        
+        QWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
         
-        # Parameters
-        self.set_font( get_font(self.ID) )
-        self.set_wrap_mode( CONF.get(self.ID, 'wrap') )
+        # Find/replace widget
+        self.find_widget = FindReplace(self)
+        self.find_widget.set_editor(self.shell)
+        self.find_widget.hide()
+
+        # Main layout
+        layout = QVBoxLayout()
+        layout.addWidget(self.shell)
+        layout.addWidget(self.find_widget)
+        self.setLayout(layout)
         
-        # Escape shortcut
-        QShortcut(QKeySequence("Escape"), self, self.clear_line)
+        # Parameters
+        self.shell.set_font( get_font(self.ID) )
+        self.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
         
         self.connect(self, SIGNAL("executing_command(bool)"),
                      self.change_cursor)
@@ -77,34 +87,6 @@ class Shell(ShellBaseWidget, WidgetMixin):
             QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         else:
             QApplication.restoreOverrideCursor()
-        
-    def contextMenuEvent(self, event):
-        """Reimplement Qt method"""
-        state = self.hasSelectedText()
-        self.copy_action.setEnabled(state)
-        self.cut_action.setEnabled(state)
-        self.menu.popup(event.globalPos())
-        event.accept()
-
-    def help(self):
-        """Help on PyQtShell console"""
-        QMessageBox.about(self,
-            translate("ShellBaseWidget", "Help"),
-            self.tr("""<b>%1</b>
-            <p><i>%2</i><br>    edit foobar.py
-            <p><i>%3</i><br>    xedit foobar.py
-            <p><i>%4</i><br>    run foobar.py
-            <p><i>%5</i><br>    clear x, y
-            <p><i>%6</i><br>    !ls
-            <p><i>%7</i><br>    object?
-            """) \
-            .arg(translate("ShellBaseWidget", 'Shell special commands:')) \
-            .arg(translate("ShellBaseWidget", 'Internal editor:')) \
-            .arg(translate("ShellBaseWidget", 'External editor:')) \
-            .arg(translate("ShellBaseWidget", 'Run script:')) \
-            .arg(translate("ShellBaseWidget", 'Remove references:')) \
-            .arg(translate("ShellBaseWidget", 'System commands:')) \
-            .arg(translate("ShellBaseWidget", 'Python help:')))
 
     def get_name(self):
         """Return widget name"""
@@ -112,7 +94,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        self.interpreter.save_history()
+        self.shell.interpreter.save_history()
         return True
     
     def quit(self):
@@ -155,9 +137,9 @@ class Shell(ShellBaseWidget, WidgetMixin):
             toggled=self.toggle_calltips)
         calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
         menu_actions = [run_action, environ_action, None,
-                        font_action, history_action, wrap_action,
-                        calltips_action, exteditor_action,
-                        None, self.quit_action]
+                             font_action, history_action, wrap_action,
+                             calltips_action, exteditor_action,
+                             None, self.quit_action]
         toolbar_actions = []
         if WinUserEnvDialog is not None:
             winenv_action = create_action(self,
@@ -168,35 +150,9 @@ class Shell(ShellBaseWidget, WidgetMixin):
                 triggered=self.win_env)
             menu_actions.insert(2, winenv_action)
         
-        # Create a little context menu        
-        self.menu = QMenu(self)
-        self.cut_action = create_action(self,
-                           translate("ShellBaseWidget", "Cut"),
-                           shortcut=keybinding('Cut'),
-                           icon=get_icon('cut.png'), triggered=self.cut)
-        self.copy_action = create_action(self,
-                           translate("ShellBaseWidget", "Copy"),
-                           shortcut=keybinding('Copy'),
-                           icon=get_icon('copy.png'), triggered=self.copy)
-        paste_action = create_action(self,
-                           translate("ShellBaseWidget", "Paste"),
-                           shortcut=keybinding('Paste'),
-                           icon=get_icon('paste.png'), triggered=self.paste)
-        clear_action = create_action(self,
-                           translate("ShellBaseWidget", "Clear shell"),
-                           icon=get_std_icon("TrashIcon"),
-                           tip=translate("ShellBaseWidget",
-                                   "Clear shell contents ('cls' command)"),
-                           triggered=self.clear_terminal)
-        self.help_action = create_action(self,
-                           translate("ShellBaseWidget", "Help..."),
-                           shortcut="F1",
-                           icon=get_std_icon('DialogHelpButton'),
-                           triggered=self.help)
-        add_actions(self.menu, (self.cut_action, self.copy_action, paste_action,
-                                None, clear_action, None, self.help_action) )
-
-        add_actions(self.menu, menu_actions)
+        # Add actions to context menu
+        add_actions(self.shell.menu, menu_actions)
+        
         return menu_actions, toolbar_actions
     
     def get_dockwidget_properties(self):
@@ -218,11 +174,11 @@ class Shell(ShellBaseWidget, WidgetMixin):
     def run_script(self, filename=None, silent=False, set_focus=False):
         """Run a Python script"""
         if filename is None:
-            self.restore_stds()
+            self.shell.restore_stds()
             filename = QFileDialog.getOpenFileName(self,
                           self.tr("Run Python script"), os.getcwd(),
                           self.tr("Python scripts")+" (*.py ; *.pyw)")
-            self.redirect_stds()
+            self.shell.redirect_stds()
             if filename:
                 filename = unicode(filename)
                 os.chdir( os.path.dirname(filename) )
@@ -232,12 +188,12 @@ class Shell(ShellBaseWidget, WidgetMixin):
                 return
         command = "execfile(r'%s')" % filename
         if set_focus:
-            self.setFocus()
+            self.shell.setFocus()
         if silent:
-            self.write(command+'\n')
-            self.run_command(command)
+            self.shell.write(command+'\n')
+            self.shell.run_command(command)
         else:
-            self.write(command)
+            self.shell.write(command)
             
     def get_error_match(self, text):
         """Return error match"""
@@ -265,7 +221,7 @@ class Shell(ShellBaseWidget, WidgetMixin):
         font, valid = QFontDialog.getFont(get_font(self.ID),
                        self, self.tr("Select a new font"))
         if valid:
-            self.set_font(font)
+            self.shell.set_font(font)
             set_font(font, self.ID)
 
     def change_history_depth(self):
@@ -287,9 +243,9 @@ class Shell(ShellBaseWidget, WidgetMixin):
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
-        self.set_wrap_mode(checked)
+        self.shell.set_wrap_mode(checked)
             
     def toggle_calltips(self, checked):
         """Toggle calltips"""
-        self.set_calltips(checked)
+        self.shell.set_calltips(checked)
 

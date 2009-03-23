@@ -23,7 +23,7 @@
 from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                          QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
                          QKeySequence)
-from PyQt4.QtCore import SIGNAL
+from PyQt4.QtCore import SIGNAL, QVariant
 
 # Local import
 from config import get_icon
@@ -52,7 +52,7 @@ def toggle_actions(actions, enable):
                 action.setEnabled(enable)
 
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
-                  toggled=None, triggered=None):
+                  toggled=None, triggered=None, data=None):
     """Create a QAction"""
     action = QAction(text, parent)
     if triggered is not None:
@@ -69,6 +69,8 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     if tip is not None:
         action.setToolTip(tip)
         action.setStatusTip(tip)
+    if data is not None:
+        action.setData(QVariant(data))
     return action
 
 def add_actions(target, actions):

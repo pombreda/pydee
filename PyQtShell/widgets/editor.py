@@ -300,12 +300,6 @@ class Editor(QWidget, WidgetMixin):
         self.save_as_action = create_action(self, self.tr("Save as..."), None,
             'saveas.png', self.tr("Save current script as..."),
             triggered = self.save_as)
-        self.find_action = create_action(self, self.tr("Find text"), "Ctrl+F",
-            'find.png', self.tr("Find text in current script"),
-            triggered = self.find)
-        self.replace_action = create_action(self, self.tr("Replace text"), "Ctrl+H",
-            'replace.png', self.tr("Replace text in current script"),
-            triggered = self.replace)
         self.close_action = create_action(self, self.tr("Close"), "Ctrl+W",
             'close.png', self.tr("Close current script"),
             triggered = self.close)
@@ -343,11 +337,10 @@ class Editor(QWidget, WidgetMixin):
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
         menu_actions = (self.comment_action, self.uncomment_action, None,
-                self.find_action, self.replace_action, None,
                 self.check_action, self.exec_action, self.exec_interact_action,
                 self.exec_selected_action, None, font_action, wrap_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
-                None, self.find_action, self.replace_action, None,
+                None, self.mainwindow.find_action, self.mainwindow.replace_action, None,
                 self.check_action, self.exec_action, self.exec_selected_action]
         self.dock_toolbar_actions = toolbar_actions + \
                 [self.exec_interact_action, self.comment_action,
@@ -355,7 +348,7 @@ class Editor(QWidget, WidgetMixin):
         self.file_dependent_actions = (self.save_action, self.save_as_action,
                 self.check_action, self.exec_action, self.exec_interact_action,
                 self.exec_selected_action, workdir_action, self.close_action,
-                self.close_all_action, self.find_action, self.replace_action,
+                self.close_all_action,
                 self.comment_action, self.uncomment_action)
         self.tab_actions = (self.save_action, self.save_as_action,
                 self.check_action, self.exec_action, workdir_action,
@@ -367,16 +360,6 @@ class Editor(QWidget, WidgetMixin):
         CONF.set(self.ID, 'filenames', self.filenames)
         CONF.set(self.ID, 'recent_files', self.recent_files)
         return self.save_if_changed(cancelable)
-        
-    def find(self):
-        """Show Find Widget"""
-        self.find_widget.show()
-        self.find_widget.edit.setFocus()
-
-    def replace(self):
-        """Show Replace Widget"""
-        self.find()
-        self.find_widget.show_replace()
     
     def comment(self):
         """Comment current line or selection"""
@@ -646,18 +629,33 @@ class Editor(QWidget, WidgetMixin):
         event.acceptProposedAction()
 
 
-class HistoryLog(SimpleEditor, WidgetMixin):
+class HistoryLog(QWidget, WidgetMixin):
     """
     History log widget
     """
     ID = 'history'
     def __init__(self, parent):
-        SimpleEditor.__init__(self, parent)
+        QWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
-        self.setReadOnly(True)
-        self.set_font( get_font(self.ID) )
-        self.set_wrap_mode( CONF.get(self.ID, 'wrap') )
-        self.history = self.mainwindow.shell.interpreter.rawhistory
+
+        # Read-only editor
+        self.editor = SimpleEditor(self, margin=False)
+        self.editor.setReadOnly(True)
+        self.editor.set_font( get_font(self.ID) )
+        self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )
+        
+        # Find/replace widget
+        self.find_widget = FindReplace(self)
+        self.find_widget.set_editor(self.editor)
+        self.find_widget.hide()
+
+        # Main layout
+        layout = QVBoxLayout()
+        layout.addWidget(self.editor)
+        layout.addWidget(self.find_widget)
+        self.setLayout(layout)
+        
+        self.history = self.mainwindow.shell.shell.interpreter.rawhistory
         self.refresh()
         
     def get_name(self):
@@ -672,8 +670,8 @@ class HistoryLog(SimpleEditor, WidgetMixin):
         
     def refresh(self):
         """Refresh widget"""
-        self.set_text("\n".join(self.history))
-        self.set_cursor_to("End")
+        self.editor.set_text("\n".join(self.history))
+        self.editor.set_cursor_to("End")
         
     def set_actions(self):
         """Setup actions"""
@@ -728,6 +726,11 @@ class DocViewer(QWidget, WidgetMixin):
         self.editor.set_font( get_font(self.ID) )
         self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )
         
+        # Find/replace widget
+        self.find_widget = FindReplace(self)
+        self.find_widget.set_editor(self.editor)
+        self.find_widget.hide()
+        
         # Object name
         layout_edit = QHBoxLayout()
         layout_edit.addWidget(QLabel(self.tr("Object")))
@@ -750,6 +753,7 @@ class DocViewer(QWidget, WidgetMixin):
         layout = QVBoxLayout()
         layout.addLayout(layout_edit)
         layout.addWidget(self.editor)
+        layout.addWidget(self.find_widget)
         self.setLayout(layout)
         
     def get_name(self):

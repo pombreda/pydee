@@ -95,7 +95,7 @@ class Workspace(DictEditor, WidgetMixin):
     ID = 'workspace'
     file_path = get_conf_path('.temp.ws')
     def __init__(self, parent):
-        self.shell = None
+        self.interpreter = None
         self.namespace = None
         self.filename = None
         DictEditor.__init__(self, parent, None)
@@ -113,9 +113,9 @@ class Workspace(DictEditor, WidgetMixin):
                 Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
                 Qt.LeftDockWidgetArea)
         
-    def set_shell(self, shell):
-        """Bind to shell widget"""
-        self.shell = shell
+    def set_interpreter(self, interpreter):
+        """Bind to interpreter"""
+        self.interpreter = interpreter
         self.refresh()
         
     def clear(self):
@@ -136,8 +136,8 @@ class Workspace(DictEditor, WidgetMixin):
         
     def refresh_editor(self):
         """Refresh DictEditor"""
-        if self.shell is not None:
-            self.namespace = self.shell.interpreter.namespace
+        if self.interpreter is not None:
+            self.namespace = self.interpreter.namespace
         self.set_filter( wsfilter )
         self.set_data( self.namespace )
         self.adjust_columns()
@@ -257,7 +257,7 @@ class Workspace(DictEditor, WidgetMixin):
                 self.namespace = namespace
             else:
                 for key in namespace:
-                    self.shell.interpreter.namespace[key] = namespace[key]
+                    self.interpreter.namespace[key] = namespace[key]
         except (EOFError, ValueError):
             os.remove(self.filename)
             QMessageBox.critical(self, title,

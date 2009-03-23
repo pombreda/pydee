@@ -407,6 +407,17 @@ class QsciTerminal(QsciScintilla):
             line, col = self.getCursorPosition()
             self.insertAt(text, line, col)
             self.setCursorPosition(line, col + len(str(text)))
+            
+    #------ Find text: same as QsciEditor.find_text (to be factorized)
+    def find_text(self, text, changed=True,
+                  forward=True, case=False, words=False):
+        """Find text"""
+        # findFirst(expr, re, cs, wo, wrap, forward, line, index, show)
+        if changed or not forward:
+            line_from, index_from, _line_to, _index_to = self.getSelection()
+            self.setCursorPosition(line_from, max([0, index_from-1]))
+        return self.findFirst(text, False, case, words,
+                              True, forward, -1, -1, True)    
         
 
     #------ Re-implemented Qt Methods
@@ -414,7 +425,7 @@ class QsciTerminal(QsciScintilla):
         """Show Pointing Hand Cursor on error messages"""
         if event.modifiers() & Qt.ControlModifier:
             text = unicode(self.text(self.lineAt(event.pos())))
-            if self.get_error_match(text):
+            if self.parent().get_error_match(text):
                 QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
                 return
         QApplication.restoreOverrideCursor()
@@ -430,7 +441,7 @@ class QsciTerminal(QsciScintilla):
             self.__middle_mouse_button()
         elif event.button() == Qt.LeftButton and ctrl:
             text = unicode(self.text(self.lineAt(event.pos())))
-            self.go_to_error(text)
+            self.parent().go_to_error(text)
         else:
             QsciScintilla.mousePressEvent(self, event)
 
@@ -467,6 +478,8 @@ class QsciTerminal(QsciScintilla):
             self.__keypressed(txt, key_event)
         elif ctrl or shift:
             QsciScintilla.keyPressEvent(self, key_event)
+        elif key == Qt.Key_Escape:
+            self.clear_line()
         elif line!=last_line:
             line, index = self.__get_end_pos()
             self.setCursorPosition(line, index)
