@@ -25,9 +25,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QToolBar, QHBoxLayout, QPushButton, QLabel, QSizePolicy,
-                         QFileDialog)
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtGui import QToolBar, QLabel, QSizePolicy, QFileDialog
+from PyQt4.QtCore import Qt
 
 import os, sys
 import os.path as osp
@@ -85,8 +84,6 @@ class WorkingDirectory(QToolBar, WidgetMixin):
                                       self.tr('Change to parent directory'),
                                       triggered=self.parent_directory)
         self.addAction(parent_action)
-        
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
         
     def get_name(self):
         """Return widget name"""
