@@ -50,14 +50,14 @@ except ImportError:
         pass
 
 #----date and datetime objects support
-from datetime import date, datetime
+import datetime
 try:
     from dateutil.parser import parse as dateparse
 except ImportError:
     from string import atoi
     def dateparse(datestr):
         """Just for 'year, month, day' strings"""
-        return datetime( *map(atoi, datestr.split(',')) )
+        return datetime.datetime( *map(atoi, datestr.split(',')) )
 def datestr_to_datetime(value):
     rp = value.rfind('(')+1
     return dateparse(value[rp:-1])
@@ -71,7 +71,7 @@ COLORS = {
           tuple: Qt.lightGray,
           (str, unicode): Qt.darkRed,
           ndarray: Qt.green,
-          date: Qt.darkYellow
+          datetime.date: Qt.darkYellow
           }
 
 def sort_against(lista, listb, reverse=False):
@@ -109,9 +109,9 @@ def display_to_value(value, default_value):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
-        elif isinstance(default_value, datetime):
+        elif isinstance(default_value, datetime.datetime):
             value = datestr_to_datetime(value)
-        elif isinstance(default_value, date):
+        elif isinstance(default_value, datetime.date):
             value = datestr_to_datetime(value).date()
         else:
             value = try_to_eval(value)
@@ -344,7 +344,7 @@ class DictDelegate(QItemDelegate):
                 index.model().set_value(index, editor.get_copy())
             return None
         #---editor = QDateEdit
-        elif isinstance(value, datetime) and not self.inplace:
+        elif isinstance(value, datetime.datetime) and not self.inplace:
             editor = QDateTimeEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
@@ -352,7 +352,7 @@ class DictDelegate(QItemDelegate):
                          self.commitAndCloseEditor)
             return editor
         #---editor = QDateEdit
-        elif isinstance(value, date) and not self.inplace:
+        elif isinstance(value, datetime.date) and not self.inplace:
             editor = QDateEdit(value, parent)
             editor.setCalendarPopup(True)
             editor.setFont(get_font('dicteditor'))
@@ -395,13 +395,13 @@ class DictDelegate(QItemDelegate):
         elif isinstance(editor, QDateEdit):
             qdate = editor.date()
             index.model().set_value(index,
-                date(qdate.year(), qdate.month(), qdate.day()) )
+                datetime.date(qdate.year(), qdate.month(), qdate.day()) )
         elif isinstance(editor, QDateTimeEdit):
             qdatetime = editor.dateTime()
             qdate = qdatetime.date()
             qtime = qdatetime.time()
             index.model().set_value(index,
-                datetime(qdate.year(), qdate.month(), qdate.day(),
+                datetime.datetime(qdate.year(), qdate.month(), qdate.day(),
                          qtime.hour(), qtime.minute(), qtime.second()) )
 
 
@@ -423,8 +423,11 @@ class DictEditor(QTableView):
         self.setItemDelegate(self.delegate)
         self.horizontalHeader().setStretchLastSection(True)
         self.adjust_columns()
-        self.menu = self.setup_menu()
-        
+        self.verticalHeader().setContextMenuPolicy(Qt.CustomContextMenu)
+        self.connect(self.verticalHeader(),SIGNAL("customContextMenuRequested(QPoint)"),
+                     self.vertHeaderContextMenu)        
+        self.menu, self.vert_menu = self.setup_menu()
+    
     def setup_menu(self):
         """Setup context menu"""
         self.edit_action = create_action(self, 
@@ -444,11 +447,20 @@ class DictEditor(QTableView):
                                        translate("DictEditor",
                                                  "Always edit in-place"),
                                        toggled=self.set_inplace_editor)
+        self.rename_action = create_action(self,
+                                    translate("DictEditor", "Rename"),
+                                    triggered=self.rename_item)
+        self.duplicate_action = create_action(self,
+                                    translate("DictEditor", "Duplicate"),
+                                    triggered=self.duplicate_item)
         menu = QMenu(self)
         add_actions( menu, (self.edit_action, self.insert_action,
                             self.remove_action,
                             None, self.sort_action, self.inplace_action) )
-        return menu
+        vert_menu = QMenu(self)
+        add_actions(vert_menu, (self.rename_action,self.duplicate_action,
+                            self.remove_action))
+        return menu, vert_menu
     
     def edit_item(self):
         """Edit item"""
@@ -476,7 +488,41 @@ class DictEditor(QTableView):
             for idx_row in idx_rows:
                 data.pop( self.model.keys[ idx_row ] )
             self.set_data(data)
-            
+
+    def _copy_item(self,erase_original=False):
+        """Copy item"""
+        indexes = self.selectedIndexes()
+        if not indexes:
+            return
+        idx_rows = unsorted_unique(map(lambda idx: idx.row(), indexes))
+        if len(idx_rows) > 1 or\
+            not indexes[0].isValid():
+            return
+        orig_key = self.model.keys[idx_rows[0]]
+        new_key, valid = QInputDialog.getText(self,
+                          translate("DictEditor", 'Rename'),
+                          translate("DictEditor", 'Key:'),
+                          QLineEdit.Normal,orig_key)
+        if valid and not new_key.isEmpty():
+            new_key = try_to_eval(unicode(new_key))
+            if new_key == orig_key:
+                return
+            data = self.model.get_data()
+            value = data.get(self.model.keys[idx_rows[0]])
+            data[new_key] = value
+            self.set_data(data)
+            if erase_original:
+                data.pop(orig_key)
+                self.set_data(data)
+    
+    def duplicate_item(self):
+        """Duplicate item"""
+        self._copy_item()
+
+    def rename_item(self):
+        """Rename item"""
+        self._copy_item(True)
+    
     def insert_item(self):
         """Insert item"""
         index = self.currentIndex()
@@ -522,7 +568,16 @@ class DictEditor(QTableView):
         self.refresh_menu()
         self.menu.popup(event.globalPos())
         event.accept()
-        
+
+    def vertHeaderContextMenu(self, point):
+        """Show the context menu for vertical headers"""
+        sel_row = self.rowAt(point.y())
+        if sel_row == -1:
+            return
+        self.selectRow(sel_row)
+        parent_pos = self.mapToParent(point)
+        self.vert_menu.popup(self.mapToGlobal(parent_pos))
+
     def adjust_columns(self):
         """Resize two first columns to contents"""
         for col in range(2):
@@ -614,8 +669,8 @@ def main():
             'dict': {'d': 1, 'a': None, 'b': [1, 2]},
             'float': 1.2233,
             'array': numpy.random.rand(10, 10),
-            'date': date(1945, 5, 8),
-            'datetime': datetime(1945, 5, 8),
+            'date': datetime.date(1945, 5, 8),
+            'datetime': datetime.datetime(1945, 5, 8),
             }
     dialog = DictEditorDialog(dico, title="Bad title")
     if dialog.exec_():
