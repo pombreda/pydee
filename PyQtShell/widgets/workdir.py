@@ -132,12 +132,12 @@ class WorkingDirectory(QToolBar, WidgetMixin):
         
     def select_directory(self):
         """Select directory"""
-        self.mainwindow.shell.restore_stds()
+        self.mainwindow.shell.shell.restore_stds()
         directory = QFileDialog.getExistingDirectory(self.mainwindow,
                     self.tr("Select directory"), os.getcwd())
         if not directory.isEmpty():
             self.chdir(directory)
-        self.mainwindow.shell.redirect_stds()
+        self.mainwindow.shell.shell.redirect_stds()
         
     def parent_directory(self):
         """Change working directory to parent directory"""

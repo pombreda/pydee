@@ -238,12 +238,12 @@ class Workspace(DictEditor, WidgetMixin):
         """Attempt to load namespace"""
         title = self.tr("Open workspace")
         if filename is None:
-            self.mainwindow.shell.restore_stds()
+            self.mainwindow.shell.shell.restore_stds()
             basedir = osp.dirname(self.filename)
             filename = QFileDialog.getOpenFileName(self,
                           title, basedir,
                           self.tr("Workspaces")+" (*.ws)")
-            self.mainwindow.shell.redirect_stds()
+            self.mainwindow.shell.shell.redirect_stds()
             if filename:
                 filename = unicode(filename)
             else:
@@ -269,11 +269,11 @@ class Workspace(DictEditor, WidgetMixin):
 
     def save_as(self):
         """Save current workspace as"""
-        self.mainwindow.shell.restore_stds()
+        self.mainwindow.shell.shell.restore_stds()
         filename = QFileDialog.getSaveFileName(self,
                       self.tr("Save workspace"), self.filename,
                       self.tr("Workspaces")+" (*.ws)")
-        self.mainwindow.shell.redirect_stds()
+        self.mainwindow.shell.shell.redirect_stds()
         if filename:
             self.filename = unicode(filename)
         else:

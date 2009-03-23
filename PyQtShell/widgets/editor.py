@@ -406,10 +406,10 @@ class Editor(QWidget, WidgetMixin):
         while osp.isfile(gen_name(nb)):
             nb += 1
         fname = gen_name(nb)
-        self.mainwindow.shell.restore_stds()
+        self.mainwindow.shell.shell.restore_stds()
         fname = QFileDialog.getSaveFileName(self, self.tr("New Python script"),
                     fname, self.tr("Python scripts")+" (*.py ; *.pyw)")
-        self.mainwindow.shell.redirect_stds()
+        self.mainwindow.shell.shell.redirect_stds()
         if not fname.isEmpty():
             fname = unicode(fname)
             default = ['# -*- coding: utf-8 -*-',
@@ -449,8 +449,8 @@ class Editor(QWidget, WidgetMixin):
         """Execute selected text in current script and set focus to shell"""
         index = self.tabwidget.currentIndex()
         lines = unicode( self.editors[index].selectedText() )
-        self.mainwindow.shell.execute_lines(lines)
-        self.mainwindow.shell.setFocus()
+        self.mainwindow.shell.shell.execute_lines(lines)
+        self.mainwindow.shell.shell.setFocus()
 
     def save_if_changed(self, cancelable=False):
         """Ask user to save file if modified"""
@@ -507,7 +507,7 @@ class Editor(QWidget, WidgetMixin):
             if isinstance(action, QAction):
                 filenames = unicode(action.data().toString())
         if not filenames:
-            self.mainwindow.shell.restore_stds()
+            self.mainwindow.shell.shell.restore_stds()
             basedir = os.getcwd()
             if self.filenames:
                 index = self.tabwidget.currentIndex()
@@ -516,7 +516,7 @@ class Editor(QWidget, WidgetMixin):
             filenames = QFileDialog.getOpenFileNames(self,
                           self.tr("Open Python script"), basedir,
                           self.tr("Python scripts")+" (*.py ; *.pyw)")
-            self.mainwindow.shell.redirect_stds()
+            self.mainwindow.shell.shell.redirect_stds()
             filenames = list(filenames)
             if len(filenames):
 #                self.chdir( os.path.dirname(unicode(filenames[-1])) )
@@ -567,11 +567,11 @@ class Editor(QWidget, WidgetMixin):
         """Save the currently edited Python script file"""
         if self.tabwidget.count():
             index = self.tabwidget.currentIndex()
-            self.mainwindow.shell.restore_stds()
+            self.mainwindow.shell.shell.restore_stds()
             filename = QFileDialog.getSaveFileName(self,
                           self.tr("Save Python script"), self.filenames[index],
                           self.tr("Python scripts")+" (*.py ; *.pyw)")
-            self.mainwindow.shell.redirect_stds()
+            self.mainwindow.shell.shell.redirect_stds()
             if filename:
                 filename = unicode(filename)
                 self.filenames[index] = filename
@@ -696,7 +696,7 @@ class DocComboBox(EditableComboBox):
         """Return True if string is valid"""
         try:
             eval(unicode(qstr),
-                 self.parent().mainwindow.shell.interpreter.locals)
+                 self.parent().mainwindow.shell.shell.interpreter.locals)
             return True
         except:
             return False
@@ -805,7 +805,8 @@ class DocViewer(QWidget, WidgetMixin):
         obj_text = unicode(obj_text)
         hlp_text = None
         try:
-            obj = eval(obj_text, self.mainwindow.shell.interpreter.locals)
+            obj = eval(obj_text,
+                       self.mainwindow.shell.shell.interpreter.locals)
             if self.docstring:
                 hlp_text = getdoc(obj)
                 if hlp_text is None:
