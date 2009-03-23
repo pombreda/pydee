@@ -163,7 +163,6 @@ class ConsoleWindow(QMainWindow):
         
         if not self.light:
             # File menu
-            #TODO: Add a recent files action list
             self.file_menu_actions = [self.editor.new_action,
                                       self.editor.open_action,
                                       self.editor.save_action,
@@ -351,6 +350,50 @@ class ConsoleWindow(QMainWindow):
     def send_to_statusbar(self, message):
         """Show a message in the status bar"""
         self.statusBar().showMessage(message)
+        
+    # The following two methods will be useful for global edit features
+    def get_editor_widget(self, widget_name):
+        """Return editor widget associated to widget_name"""
+        if widget_name == "editor":
+            if self.editor.tabwidget.count():
+                return self.editor.editors[ self.editor.tabwidget.currentIndex() ]
+        elif widget_name in ['shell', 'historylog']:
+            return getattr(self, widget_name)
+        elif widget_name == "docviewer":
+            return self.docviewer.editor
+    def which_has_focus(self, widget_list=['shell', 'editor', 'docviewer',
+                                           'historylog'],
+                        default_widget = 'editor'):
+        """Which widget has focus?"""
+        def children_has_focus(widget, iter=0):
+            iter += 1
+            for child in widget.children():
+                if hasattr(child, "hasFocus"):
+                    if child.hasFocus():
+                        return True
+                if children_has_focus(child, iter):
+                    return True
+            return False
+        widget_list = ['shell', 'editor', 'docviewer', 'historylog']
+        for widget_name in widget_list:
+            widget = getattr(self, widget_name)
+            callback = getattr( widget, "hasFocus" )
+            has_focus = callback() or children_has_focus(widget)
+            if has_focus:
+                break
+        if not has_focus:
+            widget_name = default_widget
+        return self.get_editor_widget(widget_name)
+    def find(self):
+        """Global find callback"""
+        editor = self.which_has_focus()
+        #TODO: Implement Global find callback (and other edit features:
+        #                                      copy, paste, cut, ...)
+        # To make this work, a lot of changes will be made to PyQtShell.widgets:
+        # -> docviewer, historylog and shell will be QVBoxLayouts with an
+        #    hidden FindReplace instance on bottom of the layout
+#        if editor:
+#            self.editor.find_widget.set_editor(editor)
         
         
 def get_options():
