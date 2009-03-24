@@ -238,20 +238,20 @@ class Workspace(DictEditor, WidgetMixin):
         """Attempt to load namespace"""
         title = self.tr("Open workspace")
         if filename is None:
-            self.mainwindow.shell.shell.restore_stds()
+            self.main.console.shell.restore_stds()
             basedir = osp.dirname(self.filename)
             filename = QFileDialog.getOpenFileName(self,
                           title, basedir,
                           self.tr("Workspaces")+" (*.ws)")
-            self.mainwindow.shell.shell.redirect_stds()
+            self.main.console.shell.redirect_stds()
             if filename:
                 filename = unicode(filename)
             else:
                 return
         self.filename = filename
         try:
-            if self.mainwindow:
-                self.mainwindow.set_splash(self.tr("Loading workspace..."))
+            if self.main:
+                self.main.set_splash(self.tr("Loading workspace..."))
             namespace = cPickle.load(file(self.filename))
             if self.namespace is None:
                 self.namespace = namespace
@@ -264,16 +264,16 @@ class Workspace(DictEditor, WidgetMixin):
                 self.tr("Unable to load the following workspace:") + '\n' + \
                 self.filename)
         self.refresh()        
-        if self.mainwindow:
-            self.mainwindow.splash.hide()
+        if self.main:
+            self.main.splash.hide()
 
     def save_as(self):
         """Save current workspace as"""
-        self.mainwindow.shell.shell.restore_stds()
+        self.main.console.shell.restore_stds()
         filename = QFileDialog.getSaveFileName(self,
                       self.tr("Save workspace"), self.filename,
                       self.tr("Workspaces")+" (*.ws)")
-        self.mainwindow.shell.shell.redirect_stds()
+        self.main.console.shell.redirect_stds()
         if filename:
             self.filename = unicode(filename)
         else:
@@ -284,19 +284,19 @@ class Workspace(DictEditor, WidgetMixin):
         """Save current workspace"""
         if self.filename is None:
             return self.save_as()
-        if self.mainwindow:
-            self.mainwindow.set_splash(self.tr("Saving workspace..."))
+        if self.main:
+            self.main.set_splash(self.tr("Saving workspace..."))
         try:
             cPickle.dump(wsfilter(self.namespace), file(self.filename, 'w'))
         except RuntimeError, error:
-            if self.mainwindow:
-                self.mainwindow.splash.hide()
+            if self.main:
+                self.main.splash.hide()
             QMessageBox.critical(self, self.tr("Save workspace"),
                 self.tr("Unable to save current workspace"))
             raise RuntimeError(self.tr("Unable to save current workspace:") + \
                                '\n\r' + error)
-        if self.mainwindow:
-            self.mainwindow.splash.hide()
+        if self.main:
+            self.main.splash.hide()
         return True
         
     def toggle_exclude_private(self, checked):

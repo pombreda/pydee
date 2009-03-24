@@ -37,7 +37,7 @@ from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
 # Local imports
 from PyQtShell import __version__
 from PyQtShell import encoding
-from PyQtShell.widgets.shell import Shell
+from PyQtShell.widgets.console import Console
 from PyQtShell.widgets.workdir import WorkingDirectory
 from PyQtShell.widgets.editor import Editor, HistoryLog, DocViewer
 from PyQtShell.widgets.workspace import Workspace
@@ -46,10 +46,10 @@ from PyQtShell.qthelpers import (create_action, add_actions, get_std_icon,
 from PyQtShell.config import get_font, get_icon, get_image_path, CONF
 
 
-class ConsoleWindow(QMainWindow):
+class MainWindow(QMainWindow):
     """Console QDialog"""
     def __init__(self, commands=None, intitle="", message="", options=None):
-        super(ConsoleWindow, self).__init__()
+        super(MainWindow, self).__init__()
         
         self.commands = commands
         self.message = message
@@ -153,23 +153,23 @@ class ConsoleWindow(QMainWindow):
                 self.workspace = Workspace(self)
                 namespace = self.workspace.namespace
                 
-        # Shell widget: window's central widget
-        self.shell = Shell(self, namespace, self.commands, self.message,
-                           self.debug, self.closing)
-        self.setCentralWidget(self.shell)
-        self.widgetlist.append(self.shell)
+        # Console widget: window's central widget
+        self.console = Console(self, namespace, self.commands, self.message,
+                               self.debug, self.closing)
+        self.setCentralWidget(self.console)
+        self.widgetlist.append(self.console)
         
         # Working directory changer widget
         self.workdir = WorkingDirectory( self, self.workdir )
         self.addToolBar(self.workdir) # new mainwindow toolbar
-        self.connect(self.shell, SIGNAL("refresh()"),
+        self.connect(self.console.shell, SIGNAL("refresh()"),
                      self.workdir.refresh)
         if not self.light:
             self.view_menu.addAction(self.workdir.toggleViewAction())
         
         if not self.light:
-            # Shell widget (...)
-            self.connect(self.shell, SIGNAL("status(QString)"), 
+            # Console widget (...)
+            self.connect(self.console.shell, SIGNAL("status(QString)"), 
                          self.send_to_statusbar)
 
             # Editor widget
@@ -182,11 +182,11 @@ class ConsoleWindow(QMainWindow):
             # Workspace
             if CONF.get('workspace', 'enable'):
                 self.set_splash(self.tr("Loading workspace widget..."))
-                self.workspace.set_interpreter(self.shell.shell.interpreter)
+                self.workspace.set_interpreter(self.console.shell.interpreter)
                 self.add_dockwidget(self.workspace)
                 self.toolbar.addSeparator()
                 self.add_to_toolbar(self.workspace)
-                self.connect(self.shell, SIGNAL("refresh()"),
+                self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.workspace.refresh)
 
             # History log widget
@@ -194,7 +194,7 @@ class ConsoleWindow(QMainWindow):
                 self.set_splash(self.tr("Loading history widget..."))
                 self.historylog = HistoryLog( self )
                 self.add_dockwidget(self.historylog)
-                self.connect(self.shell, SIGNAL("refresh()"),
+                self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.historylog.refresh)
         
             # Doc viewer widget
@@ -202,7 +202,7 @@ class ConsoleWindow(QMainWindow):
                 self.set_splash(self.tr("Loading docviewer widget..."))
                 self.docviewer = DocViewer( self )
                 self.add_dockwidget(self.docviewer)
-                self.shell.shell.set_docviewer(self.docviewer)
+                self.console.shell.set_docviewer(self.docviewer)
         
         if not self.light:
             # File menu
@@ -212,12 +212,12 @@ class ConsoleWindow(QMainWindow):
                                       self.editor.save_as_action, None,
                                       self.editor.close_action,
                                       self.editor.close_all_action, None,
-                                      self.shell.quit_action,
+                                      self.console.quit_action,
                                       ]
 
             # Console menu
-            self.shell.menu_actions = self.shell.menu_actions[:-2]
-            self.add_to_menubar(self.shell)
+            self.console.menu_actions = self.console.menu_actions[:-2]
+            self.add_to_menubar(self.console)
             
             # Workspace menu
             self.add_to_menubar(self.workspace)
@@ -231,8 +231,8 @@ class ConsoleWindow(QMainWindow):
                 self.tr("About %1...").arg("Pydee"),
                 icon=get_std_icon('MessageBoxInformation'),
                 triggered=self.about))
-            if self.shell.shell.help_action is not None:
-                help_menu.addAction(self.shell.shell.help_action)
+            if self.console.shell.help_action is not None:
+                help_menu.addAction(self.console.shell.help_action)
                 
         # Window set-up
         section = 'lightwindow' if self.light else 'window'
@@ -247,7 +247,7 @@ class ConsoleWindow(QMainWindow):
             
         self.splash.hide()
         # Give focus to shell widget
-        self.shell.shell.setFocus()
+        self.console.shell.setFocus()
         
     def update_file_menu(self):
         """Update file menu to show recent files"""
@@ -273,7 +273,7 @@ class ConsoleWindow(QMainWindow):
     def update_edit_menu(self):
         """Update edit menu"""
         widget = self.which_has_focus()
-        not_readonly = widget in [self.editor, self.shell]
+        not_readonly = widget in [self.editor, self.console]
         
         # Editor has focus and there is no file opened in it
         no_file = (widget == self.editor) and not self.editor.tabwidget.count()
@@ -282,11 +282,11 @@ class ConsoleWindow(QMainWindow):
         if no_file:
             return
 
-        self.replace_action.setEnabled(not_readonly and widget != self.shell)
+        self.replace_action.setEnabled(not_readonly and widget != self.console)
         editor = self.get_editor(widget)
         
         undoredo = (editor is not None) and not_readonly \
-                              and widget != self.shell
+                              and widget != self.console
         self.undo_action.setEnabled( undoredo and editor.isUndoAvailable() )
         self.redo_action.setEnabled( undoredo and editor.isRedoAvailable() )
         
@@ -456,8 +456,8 @@ class ConsoleWindow(QMainWindow):
     
     def get_editor(self, widget):
         """Return editor for given widget"""
-        if widget == self.shell:
-            return self.shell.shell
+        if widget == self.console:
+            return self.console.shell
         elif widget in [self.docviewer, self.historylog]:
             return widget.editor
         elif widget == self.editor:
@@ -602,7 +602,7 @@ def main():
     commands, intitle, message, options = get_options()
     
     # Main window
-    mainwindow = ConsoleWindow(commands, intitle, message, options)
+    main = MainWindow(commands, intitle, message, options)
     
     #----Patching matplotlib's FigureManager
     if options.pylab:
@@ -633,7 +633,7 @@ def main():
                 if backend_qt4.DEBUG: print 'FigureManagerQT.%s' % backend_qt4.fn_name()
                 backend_qt4.FigureManagerBase.__init__( self, canvas, num )
                 self.canvas = canvas
-                self.window = MatplotlibFigure(mainwindow, canvas, num)
+                self.window = MatplotlibFigure(main, canvas, num)
                 self.window.setAttribute(Qt.WA_DeleteOnClose)
         
                 image = os.path.join( matplotlib.rcParams['datapath'],'images','matplotlib.png' )
@@ -655,7 +655,7 @@ def main():
         #        self.window.setCentralWidget(self.canvas)
         
                 if matplotlib.is_interactive():
-                    mainwindow.add_dockwidget(self.window)
+                    main.add_dockwidget(self.window)
         
                 # attach a show method to the figure for pylab ease of use
                 self.canvas.figure.show = lambda *args: self.window.show()
@@ -672,17 +672,17 @@ def main():
         # ****************************************************************
         class NavigationToolbar2QT( backend_qt4.NavigationToolbar2QT ):
             def save_figure( self ):
-                mainwindow.shell.shell.restore_stds()
+                main.shell.shell.restore_stds()
                 super(NavigationToolbar2QT, self).save_figure()
-                mainwindow.shell.shell.redirect_stds()
+                main.shell.shell.redirect_stds()
             def set_cursor( self, cursor ):
                 if backend_qt4.DEBUG: print 'Set cursor' , cursor
                 self.parent().setCursor( QCursor(backend_qt4.cursord[cursor]) )
         # ****************************************************************
         backend_qt4.NavigationToolbar2QT = NavigationToolbar2QT
         
-    mainwindow.setup()
-    mainwindow.show()
+    main.setup()
+    main.show()
     sys.exit(app.exec_())
 
 
