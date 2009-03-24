@@ -346,7 +346,7 @@ class ShellBaseWidget(Terminal):
                                                     goto_option, goto))
             else:
                 subprocess.Popen(r'%s "%s"' % (editor_path, filename))
-        except WindowsError, OSError:
+        except OSError:
             self.write_error("External editor was not found:"
                              " %s\n" % editor_path)
         
