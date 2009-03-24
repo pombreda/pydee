@@ -39,7 +39,7 @@ STDOUT = sys.stdout
 # Local imports
 from PyQtShell import encoding
 from PyQtShell.config import CONF, get_conf_path, get_icon, get_font, set_font
-from PyQtShell.qthelpers import (get_std_icon, create_action, add_actions,
+from PyQtShell.qthelpers import (create_action, add_actions,
                                  mimedata2url, keybinding, translate)
 from PyQtShell.dochelpers import getdoc, getsource
 try:
