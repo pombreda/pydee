@@ -511,14 +511,14 @@ class QtTerminal(AlmostQsciScintilla):
         if event == QKeySequence.Copy:
             if self.textCursor().selectedText().isEmpty():
                 # Keyboard Interrupt
-                if self.more:
-                    self.write("\nKeyboardInterrupt\n", flush=True)
+                if self.busy:
+                    self.interrupted = True
+                elif self.more:
+                    self.write_error("\nKeyboardInterrupt\n")
                     self.more = False
                     self.prompt = self.p1
                     self.write(self.prompt, flush=True)
                     self.interpreter.resetbuffer()
-                else:
-                    self.interrupted = True
             else:
                 # Copy
                 self.copy()

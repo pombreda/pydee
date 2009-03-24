@@ -281,6 +281,8 @@ class QsciTerminal(QsciScintilla):
         QsciScintilla.__init__(self, parent)
         self.setUtf8(True)
         
+        self.busy = False
+        
         # history
         self.histidx = None
         self.incremental_search_string = ""
@@ -670,7 +672,9 @@ class QsciTerminal(QsciScintilla):
                 self.SendScintilla(QsciScintilla.SCI_NEWLINE)
             else:
                 buf = self.get_new_line()
+                self.busy = True
                 self.execute_command(buf)
+                self.busy = False
         # add and run selection
         else:
             text = self.selectedText()
