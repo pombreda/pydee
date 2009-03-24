@@ -43,10 +43,10 @@ from PyQtShell.config import CONF
 
 class WidgetMixin(object):
     """Useful methods to bind widgets to the main window"""
-    def __init__(self, mainwindow):
+    def __init__(self, main):
         """Bind widget to a QMainWindow instance"""
         super(WidgetMixin, self).__init__()
-        self.mainwindow = mainwindow
+        self.main = main
         self.menu_actions, self.toolbar_actions = self.set_actions()
         self.dockwidget = None
         
@@ -81,7 +81,7 @@ class WidgetMixin(object):
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
         allowed_areas, location = self.get_dockwidget_properties()
-        dock = QDockWidget(self.get_name(), self.mainwindow)
+        dock = QDockWidget(self.get_name(), self.main)
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(allowed_areas)
         dock.setFeatures( self.get_dockwidget_features() )
@@ -102,7 +102,7 @@ class WidgetMixin(object):
     
     def chdir(self, dirname):
         """Change working directory"""
-        self.mainwindow.workdir.chdir(dirname)
+        self.main.workdir.chdir(dirname)
 
 
 class EditableComboBox(QComboBox):
@@ -174,9 +174,9 @@ class PathComboBox(EditableComboBox):
             if osp.isdir( directory ):
                 self.parent().chdir(directory)
                 self.set_default_style()
-                if hasattr(self.parent(), 'mainwindow'):
-                    if self.parent().mainwindow is not None:
-                        self.parent().mainwindow.shell.shell.setFocus()
+                if hasattr(self.parent(), 'main'):
+                    if self.parent().main is not None:
+                        self.parent().main.console.shell.setFocus()
         else:
             QComboBox.keyPressEvent(self, event)
 

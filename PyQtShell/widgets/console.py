@@ -18,7 +18,7 @@
 #    along with PyQtShell; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-"""Shell widget"""
+"""Console widget"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
@@ -47,9 +47,9 @@ except ImportError:
 from PyQtShell.widgets.shellbase import ShellBaseWidget
 from PyQtShell.widgets.base import WidgetMixin, FindReplace
 
-class Shell(QWidget, WidgetMixin):
+class Console(QWidget, WidgetMixin):
     """
-    Shell widget
+    Console widget
     """
     ID = 'shell'
     def __init__(self, parent=None, namespace=None, commands=None, message="",
@@ -97,7 +97,7 @@ class Shell(QWidget, WidgetMixin):
     
     def quit(self):
         """Quit mainwindow"""
-        self.mainwindow.close()
+        self.main.close()
     
     def set_actions(self):
         """Setup actions"""
@@ -207,12 +207,12 @@ class Shell(QWidget, WidgetMixin):
     def edit_script(self, filename=None, goto=None):
         """Edit script"""
         # Called from ShellBaseWidget
-        if not hasattr(self, 'mainwindow') \
-           or not hasattr(self.mainwindow, 'editor'):
+        if not hasattr(self, 'main') \
+           or not hasattr(self.main, 'editor'):
             self.external_editor(filename, goto)
             return
         if filename is not None:
-            self.mainwindow.editor.load(os.path.abspath(filename), goto)
+            self.main.editor.load(os.path.abspath(filename), goto)
         
     def change_font(self):
         """Change console font"""
