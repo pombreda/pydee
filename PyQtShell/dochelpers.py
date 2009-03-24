@@ -68,7 +68,7 @@ def getargtxt(obj, one_arg_per_line=True):
         func_obj = obj
     elif inspect.ismethod(obj):
         func_obj = obj.im_func
-    elif inspect.isclass(obj):
+    elif inspect.isclass(obj) and hasattr(obj, '__init__'):
         func_obj = getattr(obj, '__init__')
     else:
         return None
