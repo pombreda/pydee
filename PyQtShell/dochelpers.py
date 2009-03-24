@@ -26,6 +26,13 @@ SYMBOLS = r"[^\'\"a-zA-Z0-9_.]"
 
 def getobj(txt, last=False):
     """Return the last valid object name in string"""
+    txt_end = ""
+    for startchar, endchar in ["[]", "()"]:
+        if txt.endswith(endchar):
+            pos = txt.rfind(startchar)
+            if pos:
+                txt_end = txt[pos:]
+                txt = txt[:pos]
     tokens = re.split(SYMBOLS, txt)
     token = ""
     try:
@@ -36,7 +43,7 @@ def getobj(txt, last=False):
         if last:
             #XXX: remove this statement as well as the "last" argument
             token += txt[ txt.rfind(token) + len(token) ]
-        return token
+        return token + txt_end
     except IndexError:
         return None
 
