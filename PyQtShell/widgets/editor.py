@@ -438,8 +438,9 @@ class Editor(QWidget, WidgetMixin):
     def exec_script(self, set_focus=False):
         """Execute current script"""
         if self.save():
-            self.main.console.run_script(self.get_current_filename(),
-                                               silent=True, set_focus=set_focus)
+            index = self.tabwidget.currentIndex()
+            self.main.console.run_script(self.filenames[index],
+                                         silent=True, set_focus=set_focus)
     
     def exec_script_and_interact(self):
         """Execute current script and set focus to shell"""
