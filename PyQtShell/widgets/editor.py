@@ -449,6 +449,9 @@ class Editor(QWidget, WidgetMixin):
         """Execute selected text in current script and set focus to shell"""
         index = self.tabwidget.currentIndex()
         lines = unicode( self.editors[index].selectedText() )
+        # If there is only one line of code, add an EOL char
+        if (r"\n" not in lines) or (r"\r" not in lines):
+            lines += os.linesep
         self.main.console.shell.execute_lines(lines)
         self.main.console.shell.setFocus()
 

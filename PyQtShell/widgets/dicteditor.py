@@ -22,6 +22,9 @@
 Dictionary Editor Widget and Dialog based on PyQt4
 """
 
+#TODO: Unselect an item when clicked for the second time, or unselect it when
+#      clicked in the empty space below the last item
+
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
 # pylint: disable-msg=R0911
