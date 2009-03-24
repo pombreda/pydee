@@ -40,90 +40,204 @@
     </message>
 </context>
 <context>
+    <name>Console</name>
+    <message>
+        <location filename="widgets/console.py" line="93"/>
+        <source>Console</source>
+        <translation>Console</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="105"/>
+        <source>&amp;Quit</source>
+        <translation>&amp;Quitter</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="105"/>
+        <source>Ctrl+Q</source>
+        <translation>Ctrl+Q</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="106"/>
+        <source>Quit</source>
+        <translation>Quitter</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="109"/>
+        <source>&amp;Run...</source>
+        <translation>Exécute&amp;r...</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="109"/>
+        <source>Ctrl+R</source>
+        <translation>Ctrl+R</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="110"/>
+        <source>Run a Python script</source>
+        <translation>Exécuter un script Python</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="113"/>
+        <source>Environment variables...</source>
+        <translation>Variables d&apos;environnement...</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="116"/>
+        <source>Show and edit environment variables (for current session)</source>
+        <translation>Afficher et modifier les variables d&apos;environnement (pour la session en cours)</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="119"/>
+        <source>&amp;Font...</source>
+        <translation>&amp;Police...</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="120"/>
+        <source>Set shell font style</source>
+        <translation>Changer la police d&apos;écriture de la console</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="123"/>
+        <source>History...</source>
+        <translation>Historique...</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="124"/>
+        <source>Set history max entries</source>
+        <translation>Modifier le nombre d&apos;entrées maximum de l&apos;historique</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="127"/>
+        <source>External editor path...</source>
+        <translation>Éditeur externe...</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="128"/>
+        <source>Set external editor executable path</source>
+        <translation>Modifier le chemin d&apos;accès de l&apos;éditeur externe</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="131"/>
+        <source>Wrap lines</source>
+        <translation>Retour à la ligne</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="134"/>
+        <source>Balloon tips</source>
+        <translation>Info-bulles</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="144"/>
+        <source>Windows user environment variables...</source>
+        <translation>Variables d&apos;environnement de l&apos;utilisateur courant...</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="147"/>
+        <source>Show and edit current user environment variables in Windows registry (i.e. for all sessions)</source>
+        <translation>Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire dans la base de registre)</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="177"/>
+        <source>Run Python script</source>
+        <translation>Exécuter un script Python</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="178"/>
+        <source>Python scripts</source>
+        <translation>Scripts Python</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="220"/>
+        <source>Select a new font</source>
+        <translation>Sélectionner une police d&apos;écriture</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="227"/>
+        <source>History</source>
+        <translation>Historique</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="228"/>
+        <source>Maximum entries</source>
+        <translation>Nombre maximum d&apos;entrées</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="235"/>
+        <source>External editor</source>
+        <translation>Éditeur externe</translation>
+    </message>
+    <message>
+        <location filename="widgets/console.py" line="236"/>
+        <source>External editor executable path:</source>
+        <translation>Chemin d&apos;accès de l&apos;exécutable :</translation>
+    </message>
+</context>
+<context>
     <name>ConsoleWindow</name>
     <message>
         <location filename="pydee.py" line="134"/>
         <source>&amp;View</source>
-        <translation>&amp;Affichage</translation>
+        <translation type="obsolete">&amp;Affichage</translation>
     </message>
     <message>
         <location filename="pydee.py" line="82"/>
         <source>Toolbar</source>
-        <translation>Barre d&apos;outils</translation>
+        <translation type="obsolete">Barre d&apos;outils</translation>
     </message>
     <message>
         <location filename="pydee.py" line="143"/>
         <source>Status bar</source>
-        <translation>Barre de status</translation>
+        <translation type="obsolete">Barre de status</translation>
     </message>
     <message>
         <location filename="pydee.py" line="399"/>
         <source>About %1</source>
-        <translation>À propos de %1</translation>
+        <translation type="obsolete">À propos de %1</translation>
     </message>
     <message>
         <location filename="pydee.py" line="152"/>
         <source>Loading workspace...</source>
-        <translation>Chargement de l&apos;espace de travail...</translation>
+        <translation type="obsolete">Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
         <location filename="pydee.py" line="184"/>
         <source>Loading workspace widget...</source>
-        <translation>Chargement de l&apos;espace de travail...</translation>
+        <translation type="obsolete">Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
         <location filename="pydee.py" line="176"/>
         <source>Loading editor widget...</source>
-        <translation>Chargement de l&apos;éditeur...</translation>
+        <translation type="obsolete">Chargement de l&apos;éditeur...</translation>
     </message>
     <message>
         <location filename="pydee.py" line="194"/>
         <source>Loading history widget...</source>
-        <translation>Chargement de l&apos;historique...</translation>
+        <translation type="obsolete">Chargement de l&apos;historique...</translation>
     </message>
     <message>
         <location filename="pydee.py" line="202"/>
         <source>Loading docviewer widget...</source>
-        <translation>Chargement de l&apos;aide...</translation>
+        <translation type="obsolete">Chargement de l&apos;aide...</translation>
     </message>
     <message>
         <location filename="pydee.py" line="142"/>
         <source>Welcome to Pydee!</source>
-        <translation>Bienvenue dans Pydee !</translation>
+        <translation type="obsolete">Bienvenue dans Pydee !</translation>
     </message>
     <message>
         <location filename="pydee.py" line="231"/>
         <source>About %1...</source>
-        <translation>À propos de %1...</translation>
-    </message>
-    <message>
-        <location filename="pydee.py" line="415"/>
-        <source>&lt;b&gt;%1&lt;/b&gt; v %2
-            &lt;br&gt;PYthon Development EnvironmEnt
-            &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
-            &lt;br&gt;Licensed under the terms of the  
-            &lt;a href=&quot;http://www.fsf.org/licensing/&quot;&gt;GNU GPL v2&lt;/a&gt;
-            &lt;p&gt;&lt;i&gt;Project manager and main developer:&lt;/i&gt; Pierre Raybaut
-            &lt;br&gt;&lt;i&gt;Contributors:&lt;/i&gt; Christopher Brown, Alexandre Radicchi
-            &lt;p&gt;Pydee is based on PyQtShell module v %2
-            &lt;br&gt;Bug reports and feature requests: 
-            &lt;a href=&quot;http://code.google.com/p/pyqtshell/&quot;&gt;Google Code&lt;/a&gt;&lt;br&gt;
-            Discussions around the project: 
-            &lt;a href=&quot;http://groups.google.com/group/pyqtshell&quot;&gt;Google Group&lt;/a&gt;
-            &lt;p&gt;This project will soon be part of 
-            &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;Python(x,y) distribution&lt;/a&gt;
-            &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">À propos de %1...</translation>
     </message>
     <message>
         <location filename="pydee.py" line="87"/>
         <source>&amp;File</source>
-        <translation>&amp;Fichier</translation>
+        <translation type="obsolete">&amp;Fichier</translation>
     </message>
     <message>
         <location filename="pydee.py" line="92"/>
         <source>&amp;Edit</source>
-        <translation>&amp;Édition</translation>
+        <translation type="obsolete">&amp;Édition</translation>
     </message>
     <message>
         <location filename="pydee.py" line="95"/>
@@ -138,93 +252,93 @@
     <message>
         <location filename="pydee.py" line="179"/>
         <source>&amp;Source</source>
-        <translation>&amp;Source</translation>
+        <translation type="obsolete">&amp;Source</translation>
     </message>
 </context>
 <context>
     <name>DictEditor</name>
     <message>
-        <location filename="widgets/dicteditor.py" line="267"/>
+        <location filename="widgets/dicteditor.py" line="270"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="268"/>
+        <location filename="widgets/dicteditor.py" line="271"/>
         <source>Size</source>
         <translation>Taille</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="269"/>
+        <location filename="widgets/dicteditor.py" line="272"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="168"/>
+        <location filename="widgets/dicteditor.py" line="171"/>
         <source>Tuple</source>
         <translation>Tuple</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="171"/>
+        <location filename="widgets/dicteditor.py" line="174"/>
         <source>List</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="174"/>
+        <location filename="widgets/dicteditor.py" line="177"/>
         <source>Dictionary</source>
         <translation>Dictionnaire</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="177"/>
+        <location filename="widgets/dicteditor.py" line="180"/>
         <source>elements</source>
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="444"/>
+        <location filename="widgets/dicteditor.py" line="447"/>
         <source>Sort columns</source>
         <translation>Classement des colonnes</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="448"/>
+        <location filename="widgets/dicteditor.py" line="451"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="434"/>
+        <location filename="widgets/dicteditor.py" line="437"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="549"/>
+        <location filename="widgets/dicteditor.py" line="552"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="481"/>
+        <location filename="widgets/dicteditor.py" line="484"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="483"/>
+        <location filename="widgets/dicteditor.py" line="486"/>
         <source>Do you want to remove selected item%1?</source>
         <translation>Souhaitez-vous supprimer la sélection ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="540"/>
+        <location filename="widgets/dicteditor.py" line="543"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="550"/>
+        <location filename="widgets/dicteditor.py" line="553"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="503"/>
+        <location filename="widgets/dicteditor.py" line="506"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="454"/>
+        <location filename="widgets/dicteditor.py" line="457"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
@@ -232,12 +346,12 @@
 <context>
     <name>DocComboBox</name>
     <message>
-        <location filename="widgets/editor.py" line="692"/>
+        <location filename="widgets/editor.py" line="695"/>
         <source>Press enter to validate this object name</source>
         <translation>Appuyer sur Entrée pour valider ce nom d&apos;objet</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="695"/>
+        <location filename="widgets/editor.py" line="698"/>
         <source>This object name is incorrect</source>
         <translation>Ce nom d&apos;objet n&apos;est pas valide</translation>
     </message>
@@ -245,22 +359,22 @@
 <context>
     <name>DocViewer</name>
     <message>
-        <location filename="widgets/editor.py" line="737"/>
+        <location filename="widgets/editor.py" line="740"/>
         <source>Object</source>
         <translation>Objet</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="744"/>
+        <location filename="widgets/editor.py" line="747"/>
         <source>Show source</source>
         <translation>Afficher les sources</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="821"/>
+        <location filename="widgets/editor.py" line="824"/>
         <source>No documentation available.</source>
         <translation>Aucune documentation disponible.</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="763"/>
+        <location filename="widgets/editor.py" line="766"/>
         <source>Doc</source>
         <translation>Aide</translation>
     </message>
@@ -321,22 +435,22 @@
         <translation>Modifier la police d&apos;écriture de l&apos;éditeur</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="517"/>
+        <location filename="widgets/editor.py" line="520"/>
         <source>Open Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="573"/>
+        <location filename="widgets/editor.py" line="576"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="572"/>
+        <location filename="widgets/editor.py" line="575"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="598"/>
+        <location filename="widgets/editor.py" line="601"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -346,7 +460,7 @@
         <translation>Retour à la ligne</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="468"/>
+        <location filename="widgets/editor.py" line="471"/>
         <source> has been modified.
 Do you want to save changes?</source>
         <translation>a été modifié. Souhaitez-vous sauvegarder ces changements ?</translation>
@@ -412,7 +526,7 @@ Do you want to save changes?</source>
         <translation>Nouveau script Python</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="500"/>
+        <location filename="widgets/editor.py" line="503"/>
         <source>Temporary file</source>
         <translation>Fichier temporaire</translation>
     </message>
@@ -548,9 +662,101 @@ Do you want to save changes?</source>
 <context>
     <name>HistoryLog</name>
     <message>
-        <location filename="widgets/editor.py" line="665"/>
+        <location filename="widgets/editor.py" line="668"/>
         <source>History log</source>
         <translation>Historique</translation>
+    </message>
+</context>
+<context>
+    <name>MainWindow</name>
+    <message>
+        <location filename="pydee.py" line="82"/>
+        <source>Toolbar</source>
+        <translation>Barre d&apos;outils</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="87"/>
+        <source>&amp;File</source>
+        <translation>&amp;Fichier</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="92"/>
+        <source>&amp;Edit</source>
+        <translation>&amp;Édition</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="134"/>
+        <source>&amp;View</source>
+        <translation>&amp;Affichage</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="142"/>
+        <source>Welcome to Pydee!</source>
+        <translation>Bienvenue dans Pydee !</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="143"/>
+        <source>Status bar</source>
+        <translation>Barre de status</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="152"/>
+        <source>Loading workspace...</source>
+        <translation>Chargement de l&apos;espace de travail...</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="176"/>
+        <source>Loading editor widget...</source>
+        <translation>Chargement de l&apos;éditeur...</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="179"/>
+        <source>&amp;Source</source>
+        <translation>&amp;Source</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="184"/>
+        <source>Loading workspace widget...</source>
+        <translation>Chargement de l&apos;espace de travail...</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="194"/>
+        <source>Loading history widget...</source>
+        <translation>Chargement de l&apos;historique...</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="202"/>
+        <source>Loading docviewer widget...</source>
+        <translation>Chargement de l&apos;aide...</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="231"/>
+        <source>About %1...</source>
+        <translation>À propos de %1...</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="399"/>
+        <source>About %1</source>
+        <translation>À propos de %1</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="415"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; v %2
+            &lt;br&gt;PYthon Development EnvironmEnt
+            &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
+            &lt;br&gt;Licensed under the terms of the  
+            &lt;a href=&quot;http://www.fsf.org/licensing/&quot;&gt;GNU GPL v2&lt;/a&gt;
+            &lt;p&gt;&lt;i&gt;Project manager and main developer:&lt;/i&gt; Pierre Raybaut
+            &lt;br&gt;&lt;i&gt;Contributors:&lt;/i&gt; Christopher Brown, Alexandre Radicchi
+            &lt;p&gt;Pydee is based on PyQtShell module v %2
+            &lt;br&gt;Bug reports and feature requests: 
+            &lt;a href=&quot;http://code.google.com/p/pyqtshell/&quot;&gt;Google Code&lt;/a&gt;&lt;br&gt;
+            Discussions around the project: 
+            &lt;a href=&quot;http://groups.google.com/group/pyqtshell&quot;&gt;Google Group&lt;/a&gt;
+            &lt;p&gt;This project will soon be part of 
+            &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;Python(x,y) distribution&lt;/a&gt;
+            &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7</source>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -592,122 +798,122 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
     <message>
         <location filename="widgets/shell.py" line="109"/>
         <source>&amp;Run...</source>
-        <translation>Exécute&amp;r...</translation>
+        <translation type="obsolete">Exécute&amp;r...</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="110"/>
         <source>Run a Python script</source>
-        <translation>Exécuter un script Python</translation>
+        <translation type="obsolete">Exécuter un script Python</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="119"/>
         <source>&amp;Font...</source>
-        <translation>&amp;Police...</translation>
+        <translation type="obsolete">&amp;Police...</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="120"/>
         <source>Set shell font style</source>
-        <translation>Changer la police d&apos;écriture de la console</translation>
+        <translation type="obsolete">Changer la police d&apos;écriture de la console</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="123"/>
         <source>History...</source>
-        <translation>Historique...</translation>
+        <translation type="obsolete">Historique...</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="124"/>
         <source>Set history max entries</source>
-        <translation>Modifier le nombre d&apos;entrées maximum de l&apos;historique</translation>
+        <translation type="obsolete">Modifier le nombre d&apos;entrées maximum de l&apos;historique</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="177"/>
         <source>Run Python script</source>
-        <translation>Exécuter un script Python</translation>
+        <translation type="obsolete">Exécuter un script Python</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="178"/>
         <source>Python scripts</source>
-        <translation>Scripts Python</translation>
+        <translation type="obsolete">Scripts Python</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="220"/>
         <source>Select a new font</source>
-        <translation>Sélectionner une police d&apos;écriture</translation>
+        <translation type="obsolete">Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="227"/>
         <source>History</source>
-        <translation>Historique</translation>
+        <translation type="obsolete">Historique</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="228"/>
         <source>Maximum entries</source>
-        <translation>Nombre maximum d&apos;entrées</translation>
+        <translation type="obsolete">Nombre maximum d&apos;entrées</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="131"/>
         <source>Wrap lines</source>
-        <translation>Retour à la ligne</translation>
+        <translation type="obsolete">Retour à la ligne</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="105"/>
         <source>&amp;Quit</source>
-        <translation>&amp;Quitter</translation>
+        <translation type="obsolete">&amp;Quitter</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="105"/>
         <source>Ctrl+Q</source>
-        <translation>Ctrl+Q</translation>
+        <translation type="obsolete">Ctrl+Q</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="106"/>
         <source>Quit</source>
-        <translation>Quitter</translation>
+        <translation type="obsolete">Quitter</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="127"/>
         <source>External editor path...</source>
-        <translation>Éditeur externe...</translation>
+        <translation type="obsolete">Éditeur externe...</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="128"/>
         <source>Set external editor executable path</source>
-        <translation>Modifier le chemin d&apos;accès de l&apos;éditeur externe</translation>
+        <translation type="obsolete">Modifier le chemin d&apos;accès de l&apos;éditeur externe</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="235"/>
         <source>External editor</source>
-        <translation>Éditeur externe</translation>
+        <translation type="obsolete">Éditeur externe</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="236"/>
         <source>External editor executable path:</source>
-        <translation>Chemin d&apos;accès de l&apos;exécutable :</translation>
+        <translation type="obsolete">Chemin d&apos;accès de l&apos;exécutable :</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="134"/>
         <source>Balloon tips</source>
-        <translation>Info-bulles</translation>
+        <translation type="obsolete">Info-bulles</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="113"/>
         <source>Environment variables...</source>
-        <translation>Variables d&apos;environnement...</translation>
+        <translation type="obsolete">Variables d&apos;environnement...</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="116"/>
         <source>Show and edit environment variables (for current session)</source>
-        <translation>Afficher et modifier les variables d&apos;environnement (pour la session en cours)</translation>
+        <translation type="obsolete">Afficher et modifier les variables d&apos;environnement (pour la session en cours)</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="144"/>
         <source>Windows user environment variables...</source>
-        <translation>Variables d&apos;environnement de l&apos;utilisateur courant...</translation>
+        <translation type="obsolete">Variables d&apos;environnement de l&apos;utilisateur courant...</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="147"/>
         <source>Show and edit current user environment variables in Windows registry (i.e. for all sessions)</source>
-        <translation>Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire dans la base de registre)</translation>
+        <translation type="obsolete">Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire dans la base de registre)</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="101"/>
@@ -724,12 +930,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
     <message>
         <location filename="widgets/shell.py" line="109"/>
         <source>Ctrl+R</source>
-        <translation>Ctrl+R</translation>
+        <translation type="obsolete">Ctrl+R</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="93"/>
         <source>Console</source>
-        <translation>Console</translation>
+        <translation type="obsolete">Console</translation>
     </message>
 </context>
 <context>
