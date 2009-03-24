@@ -340,16 +340,15 @@ class ShellBaseWidget(Terminal):
         Recommended: SciTE (e.g. to go to line where an error did occur)"""
         editor_path = CONF.get('shell', 'external_editor')
         goto_option = CONF.get('shell', 'external_editor/gotoline')
-        if (goto is not None) and goto_option:
-            subprocess.Popen(r'%s "%s" %s%d' % (editor_path, filename,
-                                                goto_option, goto))
-        else:
-            subprocess.Popen(r'%s "%s"' % (editor_path, filename))
-        
-    def edit_script(self, filename, goto=None):
-        """Edit in Editor widget if avaiblable"""
-        # Reimplemented in parent class (Shell in widgets.py)
-        raise NotImplementedError
+        try:
+            if (goto is not None) and goto_option:
+                subprocess.Popen(r'%s "%s" %s%d' % (editor_path, filename,
+                                                    goto_option, goto))
+            else:
+                subprocess.Popen(r'%s "%s"' % (editor_path, filename))
+        except WindowsError, OSError:
+            self.write_error("External editor was not found:"
+                             " %s\n" % editor_path)
         
     def run_command(self, cmd, history=True, multiline=False):
         """Run command in interpreter"""
@@ -389,7 +388,7 @@ class ShellBaseWidget(Terminal):
         elif cmd.startswith('edit '):
             filename = guess_filename(cmd[5:])
             if osp.isfile(filename):
-                self.edit_script(filename)
+                self.parent().edit_script(filename)
             else:
                 self.write_error("No such file or directory: %s\n" % filename)
         # remove reference (equivalent to MATLAB's clear command)
