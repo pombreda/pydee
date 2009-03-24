@@ -429,6 +429,7 @@ class QsciTerminal(QsciScintilla):
                 QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
                 return
         QApplication.restoreOverrideCursor()
+        QsciScintilla.mouseMoveEvent(self, event)
 
     def mousePressEvent(self, event):
         """

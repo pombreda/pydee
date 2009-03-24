@@ -769,6 +769,7 @@ class QtTerminal(AlmostQsciScintilla):
                 QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
                 return
         QApplication.restoreOverrideCursor()
+        QTextEdit.mouseMoveEvent(self, event)
 
     def mousePressEvent(self, event):
         """Keep the cursor after the last prompt"""
