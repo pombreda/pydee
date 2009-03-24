@@ -420,7 +420,7 @@ class MainWindow(QMainWindow):
         """Show a message in the status bar"""
         self.statusBar().showMessage(message)
         
-    def which_has_focus(self, widget_list=['shell', 'editor', 'docviewer',
+    def which_has_focus(self, widget_list=['console', 'editor', 'docviewer',
                                            'historylog'],
                         default_widget = 'editor'):
         """Which widget has focus?"""
