@@ -52,8 +52,6 @@ class AlmostQsciScintilla(QTextEdit):
         self.redo_available = False
         self.connect(self, SIGNAL("undoAvailable(bool)"), self.set_undo)
         self.connect(self, SIGNAL("redoAvailable(bool)"), self.set_redo)
-        # Indentation
-        self.document().setIndentWidth(4)
         
     def isModified(self):
         """Reimplement QScintilla method
