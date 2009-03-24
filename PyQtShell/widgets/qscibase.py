@@ -566,7 +566,7 @@ class QsciTerminal(QsciScintilla):
         """
         Clear current line
         """
-        cline, cindex = self.getCursorPosition()
+        cline, _cindex = self.getCursorPosition()
         self.setSelection(cline, len(self.prompt),
                           cline, self.lineLength(cline))
         self.removeSelectedText()
@@ -611,8 +611,8 @@ class QsciTerminal(QsciScintilla):
             self.__delete_selected_text()
         elif self.__is_cursor_on_last_line():
             line, col = self.getCursorPosition()
-            is_active = self.isListActive()
-            old_length = self.text(line).length()
+            _is_active = self.isListActive()
+            _old_length = self.text(line).length()
             if self.text(line).startsWith(self.prompt):
                 if col > len(self.prompt):
                     self.SendScintilla(QsciScintilla.SCI_DELETEBACK)

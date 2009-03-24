@@ -707,6 +707,7 @@ class QtTerminal(AlmostQsciScintilla):
             self.insert_text(text)
 
         elif text.length():
+            self.hist_wholeline = False
             text = unicode(text)
             self.insert_text(text)
             if self.completion_widget:
