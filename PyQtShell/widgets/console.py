@@ -209,7 +209,7 @@ class Console(QWidget, WidgetMixin):
         # Called from ShellBaseWidget
         if not hasattr(self, 'main') \
            or not hasattr(self.main, 'editor'):
-            self.external_editor(filename, goto)
+            self.shell.external_editor(filename, goto)
             return
         if filename is not None:
             self.main.editor.load(os.path.abspath(filename), goto)
