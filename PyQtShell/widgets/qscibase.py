@@ -26,8 +26,9 @@
 # pylint: disable-msg=R0201
 
 import sys, os
-from PyQt4.QtGui import QKeySequence, QApplication, QClipboard, QCursor
-from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList
+from PyQt4.QtGui import (QKeySequence, QApplication, QClipboard, QCursor,
+                         QMouseEvent)
+from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList, QEvent
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
 # For debugging purpose:
@@ -268,6 +269,24 @@ class QsciEditor(QsciScintilla):
             self.setSelection(line, 0, line, len(comment_str))
             self.removeSelectedText()
             self.endUndoAction()
+            
+    def mousePressEvent(self, event):
+        """Reimplemented"""
+        self.setFocus()
+        if event.button() == Qt.MidButton:
+            event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
+                                Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
+            QsciScintilla.mousePressEvent(self, event)
+            QsciScintilla.mouseReleaseEvent(self, event)
+            self.paste()
+        else:
+            QsciScintilla.mousePressEvent(self, event)
+            
+    def mouseReleaseEvent(self, event):
+        """Reimplemented"""
+        if self.hasSelectedText():
+            self.copy()
+        QsciScintilla.mouseReleaseEvent(self, event)
 
 
 class QsciTerminal(QsciScintilla):
@@ -447,6 +466,12 @@ class QsciTerminal(QsciScintilla):
             self.parent().go_to_error(text)
         else:
             QsciScintilla.mousePressEvent(self, event)
+            
+    def mouseReleaseEvent(self, event):
+        """Reimplemented"""
+        if self.hasSelectedText():
+            self.copy()
+        QsciScintilla.mouseReleaseEvent(self, event)
 
     def keyPressEvent(self, key_event):
         """

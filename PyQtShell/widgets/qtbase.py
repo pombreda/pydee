@@ -24,7 +24,7 @@ from PyQt4.QtCore import Qt, QString, SIGNAL, QEvent, QRegExp, QPoint
 from PyQt4.QtGui import (QTextEdit, QTextCursor, QColor, QFont, QCursor,
                          QSyntaxHighlighter, QApplication, QTextCharFormat,
                          QKeySequence, QToolTip, QTextImageFormat,
-                         QTextDocument)
+                         QTextDocument, QMouseEvent)
 
 import __builtin__
 
@@ -367,6 +367,23 @@ class QtEditor(AlmostQsciScintilla):
             if block.position() > end:
                 break
         user_cursor.endEditBlock()
+            
+    def mousePressEvent(self, event):
+        """Reimplemented"""
+        self.setFocus()
+        if event.button() == Qt.MidButton:
+            event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
+                                Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
+            QTextEdit.mousePressEvent(self, event)
+            self.paste()
+        else:
+            QTextEdit.mousePressEvent(self, event)
+            
+    def mouseReleaseEvent(self, event):
+        """Reimplemented"""
+        if self.hasSelectedText():
+            self.copy()
+        QTextEdit.mouseReleaseEvent(self, event)
 
 
 class QtTerminal(AlmostQsciScintilla):
@@ -771,7 +788,12 @@ class QtTerminal(AlmostQsciScintilla):
     def mousePressEvent(self, event):
         """Keep the cursor after the last prompt"""
         ctrl = event.modifiers() & Qt.ControlModifier
-        if (event.button() == Qt.LeftButton) and ctrl:
+        if event.button() == Qt.MidButton:
+            event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
+                                Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
+            QTextEdit.mousePressEvent(self, event)
+            self.paste()
+        elif (event.button() == Qt.LeftButton) and ctrl:
             cursor = self.cursorForPosition(event.pos())
             text = unicode(cursor.block().text())
             self.parent().go_to_error(text)
@@ -784,6 +806,12 @@ class QtTerminal(AlmostQsciScintilla):
                 cursor.movePosition(QTextCursor.EndOfLine)
                 if not cursor.atEnd():
                     QTextEdit.mousePressEvent(self, event)
+            
+    def mouseReleaseEvent(self, event):
+        """Reimplemented"""
+        if self.hasSelectedText():
+            self.copy()
+        QTextEdit.mouseReleaseEvent(self, event)
             
     def contentsContextMenuEvent(self,ev):
         """Suppress the right button context menu"""
