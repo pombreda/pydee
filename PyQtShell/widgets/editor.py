@@ -512,7 +512,7 @@ class Editor(QWidget, WidgetMixin):
                 filenames = unicode(action.data().toString())
         if not filenames:
             self.main.console.shell.restore_stds()
-            basedir = os.getcwd()
+            basedir = os.getcwdu()
             if self.filenames:
                 index = self.tabwidget.currentIndex()
                 if self.filenames[index] != self.file_path:

@@ -25,7 +25,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, os, subprocess
+import sys, os
+from subprocess import Popen, PIPE
 from time import time
 import os.path as osp
 
@@ -58,7 +59,7 @@ def guess_filename(filename):
     if osp.isfile(filename):
         return filename
     pathlist = sys.path
-    pathlist[0] = os.getcwd()
+    pathlist[0] = os.getcwdu()
     if not filename.endswith('.py'):
         filename += '.py'
     for path in pathlist:
@@ -342,10 +343,10 @@ class ShellBaseWidget(Terminal):
         goto_option = CONF.get('shell', 'external_editor/gotoline')
         try:
             if (goto is not None) and goto_option:
-                subprocess.Popen(r'%s "%s" %s%d' % (editor_path, filename,
-                                                    goto_option, goto))
+                Popen(r'%s "%s" %s%d' % (editor_path, filename,
+                                         goto_option, goto))
             else:
-                subprocess.Popen(r'%s "%s"' % (editor_path, filename))
+                Popen(r'%s "%s"' % (editor_path, filename))
         except OSError:
             self.write_error("External editor was not found:"
                              " %s\n" % editor_path)
@@ -402,12 +403,10 @@ class ShellBaseWidget(Terminal):
         # Execute command
         elif cmd.startswith('!'):
             # System ! command
-            _, out, err = os.popen3(cmd[1:])
-            txt_out = out.read()
-            txt_err = err.read()
-            if os.name == 'nt':
-                txt_out = transcode(txt_out, 'cp437')
-                txt_err = transcode(txt_err.rstrip(), 'cp437')
+            pipe = Popen(cmd[1:], shell=True,
+                         stdin=PIPE, stderr=PIPE, stdout=PIPE)
+            txt_out = transcode( pipe.stdout.read() )
+            txt_err = transcode( pipe.stderr.read().rstrip() )
             if txt_err:
                 self.write_error(txt_err)
             if txt_out:
@@ -447,12 +446,8 @@ class ShellBaseWidget(Terminal):
         """
         Display a completion list for files and directories
         """
-        cwd = os.getcwd()
-        listdir = os.listdir(cwd)
-        if os.name == 'nt':
-            listdir = [transcode(path) for path in listdir]
-            cwd = transcode(cwd)
-        self.show_list(listdir, cwd)
+        cwd = os.getcwdu()
+        self.show_list(os.listdir(cwd), cwd)
 
     def show_list(self, completions, text):
         """

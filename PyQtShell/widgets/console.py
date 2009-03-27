@@ -174,7 +174,7 @@ class Console(QWidget, WidgetMixin):
         if filename is None:
             self.shell.restore_stds()
             filename = QFileDialog.getOpenFileName(self,
-                          self.tr("Run Python script"), os.getcwd(),
+                          self.tr("Run Python script"), os.getcwdu(),
                           self.tr("Python scripts")+" (*.py ; *.pyw)")
             self.shell.redirect_stds()
             if filename:
