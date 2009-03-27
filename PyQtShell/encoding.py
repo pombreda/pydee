@@ -29,11 +29,17 @@ import re, os, locale
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
 from PyQt4.QtCore import QString
 
-def transcode(text, input_encoding=None, output_encoding='utf-8'):
+PREFERRED_ENCODING = locale.getpreferredencoding()
+
+def transcode(text, input=PREFERRED_ENCODING, output=PREFERRED_ENCODING):
     """Transcode a text string"""
-    if input_encoding is None:
-        input_encoding = locale.getpreferredencoding()
-    return unicode(text.decode(input_encoding).encode(output_encoding))
+    try:
+        return text.decode("cp437").encode("cp1252")
+    except UnicodeError:
+        try:
+            return text.decode("cp437").encode(output)
+        except UnicodeError:
+            return text
 
 CODING_RE = re.compile(r"coding[:=]\s*([-\w_.]+)")
 CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'koi8-r', 'koi8-u',

@@ -109,7 +109,7 @@ class WorkingDirectory(QToolBar, WidgetMixin):
             wdhistory = [name for name in wdhistory if os.path.isdir(name)]
         else:
             if workdir is None:
-                workdir = os.getcwd()
+                workdir = os.getcwdu()
             wdhistory = [ workdir ]
         return wdhistory
     
@@ -121,7 +121,7 @@ class WorkingDirectory(QToolBar, WidgetMixin):
         
     def refresh(self):
         """Refresh widget"""
-        curdir = os.getcwd()
+        curdir = os.getcwdu()
         index = self.pathedit.findText(curdir)
         while index!=-1:
             self.pathedit.removeItem(index)
@@ -134,19 +134,19 @@ class WorkingDirectory(QToolBar, WidgetMixin):
         """Select directory"""
         self.main.console.shell.restore_stds()
         directory = QFileDialog.getExistingDirectory(self.main,
-                    self.tr("Select directory"), os.getcwd())
+                    self.tr("Select directory"), os.getcwdu())
         if not directory.isEmpty():
             self.chdir(directory)
         self.main.console.shell.redirect_stds()
         
     def parent_directory(self):
         """Change working directory to parent directory"""
-        os.chdir(os.path.join(os.getcwd(), os.path.pardir))
+        os.chdir(os.path.join(os.getcwdu(), os.path.pardir))
         self.refresh()
         
     def chdir(self, directory):
         """Set directory as working directory"""
         os.chdir( unicode(directory) )
-        sys.path.append(os.getcwd())
+        sys.path.append(os.getcwdu())
         self.refresh()
 
