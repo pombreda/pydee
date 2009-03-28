@@ -487,6 +487,7 @@ class Editor(QWidget, WidgetMixin):
                 self.filenames.pop(index)
                 self.encodings.pop(index)
                 self.editors.pop(index)
+                self.refresh()
             return is_ok
         else:
             self.find_widget.set_editor(None)
