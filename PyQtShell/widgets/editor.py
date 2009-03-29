@@ -198,15 +198,7 @@ class Editor(QWidget, WidgetMixin):
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
         
-        # Recent files
         self.recent_files = CONF.get('editor', 'recent_files', [])
-        # Changing working directory to the most recent file directory
-        for filename in self.recent_files:
-            dir = os.path.dirname(filename)
-            if os.path.isdir(dir):
-                os.chdir(dir)
-                break
-
         self.filenames = []
         self.encodings = []
         self.editors = []
