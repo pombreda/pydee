@@ -50,6 +50,8 @@ class AlmostQsciScintilla(QTextEdit):
         # Undo/Redo
         self.undo_available = False
         self.redo_available = False
+        # Mouse selection copy feature
+        self.always_copy_selection = False
         self.connect(self, SIGNAL("undoAvailable(bool)"), self.set_undo)
         self.connect(self, SIGNAL("redoAvailable(bool)"), self.set_redo)
         
@@ -381,7 +383,7 @@ class QtEditor(AlmostQsciScintilla):
             
     def mouseReleaseEvent(self, event):
         """Reimplemented"""
-        if self.hasSelectedText():
+        if self.hasSelectedText() and self.always_copy_selection:
             self.copy()
         QTextEdit.mouseReleaseEvent(self, event)
 
@@ -809,7 +811,7 @@ class QtTerminal(AlmostQsciScintilla):
             
     def mouseReleaseEvent(self, event):
         """Reimplemented"""
-        if self.hasSelectedText():
+        if self.hasSelectedText() and self.always_copy_selection:
             self.copy()
         QTextEdit.mouseReleaseEvent(self, event)
             

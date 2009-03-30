@@ -97,6 +97,9 @@ class QsciEditor(QsciScintilla):
     def __init__(self, parent=None, margin=True):
         QsciScintilla.__init__(self, parent)
         
+        # Mouse selection copy feature
+        self.always_copy_selection = False
+        
         self.setUtf8(True)
         
         # Indentation
@@ -284,7 +287,7 @@ class QsciEditor(QsciScintilla):
             
     def mouseReleaseEvent(self, event):
         """Reimplemented"""
-        if self.hasSelectedText():
+        if self.hasSelectedText() and self.always_copy_selection:
             self.copy()
         QsciScintilla.mouseReleaseEvent(self, event)
 
@@ -299,6 +302,9 @@ class QsciTerminal(QsciScintilla):
         """
         QsciScintilla.__init__(self, parent)
         self.setUtf8(True)
+        
+        # Mouse selection copy feature
+        self.always_copy_selection = False
         
         self.busy = False
         
@@ -469,7 +475,7 @@ class QsciTerminal(QsciScintilla):
             
     def mouseReleaseEvent(self, event):
         """Reimplemented"""
-        if self.hasSelectedText():
+        if self.hasSelectedText() and self.always_copy_selection:
             self.copy()
         QsciScintilla.mouseReleaseEvent(self, event)
 

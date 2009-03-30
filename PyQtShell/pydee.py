@@ -45,6 +45,7 @@ from PyQtShell.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate)
 from PyQtShell.config import get_font, get_icon, get_image_path, CONF
 
+WIDGET_LIST = ['console', 'editor', 'docviewer', 'historylog']
 
 class MainWindow(QMainWindow):
     """Console QDialog"""
@@ -115,6 +116,11 @@ class MainWindow(QMainWindow):
                                        icon=get_icon('close.png'),
                                        triggered=self.global_callback,
                                        data="removeSelectedText")
+            self.alwayscopyselection_action = create_action(self,
+                           translate("SimpleEditor", "Always copy selection"),
+                           toggled=self.toggle_alwayscopyselection,
+                           tip=translate("SimpleEditor", "Always copy selected "
+                                         "text (with mouse) to clipboard"))
             self.selectall_action = create_action(self,
                                        translate("SimpleEditor", "Select all"),
                                        shortcut=keybinding('SelectAll'),
@@ -123,7 +129,8 @@ class MainWindow(QMainWindow):
                                        data="selectAll")
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                  None, self.cut_action, self.copy_action,
-                                 self.paste_action, self.delete_action, None,
+                                 self.paste_action, self.delete_action,
+                                 self.alwayscopyselection_action, None,
                                  self.selectall_action, None,
                                  self.find_action, self.replace_action,
                                  ]
@@ -239,6 +246,11 @@ class MainWindow(QMainWindow):
         self.resize( QSize(width, height) )
         posx, posy = CONF.get(section, 'position')
         self.move( QPoint(posx, posy) )
+        
+        # Always copy selection feature
+        state = CONF.get('global', 'copy_selection', False)
+        self.alwayscopyselection_action.setChecked(state)
+        self.toggle_alwayscopyselection(state)
         
         if not self.light:
             hexstate = CONF.get(section, 'state')
@@ -419,8 +431,7 @@ class MainWindow(QMainWindow):
         """Show a message in the status bar"""
         self.statusBar().showMessage(message)
         
-    def which_has_focus(self, widget_list=['console', 'editor', 'docviewer',
-                                           'historylog'],
+    def which_has_focus(self, widget_list=WIDGET_LIST,
                         default_widget = 'editor'):
         """Which widget has focus?"""
         def children_has_focus(widget, iter=0):
@@ -470,7 +481,13 @@ class MainWindow(QMainWindow):
             action = self.sender()
             callback = unicode(action.data().toString())
             getattr( self.get_editor(widget), callback )()
-        
+            
+    def toggle_alwayscopyselection(self, state):
+        """Toggle always copy selection feature"""
+        for widget_name in WIDGET_LIST:
+            if hasattr(self, widget_name):
+                editor = self.get_editor( getattr(self, widget_name))
+                editor.always_copy_selection = state
         
 def get_options():
     """
