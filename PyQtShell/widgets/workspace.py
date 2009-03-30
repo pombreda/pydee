@@ -175,6 +175,7 @@ class Workspace(DictEditor, WidgetMixin):
                                  triggered=self.clear)
         
         menu_actions = (refresh_action, autorefresh_action, None,
+                        self.fulldisplay_action,
                         self.sort_action, self.inplace_action, None,
                         exclude_private_action, None, open_action, save_action,
                         save_as_action, autosave_action,
