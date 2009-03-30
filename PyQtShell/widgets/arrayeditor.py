@@ -181,7 +181,7 @@ class ArrayEditor(QDialog):
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
         self.setWindowTitle(self.tr("Array editor") + \
-                            "%s" % (" - "+title if title else ""))
+                            "%s" % (" - "+str(title) if str(title) else ""))
         self.resize(600, 500)
 
         # Table configuration
