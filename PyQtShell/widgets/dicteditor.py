@@ -87,12 +87,15 @@ def unsorted_unique(lista):
     map(set.__setitem__,lista,[])
     return set.keys()
 
-def value_to_display(value,truncate=False,trunc_len=30):
+def value_to_display(value, truncate=False, trunc_len=80):
     """Convert value for display purpose"""
+    if truncate and isinstance(value, ndarray):
+        return 'Min: %r\nMax: %r\nStd: %r' % (value.min(), value.max(),
+                                              value.std())
     if not isinstance(value, (str, unicode)):
         value = repr(value)
     if truncate and len(value) > trunc_len:
-        value = ''.join((value[:trunc_len],'...'))
+        value = value[:trunc_len].rstrip() + ' ...'
     return value
 
 def try_to_eval(value):
@@ -156,6 +159,7 @@ class DictModelRO(QAbstractTableModel):
         self.sizes = None
         self.types = None
         self.set_data(data)
+        self.truncate = True
         
     def get_data(self):
         """Return model data"""
@@ -245,15 +249,14 @@ class DictModelRO(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
         value = self.get_value(index)
+        display = value_to_display(value, index.column()==2 and self.truncate)
         if role == Qt.DisplayRole:
-            return QVariant( value_to_display(value,index.column()==2,40))
+            return QVariant(display)
         elif role == Qt.EditRole:
-            return QVariant( value_to_display(value) )
+            return QVariant(value_to_display(value))
         elif role == Qt.TextAlignmentRole:
             if index.column()==2:
-                if isinstance(value, ndarray):
-                    return QVariant(int(Qt.AlignLeft))
-                if len(repr(value).splitlines())<3:
+                if len(display.splitlines())<3:
                     return QVariant(int(Qt.AlignLeft|Qt.AlignVCenter))
                 else:
                     return QVariant(int(Qt.AlignLeft|Qt.AlignTop))
@@ -447,6 +450,10 @@ class DictEditor(QTableView):
                                       translate("DictEditor", "Remove"),
                                       icon=get_icon('close.png'),
                                       triggered=self.remove_item)
+        self.fulldisplay_action = create_action(self,
+                                    translate("DictEditor", "Display complete "
+                                              "values"),
+                                    toggled=self.set_fulldisplay)
         self.sort_action = create_action(self,
                                     translate("DictEditor", "Sort columns"),
                                     toggled=self.setSortingEnabled)
@@ -462,8 +469,8 @@ class DictEditor(QTableView):
                                     triggered=self.duplicate_item)
         menu = QMenu(self)
         add_actions( menu, (self.edit_action, self.insert_action,
-                            self.remove_action,
-                            None, self.sort_action, self.inplace_action) )
+                            self.remove_action, None, self.fulldisplay_action,
+                            self.sort_action, self.inplace_action) )
         vert_menu = QMenu(self)
         add_actions(vert_menu, (self.rename_action,self.duplicate_action,
                             self.remove_action))
@@ -597,6 +604,13 @@ class DictEditor(QTableView):
         else:
             self.delegate.inplace = False
         
+    def set_fulldisplay(self, state):
+        """Set display truncating option"""
+        if state:
+            self.model.truncate = False
+        else:
+            self.model.truncate = True
+        
     def set_filter(self, dictfilter=None):
         """Set table dict filter"""
         self.dictfilter = dictfilter
@@ -673,7 +687,7 @@ def main():
     import numpy
     dico = {'str': 'kjkj kj k j j kj k jkj',
             'list': [1, 3, 4, 'kjkj', None],
-            'dict': {'d': 1, 'a': None, 'b': [1, 2]},
+            'dict': {'d': 1, 'a': numpy.random.rand(10, 10), 'b': [1, 2]},
             'float': 1.2233,
             'array': numpy.random.rand(10, 10),
             'date': datetime.date(1945, 5, 8),
