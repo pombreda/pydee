@@ -87,12 +87,14 @@ def unsorted_unique(lista):
     map(set.__setitem__,lista,[])
     return set.keys()
 
-def value_to_display(value):
+def value_to_display(value,truncate=False,trunc_len=30):
     """Convert value for display purpose"""
     if not isinstance(value, (str, unicode)):
         value = repr(value)
+    if truncate and len(value) > trunc_len:
+        value = ''.join((value[:trunc_len],'...'))
     return value
-    
+
 def try_to_eval(value):
     """Try to eval value"""
     try:
@@ -244,6 +246,8 @@ class DictModelRO(QAbstractTableModel):
             return QVariant()
         value = self.get_value(index)
         if role == Qt.DisplayRole:
+            return QVariant( value_to_display(value,index.column()==2,40))
+        elif role == Qt.EditRole:
             return QVariant( value_to_display(value) )
         elif role == Qt.TextAlignmentRole:
             if index.column()==2:
@@ -381,7 +385,7 @@ class DictDelegate(QItemDelegate):
         """Overriding method setEditorData
         Model --> Editor"""
         if isinstance(editor, QLineEdit):
-            text = index.model().data(index, Qt.DisplayRole).toString()
+            text = index.model().data(index, Qt.EditRole).toString()
             editor.setText(text)
         elif isinstance(editor, QDateEdit):
             value = index.model().get_value(index)
