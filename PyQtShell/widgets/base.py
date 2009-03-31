@@ -324,8 +324,8 @@ class FindReplace(QWidget):
         """Replace and find"""
         if (self.editor is not None):
             while self.find(changed=True, forward=True):
-                if not self.all_check.isChecked():
-                    break
                 self.editor.replace(self.replace_edit.text())
                 self.refresh()
+                if not self.all_check.isChecked():
+                    break
             self.all_check.setCheckState(Qt.Unchecked)
