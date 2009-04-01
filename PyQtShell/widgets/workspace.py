@@ -127,7 +127,7 @@ class Workspace(DictEditor, WidgetMixin):
     
     def _update_dock_title(self):
         """Set the dockwidget title"""
-        if self.dockwidget:
+        if hasattr(self, "dockwidget") and self.dockwidget:
             title = self.get_name() + ' - ' + osp.basename(self.filename)
             self.dockwidget.setWindowTitle(title)
     
@@ -155,10 +155,11 @@ class Workspace(DictEditor, WidgetMixin):
         
     def set_actions(self):
         """Setup actions"""
+        new_action = create_action(self, self.tr("New..."), None,
+            'ws_new.png', self.tr("Create a new workspace"),
+            triggered = self.new)        
         open_action = create_action(self, self.tr("Open..."), None,
             'ws_open.png', self.tr("Open a workspace"), triggered = self.load)
-        new_action = create_action(self, self.tr("New..."), None,
-            None, self.tr("Create a new workspace"), triggered = self.new)        
         save_action = create_action(self, self.tr("Save"), None, 'ws_save.png',
             self.tr("Save current workspace"), triggered = self.save)
         save_as_action = create_action(self, self.tr("Save as..."), None,
@@ -190,7 +191,7 @@ class Workspace(DictEditor, WidgetMixin):
         menu_actions = (refresh_action, autorefresh_action, None,
                         self.fulldisplay_action,
                         self.sort_action, self.inplace_action, None,
-                        exclude_private_action, None, open_action, new_action,
+                        exclude_private_action, None, new_action, open_action,
                         save_action,save_as_action, autosave_action,
                         None, clear_action)
         toolbar_actions = (refresh_action, open_action, save_action)
@@ -284,7 +285,8 @@ class Workspace(DictEditor, WidgetMixin):
     def new(self):
         """Attempt to close the current workspace and create a new one"""
         answer = QMessageBox.question(self, self.tr("Save workspace"),
-            self.tr("Would you like to save the current workspace\nbefore creating a new one?"),
+            self.tr("Do you want to save current workspace "
+                    "before creating a new one?"),
             QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             self.save()
