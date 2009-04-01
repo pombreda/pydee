@@ -1148,32 +1148,32 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>Workspace</name>
     <message>
-        <location filename="widgets/workspace.py" line="167"/>
+        <location filename="widgets/workspace.py" line="181"/>
         <source>Auto save</source>
         <translation>Sauvegarde automatique</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="155"/>
+        <location filename="widgets/workspace.py" line="169"/>
         <source>Exclude private references</source>
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="209"/>
+        <location filename="widgets/workspace.py" line="223"/>
         <source>them</source>
         <translation>les</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="211"/>
+        <location filename="widgets/workspace.py" line="225"/>
         <source>one</source>
         <translation>un</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="213"/>
+        <location filename="widgets/workspace.py" line="227"/>
         <source>it</source>
         <translation>le</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="219"/>
+        <location filename="widgets/workspace.py" line="233"/>
         <source>Workspace is currently keeping reference to %1 object%2.
 
 Do you want to save %3?</source>
@@ -1182,107 +1182,107 @@ Do you want to save %3?</source>
 Souhaitez-vous %3 sauvegarder ?</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="147"/>
+        <location filename="widgets/workspace.py" line="161"/>
         <source>Open...</source>
         <translation>Ouvrir...</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="148"/>
+        <location filename="widgets/workspace.py" line="162"/>
         <source>Open a workspace</source>
         <translation>Ouvrir un espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="149"/>
+        <location filename="widgets/workspace.py" line="163"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="150"/>
+        <location filename="widgets/workspace.py" line="164"/>
         <source>Save current workspace</source>
         <translation>Enregistrer l&apos;espace de travail actuel</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="151"/>
+        <location filename="widgets/workspace.py" line="165"/>
         <source>Save as...</source>
         <translation>Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="152"/>
+        <location filename="widgets/workspace.py" line="166"/>
         <source>Save current workspace as...</source>
         <translation>Enregistrer l&apos;espace de travail sous un autre nom...</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="169"/>
+        <location filename="widgets/workspace.py" line="183"/>
         <source>Automatically save workspace in a temporary file when quitting</source>
         <translation>Enregistrer automatiquement l&apos;espace de travail dans un fichier temporaire en quittant</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="241"/>
+        <location filename="widgets/workspace.py" line="255"/>
         <source>Open workspace</source>
         <translation>Ouvrir un espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="276"/>
+        <location filename="widgets/workspace.py" line="310"/>
         <source>Workspaces</source>
         <translation>Espaces de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="255"/>
+        <location filename="widgets/workspace.py" line="269"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="265"/>
+        <location filename="widgets/workspace.py" line="279"/>
         <source>Unable to load the following workspace:</source>
         <translation>Impossible d&apos;ouvrir l&apos;espace de travail suivant :</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="295"/>
+        <location filename="widgets/workspace.py" line="329"/>
         <source>Save workspace</source>
         <translation>Enregistrer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="289"/>
+        <location filename="widgets/workspace.py" line="323"/>
         <source>Saving workspace...</source>
         <translation>Enregistrement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="296"/>
+        <location filename="widgets/workspace.py" line="330"/>
         <source>Unable to save current workspace</source>
         <translation>Impossible d&apos;enregistrer l&apos;espace de travail suivant</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="298"/>
+        <location filename="widgets/workspace.py" line="332"/>
         <source>Unable to save current workspace:</source>
         <translation>Impossible d&apos;enregistrer l&apos;espace de travail suivant :</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="159"/>
+        <location filename="widgets/workspace.py" line="173"/>
         <source>Refresh</source>
         <translation>Rafraîchir</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="160"/>
+        <location filename="widgets/workspace.py" line="174"/>
         <source>Refresh workspace</source>
         <translation>Rafraîchir l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="163"/>
+        <location filename="widgets/workspace.py" line="177"/>
         <source>Auto refresh</source>
         <translation>Rafraîchissement automatique</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="172"/>
+        <location filename="widgets/workspace.py" line="186"/>
         <source>Clear workspace</source>
         <translation>Effacer tout</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="124"/>
+        <location filename="widgets/workspace.py" line="137"/>
         <source>Do you want to clear all data from workspace?</source>
         <translation>Souhaitez-vous effacer tous les objets référencés dans l&apos;espace de travail ?</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="174"/>
+        <location filename="widgets/workspace.py" line="188"/>
         <source>Clear all data from workspace</source>
         <translation>Effacer tous les objets référencés dans l&apos;espace de travail</translation>
     </message>
@@ -1290,6 +1290,26 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <location filename="widgets/workspace.py" line="110"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
+    </message>
+    <message>
+        <location filename="widgets/workspace.py" line="158"/>
+        <source>New...</source>
+        <translation>Nouveau...</translation>
+    </message>
+    <message>
+        <location filename="widgets/workspace.py" line="159"/>
+        <source>Create a new workspace</source>
+        <translation>Créer un nouvel espace de travail</translation>
+    </message>
+    <message>
+        <location filename="widgets/workspace.py" line="296"/>
+        <source>New workspace</source>
+        <translation>Nouvel espace de travail</translation>
+    </message>
+    <message>
+        <location filename="widgets/workspace.py" line="289"/>
+        <source>Do you want to save current workspace before creating a new one?</source>
+        <translation>Souhaitez-vous enregistrer l&apos;espace de travail courant avant d&apos;en créer un nouveau ?</translation>
     </message>
 </context>
 </TS>
