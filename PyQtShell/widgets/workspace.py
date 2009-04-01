@@ -117,22 +117,33 @@ class Workspace(DictEditor, WidgetMixin):
         """Bind to interpreter"""
         self.interpreter = interpreter
         self.refresh()
-        
+    
+    def _clear_namespace(self):
+        """Clear namespace"""
+        keys = wsfilter(self.namespace).keys()
+        for key in keys:
+            self.namespace.pop(key)
+        self.refresh()
+    
+    def _update_dock_title(self):
+        """Set the dockwidget title"""
+        if self.dockwidget:
+            title = self.get_name() + ' - ' + osp.basename(self.filename)
+            self.dockwidget.setWindowTitle(title)
+    
     def clear(self):
-        """Clear workspace"""
+        """Ask to clear workspace"""
         answer = QMessageBox.question(self, self.tr("Clear workspace"),
                     self.tr("Do you want to clear all data from workspace?"),
                     QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
-            keys = wsfilter(self.namespace).keys()
-            for key in keys:
-                self.namespace.pop(key)
-            self.refresh()
+            self._clear_namespace()
 
     def refresh(self):
         """Refresh widget"""
         if CONF.get(self.ID, 'autorefresh'):
             self.refresh_editor()
+        self._update_dock_title()
         
     def refresh_editor(self):
         """Refresh DictEditor"""
@@ -146,11 +157,13 @@ class Workspace(DictEditor, WidgetMixin):
         """Setup actions"""
         open_action = create_action(self, self.tr("Open..."), None,
             'ws_open.png', self.tr("Open a workspace"), triggered = self.load)
+        new_action = create_action(self, self.tr("New..."), None,
+            None, self.tr("Create a new workspace"), triggered = self.new)        
         save_action = create_action(self, self.tr("Save"), None, 'ws_save.png',
             self.tr("Save current workspace"), triggered = self.save)
         save_as_action = create_action(self, self.tr("Save as..."), None,
             'ws_save_as.png',  self.tr("Save current workspace as..."),
-            triggered = self.save_as)        
+            triggered = self.save_as)
         exclude_private_action = create_action(self,
             self.tr("Exclude private references"),
             toggled=self.toggle_exclude_private)
@@ -177,8 +190,8 @@ class Workspace(DictEditor, WidgetMixin):
         menu_actions = (refresh_action, autorefresh_action, None,
                         self.fulldisplay_action,
                         self.sort_action, self.inplace_action, None,
-                        exclude_private_action, None, open_action, save_action,
-                        save_as_action, autosave_action,
+                        exclude_private_action, None, open_action, new_action,
+                        save_action,save_as_action, autosave_action,
                         None, clear_action)
         toolbar_actions = (refresh_action, open_action, save_action)
         return (menu_actions, toolbar_actions)
@@ -234,7 +247,7 @@ class Workspace(DictEditor, WidgetMixin):
             self.load(self.filename)
         else:
             self.namespace = None
-            
+
     def load(self, filename=None):
         """Attempt to load namespace"""
         title = self.tr("Open workspace")
@@ -264,10 +277,29 @@ class Workspace(DictEditor, WidgetMixin):
             QMessageBox.critical(self, title,
                 self.tr("Unable to load the following workspace:") + '\n' + \
                 self.filename)
-        self.refresh()        
+        self.refresh()
         if self.main:
             self.main.splash.hide()
 
+    def new(self):
+        """Attempt to close the current workspace and create a new one"""
+        answer = QMessageBox.question(self, self.tr("Save workspace"),
+            self.tr("Would you like to save the current workspace\nbefore creating a new one?"),
+            QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.save()
+        self._clear_namespace()
+        self.main.console.shell.restore_stds()
+        filename = QFileDialog.getSaveFileName(self,
+                        self.tr("New workspace"), self.filename,
+                        self.tr("Workspaces")+" (*.ws)")
+        self.main.console.shell.redirect_stds()
+        if filename:
+            self.filename = unicode(filename)
+        else:
+            self.load_temp_namespace()
+        self.save()
+    
     def save_as(self):
         """Save current workspace as"""
         self.main.console.shell.restore_stds()
@@ -298,6 +330,7 @@ class Workspace(DictEditor, WidgetMixin):
                                '\n\r' + error)
         if self.main:
             self.main.splash.hide()
+        self.refresh()
         return True
         
     def toggle_exclude_private(self, checked):
