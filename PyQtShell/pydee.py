@@ -689,9 +689,9 @@ def main():
         # ****************************************************************
         class NavigationToolbar2QT( backend_qt4.NavigationToolbar2QT ):
             def save_figure( self ):
-                main.shell.shell.restore_stds()
+                main.console.shell.restore_stds()
                 super(NavigationToolbar2QT, self).save_figure()
-                main.shell.shell.redirect_stds()
+                main.console.shell.redirect_stds()
             def set_cursor( self, cursor ):
                 if backend_qt4.DEBUG: print 'Set cursor' , cursor
                 self.parent().setCursor( QCursor(backend_qt4.cursord[cursor]) )
