@@ -247,12 +247,12 @@ class MainWindow(QMainWindow):
         posx, posy = CONF.get(section, 'position')
         self.move( QPoint(posx, posy) )
         
-        # Always copy selection feature
-        state = CONF.get('global', 'copy_selection', False)
-        self.alwayscopyselection_action.setChecked(state)
-        self.toggle_alwayscopyselection(state)
-        
         if not self.light:
+            # Always copy selection feature
+            state = CONF.get('global', 'copy_selection', False)
+            self.alwayscopyselection_action.setChecked(state)
+            self.toggle_alwayscopyselection(state)
+            # Window layout
             hexstate = CONF.get(section, 'state')
             self.restoreState( QByteArray().fromHex(hexstate) )
             
