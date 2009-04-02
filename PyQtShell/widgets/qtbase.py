@@ -516,10 +516,16 @@ class QtTerminal(AlmostQsciScintilla):
     def paste(self):
         """Reimplemented slot to handle multiline paste action"""
         lines = unicode(QApplication.clipboard().text())
-        lines = self.__get_current_line_to_cursor() + lines + \
-                self.__get_current_line_from_cursor()
-        self.clear_line()
-        self.execute_lines(lines)
+        if len(lines.splitlines())>1:
+            # Multiline paste
+            self.textCursor().removeSelectedText()
+            lines = self.__get_current_line_to_cursor() + lines + \
+                    self.__get_current_line_from_cursor()
+            self.clear_line()
+            self.execute_lines(lines)
+        else:
+            # Standard paste
+            self.insert_text(lines)
             
     def keyPressEvent(self, event):
         """
