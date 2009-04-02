@@ -105,8 +105,9 @@ class MatplotlibFigure(QWidget, WidgetMixin):
     def closeEvent(self, event):
         """closeEvent reimplementation"""
         self.main.widgetlist.pop(self.main.widgetlist.index(self))
-        self.main.view_menu.removeAction( \
-                                       self.dockwidget.toggleViewAction() )
+        if not self.main.light:
+            action = self.dockwidget.toggleViewAction()
+            self.main.view_menu.removeAction(action)
         self.dockwidget.close()
         event.accept()
 

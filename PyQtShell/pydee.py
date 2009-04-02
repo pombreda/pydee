@@ -358,7 +358,8 @@ class MainWindow(QMainWindow):
             # Tabifying
             if self.widgetlist:
                 last_object = self.widgetlist[-1]
-                if last_object.dockwidget.isWindow():
+                if (last_object.dockwidget is None) \
+                   or last_object.dockwidget.isWindow():
                     # last_object is floating
                     dockwidget.setFloating(True)
                     size = QSize(*CONF.get('figure', 'size'))
