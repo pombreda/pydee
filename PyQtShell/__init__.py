@@ -22,4 +22,4 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-__version__ = '0.3.17'
+__version__ = '0.3.18'
