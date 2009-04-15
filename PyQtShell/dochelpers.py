@@ -61,6 +61,14 @@ def getsource(obj):
             src = inspect.getsource(obj.__class__)
     return src
 
+def getargfromdoc(obj):
+    """Get arguments from object doc"""
+    doc = getdoc(obj)
+    name = obj.__name__
+    if (doc is None) or (not doc.find(name)):
+        return None
+    return doc[doc.find(name)+len(name)+1:doc.find(')')].split()
+
 def getargtxt(obj, one_arg_per_line=True):
     """Get the names and default values of a function's arguments"""
     sep = ', '
@@ -74,12 +82,10 @@ def getargtxt(obj, one_arg_per_line=True):
         return None
     if not hasattr(func_obj, 'func_code'):
         # Builtin: try to extract info from getdoc
-        doc = getdoc(func_obj)
-        name = func_obj.__name__
-        if (doc is None) or (not doc.startswith(name)):
-            return None
-        return doc[len(name)+1:doc.find(')')].split()
+        return getargfromdoc(func_obj)
     args, _, _ = inspect.getargs(func_obj.func_code)
+    if not args:
+        return getargfromdoc(obj)
     defaults = func_obj.func_defaults
     if defaults is not None:
         for index, default in enumerate(defaults):
@@ -98,4 +104,3 @@ def getargtxt(obj, one_arg_per_line=True):
             return None
         textlist.remove('self'+sep)
     return textlist
-    
