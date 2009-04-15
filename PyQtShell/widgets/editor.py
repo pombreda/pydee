@@ -160,6 +160,7 @@ class SimpleScriptEditor(SimpleEditor):
                 msg = "*** " + str(err)
             return self.tr("There's an error in your program:") + "\n" + msg
 
+#TODO: Add a close button at the end of the strip
 class Tabs(QTabWidget):
     """TabWidget with a context-menu"""
     def __init__(self, parent, actions):
@@ -172,6 +173,7 @@ class Tabs(QTabWidget):
         if self.menu:
             self.menu.popup(event.globalPos())
 
+#TODO: Add a 'run' argument list which is associated to each opened script (attribute)
 class Editor(QWidget, WidgetMixin):
     """
     Multi-file Editor widget
