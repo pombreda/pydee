@@ -27,7 +27,8 @@
 
 from PyQt4.QtGui import (QWidget, QHBoxLayout, QVBoxLayout, QLabel, QFileDialog,
                          QTabWidget, QMenu, QCheckBox, QMessageBox, QComboBox,
-                         QFontDialog, QSizePolicy, QToolBar, QAction)
+                         QFontDialog, QSizePolicy, QToolBar, QAction,
+                         QPushButton)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os, sys, re
@@ -39,7 +40,7 @@ STDOUT = sys.stdout
 # Local imports
 from PyQtShell import encoding
 from PyQtShell.config import CONF, get_conf_path, get_icon, get_font, set_font
-from PyQtShell.qthelpers import (create_action, add_actions,
+from PyQtShell.qthelpers import (create_action, add_actions, get_std_icon,
                                  mimedata2url, keybinding, translate)
 from PyQtShell.dochelpers import getdoc, getsource
 try:
@@ -160,7 +161,6 @@ class SimpleScriptEditor(SimpleEditor):
                 msg = "*** " + str(err)
             return self.tr("There's an error in your program:") + "\n" + msg
 
-#TODO: Add a close button at the end of the strip
 class Tabs(QTabWidget):
     """TabWidget with a context-menu"""
     def __init__(self, parent, actions):
@@ -191,10 +191,18 @@ class Editor(QWidget, WidgetMixin):
         add_actions(self.dock_toolbar, self.dock_toolbar_actions)
         layout.addWidget(self.dock_toolbar)
         
+        # Tab widget with close button
         self.tabwidget = Tabs(self, self.tab_actions)
+        self.close_button = QPushButton(get_icon("close.png"), "")
+        self.close_button.setToolTip(self.tr("Close current script"))
+        self.close_button.setFlat(True)
+        self.close_button.setFixedWidth(20)
+        self.connect(self.close_button, SIGNAL("clicked()"), self.close)
+        self.tabwidget.setCornerWidget(self.close_button)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh)
         layout.addWidget(self.tabwidget)
+        
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
         layout.addWidget(self.find_widget)
