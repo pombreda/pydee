@@ -514,7 +514,7 @@ class DictEditor(QTableView):
         pass
     
     def _simplify_shape(self,alist):
-        """"""
+        """xxx"""
         if len(alist) == 1:
             return alist[-1]
         return alist
