@@ -33,10 +33,11 @@ Dictionary Editor Widget and Dialog based on PyQt4
 # pylint: disable-msg=R0201
 
 from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
-                          SIGNAL, SLOT, QDateTime)
+                          SIGNAL, SLOT, QDateTime, QString)
 from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
                          QVBoxLayout, QWidget, QColor, QDialog, QDateEdit,
-                         QDialogButtonBox, QMenu, QInputDialog, QDateTimeEdit)
+                         QDialogButtonBox, QMenu, QInputDialog, QDateTimeEdit,
+                         QApplication)
 
 # Local import
 from PyQtShell.config import get_icon, get_font
@@ -448,6 +449,9 @@ class DictEditor(QTableView):
         self.insert_action = create_action(self, 
                                       translate("DictEditor", "Insert"),
                                       triggered=self.insert_item)
+        self.paste_action = create_action(self,
+                                      translate("DictEditor", "Paste"),
+                                      triggered=self.paste_from_clipboard)
         self.remove_action = create_action(self, 
                                       translate("DictEditor", "Remove"),
                                       icon=get_icon('close.png'),
@@ -470,7 +474,7 @@ class DictEditor(QTableView):
                                     translate("DictEditor", "Duplicate"),
                                     triggered=self.duplicate_item)
         menu = QMenu(self)
-        add_actions( menu, (self.edit_action, self.insert_action,
+        add_actions( menu, (self.edit_action, self.insert_action, self.paste_action,
                             self.remove_action, None, self.fulldisplay_action,
                             self.sort_action, self.inplace_action) )
         vert_menu = QMenu(self)
@@ -504,6 +508,42 @@ class DictEditor(QTableView):
             for idx_row in idx_rows:
                 data.pop( self.model.keys[ idx_row ] )
             self.set_data(data)
+
+    def copy_to_clipboard(self):
+        """Copy text to clipboard"""
+        pass
+    
+    def _simplify_shape(self,alist):
+        """"""
+        if len(alist) == 1:
+            return alist[-1]
+        return alist
+
+    def _decode_text(self,text):
+        """Decode the shape of the given text"""
+        out = []
+        textRows = map(None,text.split("\n"))
+        for row in textRows:
+            if row.isEmpty(): continue
+            line = QString(row).split("\t")
+            line = map(lambda x: try_to_eval(unicode(x)),line)
+            out.append(self._simplify_shape(line))
+        return self._simplify_shape(out)
+
+    def paste_from_clipboard(self):
+        """Paste text from clipboard"""
+        clipboard = QApplication.clipboard()
+        if clipboard.mimeData().hasText():
+            key, valid = QInputDialog.getText(self,
+                  translate("DictEditor", 'Paste'),
+                  translate("DictEditor", 'Key:'),
+                  QLineEdit.Normal)
+            if valid and not key.isEmpty():
+                key = try_to_eval(unicode(key))
+                content = self._decode_text(clipboard.text())
+                data = self.model.get_data()
+                data[key] = try_to_eval(repr(content))
+                self.set_data(data)
 
     def _copy_item(self,erase_original=False):
         """Copy item"""
