@@ -65,9 +65,9 @@ def getargfromdoc(obj):
     """Get arguments from object doc"""
     doc = getdoc(obj)
     name = obj.__name__
-    if (doc is None) or (not doc.find(name)):
+    if (doc is None) or (not doc.find(name+'(')):
         return None
-    return doc[doc.find(name)+len(name)+1:doc.find(')')].split()
+    return doc[doc.find(name+'(')+len(name)+1:doc.find(')')].split()
 
 def getargtxt(obj, one_arg_per_line=True):
     """Get the names and default values of a function's arguments"""
@@ -104,3 +104,7 @@ def getargtxt(obj, one_arg_per_line=True):
             return None
         textlist.remove('self'+sep)
     return textlist
+
+if __name__ == "__main__":
+    import os
+    print getargtxt('os.getcwd')
