@@ -454,7 +454,7 @@ class DictEditor(QTableView):
                                       triggered=self.paste_from_clipboard)
         self.remove_action = create_action(self, 
                                       translate("DictEditor", "Remove"),
-                                      icon=get_icon('close.png'),
+                                      icon=get_icon('delete.png'),
                                       triggered=self.remove_item)
         self.fulldisplay_action = create_action(self,
                                     translate("DictEditor", "Display complete "
