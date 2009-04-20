@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
             self.paste_action = create_edit_action("Paste")
             self.delete_action = create_action(self,
                                        translate("SimpleEditor", "Delete"),
-                                       icon=get_icon('close.png'),
+                                       icon=get_icon('delete.png'),
                                        triggered=self.global_callback,
                                        data="removeSelectedText")
             self.alwayscopyselection_action = create_action(self,

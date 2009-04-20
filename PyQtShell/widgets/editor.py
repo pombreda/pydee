@@ -26,9 +26,8 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QWidget, QHBoxLayout, QVBoxLayout, QLabel, QFileDialog,
-                         QTabWidget, QMenu, QCheckBox, QMessageBox, QComboBox,
-                         QFontDialog, QSizePolicy, QToolBar, QAction,
-                         QPushButton)
+                         QTabWidget, QMenu, QCheckBox, QMessageBox, QPushButton,
+                         QFontDialog, QSizePolicy, QToolBar, QAction, QComboBox)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os, sys, re
@@ -40,8 +39,8 @@ STDOUT = sys.stdout
 # Local imports
 from PyQtShell import encoding
 from PyQtShell.config import CONF, get_conf_path, get_icon, get_font, set_font
-from PyQtShell.qthelpers import (create_action, add_actions, get_std_icon,
-                                 mimedata2url, keybinding, translate)
+from PyQtShell.qthelpers import (create_action, add_actions, mimedata2url,
+                                 keybinding, translate)
 from PyQtShell.dochelpers import getdoc, getsource
 try:
     from PyQtShell.widgets.qscibase import QsciEditor as EditorBaseWidget
@@ -83,7 +82,7 @@ class SimpleEditor(EditorBaseWidget):
         self.delete_action = create_action(self,
                            translate("SimpleEditor", "Delete"),
                            shortcut=keybinding('Delete'),
-                           icon=get_icon('close.png'),
+                           icon=get_icon('delete.png'),
                            triggered=self.removeSelectedText)
         selectall_action = create_action(self,
                            translate("SimpleEditor", "Select all"),
@@ -321,14 +320,23 @@ class Editor(QWidget, WidgetMixin):
             triggered=self.exec_script_and_interact)
         self.exec_selected_action = create_action(self,
             self.tr("Execute selection"), "Ctrl+F9", 'execute_selection.png',
-            self.tr("Execute selected text in current script and set focus to shell"),
+            self.tr("Execute selected text in current script"
+                    " and set focus to shell"),
             triggered=self.exec_selected_text)
         self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+K",
             'comment.png', self.tr("Comment current line or selection"),
             triggered = self.comment)
-        self.uncomment_action = create_action(self, self.tr("Uncomment"), "Shift+Ctrl+K",
+        self.uncomment_action = create_action(self, self.tr("Uncomment"),
+            "Shift+Ctrl+K",
             'uncomment.png', self.tr("Uncomment current line or selection"),
             triggered = self.uncomment)
+        self.indent_action = create_action(self, self.tr("Indent"), "Ctrl+Tab",
+            'indent.png', self.tr("Indent current line or selection"),
+            triggered = self.indent)
+        self.unindent_action = create_action(self, self.tr("Unindent"),
+            "Shift+Ctrl+Tab",
+            'unindent.png', self.tr("Unindent current line or selection"),
+            triggered = self.unindent)
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set editor font style"),
             triggered=self.change_font)
@@ -338,7 +346,8 @@ class Editor(QWidget, WidgetMixin):
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
-        menu_actions = (self.comment_action, self.uncomment_action, None,
+        menu_actions = (self.comment_action, self.uncomment_action,
+                self.indent_action, self.unindent_action, None,
                 self.check_action, self.exec_action, self.exec_interact_action,
                 self.exec_selected_action, None, font_action, wrap_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
@@ -346,12 +355,14 @@ class Editor(QWidget, WidgetMixin):
                 self.check_action, self.exec_action, self.exec_selected_action]
         self.dock_toolbar_actions = toolbar_actions + \
                 [self.exec_interact_action, self.comment_action,
-                 self.uncomment_action, None, self.close_action]
+                 self.uncomment_action, self.indent_action,
+                 self.unindent_action]
         self.file_dependent_actions = (self.save_action, self.save_as_action,
                 self.check_action, self.exec_action, self.exec_interact_action,
                 self.exec_selected_action, workdir_action, self.close_action,
                 self.close_all_action,
-                self.comment_action, self.uncomment_action)
+                self.comment_action, self.uncomment_action,
+                self.indent_action, self.unindent_action)
         self.tab_actions = (self.save_action, self.save_as_action,
                 self.check_action, self.exec_action, workdir_action,
                 None, self.close_action)
@@ -362,6 +373,18 @@ class Editor(QWidget, WidgetMixin):
         CONF.set(self.ID, 'filenames', self.filenames)
         CONF.set(self.ID, 'recent_files', self.recent_files)
         return self.save_if_changed(cancelable)
+    
+    def indent(self):
+        """Indent current line or selection"""
+        if self.tabwidget.count():
+            index = self.tabwidget.currentIndex()
+            self.editors[index].indent()
+
+    def unindent(self):
+        """Unindent current line or selection"""
+        if self.tabwidget.count():
+            index = self.tabwidget.currentIndex()
+            self.editors[index].unindent()
     
     def comment(self):
         """Comment current line or selection"""
