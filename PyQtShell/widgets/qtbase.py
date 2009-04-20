@@ -68,7 +68,7 @@ class AlmostQsciScintilla(QTextEdit):
     def hasSelectedText(self):
         """Reimplements QScintilla method
         Returns true if some text is selected"""
-        return len(self.selectedText()) != 0
+        return not self.textCursor().selectedText().isEmpty()
     
     def selectedText(self):
         """Reimplements QScintilla method
@@ -338,6 +338,14 @@ class QtEditor(AlmostQsciScintilla):
             return True
         return QTextEdit.event(self, event)
     
+    def indent(self):
+        """Indent current line or selection"""
+        self._walk_the_lines(True, " "*4)
+
+    def unindent(self):
+        """Unindent current line or selection"""
+        self._walk_the_lines(False, " "*4)
+    
     def comment(self):
         """Comment current line or selection"""
         self._walk_the_lines(True, "#")
@@ -362,7 +370,7 @@ class QtEditor(AlmostQsciScintilla):
                 cursor.insertText(text)
             else:
                 cursor.movePosition(QTextCursor.NextCharacter,
-                        QTextCursor.KeepAnchor, len(text))
+                                    QTextCursor.KeepAnchor, len(text))
                 if cursor.selectedText() == text:
                     cursor.removeSelectedText()        
             block = block.next()
@@ -464,6 +472,10 @@ class QtTerminal(AlmostQsciScintilla):
         cursor.insertBlock()
         cursor.insertText(self.prompt)
         self.setUndoRedoEnabled(True)
+
+    def move_cursor_to_end(self):
+        """Move cursor to end of text"""
+        self.moveCursor(QTextCursor.End)
         
     def insert_text(self, text, at_end=False, error=False):
         """
@@ -532,7 +544,7 @@ class QtTerminal(AlmostQsciScintilla):
         Handle user input a key at a time.
         """
         if event == QKeySequence.Copy:
-            if self.textCursor().selectedText().isEmpty():
+            if not self.hasSelectedText():
                 # Keyboard Interrupt
                 if self.busy:
                     self.interrupted = True
@@ -581,7 +593,7 @@ class QtTerminal(AlmostQsciScintilla):
             return
         
         if key == Qt.Key_Backspace:
-            if self.textCursor().selectedText().isEmpty():
+            if not self.hasSelectedText():
                 if len(self.__get_current_line_to_cursor()) == 0:
                     return
                 self.moveCursor(QTextCursor.PreviousCharacter,
@@ -596,7 +608,7 @@ class QtTerminal(AlmostQsciScintilla):
                     self.hide_completion_widget()
 
         elif key == Qt.Key_Delete:
-            if self.textCursor().selectedText().isEmpty():
+            if not self.hasSelectedText():
                 self.moveCursor(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             selected_length = self.textCursor().selectedText().length()
@@ -825,35 +837,6 @@ class QtTerminal(AlmostQsciScintilla):
         """Suppress the right button context menu"""
         pass
         
-    def canInsertFromMimeData(self, source):
-        """Reimplement Qt method
-        Drag and *drop* implementation"""
-        if source.hasUrls():
-            if mimedata2url(source):
-                return True
-        return QTextEdit.canInsertFromMimeData(self, source)
-
-    def insertFromMimeData(self, source):
-        """Reimplement Qt method
-        Drag and *drop* implementation"""
-        if source.hasUrls():
-            files = mimedata2url(source)
-            if files:
-                files = ["r'%s'" % path for path in files]
-                if len(files) == 1:
-                    text = files[0]
-                else:
-                    text = "[" + ", ".join(files) + "]"
-                self.insert_text(text)
-        else:
-            lines = unicode(source.text())
-            if not self.__is_cursor_on_last_line():
-                self.moveCursor(QTextCursor.End)
-            lines = self.__get_current_line_to_cursor() + lines + \
-                    self.__get_current_line_from_cursor()
-            self.clear_line()
-            self.execute_lines(lines)
-    
     def set_docviewer(self, docviewer):
         """Set DocViewer DockWidget reference"""
         self.docviewer = docviewer
@@ -995,26 +978,7 @@ class QtTerminal(AlmostQsciScintilla):
                 self.insert_text(extra)
         self.hide_completion_widget()
 
-    def show_calltip(self, text):
-        """Show calltip"""
-        if not self.calltips:
-            return
-        if text is None or len(text)==0:
-            return
-        tipsize = CONF.get('calltips', 'size')
-        font = get_font('calltips')
-        weight = 'bold' if font.bold() else 'normal'
-        format1 = '<span style=\'font-size: %spt\'>' % font.pointSize()
-        format2 = '\n<hr><span style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (font.family(), font.pointSize(), weight)
-        if isinstance(text, list):
-            text = "\n    ".join(text)
-            text = format1+'<b>Arguments</b></span>:'+format2+text+"</span>"
-        else:
-            if len(text) > tipsize:
-                text = text[:tipsize] + " ..."
-            text = text.replace('\n', '<br>')
-            text = format1+'<b>Documentation</b></span>:'+format2+text+"</span>"
+    def get_cursor_qpoint(self):
+        """Return cursor global QPoint position"""
         rect = self.cursorRect()
-        point = self.mapToGlobal(QPoint(rect.x(), rect.y()))
-        QToolTip.showText(point, text)
-        
+        return self.mapToGlobal(QPoint(rect.x(), rect.y()))        
