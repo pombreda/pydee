@@ -30,6 +30,9 @@ from subprocess import Popen, PIPE
 from time import time
 import os.path as osp
 
+STDOUT = sys.stdout
+STDERR = sys.stderr
+
 from PyQt4.QtGui import QMenu, QMessageBox, QKeySequence, QToolTip
 from PyQt4.QtCore import SIGNAL, QString, QEventLoop, QCoreApplication
 
@@ -43,10 +46,10 @@ from PyQtShell.config import CONF, get_icon, get_font
 try:
     from PyQtShell.widgets.qscibase import QsciTerminal as Terminal
 except ImportError:
+    print >> STDERR, "Warning: future versions of PyQtShell" + \
+        " will be exclusively based on QScintilla2\n" + \
+        "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
     from PyQtShell.widgets.qtbase import QtTerminal as Terminal
-
-STDOUT = sys.stdout
-STDERR = sys.stderr
 
 
 def guess_filename(filename):
