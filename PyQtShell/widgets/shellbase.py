@@ -30,7 +30,7 @@ from subprocess import Popen, PIPE
 from time import time
 import os.path as osp
 
-from PyQt4.QtGui import QMenu, QMessageBox, QKeySequence
+from PyQt4.QtGui import QMenu, QMessageBox, QKeySequence, QToolTip
 from PyQt4.QtCore import SIGNAL, QString, QEventLoop, QCoreApplication
 
 # Local import
@@ -39,9 +39,9 @@ from PyQtShell.qthelpers import (translate, keybinding, create_action,
 from PyQtShell.interpreter import Interpreter
 from PyQtShell.dochelpers import getargtxt
 from PyQtShell.encoding import transcode
-from PyQtShell.config import CONF, get_icon
+from PyQtShell.config import CONF, get_icon, get_font
 try:
-    from PyQtShell.widgets.qscibasex import QsciTerminal as Terminal
+    from PyQtShell.widgets.qscibase import QsciTerminal as Terminal
 except ImportError:
     from PyQtShell.widgets.qtbase import QtTerminal as Terminal
 
@@ -465,6 +465,27 @@ class ShellBaseWidget(Terminal):
             self.insert_text(txt)
             self.completion_chars = 0
         
+    def show_calltip(self, text):
+        """Show calltip"""
+        if not self.calltips:
+            return
+        if text is None or len(text)==0:
+            return
+        tipsize = CONF.get('calltips', 'size')
+        font = get_font('calltips')
+        weight = 'bold' if font.bold() else 'normal'
+        format1 = '<span style=\'font-size: %spt\'>' % font.pointSize()
+        format2 = '\n<hr><span style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (font.family(), font.pointSize(), weight)
+        if isinstance(text, list):
+            text = "\n    ".join(text)
+            text = format1+'<b>Arguments</b></span>:'+format2+text+"</span>"
+        else:
+            if len(text) > tipsize:
+                text = text[:tipsize] + " ..."
+            text = text.replace('\n', '<br>')
+            text = format1+'<b>Documentation</b></span>:'+format2+text+"</span>"
+        QToolTip.showText(self.get_cursor_qpoint(), text)
+        
     def show_docstring(self, text, call=False):
         """Show docstring or arguments"""
         try:
@@ -474,6 +495,7 @@ class ShellBaseWidget(Terminal):
             pass
         else:
             # Object obj is valid
+            done = False
             if (self.docviewer is not None) and \
                (self.docviewer.dockwidget.isVisible()):
                 # DocViewer widget exists and is visible
@@ -483,6 +505,7 @@ class ShellBaseWidget(Terminal):
                     arglist = getargtxt(obj)
                     if arglist:
                         self.show_calltip(arglist)
-            else:
+                        done = True
+            if not done:
                 self.show_calltip(obj.__doc__)
                 

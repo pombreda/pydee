@@ -94,6 +94,7 @@ DEFAULTS = [
               'autocompletion/case-sensitivity' : True,
               'autocompletion/threshold' : -1,
               'autocompletion/select-single' : True,
+              'autocompletion/from-document' : False,
               'external_editor' : 'SciTE',
               'external_editor/gotoline' : '-goto:',
               }),
@@ -171,7 +172,7 @@ DEFAULTS = [
             ]
 
 DEV = not __file__.startswith(sys.prefix)
-DEV = False
+#DEV = False
 CONF = UserConfig('PyQtShell', DEFAULTS, version='0.2.0', load=(not DEV))
 
 def get_conf_path(filename):

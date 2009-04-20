@@ -36,7 +36,8 @@ STDOUT = sys.stdout
 
 # Local imports
 from PyQtShell.config import CONF, get_font, set_font
-from PyQtShell.qthelpers import (get_std_icon, create_action,add_actions)
+from PyQtShell.qthelpers import (get_std_icon, create_action,add_actions,
+                                 mimedata2url)
 from PyQtShell.environ import EnvDialog
 try:
     from PyQtShell.environ import WinUserEnvDialog
@@ -78,6 +79,9 @@ class Console(QWidget, WidgetMixin):
         
         self.connect(self, SIGNAL("executing_command(bool)"),
                      self.change_cursor)
+            
+        # Accepting drops
+        self.setAcceptDrops(True)
         
     def change_cursor(self, state):
         """Change widget cursor"""
@@ -101,6 +105,7 @@ class Console(QWidget, WidgetMixin):
     
     def set_actions(self):
         """Setup actions"""
+        #TODO: Action to restart Python shell
         self.quit_action = create_action(self,
                             self.tr("&Quit"), self.tr("Ctrl+Q"),
                             get_std_icon("DialogCloseButton"), self.tr("Quit"),
@@ -247,3 +252,30 @@ class Console(QWidget, WidgetMixin):
         """Toggle calltips"""
         self.shell.set_calltips(checked)
 
+                
+    #----Drag and drop                    
+    def dragEnterEvent(self, event):
+        """Reimplement Qt method
+        Inform Qt about the types of data that the widget accepts"""
+        source = event.mimeData()
+        if source.hasUrls() or source.hasText():
+            event.acceptProposedAction()
+            
+    def dropEvent(self, event):
+        """Reimplement Qt method
+        Unpack dropped data and handle it"""
+        source = event.mimeData()
+        if source.hasUrls():
+            files = mimedata2url(source)
+            if files:
+                files = ["r'%s'" % path for path in files]
+                if len(files) == 1:
+                    text = files[0]
+                else:
+                    text = "[" + ", ".join(files) + "]"
+                self.shell.insert_text(text)
+        elif source.hasText():
+            lines = unicode(source.text())
+            self.shell.move_cursor_to_end()
+            self.shell.execute_lines(lines)
+        event.acceptProposedAction()

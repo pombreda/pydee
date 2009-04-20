@@ -28,7 +28,7 @@
 import sys, os
 from PyQt4.QtGui import (QKeySequence, QApplication, QClipboard, QCursor,
                          QMouseEvent)
-from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList, QEvent
+from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList, QEvent, QPoint
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
 # For debugging purpose:
@@ -44,8 +44,11 @@ class LexerPython(QsciLexerPython):
     """ 
     Subclass to implement some additional lexer dependant methods.
     """
-    
     COMMENT_STRING = '#'
+    
+    def __init__(self, parent):
+        QsciLexerPython.__init__(self, parent)
+        self.setIndentationWarning(QsciLexerPython.Inconsistent)
     
     def getIndentationDifference(self, line, editor):
         """
@@ -112,6 +115,9 @@ class QsciEditor(QsciScintilla):
         self.setIndentationGuides(True)
         self.setIndentationGuidesForegroundColor(Qt.lightGray)
         self.setFolding(QsciScintilla.BoxedFoldStyle)
+        
+        # Enable brace matching
+        self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
         
         # 80-columns edge
         self.setEdgeColumn(80)
@@ -215,11 +221,10 @@ class QsciEditor(QsciScintilla):
         self.insertAt(text, line, col)
         self.setCursorPosition(line, col + len(str(text)))
     
-    def comment(self):
-        """Comment current line or selection"""
-        comment_str = self.lex.COMMENT_STRING
+    def add_prefix(self, prefix):
+        """Add prefix to current line or selected line(s)"""
         if self.hasSelectedText():
-            # Comment selection
+            # Add prefix to selected line(s)
             line_from, _, line_to, index_to = self.getSelection()
             if index_to == 0:
                 end_line = line_to - 1
@@ -227,21 +232,20 @@ class QsciEditor(QsciScintilla):
                 end_line = line_to
             self.beginUndoAction()
             for line in range(line_from, end_line+1):
-                self.insertAt(comment_str, line, 0)
+                self.insertAt(prefix, line, 0)
             self.setSelection(line_from, 0, end_line+1, 0)
             self.endUndoAction()
         else:
-            # Comment current line
+            # Add prefix to current line
             line, _index = self.getCursorPosition()
             self.beginUndoAction()
-            self.insertAt(comment_str, line, 0)
+            self.insertAt(prefix, line, 0)
             self.endUndoAction()
-
-    def uncomment(self):
-        """Uncomment current line or selection"""
-        comment_str = self.lex.COMMENT_STRING
+    
+    def remove_prefix(self, prefix):
+        """Remove prefix from current line or selected line(s)"""
         if self.hasSelectedText():
-            # Uncomment selection
+            # Remove prefix from selected line(s)
             line_from, index_from, line_to, index_to = self.getSelection()
             if index_to == 0:
                 end_line = line_to - 1
@@ -249,29 +253,45 @@ class QsciEditor(QsciScintilla):
                 end_line = line_to
             self.beginUndoAction()
             for line in range(line_from, end_line+1):
-                if not self.text(line).startsWith(comment_str):
+                if not self.text(line).startsWith(prefix):
                     continue
-                self.setSelection(line, 0, line, len(comment_str))
+                self.setSelection(line, 0, line, len(prefix))
                 self.removeSelectedText()
                 if line == line_from:
-                    index_from -= len(comment_str)
+                    index_from -= len(prefix)
                     if index_from < 0:
                         index_from = 0
                 if line == line_to:
-                    index_to -= len(comment_str)
+                    index_to -= len(prefix)
                     if index_to < 0:
                         index_to = 0
             self.setSelection(line_from, index_from, line_to, index_to)
             self.endUndoAction()
         else:
-            # Uncomment current line
+            # Remove prefix from current line
             line, _index = self.getCursorPosition()
-            if not self.text(line).startsWith(comment_str):
+            if not self.text(line).startsWith(prefix):
                 return
             self.beginUndoAction()
-            self.setSelection(line, 0, line, len(comment_str))
+            self.setSelection(line, 0, line, len(prefix))
             self.removeSelectedText()
             self.endUndoAction()
+    
+    def indent(self):
+        """Indent current line or selection"""
+        self.SendScintilla(QsciScintilla.SCI_TAB)
+    
+    def unindent(self):
+        """Unindent current line or selection"""
+        self.remove_prefix( " "*4 )
+    
+    def comment(self):
+        """Comment current line or selection"""
+        self.add_prefix( self.lex.COMMENT_STRING )
+
+    def uncomment(self):
+        """Uncomment current line or selection"""
+        self.remove_prefix( self.lex.COMMENT_STRING )
             
     def mousePressEvent(self, event):
         """Reimplemented"""
@@ -306,7 +326,9 @@ class QsciTerminal(QsciScintilla):
         # Mouse selection copy feature
         self.always_copy_selection = False
         
+        # keyboard events management
         self.busy = False
+        self.eventqueue = []
         
         # history
         self.histidx = None
@@ -320,6 +342,14 @@ class QsciTerminal(QsciScintilla):
         self.setTabIndents(True)
         self.setTabWidth(4)
         
+        # Enable brace matching
+        self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
+        
+        # Suppressing Scintilla margins
+        self.setMarginWidth(0, 0)
+        self.setMarginWidth(1, 0)
+        self.setMarginWidth(2, 0)
+        
         # Auto Completion setup
         self.setAutoCompletionThreshold( \
             CONF.get('shell', 'autocompletion/threshold') )
@@ -327,7 +357,10 @@ class QsciTerminal(QsciScintilla):
             CONF.get('shell', 'autocompletion/case-sensitivity') )
         self.setAutoCompletionShowSingle( \
             CONF.get('shell', 'autocompletion/select-single') )
-        self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+        if CONF.get('shell', 'autocompletion/from-document'):
+            self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+        else:
+            self.setAutoCompletionSource(QsciScintilla.AcsNone)
         self.completion_chars = 0
         
         # Call-tips
@@ -338,25 +371,13 @@ class QsciTerminal(QsciScintilla):
         self.setMinimumHeight(150)
         
         # Lexer
-        self.lexer = QsciLexerPython(self)
+        self.lexer = LexerPython(self)
+        self.error_style = self.lexer.Decorator
+        self.traceback_link_style = self.lexer.CommentBlock
+        self.lexer.setColor(Qt.black, self.lexer.Default)
+        self.lexer.setColor(Qt.red, self.error_style)
+        self.lexer.setColor(Qt.blue, self.traceback_link_style)
 
-        #self.standardCommands().clearKeys()
-        self.keymap = {
-            Qt.Key_Backspace : self.__qsci_delete_back,
-            Qt.Key_Delete : self.__qsci_delete,
-            Qt.Key_Return : self.__qsci_newline,
-            Qt.Key_Enter : self.__qsci_newline,
-            Qt.Key_Tab : self.__qsci_tab,
-            Qt.Key_Left : self.__qsci_char_left,
-            Qt.Key_Right : self.__qsci_char_right,
-            Qt.Key_Up : self.__qsci_line_up,
-            Qt.Key_Down : self.__qsci_line_down,
-            Qt.Key_Home : self.__qsci_vchome,
-            Qt.Key_End : self.__qsci_line_end,
-            Qt.Key_PageUp : self.__qsci_pageup,
-            Qt.Key_PageDown : self.__qsci_pagedown,
-            Qt.Key_Escape : self.__qsci_cancel,
-            }
         self.connect(self, SIGNAL('userListActivated(int, const QString)'),
                      self.__completion_list_selected)
         self.setFocus()
@@ -369,6 +390,8 @@ class QsciTerminal(QsciScintilla):
     def set_font(self, font):
         """Set shell font"""
         self.lexer.setFont(font)
+        font.setUnderline(True)
+        self.lexer.setFont(font, self.traceback_link_style)
         self.setLexer(self.lexer)
         
     def set_wrap_mode(self, enable):
@@ -411,6 +434,10 @@ class QsciTerminal(QsciScintilla):
         cline, cindex = self.getCursorPosition()
         return (cline, cindex) == self.__get_end_pos()
 
+    def move_cursor_to_end(self):
+        """Move cursor to end of text"""
+        line, col = self.__get_end_pos()
+        self.setCursorPosition(line, col)
 
     #------ Text Insertion
     def insert_text(self, text, at_end=False, error=False):
@@ -424,7 +451,19 @@ class QsciTerminal(QsciScintilla):
             # Insert text at the end of the command line
             line, col = self.__get_end_pos()
             self.setCursorPosition(line, col)
+            self.SendScintilla(QsciScintilla.SCI_STARTSTYLING,
+                               self.text().length(), 0xFF)
             self.insert(text)
+            if error:
+                if text.startswith('  File'):
+                    self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
+                                       len(text), self.traceback_link_style)
+                else:
+                    self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
+                                       len(text), self.error_style)
+            else:
+                self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
+                                   len(text), self.lexer.Default)
             self.prline, self.prcol = self.__get_end_pos()
             self.setCursorPosition(self.prline, self.prcol)
             self.ensureCursorVisible()
@@ -479,63 +518,310 @@ class QsciTerminal(QsciScintilla):
             self.copy()
         QsciScintilla.mouseReleaseEvent(self, event)
 
-    def keyPressEvent(self, key_event):
-        """
-        Re-implemented to handle the user input a key at a time.
-        key_event: key event (QKeyEvent)
-        """
-        txt = key_event.text()
-        key = key_event.key()
-        ctrl = key_event.modifiers() & Qt.ControlModifier
-        shift = key_event.modifiers() & Qt.ShiftModifier
-        line, index = self.getCursorPosition()
-        last_line = self.lines()-1
-        if (self.keymap.has_key(key) and not shift and not ctrl):
-            self.keymap[key]()
-        elif key_event == QKeySequence.Paste:
-            self.paste()
-        elif (key_event == QKeySequence.Copy) and not self.hasSelectedText():
-            if self.more:
+    def copy(self):
+        """Copy text to clipboard... or keyboard interrupt"""
+        if self.hasSelectedText():
+            QsciScintilla.copy(self)
+        else:
+            if self.busy:
+                # Interrupt only if console is busy
+                self.interrupted = True
+            elif self.more:
                 self.write("\nKeyboardInterrupt\n", flush=True)
                 self.more = False
                 self.prompt = self.p1
                 self.write(self.prompt, flush=True)
                 self.interpreter.resetbuffer()
-            else:
-                self.interrupted = True
+                
+    def paste(self):
+        """Reimplemented slot to handle multiline paste action"""
+        lines = unicode(QApplication.clipboard().text())
+        if len(lines.splitlines())>1:
+            # Multiline paste
+            self.removeSelectedText() # Remove selection, eventually
+            cline, cindex = self.getCursorPosition()
+            linetext = unicode(self.text(cline))
+            lines = linetext[:cindex] + lines + linetext[cindex:]
+            self.setSelection(cline, len(self.prompt),
+                              cline, self.lineLength(cline))
+            self.removeSelectedText()
+            lines = self.__remove_prompts(lines)
+            self.execute_lines(lines)
+            cline2, _ = self.getCursorPosition()
+            self.setCursorPosition(cline2,
+               self.lineLength(cline2)-len(linetext[cindex:]) )
+        else:
+            # Standard paste
+            QsciScintilla.paste(self)
+
+
+    #---- Key handler
+    def __delete_selected_text(self):
+        """
+        Private method to delete selected text
+        """
+        line_from, index_from, line_to, index_to = self.getSelection()
+
+        # If not on last line, then move selection to last line
+        last_line = self.lines()-1
+        if line_from != last_line:
+            line_from = last_line
+            index_from = 0
+            
+        for prompt in [self.p1, self.p2]:
+            if self.text(line_from).startsWith(prompt):
+                if index_from < len(prompt):
+                    index_from = len(prompt)
+        if index_from < 0:
+            index_from = index_to
+            line_from = line_to
+        self.setSelection(line_from, index_from, line_to, index_to)
+        self.SendScintilla(QsciScintilla.SCI_CLEAR)
+        self.setSelection(line_from, index_from, line_from, index_from)
+
+    def get_new_line(self):
+        """Enter or Return -> get new line"""
+        self.incremental_search_string = ""
+        self.incremental_search_active = False
+        line, col = self.__get_end_pos()
+        self.setCursorPosition(line, col)
+        buf = self.__extract_from_text(line)
+        self.insert_text('\n', at_end=True)
+        return buf
+
+    def keyPressEvent(self, event):
+        """
+        Re-implemented to handle the user input a key at a time.
+        event: key event (QKeyEvent)
+        """
+        txt = event.text()
+        key = event.key()
+        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
+        self.eventqueue.append( (txt, key, shift, ctrl) )
+        
+        if self.busy and (not self.input_mode):
+            # Ignoring all events except KeyboardInterrupt (see above)
+            # Keep however these events in self.eventqueue
+            pass
+        else:
+            while self.eventqueue:
+                past_event = self.eventqueue.pop(0)
+                self.__process_keyevent(past_event)
+        
+    def __process_keyevent(self, keyevent):
+        """Process keyboard event"""
+        text, key, shift, ctrl = keyevent
+        
+        # Is cursor on the last line? and after prompt?
+        line, index = self.getCursorPosition()
+        last_line = self.lines()-1
+        if len(text):
+            if line!=last_line:
+                # Moving cursor to the end of the last line
+                self.move_cursor_to_end()
+            elif index < len(self.prompt):
+                # Moving cursor after prompt
+                self.setCursorPosition(line, len(self.prompt))
+            
+        if key == Qt.Key_Backspace:
+            if self.hasSelectedText():
+                self.__delete_selected_text()
+            elif self.__is_cursor_on_last_line():
+                line, col = self.getCursorPosition()
+                _is_active = self.isListActive()
+                _old_length = self.text(line).length()
+                if self.text(line).startsWith(self.prompt):
+                    if col > len(self.prompt):
+                        self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
+                elif col > 0:
+                    self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
+                if self.isListActive():
+                    self.completion_chars -= 1
+
+        elif key == Qt.Key_Delete:
+            if self.hasSelectedText():
+                self.__delete_selected_text()
+            elif self.__is_cursor_on_last_line():
+                self.SendScintilla(QsciScintilla.SCI_CLEAR)
+            
         elif shift and (key == Qt.Key_Return or key == Qt.Key_Enter):
             # Multiline entry
             self.append_command(self.get_new_line())
-        elif line==last_line and txt.length():
-            if index < len(self.prompt):
-                self.setCursorPosition(line, len(self.prompt))
-            self.__keypressed(txt, key_event)
-        elif ctrl or shift:
-            QsciScintilla.keyPressEvent(self, key_event)
-        elif key == Qt.Key_Escape:
-            self.clear_line()
-        elif line!=last_line:
-            line, index = self.__get_end_pos()
-            self.setCursorPosition(line, index)
-            self.__keypressed(txt, key_event)
-        else:
-            key_event.ignore()
+            
+        elif key == Qt.Key_Return or key == Qt.Key_Enter:
+            if self.__is_cursor_on_last_line():
+                if self.isListActive():
+                    self.SendScintilla(QsciScintilla.SCI_NEWLINE)
+                else:
+                    buf = self.get_new_line()
+                    self.busy = True
+                    self.execute_command(buf)
+                    self.busy = False
+            # add and run selection
+            else:
+                text = self.selectedText()
+                self.insert_text(text, at_end=True)
+                
+        elif key == Qt.Key_Tab:
+            if self.isListActive():
+                self.SendScintilla(QsciScintilla.SCI_TAB)
+            elif self.__is_cursor_on_last_line():
+                line, index = self.getCursorPosition()
+                buf = self.__extract_from_text(line)
+                lastchar_index = index-len(self.prompt)-1
+                if self.more and not buf[:index-len(self.prompt)].strip():
+                    self.SendScintilla(QsciScintilla.SCI_TAB)
+                elif lastchar_index>=0:
+                    text = self.__get_last_obj()
+                    if buf[lastchar_index] == '.':
+                        self.show_code_completion(text)
+                    elif buf[lastchar_index] in ['"', "'"]:
+                        self.show_file_completion()
+            
+        elif key == Qt.Key_Left:
+            if line==last_line and (index==len(self.prompt)):
+                # Avoid moving cursor on prompt
+                return
+            if shift:
+                if ctrl:
+                    self.SendScintilla(QsciScintilla.SCI_WORDLEFTEXTEND)
+                else:
+                    self.SendScintilla(QsciScintilla.SCI_CHARLEFTEXTEND)
+            else:
+                if ctrl:
+                    self.SendScintilla(QsciScintilla.SCI_WORDLEFT)
+                else:
+                    self.SendScintilla(QsciScintilla.SCI_CHARLEFT)
+                
+        elif key == Qt.Key_Right:
+            if self.__is_cursor_on_last_index():
+                return
+            if shift:
+                if ctrl:
+                    self.SendScintilla(QsciScintilla.SCI_WORDRIGHTEXTEND)
+                else:
+                    self.SendScintilla(QsciScintilla.SCI_CHARRIGHTEXTEND)
+            else:
+                if ctrl:
+                    self.SendScintilla(QsciScintilla.SCI_WORDRIGHT)
+                else:
+                    self.SendScintilla(QsciScintilla.SCI_CHARRIGHT)
 
-    def __keypressed(self, txt, key_event):
-        """Private key pressed event handler"""
-        QsciScintilla.keyPressEvent(self, key_event)
-        self.incremental_search_active = True
-        if txt == '.':
-            # Enable auto-completion only if last token isn't a float
-            text = self.__get_last_obj()
-            if text and len(text)>1 and (not text[-2].isdigit()):
-                self.show_code_completion(text)
-        elif txt == '?':
+        elif (key == Qt.Key_Home) or ((key == Qt.Key_Up) and ctrl):
+            if self.isListActive():
+                self.SendScintilla(QsciScintilla.SCI_VCHOME)
+            elif self.__is_cursor_on_last_line():
+                line, col = self.getCursorPosition()
+                if self.text(line).startsWith(self.prompt):
+                    col = len(self.prompt)
+                else:
+                    col = 0
+                self.setCursorPosition(line, col)
+
+        elif (key == Qt.Key_End) or ((key == Qt.Key_Down) and ctrl):
+            if self.isListActive():
+                self.SendScintilla(QsciScintilla.SCI_LINEEND)
+            elif self.__is_cursor_on_last_line():
+                self.SendScintilla(QsciScintilla.SCI_LINEEND)
+
+        elif key == Qt.Key_Up:
+            if self.isListActive():
+                self.SendScintilla(QsciScintilla.SCI_LINEUP)
+            else:
+                line, _ = self.__get_end_pos()
+                buf = self.__extract_from_text(line)
+                if buf and self.incremental_search_active:
+                    if self.incremental_search_string:
+                        idx = self.__rsearch_history( \
+                            self.incremental_search_string, self.histidx)
+                        if idx >= 0:
+                            self.histidx = idx
+                            self.__use_history()
+                    else:
+                        idx = self.__rsearch_history(buf)
+                        if idx >= 0:
+                            self.histidx = idx
+                            self.incremental_search_string = buf
+                            self.__use_history()
+                else:
+                    if self.histidx is None:
+                        self.histidx = len(self.interpreter.history)
+                    if self.histidx > 0:
+                        self.histidx = self.histidx - 1
+                        self.__use_history()
+                
+        elif key == Qt.Key_Down:
+            if self.isListActive():
+                self.SendScintilla(QsciScintilla.SCI_LINEDOWN)
+            else:
+                line, _col = self.__get_end_pos()
+                buf = self.__extract_from_text(line)
+                if buf and self.incremental_search_active:
+                    if self.incremental_search_string:
+                        idx = self.__search_history( \
+                            self.incremental_search_string, self.histidx)
+                        if idx >= 0:
+                            self.histidx = idx
+                            self.__use_history()
+                    else:
+                        idx = self.__search_history(buf)
+                        if idx >= 0:
+                            self.histidx = idx
+                            self.incremental_search_string = buf
+                            self.__use_history()
+                else:
+                    if self.histidx >= 0 and self.histidx < len(self.interpreter.history):
+                        self.histidx += 1
+                        self.__use_history()
+            
+        elif key == Qt.Key_PageUp:
+            if self.isListActive() or self.isCallTipActive():
+                self.SendScintilla(QsciScintilla.SCI_PAGEUP)
+            
+        elif key == Qt.Key_PageDown:
+            if self.isListActive() or self.isCallTipActive():
+                self.SendScintilla(QsciScintilla.SCI_PAGEDOWN)
+
+        elif key == Qt.Key_Escape:
+            if self.isListActive() or self.isCallTipActive():
+                self.SendScintilla(QsciScintilla.SCI_CANCEL)
+            else:
+                self.clear_line()
+                
+        elif key == Qt.Key_V and ctrl:
+            self.paste()
+            
+        elif key == Qt.Key_X and ctrl:
+            self.cut()
+            
+        elif key == Qt.Key_Z and ctrl:
+            self.undo()
+            
+        elif key == Qt.Key_Y and ctrl:
+            self.redo()
+                
+        elif key == Qt.Key_Question:
             self.show_docstring(self.__get_last_obj())
-        elif txt == '(':
+            self.insert_text(text)
+            
+        elif key == Qt.Key_ParenLeft:
             self.show_docstring(self.__get_last_obj(), call=True)
-        elif self.isListActive():
-            self.completion_chars += 1
+            self.insert_text(text)
+
+        elif key == Qt.Key_Period:
+            # Enable auto-completion only if last token isn't a float
+            last_obj = self.__get_last_obj()
+            if last_obj and not last_obj[-1].isdigit():
+                self.show_code_completion(last_obj)
+            self.insert_text(text)
+            
+        elif text.length():
+            self.insert_text(text)
+            self.incremental_search_active = True
+            if self.isListActive():
+                self.completion_chars += 1
+
 
     def focusNextPrevChild(self, next):
         """
@@ -573,30 +859,9 @@ class QsciTerminal(QsciScintilla):
             event.ignore()
 
 
-    #------ Paste, middle-button, ...    
-    def paste(self):
-        """Reimplemented slot to handle multiline paste action"""
-        lines = unicode(QApplication.clipboard().text())
-        if self.__is_cursor_on_last_line():
-            # Paste at cursor position
-            cline, cindex = self.getCursorPosition()
-            linetext = unicode(self.text(cline))
-            lines = linetext[:cindex] + lines + linetext[cindex:]
-            self.setSelection(cline, len(self.prompt),
-                              cline, self.lineLength(cline))
-            self.removeSelectedText()
-            lines = self.__remove_prompts(lines)
-            self.execute_lines(lines)
-            cline2, _ = self.getCursorPosition()
-            self.setCursorPosition(cline2,
-               self.lineLength(cline2)-len(linetext[cindex:]) )
-        else:
-            self.execute_lines(lines)
-
+    #------ Misc
     def clear_line(self):
-        """
-        Clear current line
-        """
+        """Clear current line"""
         cline, _cindex = self.getCursorPosition()
         self.setSelection(cline, len(self.prompt),
                           cline, self.lineLength(cline))
@@ -613,224 +878,9 @@ class QsciTerminal(QsciScintilla):
             QClipboard.Selection))
         self.execute_lines(lines)
     
-
-    #------ QScintilla Key Management                                          
-    def __qsci_tab(self):
-        """
-        Private method to handle the Tab key.
-        """
-        if self.isListActive():
-            self.SendScintilla(QsciScintilla.SCI_TAB)
-        elif self.__is_cursor_on_last_line():
-            line, index = self.getCursorPosition()
-            buf = self.__extract_from_text(line)
-            lastchar_index = index-len(self.prompt)-1
-            if self.more and not buf[:index-len(self.prompt)].strip():
-                self.SendScintilla(QsciScintilla.SCI_TAB)
-            elif lastchar_index>=0:
-                text = self.__get_last_obj()
-                if buf[lastchar_index] == '.':
-                    self.show_code_completion(text)
-                elif buf[lastchar_index] in ['"', "'"]:
-                    self.show_file_completion()
-             
-    def __qsci_delete_back(self):
-        """
-        Private method to handle the Backspace key.
-        """
-        if self.hasSelectedText():
-            self.__delete_selected_text()
-        elif self.__is_cursor_on_last_line():
-            line, col = self.getCursorPosition()
-            _is_active = self.isListActive()
-            _old_length = self.text(line).length()
-            if self.text(line).startsWith(self.prompt):
-                if col > len(self.prompt):
-                    self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
-            elif col > 0:
-                self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
-            if self.isListActive():
-                self.completion_chars -= 1
-
-    def __qsci_delete(self):
-        """
-        Private method to handle the delete command.
-        """
-        if self.hasSelectedText():
-            self.__delete_selected_text()
-        elif self.__is_cursor_on_last_line():
-            self.SendScintilla(QsciScintilla.SCI_CLEAR)
-                
-    def __delete_selected_text(self):
-        """
-        Private method to delete selected text
-        """
-        line_from, index_from, line_to, index_to = self.getSelection()
-
-        # If not on last line, then move selection to last line
-        last_line = self.lines()-1
-        if line_from != last_line:
-            line_from = last_line
-            index_from = 0
-            
-        for prompt in [self.p1, self.p2]:
-            if self.text(line_from).startsWith(prompt):
-                if index_from < len(prompt):
-                    index_from = len(prompt)
-        if index_from < 0:
-            index_from = index_to
-            line_from = line_to
-        self.setSelection(line_from, index_from, line_to, index_to)
-        self.SendScintilla(QsciScintilla.SCI_CLEAR)
-        self.setSelection(line_from, index_from, line_from, index_from)
-
-    def get_new_line(self):
-        """Enter or Return -> get new line"""
-        self.incremental_search_string = ""
-        self.incremental_search_active = False
-        line, col = self.__get_end_pos()
-        self.setCursorPosition(line, col)
-        buf = self.__extract_from_text(line)
-        self.insert_text('\n', at_end=True)
-        return buf
-
-    def __qsci_newline(self):
-        """
-        Private method to handle the Return key.
-        """
-        if self.__is_cursor_on_last_line():
-            if self.isListActive():
-                self.SendScintilla(QsciScintilla.SCI_NEWLINE)
-            else:
-                buf = self.get_new_line()
-                self.busy = True
-                self.execute_command(buf)
-                self.busy = False
-        # add and run selection
-        else:
-            text = self.selectedText()
-            self.insert_text(text, at_end=True)
-
-    def __qsci_char_left(self, all_lines_allowed = False):
-        """
-        Private method to handle the Cursor Left command.
-        """
-        if self.__is_cursor_on_last_line() or all_lines_allowed:
-            line, col = self.getCursorPosition()
-            if self.text(line).startsWith(self.prompt):
-                if col > len(self.prompt):
-                    self.SendScintilla(QsciScintilla.SCI_CHARLEFT)
-            elif col > 0:
-                self.SendScintilla(QsciScintilla.SCI_CHARLEFT)
-
-    def __qsci_char_right(self):
-        """
-        Private method to handle the Cursor Right command.
-        """
-        if self.__is_cursor_on_last_line():
-            self.SendScintilla(QsciScintilla.SCI_CHARRIGHT)
-
-    def __qsci_vchome(self):
-        """
-        Private method to handle the Home key.
-        """
-        if self.isListActive():
-            self.SendScintilla(QsciScintilla.SCI_VCHOME)
-        elif self.__is_cursor_on_last_line():
-            line, col = self.getCursorPosition()
-            if self.text(line).startsWith(self.prompt):
-                col = len(self.prompt)
-            else:
-                col = 0
-            self.setCursorPosition(line, col)
-
-    def __qsci_line_end(self):
-        """
-        Private method to handle the End key.
-        """
-        if self.isListActive():
-            self.SendScintilla(QsciScintilla.SCI_LINEEND)
-        elif self.__is_cursor_on_last_line():
-            self.SendScintilla(QsciScintilla.SCI_LINEEND)
-
-    def __qsci_line_up(self):
-        """
-        Private method to handle the Up key.
-        """
-        if self.isListActive():
-            self.SendScintilla(QsciScintilla.SCI_LINEUP)
-        else:
-            line, _ = self.__get_end_pos()
-            buf = self.__extract_from_text(line)
-            if buf and self.incremental_search_active:
-                if self.incremental_search_string:
-                    idx = self.__rsearch_history( \
-                        self.incremental_search_string, self.histidx)
-                    if idx >= 0:
-                        self.histidx = idx
-                        self.__use_history()
-                else:
-                    idx = self.__rsearch_history(buf)
-                    if idx >= 0:
-                        self.histidx = idx
-                        self.incremental_search_string = buf
-                        self.__use_history()
-            else:
-                if self.histidx is None:
-                    self.histidx = len(self.interpreter.history)
-                if self.histidx > 0:
-                    self.histidx = self.histidx - 1
-                    self.__use_history()
-
-    def __qsci_line_down(self):
-        """
-        Private method to handle the Down key.
-        """
-        if self.isListActive():
-            self.SendScintilla(QsciScintilla.SCI_LINEDOWN)
-        else:
-            line, _col = self.__get_end_pos()
-            buf = self.__extract_from_text(line)
-            if buf and self.incremental_search_active:
-                if self.incremental_search_string:
-                    idx = self.__search_history( \
-                        self.incremental_search_string, self.histidx)
-                    if idx >= 0:
-                        self.histidx = idx
-                        self.__use_history()
-                else:
-                    idx = self.__search_history(buf)
-                    if idx >= 0:
-                        self.histidx = idx
-                        self.incremental_search_string = buf
-                        self.__use_history()
-            else:
-                if self.histidx >= 0 and self.histidx < len(self.interpreter.history):
-                    self.histidx += 1
-                    self.__use_history()
-  
-    def __qsci_pageup(self):
-        """
-        Private method to handle the PGUP key
-        """
-        if self.isListActive() or self.isCallTipActive():
-            self.SendScintilla(QsciScintilla.SCI_PAGEUP)
-  
-    def __qsci_pagedown(self):
-        """
-        Private method to handle the PGDOWN key
-        """
-        if self.isListActive() or self.isCallTipActive():
-            self.SendScintilla(QsciScintilla.SCI_PAGEDOWN)
-  
-    def __qsci_cancel(self):
-        """
-        Private method to handle the Esc key
-        """
-        if self.isListActive() or self.isCallTipActive():
-            self.SendScintilla(QsciScintilla.SCI_CANCEL)
   
     #------ History Management
+    #TODO: use the browse/find history methods of qtbase.py
     def __use_history(self):
         """
         Private method to display a command from the history
@@ -921,9 +971,22 @@ class QsciTerminal(QsciScintilla):
         """Show completion widget"""
         self.showUserList(1, QStringList(textlist))
 
-    def show_calltip(self, text):
-        """Show calltip"""
-        if self.calltips:
-            if not isinstance(text, list):
-                text = [text]
-            self.showUserList(1, text)
+    def positionFromLineIndex(self, line, index):
+        """
+        Public method to convert line and index to an absolute position.
+        """
+        pos = self.SendScintilla(QsciScintilla.SCI_POSITIONFROMLINE, line)
+        # Allow for multi-byte characters
+        for _i in range(index):
+            pos = self.SendScintilla(QsciScintilla.SCI_POSITIONAFTER, pos)
+        return pos
+
+    def get_cursor_qpoint(self):
+        """Return cursor global QPoint position"""
+        line, index = self.getCursorPosition()
+        pos = self.positionFromLineIndex(line, index)
+        x_pt = self.SendScintilla(QsciScintilla.SCI_POINTXFROMPOSITION, 0, pos)
+        y_pt = self.SendScintilla(QsciScintilla.SCI_POINTYFROMPOSITION, 0, pos)
+        return self.mapToGlobal(QPoint(x_pt, y_pt))
+        
+        
