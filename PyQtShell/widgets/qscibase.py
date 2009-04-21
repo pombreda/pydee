@@ -293,6 +293,21 @@ class QsciEditor(QsciScintilla):
         """Uncomment current line or selection"""
         self.remove_prefix( self.lex.COMMENT_STRING )
             
+    def keyPressEvent(self, event):
+        """Reimplemented"""
+        key = event.key()
+        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
+        if ((key == Qt.Key_Plus) and ctrl) \
+             or ((key==Qt.Key_Equal) and shift and ctrl):
+            self.zoomIn()
+            event.accept()
+        elif (key == Qt.Key_Minus) and ctrl:
+            self.zoomOut()
+            event.accept()
+        else:
+            QsciScintilla.keyPressEvent(self, event)
+            
     def mousePressEvent(self, event):
         """Reimplemented"""
         self.setFocus()
@@ -594,24 +609,29 @@ class QsciTerminal(QsciScintilla):
         Re-implemented to handle the user input a key at a time.
         event: key event (QKeyEvent)
         """
-        txt = event.text()
+        text = event.text()
         key = event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
-        self.eventqueue.append( (txt, key, shift, ctrl) )
+        current_event = (text, key, ctrl, shift)
         
         if self.busy and (not self.input_mode):
             # Ignoring all events except KeyboardInterrupt (see above)
             # Keep however these events in self.eventqueue
-            pass
+            self.eventqueue.append(current_event)
         else:
-            while self.eventqueue:
-                past_event = self.eventqueue.pop(0)
-                self.__process_keyevent(past_event)
+            self.__flush_eventqueue() # Shouldn't be necessary
+            self.__process_keyevent(current_event, event)
         
-    def __process_keyevent(self, keyevent):
+    def __flush_eventqueue(self):
+        """Flush keyboard event queue"""
+        while self.eventqueue:
+            past_event = self.eventqueue.pop(0)
+            self.__process_keyevent(past_event)
+        
+    def __process_keyevent(self, past_event, keyevent=None):
         """Process keyboard event"""
-        text, key, shift, ctrl = keyevent
+        (text, key, ctrl, shift), event = (past_event, keyevent)
         
         # Is cursor on the last line? and after prompt?
         line, index = self.getCursorPosition()
@@ -658,6 +678,7 @@ class QsciTerminal(QsciScintilla):
                     self.busy = True
                     self.execute_command(buf)
                     self.busy = False
+                    self.__flush_eventqueue()
             # add and run selection
             else:
                 text = self.selectedText()
@@ -808,16 +829,26 @@ class QsciTerminal(QsciScintilla):
         elif key == Qt.Key_ParenLeft:
             self.show_docstring(self.__get_last_obj(), call=True)
             self.insert_text(text)
-
+            
         elif key == Qt.Key_Period:
             # Enable auto-completion only if last token isn't a float
+            self.insert_text(text)
             last_obj = self.__get_last_obj()
             if last_obj and not last_obj[-1].isdigit():
                 self.show_code_completion(last_obj)
-            self.insert_text(text)
-            
+
+        elif ((key == Qt.Key_Plus) and ctrl) \
+             or ((key==Qt.Key_Equal) and shift and ctrl):
+            self.zoomIn()
+
+        elif (key == Qt.Key_Minus) and ctrl:
+            self.zoomOut()
+
         elif text.length():
-            self.insert_text(text)
+            if keyevent is None:
+                self.insert_text(text)
+            else:
+                QsciScintilla.keyPressEvent(self, event)
             self.incremental_search_active = True
             if self.isListActive():
                 self.completion_chars += 1
