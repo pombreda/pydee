@@ -219,7 +219,7 @@ class QsciEditor(QsciScintilla):
         """Insert text at cursor position"""
         line, col = self.getCursorPosition()
         self.insertAt(text, line, col)
-        self.setCursorPosition(line, col + len(str(text)))
+        self.setCursorPosition(line, col + len(unicode(text)))
     
     def add_prefix(self, prefix):
         """Add prefix to current line or selected line(s)"""
@@ -487,7 +487,7 @@ class QsciTerminal(QsciScintilla):
             # Insert text at current cursor position
             line, col = self.getCursorPosition()
             self.insertAt(text, line, col)
-            self.setCursorPosition(line, col + len(str(text)))
+            self.setCursorPosition(line, col + len(unicode(text)))
             
     #------ Find text: same as QsciEditor.find_text (to be factorized)
     def find_text(self, text, changed=True,
