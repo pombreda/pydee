@@ -169,7 +169,10 @@ class ArrayEditor(QDialog):
     """Array Editor Dialog"""
     def __init__(self, data, title='', format="%.3f", xy=False):
         super(ArrayEditor, self).__init__()
-        self.copy = np.array(data, dtype=float, copy=True)
+        if data.dtype != np.dtype('float64'):
+            QMessageBox.warning(self, self.tr("Array editor"),
+                self.tr("Warning: array editor currently supports only float arrays"))
+        self.copy = data.copy()
         self.data = self.copy.view()
         if len(self.data.shape)==1:
             self.data.shape = (self.data.shape[0], 1)
