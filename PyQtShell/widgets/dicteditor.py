@@ -93,8 +93,11 @@ def unsorted_unique(lista):
 def value_to_display(value, truncate=False, trunc_len=80):
     """Convert value for display purpose"""
     if truncate and isinstance(value, ndarray):
-        return 'Min: %r\nMax: %r\nStd: %r' % (value.min(), value.max(),
-                                              value.std())
+        try:
+            return 'Min: %r\nMax: %r\nStd: %r' % (value.min(), value.max(),
+                                                  value.std())
+        except TypeError:
+            pass
     if not isinstance(value, (str, unicode)):
         value = repr(value)
     if truncate and len(value) > trunc_len:
