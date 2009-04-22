@@ -250,7 +250,7 @@ class ArrayEditor(QDialog):
                 new_fmt % 1.1
             except:
                 QMessageBox.critical(self, self.tr("Error"),
-                      self.tr("Format (%s) is incorrect") % new_fmt)
+                      self.tr("Format (%1) is incorrect").arg(new_fmt))
                 return
             self.model.set_format(new_fmt)
 
