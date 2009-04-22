@@ -736,7 +736,7 @@ class DocComboBox(EditableComboBox):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
             text = self.currentText()
             if self.is_valid(text):
-                self.parent().refresh(text)
+                self.parent().refresh(text, force=True)
                 self.set_default_style()
         else:
             QComboBox.keyPressEvent(self, event)
@@ -750,6 +750,9 @@ class DocViewer(QWidget, WidgetMixin):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
+        
+        # locked = disable link with Console
+        self.locked = False
 
         # Read-only editor
         self.editor = SimpleEditor(self, margin=False)
@@ -771,6 +774,7 @@ class DocViewer(QWidget, WidgetMixin):
         dvhistory = self.load_dvhistory()
         self.combo.addItems( dvhistory )
         
+        # Doc/source checkbox
         self.help_or_doc = QCheckBox(self.tr("Show source"))
         self.connect(self.help_or_doc, SIGNAL("stateChanged(int)"),
                      self.toggle_help)
@@ -778,6 +782,15 @@ class DocViewer(QWidget, WidgetMixin):
         self.docstring = None
         self.autosource = False
         self.toggle_help(Qt.Unchecked)
+        
+        # Lock checkbox
+        self.locked_button = QPushButton("")
+        self.locked_button.setFlat(True)
+        self.locked_button.setFixedWidth(20)
+        self.connect(self.locked_button, SIGNAL("clicked()"),
+                     self.toggle_locked)
+        layout_edit.addWidget(self.locked_button)
+        self._update_lock_icon()
 
         # Main layout
         layout = QVBoxLayout()
@@ -814,10 +827,27 @@ class DocViewer(QWidget, WidgetMixin):
     def toggle_help(self, state):
         """Toggle between docstring and help()"""
         self.docstring = (state == Qt.Unchecked)
-        self.refresh()
+        self.refresh(force=True)
         
-    def refresh(self, text=None):
+    def toggle_locked(self):
+        """
+        Toggle locked state
+        locked = disable link with Console
+        """
+        self.locked = not self.locked
+        self._update_lock_icon()
+        
+    def _update_lock_icon(self):
+        """Update locked state icon"""
+        icon = get_icon("lock.png" if self.locked else "lock_open.png")
+        self.locked_button.setIcon(icon)
+        tip = self.tr("Unlock") if self.locked else self.tr("Lock")
+        self.locked_button.setToolTip(tip)
+        
+    def refresh(self, text=None, force=False):
         """Refresh widget"""
+        if self.locked and not force:
+            return
         if text is None:
             text = self.combo.currentText()
         else:
