@@ -50,8 +50,9 @@ def str2type(strings):
     """Convert strings to types"""
     return tuple( [eval(string) for string in strings] )
 
-SANS_SERIF = ['Bitstream Vera Sans', 'Lucida Grande', 'Verdana', 'Geneva',
-              'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
+SANS_SERIF = ['Bitstream Vera Sans', 'Bitstream Charter', 'Lucida Grande',
+              'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica',
+              'Avant Garde', 'sans-serif']
 SANS_SERIF.insert(0, unicode(QFont().family()))
 
 MONOSPACE = ['Consolas', 'Courier New', 'Bitstream Vera Sans Mono',
