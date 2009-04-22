@@ -26,8 +26,7 @@
 # pylint: disable-msg=R0201
 
 import sys, os
-from PyQt4.QtGui import (QKeySequence, QApplication, QClipboard, QCursor,
-                         QMouseEvent)
+from PyQt4.QtGui import QApplication, QClipboard, QCursor, QMouseEvent
 from PyQt4.QtCore import Qt, SIGNAL, QString, QStringList, QEvent, QPoint
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
@@ -93,6 +92,7 @@ class LexerPython(QsciLexerPython):
         return QStringList() << '.'
 
 
+
 class QsciEditor(QsciScintilla):
     """
     QScintilla Editor Widget
@@ -103,6 +103,7 @@ class QsciEditor(QsciScintilla):
         # Mouse selection copy feature
         self.always_copy_selection = False
         
+        # UTF-8
         self.setUtf8(True)
         
         # Indentation
@@ -327,6 +328,21 @@ class QsciEditor(QsciScintilla):
         QsciScintilla.mouseReleaseEvent(self, event)
 
 
+
+#TODO: Prepare code for IPython integration:
+#        - implement the self.input_buffer property (see qt_console_widget.py)
+#        - remove all references to prompt (there is no need to keep prompt
+#          string in self.prompt) and use prompt position instead (like it's
+#          done in qt_console_widget.py: self.current_prompt_pos -- do not
+#          implement self.current_prompt_line which is dead code from the
+#          porting from wx's console_widget.py)
+#        - implement the 'new_prompt' method like in qt_console_widget.py
+#        - implement the 'pop_completion' method like in qt_console_widget.py
+#          (easy... just rename a few methods here and there)
+#        - implement the 'new_prompt' method like in qt_console_widget.py
+#        - implement '_configure_scintilla', '_apply_style', ...
+#        - implement 'write' method -> this change will eventually require
+#          to merge with shellbase.py where there's already a 'write' method
 class QsciTerminal(QsciScintilla):
     """
     Terminal based on QScintilla
@@ -336,6 +352,8 @@ class QsciTerminal(QsciScintilla):
         parent : specifies the parent widget
         """
         QsciScintilla.__init__(self, parent)
+        
+        # UTF-8
         self.setUtf8(True)
         
         # Mouse selection copy feature
@@ -377,12 +395,15 @@ class QsciTerminal(QsciScintilla):
         else:
             self.setAutoCompletionSource(QsciScintilla.AcsNone)
         self.completion_chars = 0
+        self.connect(self, SIGNAL('userListActivated(int, const QString)'),
+                     self.__completion_list_selected)
         
         # Call-tips
         self.calltips = True
         self.docviewer = None
         
-        self.setMinimumWidth(400)
+        # Minimum size
+        self.setMinimumWidth(300)
         self.setMinimumHeight(150)
         
         # Lexer
@@ -393,9 +414,10 @@ class QsciTerminal(QsciScintilla):
         self.lexer.setColor(Qt.red, self.error_style)
         self.lexer.setColor(Qt.blue, self.traceback_link_style)
 
-        self.connect(self, SIGNAL('userListActivated(int, const QString)'),
-                     self.__completion_list_selected)
+        # Give focus to widget
         self.setFocus()
+        
+        # Clear status bar
         self.emit(SIGNAL("status(QString)"), QString())
 
     def setUndoRedoEnabled(self, state):
@@ -417,6 +439,7 @@ class QsciTerminal(QsciScintilla):
     def set_calltips(self, state):
         """Set calltips state"""
         self.calltips = state
+        
         
     #------ Utilities
     def __remove_prompts(self, text):
@@ -454,6 +477,7 @@ class QsciTerminal(QsciScintilla):
         line, col = self.__get_end_pos()
         self.setCursorPosition(line, col)
 
+
     #------ Text Insertion
     def insert_text(self, text, at_end=False, error=False):
         """
@@ -488,6 +512,7 @@ class QsciTerminal(QsciScintilla):
             line, col = self.getCursorPosition()
             self.insertAt(text, line, col)
             self.setCursorPosition(line, col + len(unicode(text)))
+
             
     #------ Find text: same as QsciEditor.find_text (to be factorized)
     def find_text(self, text, changed=True,
@@ -499,9 +524,21 @@ class QsciTerminal(QsciScintilla):
             self.setCursorPosition(line_from, max([0, index_from-1]))
         return self.findFirst(text, False, case, words,
                               True, forward, -1, -1, True)    
-        
+
 
     #------ Re-implemented Qt Methods
+    def focusNextPrevChild(self, next):
+        """
+        Reimplemented to stop Tab moving to the next window
+        While the user is entering a multi-line command, the movement to
+        the next window by the Tab key being pressed is suppressed.
+        next: next window
+        @return flag indicating the movement
+        """
+        if next and self.more:
+            return False
+        return QsciScintilla.focusNextPrevChild(self, next)
+    
     def mouseMoveEvent(self, event):
         """Show Pointing Hand Cursor on error messages"""
         if event.modifiers() & Qt.ControlModifier:
@@ -520,7 +557,9 @@ class QsciTerminal(QsciScintilla):
         self.setFocus()
         ctrl = event.modifiers() & Qt.ControlModifier
         if event.button() == Qt.MidButton:
-            self.__middle_mouse_button()
+            # Middle-button -> paste
+            lines = unicode(QApplication.clipboard().text(QClipboard.Selection))
+            self.execute_lines(lines)
         elif event.button() == Qt.LeftButton and ctrl:
             text = unicode(self.text(self.lineAt(event.pos())))
             self.parent().go_to_error(text)
@@ -792,7 +831,8 @@ class QsciTerminal(QsciScintilla):
                             self.incremental_search_string = buf
                             self.__use_history()
                 else:
-                    if self.histidx >= 0 and self.histidx < len(self.interpreter.history):
+                    if self.histidx >= 0 and \
+                       self.histidx < len(self.interpreter.history):
                         self.histidx += 1
                         self.__use_history()
             
@@ -853,19 +893,8 @@ class QsciTerminal(QsciScintilla):
             if self.isListActive():
                 self.completion_chars += 1
 
-
-    def focusNextPrevChild(self, next):
-        """
-        Reimplemented to stop Tab moving to the next window
-        While the user is entering a multi-line command, the movement to
-        the next window by the Tab key being pressed is suppressed.
-        next: next window
-        @return flag indicating the movement
-        """
-        if next and self.more:
-            return False
-        return QsciScintilla.focusNextPrevChild(self, next)
     
+    #------ Drag and drop
     def dragEnterEvent(self, event):
         """Drag and Drop - Enter event"""
         event.setAccepted(event.mimeData().hasFormat("text/plain"))
@@ -890,7 +919,7 @@ class QsciTerminal(QsciScintilla):
             event.ignore()
 
 
-    #------ Misc
+    #------ Clear line, terminal
     def clear_line(self):
         """Clear current line"""
         cline, _cindex = self.getCursorPosition()
@@ -902,12 +931,6 @@ class QsciTerminal(QsciScintilla):
         """Clear terminal window and write prompt"""
         self.clear()
         self.write(self.prompt, flush=True)
-            
-    def __middle_mouse_button(self):
-        """Private method to handle the middle mouse button press"""
-        lines = unicode(QApplication.clipboard().text(
-            QClipboard.Selection))
-        self.execute_lines(lines)
     
   
     #------ History Management
@@ -981,6 +1004,7 @@ class QsciTerminal(QsciScintilla):
     def set_docviewer(self, docviewer):
         """Set DocViewer DockWidget reference"""
         self.docviewer = docviewer
+        
         
     #------ Code Completion Management            
     def __completion_list_selected(self, userlist_id, seltxt):

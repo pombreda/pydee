@@ -38,6 +38,7 @@ import numpy as np
 from PyQtShell.config import get_icon, get_font
 
 
+#TODO: Support data types other than float
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
     def __init__(self, data, fmt="%.3f", xy_mode=False):
