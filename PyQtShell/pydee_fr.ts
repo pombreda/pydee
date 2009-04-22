@@ -4,44 +4,49 @@
 <context>
     <name>ArrayEditor</name>
     <message>
-        <location filename="widgets/arrayeditor.py" line="187"/>
+        <location filename="widgets/arrayeditor.py" line="188"/>
         <source>Array editor</source>
         <translation>Éditeur de tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="243"/>
+        <location filename="widgets/arrayeditor.py" line="244"/>
         <source>Format</source>
         <translation>Format</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="207"/>
+        <location filename="widgets/arrayeditor.py" line="208"/>
         <source>Resize</source>
         <translation>Ajuster</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="210"/>
+        <location filename="widgets/arrayeditor.py" line="211"/>
         <source>Background color</source>
         <translation>Couleur d&apos;arrière-plan</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="238"/>
+        <location filename="widgets/arrayeditor.py" line="239"/>
         <source>Float formatting</source>
         <translation>Format de flottant</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="251"/>
+        <location filename="widgets/arrayeditor.py" line="252"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
         <location filename="widgets/arrayeditor.py" line="252"/>
         <source>Format (%s) is incorrect</source>
-        <translation>Le format (%s) n&apos;est pas valide</translation>
+        <translation type="obsolete">Le format (%s) n&apos;est pas valide</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="174"/>
+        <location filename="widgets/arrayeditor.py" line="175"/>
         <source>Warning: array editor currently supports only float arrays</source>
         <translation>Attention : l&apos;éditeur de tableaux ne prend en charge (pour l&apos;instant) que les tableaux de flottants</translation>
+    </message>
+    <message>
+        <location filename="widgets/arrayeditor.py" line="253"/>
+        <source>Format (%1) is incorrect</source>
+        <translation>Le format (%1) n&apos;est pas valide</translation>
     </message>
 </context>
 <context>
