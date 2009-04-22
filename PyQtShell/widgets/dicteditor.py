@@ -375,6 +375,15 @@ class DictDelegate(QItemDelegate):
             self.connect(editor, SIGNAL("returnPressed()"),
                          self.commitAndCloseEditor)
             return editor
+        #---editor = QTextEdit
+        elif isinstance(value, (str, unicode)) and len(value)>30:
+            #TODO: replace the following editor by a QTextEdit editor
+            text, ok = QInputDialog.getText(parent, parent.windowTitle(),
+                                            repr(key)+':', QLineEdit.Normal,
+                                            value)
+            if ok and not text.isEmpty():
+                index.model().set_value(index, text)
+            return None
         #---editor = QLineEdit
         else:
             editor = QLineEdit(parent)
