@@ -154,6 +154,12 @@ DEFAULTS = [
               'font/size' : SMALL,
               'font/bold' : False,
               }),
+            ('texteditor',
+             {
+              'font/family' : MONOSPACE,
+              'font/size' : MEDIUM,
+              'font/bold' : False,
+              }),
             ('dicteditor',
              {
               'font/family' : MONOSPACE,
@@ -174,7 +180,7 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.2.1', load=(not DEV))
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.2.2', load=(not DEV))
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""
