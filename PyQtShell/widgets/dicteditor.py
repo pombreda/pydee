@@ -42,6 +42,7 @@ from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
 # Local import
 from PyQtShell.config import get_icon, get_font
 from PyQtShell.qthelpers import translate, add_actions, create_action
+from PyQtShell.widgets.texteditor import TextEditor
 
 #----Numpy arrays support
 class FakeObject(object):
@@ -376,14 +377,11 @@ class DictDelegate(QItemDelegate):
                          self.commitAndCloseEditor)
             return editor
         #---editor = QTextEdit
-        elif isinstance(value, (str, unicode)) and len(value)>30:
-            #TODO: replace the following editor by a QTextEdit editor
-            text, ok = QInputDialog.getText(parent, parent.windowTitle(),
-                                            repr(key)+':', QLineEdit.Normal,
-                                            value)
-            if ok and not text.isEmpty():
+        elif isinstance(value, (str, unicode)) and len(value)>40:
+            editor = TextEditor(value, key)
+            if editor.exec_():
                 conv = str if isinstance(value, str) else unicode
-                index.model().set_value(index, conv(text))
+                index.model().set_value(index, conv(editor.get_text()))
             return None
         #---editor = QLineEdit
         else:
