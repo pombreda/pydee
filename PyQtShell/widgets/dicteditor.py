@@ -382,7 +382,8 @@ class DictDelegate(QItemDelegate):
                                             repr(key)+':', QLineEdit.Normal,
                                             value)
             if ok and not text.isEmpty():
-                index.model().set_value(index, text)
+                conv = str if isinstance(value, str) else unicode
+                index.model().set_value(index, conv(text))
             return None
         #---editor = QLineEdit
         else:
