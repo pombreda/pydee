@@ -106,6 +106,10 @@ class QsciEditor(QsciScintilla):
         # UTF-8
         self.setUtf8(True)
         
+        # Wrapping
+        if CONF.get('editor', 'wrapflag'):
+            self.setWrapVisualFlags(QsciScintilla.WrapFlagByBorder)
+        
         # Indentation
         self.setAutoIndent(True)
         self.setIndentationsUseTabs(False)
@@ -355,6 +359,10 @@ class QsciTerminal(QsciScintilla):
         
         # UTF-8
         self.setUtf8(True)
+        
+        # Wrapping
+        if CONF.get('shell', 'wrapflag'):
+            self.setWrapVisualFlags(QsciScintilla.WrapFlagByBorder)
         
         # Mouse selection copy feature
         self.always_copy_selection = False
