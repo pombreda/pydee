@@ -247,6 +247,7 @@ class Console(QWidget, WidgetMixin):
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         self.shell.set_wrap_mode(checked)
+        CONF.set(self.ID, 'wrap', checked)
             
     def toggle_calltips(self, checked):
         """Toggle calltips"""
