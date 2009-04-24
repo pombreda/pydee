@@ -603,7 +603,24 @@ def get_options():
 
 def main():
     """Pydee application"""
-    app = QApplication(sys.argv)    
+    app = QApplication(sys.argv)
+    
+    #----Monkey patching PyQt4.QtGui.QApplication
+    class FakeQApplication(QApplication):
+        """Pydee's fake QApplication"""
+        def __init__(self, args):
+            self = app
+        def exec_(self):
+            """Do nothing because the Qt mainloop is already running"""
+            pass
+    from PyQt4 import QtGui
+    QtGui.QApplication = FakeQApplication
+    
+    #----Monkey patching sys.exit
+    def fake_sys_exit(arg=[]):
+        pass
+    sys.exit = fake_sys_exit
+    
     # Translation
     locale = QLocale.system().name()
     qt_translator = QTranslator()
@@ -700,7 +717,7 @@ def main():
         
     main.setup()
     main.show()
-    sys.exit(app.exec_())
+    app.exec_()
 
 
 if __name__ == "__main__":
