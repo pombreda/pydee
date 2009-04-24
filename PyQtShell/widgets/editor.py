@@ -636,6 +636,7 @@ class Editor(QWidget, WidgetMixin):
         if hasattr(self, 'tabwidget'):
             for index in range(0, self.tabwidget.count()):
                 self.editors[index].set_wrap_mode(checked)
+            CONF.set(self.ID, 'wrap', checked)
     
     def dragEnterEvent(self, event):
         """Reimplement Qt method
