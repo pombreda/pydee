@@ -138,6 +138,9 @@ class ShellBaseWidget(Terminal):
         banner = create_banner(self.tr('Type "copyright", "credits" or "license" for more information.'), message)
         self.setUndoRedoEnabled(False) #-disable undo/redo for a time being
         self.write(banner, flush=True)
+        
+        # Adding oedit to interpreter namespace
+        commands.append('from PyQtShell.widgets.objecteditor import oedit')
 
         # Initial commands
         for cmd in commands:
@@ -196,6 +199,7 @@ class ShellBaseWidget(Terminal):
             <p><i>%5</i><br>    clear x, y
             <p><i>%6</i><br>    !ls
             <p><i>%7</i><br>    object?
+            <p><i>%8</i><br>    result = oedit(object)
             """) \
             .arg(translate("ShellBaseWidget", 'Shell special commands:')) \
             .arg(translate("ShellBaseWidget", 'Internal editor:')) \
@@ -203,7 +207,8 @@ class ShellBaseWidget(Terminal):
             .arg(translate("ShellBaseWidget", 'Run script:')) \
             .arg(translate("ShellBaseWidget", 'Remove references:')) \
             .arg(translate("ShellBaseWidget", 'System commands:')) \
-            .arg(translate("ShellBaseWidget", 'Python help:')))
+            .arg(translate("ShellBaseWidget", 'Python help:')) \
+            .arg(translate("ShellBaseWidget", 'GUI-based editor:')) )
           
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
