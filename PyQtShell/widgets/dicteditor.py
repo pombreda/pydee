@@ -380,7 +380,7 @@ class DictDelegate(QItemDelegate):
             editor = TextEditor(value, key)
             if editor.exec_():
                 conv = str if isinstance(value, str) else unicode
-                index.model().set_value(index, conv(editor.get_text()))
+                index.model().set_value(index, conv(editor.get_copy()))
             return None
         #---editor = QLineEdit
         else:
