@@ -268,97 +268,97 @@
 <context>
     <name>DictEditor</name>
     <message>
-        <location filename="widgets/dicteditor.py" line="283"/>
+        <location filename="widgets/dicteditor.py" line="284"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="284"/>
+        <location filename="widgets/dicteditor.py" line="285"/>
         <source>Size</source>
         <translation>Taille</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="285"/>
+        <location filename="widgets/dicteditor.py" line="286"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="183"/>
+        <location filename="widgets/dicteditor.py" line="184"/>
         <source>Tuple</source>
         <translation>Tuple</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="186"/>
+        <location filename="widgets/dicteditor.py" line="187"/>
         <source>List</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="189"/>
+        <location filename="widgets/dicteditor.py" line="190"/>
         <source>Dictionary</source>
         <translation>Dictionnaire</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="192"/>
+        <location filename="widgets/dicteditor.py" line="193"/>
         <source>elements</source>
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="467"/>
+        <location filename="widgets/dicteditor.py" line="474"/>
         <source>Sort columns</source>
         <translation>Classement des colonnes</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="471"/>
+        <location filename="widgets/dicteditor.py" line="478"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="450"/>
+        <location filename="widgets/dicteditor.py" line="457"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="608"/>
+        <location filename="widgets/dicteditor.py" line="615"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="504"/>
+        <location filename="widgets/dicteditor.py" line="511"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="506"/>
+        <location filename="widgets/dicteditor.py" line="513"/>
         <source>Do you want to remove selected item%1?</source>
         <translation>Souhaitez-vous supprimer la sélection ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="599"/>
+        <location filename="widgets/dicteditor.py" line="606"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="609"/>
+        <location filename="widgets/dicteditor.py" line="616"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="562"/>
+        <location filename="widgets/dicteditor.py" line="569"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="477"/>
+        <location filename="widgets/dicteditor.py" line="484"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="464"/>
+        <location filename="widgets/dicteditor.py" line="471"/>
         <source>Display complete values</source>
         <translation>Afficher les valeurs complètes</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="541"/>
+        <location filename="widgets/dicteditor.py" line="548"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
@@ -366,12 +366,12 @@
 <context>
     <name>DocComboBox</name>
     <message>
-        <location filename="widgets/editor.py" line="722"/>
+        <location filename="widgets/editor.py" line="723"/>
         <source>Press enter to validate this object name</source>
         <translation>Appuyer sur Entrée pour valider ce nom d&apos;objet</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="725"/>
+        <location filename="widgets/editor.py" line="726"/>
         <source>This object name is incorrect</source>
         <translation>Ce nom d&apos;objet n&apos;est pas valide</translation>
     </message>
@@ -379,32 +379,32 @@
 <context>
     <name>DocViewer</name>
     <message>
-        <location filename="widgets/editor.py" line="770"/>
+        <location filename="widgets/editor.py" line="771"/>
         <source>Object</source>
         <translation>Objet</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="778"/>
+        <location filename="widgets/editor.py" line="779"/>
         <source>Show source</source>
         <translation>Afficher les sources</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="881"/>
+        <location filename="widgets/editor.py" line="882"/>
         <source>No documentation available.</source>
         <translation>Aucune documentation disponible.</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="806"/>
+        <location filename="widgets/editor.py" line="807"/>
         <source>Doc</source>
         <translation>Aide</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="844"/>
+        <location filename="widgets/editor.py" line="845"/>
         <source>Unlock</source>
         <translation>Déverrouiller</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="845"/>
+        <location filename="widgets/editor.py" line="846"/>
         <source>Lock</source>
         <translation>Verrouiller</translation>
     </message>
@@ -712,7 +712,7 @@ Do you want to save changes?</source>
 <context>
     <name>HistoryLog</name>
     <message>
-        <location filename="widgets/editor.py" line="695"/>
+        <location filename="widgets/editor.py" line="696"/>
         <source>History log</source>
         <translation>Historique</translation>
     </message>
@@ -991,72 +991,72 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>ShellBaseWidget</name>
     <message>
-        <location filename="widgets/shellbase.py" line="157"/>
+        <location filename="widgets/shellbase.py" line="160"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="161"/>
+        <location filename="widgets/shellbase.py" line="164"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="165"/>
+        <location filename="widgets/shellbase.py" line="168"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="174"/>
+        <location filename="widgets/shellbase.py" line="177"/>
         <source>Clear shell</source>
         <translation>Effacer la console</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="177"/>
+        <location filename="widgets/shellbase.py" line="180"/>
         <source>Clear shell contents (&apos;cls&apos; command)</source>
         <translation>Effacer le contenu de la console</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="191"/>
+        <location filename="widgets/shellbase.py" line="194"/>
         <source>Help</source>
         <translation>Aide</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="200"/>
+        <location filename="widgets/shellbase.py" line="204"/>
         <source>Shell special commands:</source>
         <translation>Commandes spéciales de la console :</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="202"/>
+        <location filename="widgets/shellbase.py" line="206"/>
         <source>External editor:</source>
         <translation>Éditeur externe :</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="203"/>
+        <location filename="widgets/shellbase.py" line="207"/>
         <source>Run script:</source>
         <translation>Exécution d&apos;un script :</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="205"/>
+        <location filename="widgets/shellbase.py" line="209"/>
         <source>System commands:</source>
         <translation>Commandes systèmes :</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="206"/>
+        <location filename="widgets/shellbase.py" line="210"/>
         <source>Python help:</source>
         <translation>Aide Python :</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="180"/>
+        <location filename="widgets/shellbase.py" line="183"/>
         <source>Help...</source>
         <translation>Aide...</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="201"/>
+        <location filename="widgets/shellbase.py" line="205"/>
         <source>Internal editor:</source>
         <translation>Éditeur interne :</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="204"/>
+        <location filename="widgets/shellbase.py" line="208"/>
         <source>Remove references:</source>
         <translation>Supprimer des références :</translation>
     </message>
@@ -1066,7 +1066,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Type &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="171"/>
+        <location filename="widgets/shellbase.py" line="174"/>
         <source>Clear line</source>
         <translation>Effacer la ligne</translation>
     </message>
@@ -1080,12 +1080,30 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
             &lt;p&gt;&lt;i&gt;%6&lt;/i&gt;&lt;br&gt;    !ls
             &lt;p&gt;&lt;i&gt;%7&lt;/i&gt;&lt;br&gt;    object?
             </source>
-        <translation>&lt;b&gt;%1&lt;/b&gt;            &lt;p&gt;&lt;i&gt;%2&lt;/i&gt;&lt;br&gt;    edit foobar.py            &lt;p&gt;&lt;i&gt;%3&lt;/i&gt;&lt;br&gt;    xedit foobar.py            &lt;p&gt;&lt;i&gt;%4&lt;/i&gt;&lt;br&gt;    run foobar.py            &lt;p&gt;&lt;i&gt;%5&lt;/i&gt;&lt;br&gt;    clear x, y            &lt;p&gt;&lt;i&gt;%6&lt;/i&gt;&lt;br&gt;    !ls            &lt;p&gt;&lt;i&gt;%7&lt;/i&gt;&lt;br&gt;    object?</translation>
+        <translation type="obsolete">&lt;b&gt;%1&lt;/b&gt;            &lt;p&gt;&lt;i&gt;%2&lt;/i&gt;&lt;br&gt;    edit foobar.py            &lt;p&gt;&lt;i&gt;%3&lt;/i&gt;&lt;br&gt;    xedit foobar.py            &lt;p&gt;&lt;i&gt;%4&lt;/i&gt;&lt;br&gt;    run foobar.py            &lt;p&gt;&lt;i&gt;%5&lt;/i&gt;&lt;br&gt;    clear x, y            &lt;p&gt;&lt;i&gt;%6&lt;/i&gt;&lt;br&gt;    !ls            &lt;p&gt;&lt;i&gt;%7&lt;/i&gt;&lt;br&gt;    object?</translation>
     </message>
     <message>
-        <location filename="widgets/shellbase.py" line="361"/>
+        <location filename="widgets/shellbase.py" line="366"/>
         <source>Busy...</source>
         <translation>Occupé...</translation>
+    </message>
+    <message>
+        <location filename="widgets/shellbase.py" line="204"/>
+        <source>&lt;b&gt;%1&lt;/b&gt;
+            &lt;p&gt;&lt;i&gt;%2&lt;/i&gt;&lt;br&gt;    edit foobar.py
+            &lt;p&gt;&lt;i&gt;%3&lt;/i&gt;&lt;br&gt;    xedit foobar.py
+            &lt;p&gt;&lt;i&gt;%4&lt;/i&gt;&lt;br&gt;    run foobar.py
+            &lt;p&gt;&lt;i&gt;%5&lt;/i&gt;&lt;br&gt;    clear x, y
+            &lt;p&gt;&lt;i&gt;%6&lt;/i&gt;&lt;br&gt;    !ls
+            &lt;p&gt;&lt;i&gt;%7&lt;/i&gt;&lt;br&gt;    object?
+            &lt;p&gt;&lt;i&gt;%8&lt;/i&gt;&lt;br&gt;    result = oedit(object)
+            </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="widgets/shellbase.py" line="211"/>
+        <source>GUI-based editor:</source>
+        <translation>Éditeur graphique :</translation>
     </message>
 </context>
 <context>
