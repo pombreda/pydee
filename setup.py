@@ -39,8 +39,8 @@ scripts = ['pydee.pyw']
 import os
 if os.name == 'posix':
     scripts = ['pydee']
-description = 'Interactive Python shell and related widgets based on PyQt4'
-long_description = 'PyQtShell is intended to be an extension to PyQt4 providing a simple development environment named "Pydee" - a powerful alternative to IDLE (see screenshots: %s) based on independent widgets interacting with each other: workspace (globals explorer with dict/list editor and numpy arrays editor), docstring viewer (calltip), history log, multiline code editor (support drag and drop, autocompletion, syntax coloring, ...) and working directory browser.' % google_url
+description = 'Pydee development environment and its PyQt4-based IDE tools: interactive Python shell, Python code editor, workspace (dict/list/string/array editor), doc viewer, history log, environment variables editor, ...'
+long_description = 'PyQtShell is intended to be an extension to PyQt4 providing a simple development environment named "Pydee" - a powerful alternative to IDLE (see screenshots: %s) based on independent widgets interacting with each other: workspace (globals explorer with dict/list editor and numpy arrays editor), docstring viewer (calltip), history log, multiline code editor (support drag and drop, autocompletion, syntax coloring, ...), environment variables editor (including a Windows-specific editor to change current user environement variables) and working directory browser.' % google_url
 keywords = 'PyQt4 shell console widgets IDE'
 classifiers = ['Development Status :: 3 - Alpha',
                'Topic :: Scientific/Engineering',
