@@ -32,7 +32,7 @@ from PyQt4.QtCore import SIGNAL, SLOT
 from PyQt4.QtGui import (QHBoxLayout, QColor, QLabel, QTableView, QItemDelegate,
                          QLineEdit, QCheckBox, QGridLayout, QDoubleValidator,
                          QDialog, QDialogButtonBox, QMessageBox, QPushButton)
-import numpy as np
+import numpy as N
 
 # Local import
 from PyQtShell.config import get_icon, get_font
@@ -170,7 +170,7 @@ class ArrayEditor(QDialog):
     """Array Editor Dialog"""
     def __init__(self, data, title='', format="%.3f", xy=False):
         super(ArrayEditor, self).__init__()
-        if data.dtype != np.dtype('float64'):
+        if data.dtype != N.dtype('float64'):
             QMessageBox.warning(self, self.tr("Array editor"),
                 self.tr("Warning: array editor currently supports only float arrays"))
         self.copy = data.copy()
@@ -259,15 +259,20 @@ class ArrayEditor(QDialog):
         return self.copy
     
     
-def main():
-    """Array editor demo"""
+def aedit(arr):
+    """
+    Edit the array 'arr' with the ArrayEditor and return the edited copy
+    (if Cancel is pressed, return None)
+    (instantiate a new QApplication if necessary,
+    so it can be called directly from the interpreter)
+    """
     from PyQt4.QtGui import QApplication
-    QApplication([])
-    dialog = ArrayEditor(np.random.rand(20, 20))
+    if QApplication.startingUp():
+        QApplication([])
+    dialog = ArrayEditor(arr)
     if dialog.exec_():
-        print "Accepted:", dialog.get_copy()
-    else:
-        print "Canceled"
+        return dialog.get_copy()
 
 if __name__ == "__main__":
-    main()
+    example = N.random.rand(20, 20)
+    print "result:", aedit(example)
