@@ -65,7 +65,7 @@ class TextEditor(QDialog):
                             "%s" % (" - "+str(title) if str(title) else ""))
         self.resize(400, 300)
         
-    def get_text(self):
+    def get_copy(self):
         """Return modified text"""
         return self.edit.toPlainText()
     
@@ -79,7 +79,7 @@ def main():
     dedekdh elkd ezd ekjd lekdj elkdfjelfjk e
     """)
     if dialog.exec_():
-        text = dialog.get_text()
+        text = dialog.get_copy()
         print "Accepted:", text
         dialog = TextEditor(text)
         dialog.exec_()
