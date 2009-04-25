@@ -429,7 +429,7 @@ class DictDelegate(QItemDelegate):
                          qtime.hour(), qtime.minute(), qtime.second()) )
 
 
-class DictEditor(QTableView):
+class DictEditorTableView(QTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, sort_by=None, title=""):
         QTableView.__init__(self, parent)
@@ -677,7 +677,7 @@ class DictEditorWidget(QWidget):
     """Dictionary Editor Dialog"""
     def __init__(self, parent, data, readonly=False, sort_by=None, title=""):
         QWidget.__init__(self, parent)
-        self.editor = DictEditor(self, data, readonly, sort_by, title)
+        self.editor = DictEditorTableView(self, data, readonly, sort_by, title)
         layout = QVBoxLayout()
         layout.addWidget(self.editor)
         self.setLayout(layout)
