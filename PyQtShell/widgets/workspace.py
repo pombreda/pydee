@@ -40,7 +40,7 @@ from PyQtShell.qthelpers import create_action, get_std_icon
 
 # Package local imports
 from PyQtShell.widgets.base import WidgetMixin
-from PyQtShell.widgets.dicteditor import DictEditor
+from PyQtShell.widgets.dicteditor import DictEditorTableView
 
 
 class NoValue(object):
@@ -88,7 +88,7 @@ def wsfilter(obj_in, rec=0):
     return obj_out            
 
 
-class Workspace(DictEditor, WidgetMixin):
+class Workspace(DictEditorTableView, WidgetMixin):
     """
     Workspace widget (namespace explorer)
     """
@@ -98,7 +98,7 @@ class Workspace(DictEditor, WidgetMixin):
         self.interpreter = None
         self.namespace = None
         self.filename = None
-        DictEditor.__init__(self, parent, None)
+        DictEditorTableView.__init__(self, parent, None)
         WidgetMixin.__init__(self, parent)
         self.load_temp_namespace()
         QShortcut(QKeySequence("Ctrl+E"), self, self.remove_item)
