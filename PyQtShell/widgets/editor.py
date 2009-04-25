@@ -686,7 +686,11 @@ class HistoryLog(QWidget, WidgetMixin):
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
         
-        self.history = self.main.console.shell.interpreter.rawhistory
+        self.history = None
+        
+    def set_interpreter(self, interpreter):
+        """Set history log's associated interpreter"""
+        self.history = interpreter.rawhistory
         self.refresh()
         
     def get_name(self):
@@ -701,8 +705,9 @@ class HistoryLog(QWidget, WidgetMixin):
         
     def refresh(self):
         """Refresh widget"""
-        self.editor.set_text("\n".join(self.history))
-        self.editor.set_cursor_to("End")
+        if self.history:
+            self.editor.set_text("\n".join(self.history))
+            self.editor.set_cursor_to("End")
         
     def set_actions(self):
         """Setup actions"""

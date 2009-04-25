@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
         
         self.commands = commands
         self.message = message
-        self.workdir = options.working_directory
+        self.init_workdir = options.working_directory
         self.debug = options.debug
         self.light = options.light
         
@@ -67,7 +67,6 @@ class MainWindow(QMainWindow):
                        
     def setup(self):
         """Setup main window"""
-        namespace = None
         self.splash = QSplashScreen(QPixmap(get_image_path('splash.png'),
                                             'png'))
         self.splash.show()
@@ -84,15 +83,6 @@ class MainWindow(QMainWindow):
             self.toolbar.setObjectName("MainToolbar")
             self.toolbar.setIconSize( QSize(24, 24) )
             
-            # File menu
-            self.file_menu = self.menuBar().addMenu(self.tr("&File"))
-            self.connect(self.file_menu, SIGNAL("aboutToShow()"),
-                         self.update_file_menu)
-            
-            # Edit menu
-            self.edit_menu = self.menuBar().addMenu(self.tr("&Edit"))
-            self.connect(self.edit_menu, SIGNAL("aboutToShow()"),
-                         self.update_edit_menu)
             _text = translate("FindReplace", "Find text")
             self.find_action = create_action(self, _text,"Ctrl+F", 'find.png',
                                              _text, triggered = self.find)
@@ -134,7 +124,28 @@ class MainWindow(QMainWindow):
                                  self.selectall_action, None,
                                  self.find_action, self.replace_action,
                                  ]
+        self.start()
+        
+    def start(self, namespace=None, first_start=True):
+        """
+        Start shell and dependent widgets
+        first_start=False -> restart Python interpreter
+        """
+        if not first_start:
+            self.menuBar().clear()
+            self.toolbar.clear()
+        
+        if not self.light:
+            # File menu
+            self.file_menu = self.menuBar().addMenu(self.tr("&File"))
+            self.connect(self.file_menu, SIGNAL("aboutToShow()"),
+                         self.update_file_menu)
+            
+            # Edit menu
+            self.edit_menu = self.menuBar().addMenu(self.tr("&Edit"))
             add_actions(self.edit_menu, self.edit_menu_actions)
+            self.connect(self.edit_menu, SIGNAL("aboutToShow()"),
+                         self.update_edit_menu)
                     
             # View menu
             self.view_menu = QMenu(self.tr("&View"))
@@ -154,23 +165,30 @@ class MainWindow(QMainWindow):
             self.toggle_statusbar(checked)
             
             # Workspace init
-            if CONF.get('workspace', 'enable'):
+            if CONF.get('workspace', 'enable') and first_start:
                 self.set_splash(self.tr("Loading workspace..."))
                 self.workspace = Workspace(self)
                 namespace = self.workspace.namespace
                 
         # Console widget: window's central widget
+        if not first_start:
+            index = self.widgetlist.index(self.console)
+            self.console.shell.interpreter.save_history()
         self.console = Console(self, namespace, self.commands, self.message,
                                self.debug, self.closing)
         self.setCentralWidget(self.console)
-        self.widgetlist.append(self.console)
+        if first_start:
+            self.widgetlist.append(self.console)
+        else:
+            self.widgetlist[index] = self.console
         
         # Working directory changer widget
-        self.workdir = WorkingDirectory( self, self.workdir )
-        self.addToolBar(self.workdir) # new mainwindow toolbar
+        if first_start:
+            self.workdir = WorkingDirectory( self, self.init_workdir )
+            self.addToolBar(self.workdir) # new mainwindow toolbar
         self.connect(self.console.shell, SIGNAL("refresh()"),
                      self.workdir.refresh)
-        if not self.light:
+        if not self.light and first_start:
             self.view_menu.addAction(self.workdir.toggleViewAction())
         
         if not self.light:
@@ -178,36 +196,41 @@ class MainWindow(QMainWindow):
             self.connect(self.console.shell, SIGNAL("status(QString)"), 
                          self.send_to_statusbar)
 
-            # Editor widget
-            self.set_splash(self.tr("Loading editor widget..."))
-            self.editor = Editor( self )
-            self.add_dockwidget(self.editor)
+            if first_start:
+                # Editor widget
+                self.set_splash(self.tr("Loading editor widget..."))
+                self.editor = Editor( self )
+                self.add_dockwidget(self.editor)
             self.add_to_menubar(self.editor, self.tr("&Source"))
             self.add_to_toolbar(self.editor)
         
             # Workspace
             if CONF.get('workspace', 'enable'):
-                self.set_splash(self.tr("Loading workspace widget..."))
-                self.workspace.set_interpreter(self.console.shell.interpreter)
-                self.add_dockwidget(self.workspace)
+                if first_start:
+                    self.set_splash(self.tr("Loading workspace widget..."))
+                    self.add_dockwidget(self.workspace)
                 self.toolbar.addSeparator()
                 self.add_to_toolbar(self.workspace)
+                self.workspace.set_interpreter(self.console.shell.interpreter)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.workspace.refresh)
 
             # History log widget
             if CONF.get('history', 'enable'):
-                self.set_splash(self.tr("Loading history widget..."))
-                self.historylog = HistoryLog( self )
-                self.add_dockwidget(self.historylog)
+                if first_start:
+                    self.set_splash(self.tr("Loading history widget..."))
+                    self.historylog = HistoryLog( self )
+                    self.add_dockwidget(self.historylog)
+                self.historylog.set_interpreter(self.console.shell.interpreter)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.historylog.refresh)
         
             # Doc viewer widget
             if CONF.get('docviewer', 'enable'):
-                self.set_splash(self.tr("Loading docviewer widget..."))
-                self.docviewer = DocViewer( self )
-                self.add_dockwidget(self.docviewer)
+                if first_start:
+                    self.set_splash(self.tr("Loading docviewer widget..."))
+                    self.docviewer = DocViewer( self )
+                    self.add_dockwidget(self.docviewer)
                 self.console.shell.set_docviewer(self.docviewer)
         
         if not self.light:
@@ -223,6 +246,12 @@ class MainWindow(QMainWindow):
 
             # Console menu
             self.console.menu_actions = self.console.menu_actions[:-2]
+            restart_action = create_action(self,
+                                           self.tr("Restart Python interpreter"),
+                                           tip=self.tr("Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another"),
+                                           icon=get_icon('clear.png'),
+                                           triggered=self.restart_interpreter)
+            self.console.menu_actions += [None, restart_action]
             self.add_to_menubar(self.console)
             
             # Workspace menu
@@ -240,21 +269,22 @@ class MainWindow(QMainWindow):
             if self.console.shell.help_action is not None:
                 help_menu.addAction(self.console.shell.help_action)
                 
-        # Window set-up
-        section = 'lightwindow' if self.light else 'window'
-        width, height = CONF.get(section, 'size')
-        self.resize( QSize(width, height) )
-        posx, posy = CONF.get(section, 'position')
-        self.move( QPoint(posx, posy) )
-        
-        if not self.light:
-            # Always copy selection feature
-            state = CONF.get('global', 'copy_selection', False)
-            self.alwayscopyselection_action.setChecked(state)
-            self.toggle_alwayscopyselection(state)
-            # Window layout
-            hexstate = CONF.get(section, 'state')
-            self.restoreState( QByteArray().fromHex(hexstate) )
+        if first_start:
+            # Window set-up
+            section = 'lightwindow' if self.light else 'window'
+            width, height = CONF.get(section, 'size')
+            self.resize( QSize(width, height) )
+            posx, posy = CONF.get(section, 'position')
+            self.move( QPoint(posx, posy) )
+            
+            if not self.light:
+                # Always copy selection feature
+                state = CONF.get('global', 'copy_selection', False)
+                self.alwayscopyselection_action.setChecked(state)
+                self.toggle_alwayscopyselection(state)
+                # Window layout
+                hexstate = CONF.get(section, 'state')
+                self.restoreState( QByteArray().fromHex(hexstate) )
             
         self.splash.hide()
         # Give focus to shell widget
@@ -489,6 +519,23 @@ class MainWindow(QMainWindow):
             if hasattr(self, widget_name):
                 editor = self.get_editor( getattr(self, widget_name))
                 editor.always_copy_selection = state
+                
+    def restart_interpreter(self):
+        """Restart Python interpreter"""
+        answer = QMessageBox.warning(self, self.tr("Restart Python interpreter"),
+                    self.tr("Python interpreter will be restarted: all the objects created during this session will be lost (that includes imported modules which will have to be imported again).\n\nDo you want to continue?"),
+                    QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.No:
+            return
+        namespace = self.workspace.get_namespace()
+        if namespace:
+            answer = QMessageBox.question(self, self.tr("Workspace"),
+                        self.tr("Do you want to keep workspace data available?"),
+                        QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.No:
+                namespace = None
+        self.start(namespace, first_start=False)
+
         
 def get_options():
     """

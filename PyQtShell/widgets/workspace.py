@@ -117,10 +117,14 @@ class Workspace(DictEditorTableView, WidgetMixin):
         """Bind to interpreter"""
         self.interpreter = interpreter
         self.refresh()
+        
+    def get_namespace(self):
+        """Return filtered namespace"""
+        return wsfilter(self.namespace)
     
     def _clear_namespace(self):
         """Clear namespace"""
-        keys = wsfilter(self.namespace).keys()
+        keys = self.get_namespace().keys()
         for key in keys:
             self.namespace.pop(key)
         self.refresh()
@@ -212,7 +216,7 @@ class Workspace(DictEditorTableView, WidgetMixin):
             # Saving workspace
             self.save()
         else:
-            workspace = wsfilter(self.namespace)
+            workspace = self.get_namespace()
             if workspace is None:
                 return True
             refnb = len(workspace)
@@ -322,7 +326,7 @@ class Workspace(DictEditorTableView, WidgetMixin):
         if self.main:
             self.main.set_splash(self.tr("Saving workspace..."))
         try:
-            cPickle.dump(wsfilter(self.namespace), file(self.filename, 'w'))
+            cPickle.dump(self.get_namespace(), file(self.filename, 'w'))
         except RuntimeError, error:
             if self.main:
                 self.main.splash.hide()
