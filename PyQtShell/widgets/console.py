@@ -26,8 +26,9 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QWidget, QApplication, QCursor, QVBoxLayout,
-                         QFileDialog, QFontDialog, QInputDialog, QLineEdit)
-from PyQt4.QtCore import Qt, SIGNAL
+                         QFileDialog, QFontDialog, QInputDialog, QLineEdit,
+                         QFontMetricsF)
+from PyQt4.QtCore import Qt, SIGNAL, QSize
 
 import os, re, sys
 
@@ -83,6 +84,12 @@ class Console(QWidget, WidgetMixin):
         # Accepting drops
         self.setAcceptDrops(True)
         
+    def minimumSizeHint(self):
+        """Reimplement Qt method to set minimum size"""
+        font = get_font(self.ID)
+        fm = QFontMetricsF(font)
+        return QSize(fm.width(" "*80), fm.height()*25)
+        
     def change_cursor(self, state):
         """Change widget cursor"""
         if state:
@@ -105,7 +112,6 @@ class Console(QWidget, WidgetMixin):
     
     def set_actions(self):
         """Setup actions"""
-        #TODO: Action to restart Python shell
         self.quit_action = create_action(self,
                             self.tr("&Quit"), self.tr("Ctrl+Q"),
                             get_std_icon("DialogCloseButton"), self.tr("Quit"),
