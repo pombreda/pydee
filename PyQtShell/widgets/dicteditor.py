@@ -348,8 +348,7 @@ class DictDelegate(QItemDelegate):
         key = index.model().get_key(index)
         #---editor = DictEditor
         if isinstance(value, (list, tuple, dict)) and not self.inplace:
-            editor = DictEditorDialog(value, key,
-                                      icon=self.parent().windowIcon())
+            editor = DictEditor(value, key, icon=self.parent().windowIcon())
             if editor.exec_():
                 index.model().set_value(index, editor.get_copy())
             return None
@@ -691,7 +690,7 @@ class DictEditorWidget(QWidget):
         return self.editor.model.title
 
 
-class DictEditorDialog(QDialog):
+class DictEditor(QDialog):
     """Dictionary/List Editor Dialog"""
     def __init__(self, data, title="", width=500,
                  readonly=False, icon='dictedit.png'):
@@ -733,24 +732,31 @@ class DictEditorDialog(QDialog):
         return self.copy
     
     
-def main():
-    """Dict editor demo"""
-    from PyQt4.QtGui import QApplication
-    QApplication([])
-    import numpy
-    dico = {'str': 'kjkj kj k j j kj k jkj',
-            'list': [1, 3, 4, 'kjkj', None],
-            'dict': {'d': 1, 'a': numpy.random.rand(10, 10), 'b': [1, 2]},
-            'float': 1.2233,
-            'array': numpy.random.rand(10, 10),
-            'date': datetime.date(1945, 5, 8),
-            'datetime': datetime.datetime(1945, 5, 8),
-            }
-    dialog = DictEditorDialog(dico, title="Bad title")
+def dedit(seq):
+    """
+    Edit the sequence 'seq' in a GUI-based editor and return the edited copy
+    (if Cancel is pressed, return None)
+
+    The object 'seq' is a container (dict, list or tuple)
+
+    (instantiate a new QApplication if necessary,
+    so it can be called directly from the interpreter)
+    """
+    if QApplication.startingUp():
+        QApplication([])
+    dialog = DictEditor(seq)
     if dialog.exec_():
-        print "Accepted:", dialog.get_copy()
-    else:
-        print "Canceled"
+        return dialog.get_copy()
 
 if __name__ == "__main__":
-    main()
+    import numpy as N
+    example = {'str': 'kjkj kj k j j kj k jkj',
+               'list': [1, 3, 4, 'kjkj', None],
+               'dict': {'d': 1, 'a': N.random.rand(10, 10), 'b': [1, 2]},
+               'float': 1.2233,
+               'array': N.random.rand(10, 10),
+               'date': datetime.date(1945, 5, 8),
+               'datetime': datetime.datetime(1945, 5, 8),
+            }
+    print "result:", dedit(example)
+    

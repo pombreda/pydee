@@ -27,7 +27,7 @@ from PyQt4.QtGui import QDialog, QMessageBox, QApplication
 import os
 
 # Local imports
-from PyQtShell.widgets.dicteditor import DictEditorDialog
+from PyQtShell.widgets.dicteditor import DictEditor
 from PyQtShell.qthelpers import translate
 
 def envdict2listdict(envdict):
@@ -44,7 +44,7 @@ def listdict2envdict(listdict):
             listdict[key] = os.path.pathsep.join(listdict[key])
     return listdict
 
-class EnvDialog(DictEditorDialog):
+class EnvDialog(DictEditor):
     """Environment variables Dialog"""
     def __init__(self):
         super(EnvDialog, self).__init__(envdict2listdict( dict(os.environ) ),
@@ -87,7 +87,7 @@ try:
         for name in reg:
             SetValueEx(key, name, 0, types[name], reg[name])
             
-    class WinUserEnvDialog(DictEditorDialog):
+    class WinUserEnvDialog(DictEditor):
         """Windows User Environment Variables Editor"""
         def __init__(self, parent=None):
             super(WinUserEnvDialog, self).__init__(get_user_env(),
