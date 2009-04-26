@@ -57,10 +57,7 @@ try:
         },
         )
 except ImportError:
-    from distutils.core import setup
-    addl_args = dict(
-        scripts = scripts
-        )
+    pass
 
 setup(
       name = name,
