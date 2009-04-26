@@ -313,7 +313,7 @@ class MainWindow(QMainWindow):
         
     def update_edit_menu(self):
         """Update edit menu"""
-        widget = self.which_has_focus()
+        widget = self.which_has_focus()        
         not_readonly = widget in [self.editor, self.console]
         
         # Editor has focus and there is no file opened in it
@@ -336,6 +336,13 @@ class MainWindow(QMainWindow):
         self.cut_action.setEnabled(has_selection and not_readonly)
         self.paste_action.setEnabled(not_readonly)    
         self.delete_action.setEnabled(has_selection and not_readonly)
+        
+        # Disable the following actions for non-editor-based widgets
+        if widget is None:
+            self.selectall_action.setEnabled(False)
+            self.find_action.setEnabled(False)
+            if self.workspace.hasFocus():
+                self.paste_action.setEnabled(True)
         
     def set_splash(self, message):
         """Set splash message"""
@@ -508,10 +515,13 @@ class MainWindow(QMainWindow):
     def global_callback(self):
         """Global callback"""
         widget = self.which_has_focus()
+        action = self.sender()
+        callback = unicode(action.data().toString())
         if widget:
-            action = self.sender()
-            callback = unicode(action.data().toString())
             getattr( self.get_editor(widget), callback )()
+        elif self.workspace.hasFocus():
+            if hasattr(self.workspace, callback):
+                getattr(self.workspace, callback)()
             
     def toggle_alwayscopyselection(self, state):
         """Toggle always copy selection feature"""
