@@ -101,7 +101,6 @@ class Workspace(DictEditorTableView, WidgetMixin):
         DictEditorTableView.__init__(self, parent, None)
         WidgetMixin.__init__(self, parent)
         self.load_temp_namespace()
-        QShortcut(QKeySequence("Ctrl+E"), self, self.remove_item)
         
     def get_name(self):
         """Return widget name"""
