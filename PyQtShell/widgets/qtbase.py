@@ -18,7 +18,13 @@
 #    along with PyQtShell; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-"""Editor and terminal base widgets used only if QScintilla is not installed"""
+"""
+Editor and terminal base widgets used only if QScintilla is not installed
+
+WARNING:
+This module is no longer maintained as QScintilla has been chosen
+as default text editor widget for PyQtShell (04/26/09)
+"""
 
 from PyQt4.QtCore import Qt, QString, SIGNAL, QEvent, QRegExp, QPoint
 from PyQt4.QtGui import (QTextEdit, QTextCursor, QColor, QFont, QCursor,
