@@ -552,6 +552,8 @@ class DictEditorTableView(QTableView):
 
     def copy(self):
         """Copy text to clipboard"""
+        #TODO: Implement the copy feature in DictEditor
+        # (user should be able to copy/paste to duplicate an item for example)
         raise NotImplementedError()
     
     def paste(self):
