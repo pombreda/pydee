@@ -18,7 +18,7 @@
 #    along with PyQtShell; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-"""Shell base widget: link between Terminal and Interpreter"""
+"""Shell base widget: link between QsciTerminal and Interpreter"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
@@ -54,12 +54,11 @@ from PyQtShell.dochelpers import getargtxt
 from PyQtShell.encoding import transcode
 from PyQtShell.config import CONF, get_icon, get_font
 try:
-    from PyQtShell.widgets.qscibase import QsciTerminal as Terminal
-except ImportError:
-    print >> STDERR, "Warning: future versions of PyQtShell" + \
-        " will be exclusively based on QScintilla2\n" + \
+    from PyQtShell.widgets.qscibase import QsciTerminal
+except ImportError, e:
+    raise ImportError, str(e) + \
+        "\nPyQtShell v0.3.23+ is exclusively based on QScintilla2\n" + \
         "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
-    from PyQtShell.widgets.qtbase import QtTerminal as Terminal
 
 
 def guess_filename(filename):
@@ -99,8 +98,8 @@ class IOHandler(object):
     def flush(self):
         pass
 
-class ShellBaseWidget(Terminal):
-    """Shell base widget: link between Terminal and Interpreter"""
+class ShellBaseWidget(QsciTerminal):
+    """Shell base widget: link between QsciTerminal and Interpreter"""
     try:
         p1 = sys.p1
     except AttributeError:
@@ -113,7 +112,7 @@ class ShellBaseWidget(Terminal):
                  debug=False, exitfunc=None):
         self.__buffer = []
         self.__timestamp = 0.0
-        Terminal.__init__(self, parent)
+        QsciTerminal.__init__(self, parent)
         
         # Context menu
         self.menu = None

@@ -43,18 +43,20 @@ from PyQtShell.qthelpers import (create_action, add_actions, mimedata2url,
                                  keybinding, translate)
 from PyQtShell.dochelpers import getdoc, getsource
 try:
-    from PyQtShell.widgets.qscibase import QsciEditor as EditorBaseWidget
-except ImportError:
-    from PyQtShell.widgets.qtbase import QtEditor as EditorBaseWidget
+    from PyQtShell.widgets.qscibase import QsciEditor
+except ImportError, e:
+    raise ImportError, str(e) + \
+        "\nPyQtShell v0.3.23+ is exclusively based on QScintilla2\n" + \
+        "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
 
 # Package local imports
 from PyQtShell.widgets.base import WidgetMixin, EditableComboBox, FindReplace
 
 
-class SimpleEditor(EditorBaseWidget):
+class SimpleEditor(QsciEditor):
     """
     Simple Editor Widget
-    QsciEditor/QtEditor -> *SimpleEditor* -> SimpleScriptEditor, DocViewer, ...
+    QsciEditor -> *SimpleEditor* -> SimpleScriptEditor, DocViewer, ...
     """
     def __init__(self, parent, margin=True):
         super(SimpleEditor, self).__init__(parent, margin=margin)
