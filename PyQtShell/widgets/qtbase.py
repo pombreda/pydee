@@ -137,8 +137,8 @@ class AlmostQsciScintilla(QTextEdit):
 
 
 
-#TODO: Improve "PythonHighlighter" performance... very slow for large files!
-#      --> maybe grab some ideas from "idlelib/ColorDelegator.py"
+# Improve "PythonHighlighter" performance... very slow for large files!
+# --> maybe grab some ideas from "idlelib/ColorDelegator.py"
 class PythonHighlighter(QSyntaxHighlighter):
     """
     Copyright (c) 2007-8 Qtrac Ltd. All rights reserved.
