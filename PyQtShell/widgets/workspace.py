@@ -171,8 +171,14 @@ class Workspace(DictEditorTableView, WidgetMixin):
             triggered = self.save_as)
         exclude_private_action = create_action(self,
             self.tr("Exclude private references"),
+            tip=self.tr("Exclude references which name starts with an underscore"),
             toggled=self.toggle_exclude_private)
         exclude_private_action.setChecked( CONF.get(self.ID, 'exclude_private') )
+        exclude_upper_action = create_action(self,
+            self.tr("Exclude capitalized references"),
+            tip=self.tr("Exclude references which name starts with an upper-case character"),
+            toggled=self.toggle_exclude_upper)
+        exclude_upper_action.setChecked( CONF.get(self.ID, 'exclude_upper') )
 
         refresh_action = create_action(self, self.tr("Refresh"), None,
             'ws_refresh.png', self.tr("Refresh workspace"),
@@ -195,8 +201,9 @@ class Workspace(DictEditorTableView, WidgetMixin):
         menu_actions = (refresh_action, autorefresh_action, None,
                         self.fulldisplay_action,
                         self.sort_action, self.inplace_action, None,
-                        exclude_private_action, None, new_action, open_action,
-                        save_action,save_as_action, autosave_action,
+                        exclude_private_action, exclude_upper_action, None,
+                        new_action, open_action,
+                        save_action, save_as_action, autosave_action,
                         None, clear_action)
         toolbar_actions = (refresh_action, open_action, save_action)
         return (menu_actions, toolbar_actions)
@@ -342,5 +349,10 @@ class Workspace(DictEditorTableView, WidgetMixin):
     def toggle_exclude_private(self, checked):
         """Toggle exclude private references"""
         CONF.set(self.ID, 'exclude_private', checked)
+        self.refresh()
+        
+    def toggle_exclude_upper(self, checked):
+        """Toggle exclude upper-case references"""
+        CONF.set(self.ID, 'exclude_upper', checked)
         self.refresh()
 
