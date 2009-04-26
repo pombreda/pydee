@@ -288,6 +288,15 @@ class DictModelRO(QAbstractTableModel):
         else:
             return QVariant( self.keys[i_column] )
 
+    def flags(self, index):
+        """Overriding method flags"""
+        # This method was implemented in DictModel only, but to enable tuple
+        # exploration (even without editing), this method was moved here
+        if not index.isValid():
+            return Qt.ItemIsEnabled
+        return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
+                            Qt.ItemIsEditable)
+
 class DictModel(DictModelRO):
     """DictEditor Table Model"""
     
@@ -326,13 +335,6 @@ class DictModel(DictModelRO):
                   index, index)
         return True
 
-    def flags(self, index):
-        """Overriding method flags"""
-        if not index.isValid():
-            return Qt.ItemIsEnabled
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
-                            Qt.ItemIsEditable)
-
 
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""
@@ -346,20 +348,22 @@ class DictDelegate(QItemDelegate):
             return None
         value = index.model().get_value(index)
         key = index.model().get_key(index)
+        readonly = isinstance(value, tuple) or self.parent().readonly
         #---editor = DictEditor
         if isinstance(value, (list, tuple, dict)) and not self.inplace:
-            editor = DictEditor(value, key, icon=self.parent().windowIcon())
-            if editor.exec_():
+            editor = DictEditor(value, key, icon=self.parent().windowIcon(),
+                                readonly=readonly)
+            if editor.exec_() and not readonly:
                 index.model().set_value(index, editor.get_copy())
             return None
         #---editor = ArrayEditor
         elif isinstance(value, ndarray) and ndarray is not FakeObject \
                                         and not self.inplace:
             editor = ArrayEditor(value, key)
-            if editor.exec_():
+            if editor.exec_() and not readonly:
                 index.model().set_value(index, editor.get_copy())
             return None
-        #---editor = QDateEdit
+        #---editor = QDateTimeEdit
         elif isinstance(value, datetime.datetime) and not self.inplace:
             editor = QDateTimeEdit(value, parent)
             editor.setCalendarPopup(True)
@@ -378,7 +382,7 @@ class DictDelegate(QItemDelegate):
         #---editor = QTextEdit
         elif isinstance(value, (str, unicode)) and len(value)>40:
             editor = TextEditor(value, key)
-            if editor.exec_():
+            if editor.exec_() and not readonly:
                 conv = str if isinstance(value, str) else unicode
                 index.model().set_value(index, conv(editor.get_copy()))
             return None
@@ -413,6 +417,9 @@ class DictDelegate(QItemDelegate):
     def setModelData(self, editor, model, index):
         """Overriding method setModelData
         Editor --> Model"""
+        if not hasattr(index.model(), "set_value"):
+            # Read-only mode
+            return
         if isinstance(editor, QLineEdit):
             model.setData(index, QVariant(editor.text()))
         elif isinstance(editor, QDateEdit):
@@ -766,12 +773,15 @@ def dedit(seq):
 
 if __name__ == "__main__":
     import numpy as N
+    testdict = {'d': 1, 'a': N.random.rand(10, 10), 'b': [1, 2]}
+    testdate = datetime.date(1945, 5, 8)
     example = {'str': 'kjkj kj k j j kj k jkj',
                'list': [1, 3, 4, 'kjkj', None],
-               'dict': {'d': 1, 'a': N.random.rand(10, 10), 'b': [1, 2]},
+               'tuple': ([1, testdate, testdict], 'kjkj', None),
+               'dict': testdict,
                'float': 1.2233,
                'array': N.random.rand(10, 10),
-               'date': datetime.date(1945, 5, 8),
+               'date': testdate,
                'datetime': datetime.datetime(1945, 5, 8),
             }
     print "result:", dedit(example)
