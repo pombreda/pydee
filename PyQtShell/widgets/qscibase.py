@@ -334,19 +334,19 @@ class QsciEditor(QsciScintilla):
 
 
 #TODO: Prepare code for IPython integration:
-#        - implement the self.input_buffer property (see qt_console_widget.py)
-#        - remove all references to prompt (there is no need to keep prompt
-#          string in self.prompt) and use prompt position instead (like it's
-#          done in qt_console_widget.py: self.current_prompt_pos -- do not
-#          implement self.current_prompt_line which is dead code from the
-#          porting from wx's console_widget.py)
-#        - implement the 'new_prompt' method like in qt_console_widget.py
-#        - implement the 'pop_completion' method like in qt_console_widget.py
-#          (easy... just rename a few methods here and there)
-#        - implement the 'new_prompt' method like in qt_console_widget.py
-#        - implement '_configure_scintilla', '_apply_style', ...
-#        - implement 'write' method -> this change will eventually require
-#          to merge with shellbase.py where there's already a 'write' method
+#    - implement the self.input_buffer property (see qt_console_widget.py)
+#    - remove all references to prompt (there is no need to keep prompt
+#      string in self.prompt) and use prompt position instead (like it's
+#      done in qt_console_widget.py: self.current_prompt_pos -- do not
+#      implement self.current_prompt_line which is dead code from the
+#      porting from wx's console_widget.py)
+#    - implement the 'new_prompt' method like in qt_console_widget.py
+#    - implement the 'pop_completion' method like in qt_console_widget.py
+#      (easy... just rename a few methods here and there)
+#    - implement the 'new_prompt' method like in qt_console_widget.py
+#    - implement '_configure_scintilla', '_apply_style', ...
+#    - implement 'write' method -> this change will eventually require
+#      to merge with shellbase.py where there's already a 'write' method
 class QsciTerminal(QsciScintilla):
     """
     Terminal based on QScintilla
@@ -451,13 +451,11 @@ class QsciTerminal(QsciScintilla):
     #------ Utilities
     def getpointy(self, cursor=True, end=False, prompt=False):
         """Return point y of cursor, end or prompt"""
-        if cursor:
-            line, index = self.getCursorPosition()
-        elif end:
+        line, index = self.getCursorPosition()
+        if end:
             line, index = self.__get_end_pos()
         elif prompt:
-            #TODO: get prompt position
-            raise NotImplementedError()
+            index = 0
         pos = self.positionFromLineIndex(line, index)
         return self.SendScintilla(QsciScintilla.SCI_POINTYFROMPOSITION,
                                   0, pos)
@@ -804,10 +802,8 @@ class QsciTerminal(QsciScintilla):
                 self.SendScintilla(QsciScintilla.SCI_LINEEND)
 
         elif key == Qt.Key_Up:
-            #TODO: when prompt position (line, index) will be known
-            #      add an "elif cursor line < last line" to be able
-            #      to go down if line is wrapped
-            if self.isListActive():
+            if self.isListActive() or \
+               self.getpointy() > self.getpointy(prompt=True):
                 self.SendScintilla(QsciScintilla.SCI_LINEUP)
             else:
                 self.__browse_history(backward=True)
