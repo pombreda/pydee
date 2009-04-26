@@ -37,7 +37,7 @@ from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
 from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
                          QVBoxLayout, QWidget, QColor, QDialog, QDateEdit,
                          QDialogButtonBox, QMenu, QInputDialog, QDateTimeEdit,
-                         QApplication)
+                         QApplication, QKeySequence)
 
 # Local import
 from PyQtShell.config import get_icon, get_font
@@ -491,6 +491,20 @@ class DictEditorTableView(QTableView):
         add_actions(vert_menu, (self.rename_action,self.duplicate_action,
                             self.remove_action))
         return menu, vert_menu
+    
+    def keyPressEvent(self, event):
+        """Reimplement Qt methods"""
+        if event.key() == Qt.Key_Delete:
+            self.remove_item()
+            event.accept()
+        elif event.key() == Qt.Key_F2:
+            self.rename_item()
+            event.accept()
+        elif event == QKeySequence.Paste:
+            self.paste_from_clipboard()
+            event.accept()
+        else:
+            QTableView.keyPressEvent(self, event)
     
     def edit_item(self):
         """Edit item"""
