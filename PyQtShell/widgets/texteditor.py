@@ -67,7 +67,7 @@ class TextEditor(QDialog):
         
     def get_copy(self):
         """Return modified text"""
-        return self.edit.toPlainText()
+        return unicode(self.edit.toPlainText())
     
     
 def main():
