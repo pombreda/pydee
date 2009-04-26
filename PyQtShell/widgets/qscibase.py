@@ -373,8 +373,7 @@ class QsciTerminal(QsciScintilla):
         
         # history
         self.histidx = None
-        self.incremental_search_string = ""
-        self.incremental_search_active = False
+        self.hist_wholeline = False
         
         # Indentation
         self.setAutoIndent(True)
@@ -450,6 +449,18 @@ class QsciTerminal(QsciScintilla):
         
         
     #------ Utilities
+    def getpointy(self, cursor=True, end=False, prompt=False):
+        """Return point y of cursor, end or prompt"""
+        if cursor:
+            line, index = self.getCursorPosition()
+        elif end:
+            line, index = self.__get_end_pos()
+        elif prompt:
+            #TODO: get prompt position
+            raise NotImplementedError()
+        pos = self.positionFromLineIndex(line, index)
+        return self.SendScintilla(QsciScintilla.SCI_POINTYFROMPOSITION,
+                                  0, pos)
     def __remove_prompts(self, text):
         """Remove prompts from text"""
         return text[len(self.prompt):]
@@ -643,8 +654,7 @@ class QsciTerminal(QsciScintilla):
 
     def get_new_line(self):
         """Enter or Return -> get new line"""
-        self.incremental_search_string = ""
-        self.incremental_search_active = False
+        self.histidx = None
         line, col = self.__get_end_pos()
         self.setCursorPosition(line, col)
         buf = self.__extract_from_text(line)
@@ -794,55 +804,20 @@ class QsciTerminal(QsciScintilla):
                 self.SendScintilla(QsciScintilla.SCI_LINEEND)
 
         elif key == Qt.Key_Up:
+            #TODO: when prompt position (line, index) will be known
+            #      add an "elif cursor line < last line" to be able
+            #      to go down if line is wrapped
             if self.isListActive():
                 self.SendScintilla(QsciScintilla.SCI_LINEUP)
             else:
-                line, _ = self.__get_end_pos()
-                buf = self.__extract_from_text(line)
-                if buf and self.incremental_search_active:
-                    if self.incremental_search_string:
-                        idx = self.__rsearch_history( \
-                            self.incremental_search_string, self.histidx)
-                        if idx >= 0:
-                            self.histidx = idx
-                            self.__use_history()
-                    else:
-                        idx = self.__rsearch_history(buf)
-                        if idx >= 0:
-                            self.histidx = idx
-                            self.incremental_search_string = buf
-                            self.__use_history()
-                else:
-                    if self.histidx is None:
-                        self.histidx = len(self.interpreter.history)
-                    if self.histidx > 0:
-                        self.histidx = self.histidx - 1
-                        self.__use_history()
+                self.__browse_history(backward=True)
                 
         elif key == Qt.Key_Down:
-            if self.isListActive():
+            if self.isListActive() or \
+               self.getpointy() < self.getpointy(end=True):
                 self.SendScintilla(QsciScintilla.SCI_LINEDOWN)
             else:
-                line, _col = self.__get_end_pos()
-                buf = self.__extract_from_text(line)
-                if buf and self.incremental_search_active:
-                    if self.incremental_search_string:
-                        idx = self.__search_history( \
-                            self.incremental_search_string, self.histidx)
-                        if idx >= 0:
-                            self.histidx = idx
-                            self.__use_history()
-                    else:
-                        idx = self.__search_history(buf)
-                        if idx >= 0:
-                            self.histidx = idx
-                            self.incremental_search_string = buf
-                            self.__use_history()
-                else:
-                    if self.histidx >= 0 and \
-                       self.histidx < len(self.interpreter.history):
-                        self.histidx += 1
-                        self.__use_history()
+                self.__browse_history(backward=False)
             
         elif key == Qt.Key_PageUp:
             if self.isListActive() or self.isCallTipActive():
@@ -894,11 +869,11 @@ class QsciTerminal(QsciScintilla):
             self.zoomOut()
 
         elif text.length():
+            self.hist_wholeline = False
             if keyevent is None:
                 self.insert_text(text)
             else:
                 QsciScintilla.keyPressEvent(self, event)
-            self.incremental_search_active = True
             if self.isListActive():
                 self.completion_chars += 1
 
@@ -943,55 +918,50 @@ class QsciTerminal(QsciScintilla):
     
   
     #------ History Management
-    #TODO: use the browse/find history methods of qtbase.py
-    def __use_history(self):
-        """
-        Private method to display a command from the history
-        """
-        if self.histidx < len(self.interpreter.history):
-            cmd = QString( self.interpreter.history[self.histidx] )
-        else:
-            cmd = QString()
-            self.incremental_search_string = ""
-            self.incremental_search_active = False
-        self.setCursorPosition(self.prline, self.prcol \
-            + len(self.more and self.p1 or self.p2))
-        self.setSelection(self.prline, self.prcol, \
-            self.prline,self.lineLength(self.prline))
-        self.removeSelectedText()
-        self.insert_text(cmd)
+    def __browse_history(self, backward):
+        """Browse history"""
+        line, index = self.getCursorPosition()
+        if index<self.lineLength(line) and self.hist_wholeline:
+            self.hist_wholeline = False
+        tocursor = self.__get_current_line_to_cursor()
+        text, self.histidx = self.__find_in_history(tocursor,
+                                                    self.histidx, backward)
+        if text is not None:
+            if self.hist_wholeline:
+                self.clear_line()
+                self.insert_text(text)
+            else:
+                # Removing text from cursor to the end of the line
+                self.setSelection(line, index, line, self.lineLength(line))
+                self.removeSelectedText()
+                # Inserting history text
+                self.insert_text(text)
+                self.setCursorPosition(line, index)
 
-    def __search_history(self, txt, start_index = -1):
-        """
-        Private method used to search the history
-        txt: text to match at the beginning (string or QString)
-        start_index: index to start search from (integer)
-        @return index of 
-        """
-        if start_index == -1:
-            idx = 0
+    def __find_in_history(self, tocursor, start_idx, backward):
+        """Find text 'tocursor' in history, from index 'start_idx'"""
+        history = self.interpreter.history
+        if start_idx is None:
+            start_idx = len(history)
+        # Finding text in history
+        step = -1 if backward else 1
+        idx = start_idx
+        if len(tocursor) == 0 or self.hist_wholeline:
+            idx += step
+            if idx >= len(history):
+                return "", len(history)
+            elif idx < 0:
+                idx = 0
+            self.hist_wholeline = True
+            return history[idx], idx
         else:
-            idx = start_index + 1
-        while idx < len(self.interpreter.history) and \
-              not self.interpreter.history[idx].startswith(txt):
-            idx += 1
-        return idx
-    
-    def __rsearch_history(self, txt, start_index = -1):
-        """
-        Private method used to reverse search the history
-        txt: text to match at the beginning (string or QString)
-        start_index: index to start search from (integer)
-        @return index of 
-        """
-        if start_index == -1:
-            idx = len(self.interpreter.history) - 1
-        else:
-            idx = start_index - 1
-        while idx >= 0 and \
-              not self.interpreter.history[idx].startswith(txt):
-            idx -= 1
-        return idx
+            for index in xrange(len(history)):
+                idx = (start_idx+step*(index+1)) % len(history)
+                entry = history[idx]
+                if entry.startswith(tocursor):
+                    return entry[len(tocursor):], idx
+            else:
+                return None, start_idx
 
 
     #------ Miscellanous
