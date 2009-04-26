@@ -25,6 +25,16 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
+#----Builtins
+import __builtin__
+try:
+    from IPython.deep_reload import reload
+    __builtin__.reload = reload
+except ImportError:
+    pass
+from PyQtShell.widgets.objecteditor import oedit
+__builtin__.oedit = oedit
+
 import sys, os
 from subprocess import Popen, PIPE
 from time import time
@@ -86,6 +96,8 @@ class IOHandler(object):
         self._write = write
     def write(self, cmd):
         self._write(cmd)
+    def flush(self):
+        pass
 
 class ShellBaseWidget(Terminal):
     """Shell base widget: link between Terminal and Interpreter"""
@@ -138,9 +150,6 @@ class ShellBaseWidget(Terminal):
         banner = create_banner(self.tr('Type "copyright", "credits" or "license" for more information.'), message)
         self.setUndoRedoEnabled(False) #-disable undo/redo for a time being
         self.write(banner, flush=True)
-        
-        # Adding oedit to interpreter namespace
-        commands.append('from PyQtShell.widgets.objecteditor import oedit')
 
         # Initial commands
         for cmd in commands:
