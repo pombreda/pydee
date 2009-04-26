@@ -461,7 +461,7 @@ class DictEditorTableView(QTableView):
                                       triggered=self.insert_item)
         self.paste_action = create_action(self,
                                       translate("DictEditor", "Paste"),
-                                      triggered=self.paste_from_clipboard)
+                                      triggered=self.paste)
         self.remove_action = create_action(self, 
                                       translate("DictEditor", "Remove"),
                                       icon=get_icon('delete.png'),
@@ -501,7 +501,7 @@ class DictEditorTableView(QTableView):
             self.rename_item()
             event.accept()
         elif event == QKeySequence.Paste:
-            self.paste_from_clipboard()
+            self.paste()
             event.accept()
         else:
             QTableView.keyPressEvent(self, event)
@@ -533,10 +533,6 @@ class DictEditorTableView(QTableView):
                 data.pop( self.model.keys[ idx_row ] )
             self.set_data(data)
 
-    def copy_to_clipboard(self):
-        """Copy text to clipboard"""
-        pass
-    
     def _simplify_shape(self,alist):
         """xxx"""
         if len(alist) == 1:
@@ -554,7 +550,11 @@ class DictEditorTableView(QTableView):
             out.append(self._simplify_shape(line))
         return self._simplify_shape(out)
 
-    def paste_from_clipboard(self):
+    def copy(self):
+        """Copy text to clipboard"""
+        raise NotImplementedError()
+    
+    def paste(self):
         """Paste text from clipboard"""
         clipboard = QApplication.clipboard()
         if clipboard.mimeData().hasText():
@@ -710,8 +710,8 @@ class DictEditor(QDialog):
                  readonly=False, icon='dictedit.png'):
         QDialog.__init__(self)
         import copy
-        self.copy = copy.deepcopy(data)
-        self.widget = DictEditorWidget(self, self.copy, sort_by='type',
+        self.data_copy = copy.deepcopy(data)
+        self.widget = DictEditorWidget(self, self.data_copy, sort_by='type',
                                        title=title, readonly=readonly)
         
         layout = QVBoxLayout()
@@ -743,7 +743,7 @@ class DictEditor(QDialog):
         
     def get_copy(self):
         """Return modified copy of dictionary or list"""
-        return self.copy
+        return self.data_copy
     
     
 def dedit(seq):
