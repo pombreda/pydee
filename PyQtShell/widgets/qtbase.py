@@ -38,9 +38,8 @@ except AttributeError:
 STDOUT = sys.stdout
 
 # Local import
-from PyQtShell.config import get_font, CONF, get_image_path
+from PyQtShell.config import get_font, get_image_path
 from PyQtShell.dochelpers import getobj
-from PyQtShell.qthelpers import mimedata2url
 
 
 class AlmostQsciScintilla(QTextEdit):
@@ -429,7 +428,7 @@ class QtTerminal(AlmostQsciScintilla):
         self.hist_wholeline = False
         
         # completion widget
-        self.completion_widget = None
+        self.completion_tooltip = None
         self.completion_text = None
         self.completion_match = None
         self.hide_completion_widget()
@@ -600,7 +599,7 @@ class QtTerminal(AlmostQsciScintilla):
                                 QTextCursor.KeepAnchor)
             selected_length = self.textCursor().selectedText().length()
             self.textCursor().removeSelectedText()
-            if self.completion_widget:
+            if self.completion_tooltip:
                 if self.completion_text:
                     self.completion_text = self.completion_text[:-selected_length]
                     self.show_completion_widget()
@@ -647,7 +646,7 @@ class QtTerminal(AlmostQsciScintilla):
                 if last_obj:
                     self.show_code_completion(last_obj[:-1])
                     return
-            elif self.completion_widget:
+            elif self.completion_tooltip:
                 self.__completion_list_selected()
             else:
                 self.insert_text("    ")
@@ -700,11 +699,11 @@ class QtTerminal(AlmostQsciScintilla):
                 self.moveCursor(QTextCursor.Down, move_mode)
             
         elif key == Qt.Key_PageUp:
-            if self.completion_widget:
+            if self.completion_tooltip:
                 self.show_completion_widget(pagestep=-1)
             
         elif key == Qt.Key_PageDown:
-            if self.completion_widget:
+            if self.completion_tooltip:
                 self.show_completion_widget(pagestep=1)
                 
         elif key == Qt.Key_V and ctrl:
@@ -743,7 +742,7 @@ class QtTerminal(AlmostQsciScintilla):
             self.hist_wholeline = False
             text = unicode(text)
             self.insert_text(text)
-            if self.completion_widget:
+            if self.completion_tooltip:
                 self.completion_text += text
                 self.show_completion_widget()
 
@@ -877,8 +876,8 @@ class QtTerminal(AlmostQsciScintilla):
 
     def show_completion_widget(self, textlist=None, objtext=None, pagestep=0):
         """Show completion widget"""
-        if self.completion_widget:
-            textlist, objtext, page = self.completion_widget
+        if self.completion_tooltip:
+            textlist, objtext, page = self.completion_tooltip
         else:
             page = 0
             
@@ -887,14 +886,14 @@ class QtTerminal(AlmostQsciScintilla):
         format1 = '<span style=\'font-size: %spt\'>' % font.pointSize()
         format2 = '\n<hr><span style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (font.family(), font.pointSize(), weight)
         
-        if self.completion_widget:
+        if self.completion_tooltip:
             textlist = [txt for txt in textlist \
                         if txt.startswith(self.completion_text)]
             if len(textlist)==0:
                 self.completion_match = ""
                 return
         else:
-            self.completion_widget = (textlist, objtext, 0)
+            self.completion_tooltip = (textlist, objtext, 0)
             self.completion_match = ""
             self.completion_text = ""
         self.completion_match = textlist[0]
@@ -910,7 +909,7 @@ class QtTerminal(AlmostQsciScintilla):
                 page = 0
             elif page == pagenb:
                 page = pagenb-1
-            self.completion_widget = (textlist, objtext, page)
+            self.completion_tooltip = (textlist, objtext, page)
             idx1 = page*maxperpage
             idx2 = min([(page+1)*maxperpage-1, len(textlist)])
             lastpage = (idx2 == len(textlist))
@@ -966,7 +965,7 @@ class QtTerminal(AlmostQsciScintilla):
     def hide_completion_widget(self):
         """Hide completion widget"""
         QToolTip.showText(QPoint(0, 0), "", self)
-        self.completion_widget = None
+        self.completion_tooltip = None
         
     def __completion_list_selected(self):
         """

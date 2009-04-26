@@ -875,6 +875,7 @@ class QsciTerminal(QsciScintilla):
             self.insert_text(text)
             
         elif key == Qt.Key_ParenLeft:
+            self.cancelList()
             self.show_docstring(self.__get_last_obj(), call=True)
             self.insert_text(text)
             
