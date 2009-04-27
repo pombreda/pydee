@@ -88,7 +88,7 @@ class Console(QWidget, WidgetMixin):
         """Reimplement Qt method to set minimum size"""
         font = get_font(self.ID)
         fm = QFontMetricsF(font)
-        return QSize(fm.width(" "*80), fm.height()*25)
+        return QSize(fm.width(" "*80), fm.height()*10)
         
     def change_cursor(self, state):
         """Change widget cursor"""
