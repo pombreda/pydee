@@ -701,9 +701,6 @@ def main():
         from matplotlib import rcParams
         rcParams["interactive"]=True # interactive mode
         rcParams["backend"]="Qt4Agg" # using Qt4 to render figures
-        font = get_font('figure')
-        rcParams["font.sans-serif"].insert(0, unicode(font.family()))
-        rcParams["font.size"] = int(font.pointSize())
         bgcolor = unicode( \
                     QLabel().palette().color(QLabel().backgroundRole()).name() )
         rcParams['figure.facecolor'] = CONF.get('figure', 'facecolor', bgcolor)
