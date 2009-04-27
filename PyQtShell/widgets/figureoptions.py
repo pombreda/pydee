@@ -3,7 +3,7 @@
 
 # This module is a contribution from Brian Clowers (04/23/2009)
 
-import os.path as osp
+import os, sys
 from PyQt4.QtGui import QDialog, QMessageBox, QColor
 from PyQt4.QtCore import Qt, SIGNAL
 from PyQt4.uic import loadUiType
@@ -36,7 +36,9 @@ MARKER_STYLES = dict(none = 'None',
 LINE_COLOR_DICT = {'b':'#0000ff', 'g':'#00ff00','r':'#ff0000','c':'#ff00ff',
                    'm':'#ff00ff','y':'#ffff00','k':'#000000','w':'#ffffff'}
 
-UI = loadUiType(osp.splitext(__file__)[0]+'.ui')[0]
+
+sys.path.append(os.path.dirname(__file__))
+UI = loadUiType(os.path.splitext(__file__)[0]+'.ui')[0]
 
 class FigureParameters(QDialog, UI):
     def __init__(self, canvas=None, parent=None):
