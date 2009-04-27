@@ -171,9 +171,6 @@ DEFAULTS = [
             ('figure',
              {
               'size' : MPL_SIZE,
-              'font/family' : SANS_SERIF,
-              'font/size' : 11,
-              'font/bold' : False,
               'statusbar/font/family' : SANS_SERIF,
               'statusbar/font/size' : 8,
               'statusbar/font/bold' : False,
@@ -182,7 +179,7 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.2.2', load=(not DEV))
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.2.3', load=(not DEV))
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""
