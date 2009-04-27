@@ -4,7 +4,7 @@
 # This module is a contribution from Brian Clowers (04/23/2009)
 
 import os, sys
-from PyQt4.QtGui import QDialog, QMessageBox, QColor
+from PyQt4.QtGui import QDialog, QColor, QDoubleValidator
 from PyQt4.QtCore import Qt, SIGNAL
 from PyQt4.uic import loadUiType
 
@@ -40,6 +40,7 @@ LINE_COLOR_DICT = {'b':'#0000ff', 'g':'#00ff00','r':'#ff0000','c':'#ff00ff',
 sys.path.append(os.path.dirname(__file__))
 UI = loadUiType(os.path.splitext(__file__)[0]+'.ui')[0]
 
+
 class FigureParameters(QDialog, UI):
     def __init__(self, canvas=None, parent=None):
         super(FigureParameters, self).__init__(parent)
@@ -67,29 +68,12 @@ class FigureParameters(QDialog, UI):
             line_dict[line.get_label()]=line
         self.activeplots = line_dict
 
-        self.connect(self.plottitle_lineEdit,
-                     SIGNAL("textEdited(QString)"),
-                     self.setPlotTitle)
-        
-        self.connect(self.xmin_lineEdit,
-                     SIGNAL("editingFinished()"),
-                     self.setXMin)
-        self.connect(self.xmax_lineEdit,
-                     SIGNAL("editingFinished()"),
-                     self.setXMax)
-        self.connect(self.xlabel_lineEdit,
-                     SIGNAL("textEdited(QString)"),
-                     self.setXLabel)
-        
-        self.connect(self.ymin_lineEdit,
-                     SIGNAL("editingFinished()"),
-                     self.setYMin)
-        self.connect(self.ymax_lineEdit,
-                     SIGNAL("editingFinished()"),
-                     self.setYMax)
-        self.connect(self.ylabel_lineEdit,
-                     SIGNAL("textEdited(QString)"),
-                     self.setYLabel)
+        # Validators
+        validator = QDoubleValidator(self)
+        self.xmin_lineEdit.setValidator(validator)
+        self.xmax_lineEdit.setValidator(validator)
+        self.ymin_lineEdit.setValidator(validator)
+        self.ymax_lineEdit.setValidator(validator)
         
         self.connect(self.activePlotListWidget,
                      SIGNAL("itemClicked(QListWidgetItem *)"),
@@ -114,12 +98,6 @@ class FigureParameters(QDialog, UI):
                      SIGNAL("colorChanged(QColor)"),
                      self.setMColor)
         
-        self.connect(self.logx_cb,
-                     SIGNAL("stateChanged(int)"),
-                     self.setLogX)
-        self.connect(self.logy_cb,
-                     SIGNAL("stateChanged(int)"),
-                     self.setLogY)
         self.connect(self.toggleGrid_btn,
                      SIGNAL("clicked()"),
                      self.setGrid)
@@ -129,20 +107,46 @@ class FigureParameters(QDialog, UI):
         self.addLegend = False
 
     def accept(self):
+        """Accept and apply changes"""
+        
+        # Figure title
+        self.canvas.ax.set_title( unicode( self.plottitle_lineEdit.text() ) )
+        
+        # log/lin
+        if self.logx_cb.checkState() == Qt.Checked:
+            self.canvas.ax.set_xscale('log')
+        else:
+            self.canvas.ax.set_xscale('linear')
+        if self.logy_cb.checkState() == Qt.Checked:
+            self.canvas.ax.set_yscale('log')
+        else:
+            self.canvas.ax.set_yscale('linear')
+
+        # xmin, xmax, xlabel
+        self.canvas.ax.set_xlim( xmin=float(str( self.xmin_lineEdit.text() )) )
+        self.canvas.ax.set_xlim( xmax=float(str( self.xmax_lineEdit.text() )) )
+        self.canvas.ax.set_xlabel( unicode(self.xlabel_lineEdit.text()) )
+
+        # ymin, ymax, ylabel
+        self.canvas.ax.set_ylim( ymin=float(str( self.ymin_lineEdit.text() )) )
+        self.canvas.ax.set_ylim( ymax=float(str( self.ymax_lineEdit.text() )) )
+        self.canvas.ax.set_ylabel( unicode(self.ylabel_lineEdit.text()) )
+        
         if self.addLegend:
             self.canvas.ax.legend(axespad = 0.03, pad=0.25)
-        self.canvas.ax.title.set_fontsize(10)
-        xLabel = self.canvas.ax.get_xlabel()
-        yLabel = self.canvas.ax.get_ylabel()
-        self.canvas.ax.set_xlabel(xLabel, fontsize = 9)
-        self.canvas.ax.set_ylabel(yLabel, fontsize = 9)
-        labels_x = self.canvas.ax.get_xticklabels()
-        labels_y = self.canvas.ax.get_yticklabels()
-        for xlabel in labels_x:
-            xlabel.set_fontsize(8)
-        for ylabel in labels_y:
-            ylabel.set_fontsize(8)
-            ylabel.set_color('b')
+            
+#        self.canvas.ax.title.set_fontsize(10)
+#        xLabel = self.canvas.ax.get_xlabel()
+#        yLabel = self.canvas.ax.get_ylabel()
+#        self.canvas.ax.set_xlabel(xLabel, fontsize = 9)
+#        self.canvas.ax.set_ylabel(yLabel, fontsize = 9)
+#        labels_x = self.canvas.ax.get_xticklabels()
+#        labels_y = self.canvas.ax.get_yticklabels()
+#        for xlabel in labels_x:
+#            xlabel.set_fontsize(8)
+#        for ylabel in labels_y:
+#            ylabel.set_fontsize(8)
+#            ylabel.set_color('b')
         if self.canvas.ax.get_legend() != None:
             texts = self.canvas.ax.get_legend().get_texts()
             for text in texts:
@@ -151,86 +155,8 @@ class FigureParameters(QDialog, UI):
         
         QDialog.accept(self)
 
-    def setLogX(self, cbState):
-        if cbState == 2:
-            self.canvas.ax.set_xscale('log')
-        elif cbState == 0:
-            self.canvas.ax.set_xscale('linear')
-
-    def setLogY(self, cbState):
-        if cbState == 2:
-            self.canvas.ax.set_yscale('log')
-        elif cbState == 0:
-            self.canvas.ax.set_yscale('linear')
-
     def setGrid(self):
         self.canvas.ax.grid()
-
-    def setPlotTitle(self, label):
-        label = str(label)#convert from QString
-        self.plot_title = label
-        self.canvas.ax.set_title(label)
-
-    def setXLabel(self, label):
-        label = str(label)#convert from QString
-        self.canvas.xtitle = label
-        self.xtitle = label
-        self.canvas.ax.set_xlabel(label)
-
-    def setYLabel(self, label):
-        label = str(label)#convert from QString
-        self.canvas.ytitle = label
-        self.ytitle = label
-        self.canvas.ax.set_ylabel(label)
-
-    def setXMin(self, val=None):
-        if val is None:
-            val = self.xmin_lineEdit.text()
-        try:
-            val = float(str(val))
-            self.canvas.ax.set_xlim(xmin=val)
-            self.xmin = val
-        except:
-            msg = "Must Enter a Number for the Minimum Value"
-            return QMessageBox.information(self, "Property Error", msg)
-            self.canvas.ax.set_xlim(xmin=self.xmin)
-#            self.xmin_lineEdit.setText(str(self.xmin))
-
-    def setXMax(self, val=None):
-        if val is None:
-            val = self.xmax_lineEdit.text()
-        try:
-            val = float(str(val))
-            self.canvas.ax.set_xlim(xmax=val)
-            self.xmax = val
-        except:
-            msg = "Must Enter a Number for the Maximum Value"
-            return QMessageBox.information(self, "Property Error", msg)
-            self.canvas.ax.set_xlim(xmax=self.xmax)
-
-    def setYMin(self, val = None):
-        if val is None:
-            val = self.ymin_lineEdit.text()
-        try:
-            val = float(str(val))
-            self.canvas.ax.set_ylim(ymin=val)
-            self.ymin = val
-        except:
-            msg = "Must Enter a Number for the Minimum Value"
-            return QMessageBox.information(self, "Property Error", msg)
-            self.canvas.ax.set_ylim(ymin=self.ymin)
-
-    def setYMax(self, val = None):
-        if val is None:
-            val = self.ymax_lineEdit.text()
-        try:
-            val = float(str(val))
-            self.canvas.ax.set_ylim(ymax=val)
-            self.ymax = val
-        except:
-            msg = "Must Enter a Number for the Maximum Value"
-            return QMessageBox.information(self, "Property Error", msg)
-            self.canvas.ax.set_ylim(ymax=self.ymax)
 
     def setMSize(self, value):
         #print "Set Marker Size"
