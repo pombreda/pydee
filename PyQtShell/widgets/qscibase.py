@@ -802,6 +802,8 @@ class QsciTerminal(QsciScintilla):
                 self.SendScintilla(QsciScintilla.SCI_LINEEND)
 
         elif key == Qt.Key_Up:
+            if line!=last_line:
+                self.move_cursor_to_end()
             if self.isListActive() or \
                self.getpointy() > self.getpointy(prompt=True):
                 self.SendScintilla(QsciScintilla.SCI_LINEUP)
@@ -809,6 +811,8 @@ class QsciTerminal(QsciScintilla):
                 self.__browse_history(backward=True)
                 
         elif key == Qt.Key_Down:
+            if line!=last_line:
+                self.move_cursor_to_end()
             if self.isListActive() or \
                self.getpointy() < self.getpointy(end=True):
                 self.SendScintilla(QsciScintilla.SCI_LINEDOWN)
