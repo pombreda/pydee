@@ -748,7 +748,7 @@ def main():
                 # attach a show method to the figure for pylab ease of use
                 self.canvas.figure.show = lambda *args: self.window.show()
                 
-                self.canvas.ax = self.canvas.figure.add_subplot(111)
+                self.canvas.axes = self.canvas.figure.add_subplot(111)
         
                 def notify_axes_change( fig ):
                     # This will be called whenever the current axes is changed
@@ -760,17 +760,15 @@ def main():
         # ****************************************************************
         # *  NavigationToolbar2QT
         # ****************************************************************
-        from PyQtShell.widgets.figureoptions import FigureParameters
+        from PyQtShell.widgets.figureoptions import figure_edit
         class NavigationToolbar2QT( backend_qt4.NavigationToolbar2QT ):
             def _init_toolbar(self):
                 super(NavigationToolbar2QT, self)._init_toolbar()
                 a = self.addAction(get_icon("customize.png"),
-                                   'Edit parameters', self.edit_parameters)
+                                   'Customize', self.edit_parameters)
                 a.setToolTip('Edit curves line and axes parameters')
-                self.addLegend = False
             def edit_parameters(self):
-                if self.canvas.ax.get_lines():
-                    FigureParameters(self.canvas, self).exec_()
+                figure_edit(self.canvas, self)
             def save_figure( self ):
                 main.console.shell.restore_stds()
                 super(NavigationToolbar2QT, self).save_figure()
