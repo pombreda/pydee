@@ -449,6 +449,7 @@ class ShellBaseWidget(QsciTerminal):
         """
         Display a completion list based on the last token
         """
+        self.hide_calltip()
         try:
             obj = eval(text, self.interpreter.locals)
         except:
@@ -462,6 +463,7 @@ class ShellBaseWidget(QsciTerminal):
         """
         Display a completion list for files and directories
         """
+        self.hide_calltip()
         cwd = os.getcwdu()
         self.show_list(os.listdir(cwd), cwd)
 
@@ -501,6 +503,10 @@ class ShellBaseWidget(QsciTerminal):
             text = text.replace('\n', '<br>')
             text = format1+'<b>Documentation</b></span>:'+format2+text+"</span>"
         QToolTip.showText(self.get_cursor_qpoint(), text)
+        
+    def hide_calltip(self):
+        """Hide calltip"""
+        QToolTip.hideText()
         
     def show_docstring(self, text, call=False):
         """Show docstring or arguments"""
