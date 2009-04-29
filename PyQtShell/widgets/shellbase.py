@@ -43,7 +43,7 @@ import os.path as osp
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import QMenu, QMessageBox, QKeySequence, QToolTip
+from PyQt4.QtGui import QMenu, QMessageBox, QKeySequence
 from PyQt4.QtCore import SIGNAL, QString, QEventLoop, QCoreApplication
 
 # Local import
@@ -54,7 +54,7 @@ from PyQtShell.dochelpers import getargtxt
 from PyQtShell.encoding import transcode
 from PyQtShell.config import CONF, get_icon, get_font
 try:
-    from PyQtShell.widgets.qscibase import QsciTerminal
+    from PyQtShell.widgets.terminal import QsciTerminal
 except ImportError, e:
     raise ImportError, str(e) + \
         "\nPyQtShell v0.3.23+ is exclusively based on QScintilla2\n" + \
@@ -297,6 +297,18 @@ class ShellBaseWidget(QsciTerminal):
         if self.interrupted:
             self.interrupted = False
             raise KeyboardInterrupt
+
+    def keyboard_interrupt(self):
+        """Simulate keyboard interrupt"""
+        if self.busy:
+            # Interrupt only if console is busy
+            self.interrupted = True
+        elif self.more:
+            self.write("\nKeyboardInterrupt\n", flush=True)
+            self.more = False
+            self.prompt = self.p1
+            self.write(self.prompt, flush=True)
+            self.interpreter.resetbuffer()
         
     def append_command(self, cmd):
         """Multiline command"""
@@ -449,7 +461,6 @@ class ShellBaseWidget(QsciTerminal):
         """
         Display a completion list based on the last token
         """
-        self.hide_calltip()
         try:
             obj = eval(text, self.interpreter.locals)
         except:
@@ -457,56 +468,14 @@ class ShellBaseWidget(QsciTerminal):
             pass
         else:
             # Object obj is valid
-            self.show_list(dir(obj), 'dir(%s)' % text) 
+            self.show_completion_list(dir(obj), 'dir(%s)' % text) 
 
     def show_file_completion(self):
         """
         Display a completion list for files and directories
         """
-        self.hide_calltip()
         cwd = os.getcwdu()
-        self.show_list(os.listdir(cwd), cwd)
-
-    def show_list(self, completions, text):
-        """
-        Private method to display the possible completions.
-        """
-        if len(completions) == 0:
-            return
-        if len(completions) > 1:
-            self.show_completion_widget( sorted(completions), text )
-            self.completion_chars = 1
-        else:
-            txt = completions[0]
-            if text != "":
-                txt = txt.replace(text, "")
-            self.insert_text(txt)
-            self.completion_chars = 0
-        
-    def show_calltip(self, text):
-        """Show calltip"""
-        if not self.calltips:
-            return
-        if text is None or len(text)==0:
-            return
-        tipsize = CONF.get('calltips', 'size')
-        font = get_font('calltips')
-        weight = 'bold' if font.bold() else 'normal'
-        format1 = '<span style=\'font-size: %spt\'>' % font.pointSize()
-        format2 = '\n<hr><span style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (font.family(), font.pointSize(), weight)
-        if isinstance(text, list):
-            text = "\n    ".join(text)
-            text = format1+'<b>Arguments</b></span>:'+format2+text+"</span>"
-        else:
-            if len(text) > tipsize:
-                text = text[:tipsize] + " ..."
-            text = text.replace('\n', '<br>')
-            text = format1+'<b>Documentation</b></span>:'+format2+text+"</span>"
-        QToolTip.showText(self.get_cursor_qpoint(), text)
-        
-    def hide_calltip(self):
-        """Hide calltip"""
-        QToolTip.hideText()
+        self.show_completion_list(os.listdir(cwd), cwd)
         
     def show_docstring(self, text, call=False):
         """Show docstring or arguments"""
@@ -517,6 +486,8 @@ class ShellBaseWidget(QsciTerminal):
             pass
         else:
             # Object obj is valid
+            tipsize = CONF.get('calltips', 'size')
+            font = get_font('calltips')
             done = False
             if (self.docviewer is not None) and \
                (self.docviewer.dockwidget.isVisible()):
@@ -526,8 +497,8 @@ class ShellBaseWidget(QsciTerminal):
                     # Display argument list if this is function call
                     arglist = getargtxt(obj)
                     if arglist:
-                        self.show_calltip(arglist)
+                        self.show_calltip(arglist, tipsize, font)
                         done = True
             if not done:
-                self.show_calltip(obj.__doc__)
+                self.show_calltip(obj.__doc__, tipsize, font)
                 
