@@ -43,7 +43,7 @@ from PyQtShell.widgets.editor import Editor, HistoryLog, DocViewer
 from PyQtShell.widgets.workspace import Workspace
 from PyQtShell.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate)
-from PyQtShell.config import get_font, get_icon, get_image_path, CONF
+from PyQtShell.config import get_icon, get_image_path, CONF
 
 WIDGET_LIST = ['console', 'editor', 'docviewer', 'historylog']
 
@@ -247,10 +247,10 @@ class MainWindow(QMainWindow):
             # Console menu
             self.console.menu_actions = self.console.menu_actions[:-2]
             restart_action = create_action(self,
-                                           self.tr("Restart Python interpreter"),
-                                           tip=self.tr("Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another"),
-                                           icon=get_icon('clear.png'),
-                                           triggered=self.restart_interpreter)
+               self.tr("Restart Python interpreter"),
+               tip=self.tr("Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another"),
+               icon=get_icon('clear.png'),
+               triggered=self.restart_interpreter)
             self.console.menu_actions += [None, restart_action]
             self.add_to_menubar(self.console)
             

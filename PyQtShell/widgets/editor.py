@@ -43,7 +43,7 @@ from PyQtShell.qthelpers import (create_action, add_actions, mimedata2url,
                                  keybinding, translate)
 from PyQtShell.dochelpers import getdoc, getsource
 try:
-    from PyQtShell.widgets.qscibase import QsciEditor
+    from PyQtShell.widgets.editorbase import QsciEditor
 except ImportError, e:
     raise ImportError, str(e) + \
         "\nPyQtShell v0.3.23+ is exclusively based on QScintilla2\n" + \
@@ -709,7 +709,7 @@ class HistoryLog(QWidget, WidgetMixin):
         """Refresh widget"""
         if self.history:
             self.editor.set_text("\n".join(self.history))
-            self.editor.set_cursor_to("End")
+            self.editor.move_cursor_to_end()
         
     def set_actions(self):
         """Setup actions"""
@@ -887,7 +887,7 @@ class DocViewer(QWidget, WidgetMixin):
         if hlp_text is None:
             hlp_text = self.tr("No documentation available.")
         self.editor.set_text(hlp_text)
-        self.editor.set_cursor_to("Start")
+        self.editor.move_cursor_to_start()
         
     def set_actions(self):
         """Setup actions"""
