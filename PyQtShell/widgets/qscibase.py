@@ -674,6 +674,7 @@ class QsciTerminal(QsciScintilla):
             # Ignoring all events except KeyboardInterrupt (see above)
             # Keep however these events in self.eventqueue
             self.eventqueue.append(current_event)
+            event.accept()
         else:
             self.__flush_eventqueue() # Shouldn't be necessary
             self.__process_keyevent(current_event, event)
@@ -876,6 +877,10 @@ class QsciTerminal(QsciScintilla):
                 QsciScintilla.keyPressEvent(self, event)
             if self.isListActive():
                 self.completion_chars += 1
+                
+        elif keyevent:
+            # Let the parent widget handle the key press event
+            keyevent.ignore()
 
     
     #------ Drag and drop
