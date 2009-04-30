@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Module that provides a GUI-based editor for matplotlib's figure options"""
 
-from formlayout import fedit
+from PyQtShell.widgets.formlayout import fedit
 
 LINESTYLES = {
               '-': 'Solid',
@@ -37,13 +38,15 @@ MARKERS = {
            '.': 'dots',
            }
 
-COLORS = {'b':'#0000ff', 'g':'#00ff00','r':'#ff0000','c':'#ff00ff',
-          'm':'#ff00ff','y':'#ffff00','k':'#000000','w':'#ffffff'}
+COLORS = {'b': '#0000ff', 'g': '#00ff00', 'r': '#ff0000', 'c': '#ff00ff',
+          'm': '#ff00ff', 'y': '#ffff00', 'k': '#000000', 'w': '#ffffff'}
 
 def col2hex(color):
+    """Convert matplotlib color to hex"""
     return COLORS.get(color, color)
 
 def figure_edit(canvas, parent=None):
+    """Edit matplotlib figure options"""
     axes = canvas.axes
     sep = (None, None) # separator
     
@@ -70,7 +73,7 @@ def figure_edit(canvas, parent=None):
         linedict = {}
         for line in axes.get_lines():
             label = line.get_label()
-            if label=='_nolegend_':
+            if label == '_nolegend_':
                 continue
             linedict[label] = line
         curves = []
@@ -128,10 +131,10 @@ def figure_edit(canvas, parent=None):
             line.set_linewidth(linewidth)
             line.set_color(color)
             if marker is not 'none':
-              line.set_marker(marker)
-              line.set_markersize(markersize)
-              line.set_markerfacecolor(markerfacecolor)
-              line.set_markeredgecolor(markeredgecolor)
+                line.set_marker(marker)
+                line.set_markersize(markersize)
+                line.set_markerfacecolor(markerfacecolor)
+                line.set_markeredgecolor(markeredgecolor)
         
     # Redraw
     canvas.draw()
