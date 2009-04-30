@@ -29,7 +29,7 @@ import sys, os, platform
 STDOUT = sys.stdout
 
 from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
-                         QMessageBox, QMenu, QIcon, QLabel, QCursor)
+                         QMessageBox, QMenu, QIcon, QLabel, QCursor, QColor)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QLibraryInfo, QLocale, QTranslator, QSize, QByteArray,
                           QObject, QVariant)
@@ -347,7 +347,10 @@ class MainWindow(QMainWindow):
     def set_splash(self, message):
         """Set splash message"""
         self.splash.show()
-        self.splash.showMessage(message+'\n', Qt.AlignBottom | Qt.AlignHCenter)
+        self.splash.showMessage(message,
+                    Qt.AlignBottom | Qt.AlignRight | Qt.AlignAbsolute,
+                    QColor(Qt.gray))
+        QApplication.processEvents()
         
     def closeEvent(self, event):
         """closeEvent reimplementation"""
