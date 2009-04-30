@@ -32,9 +32,10 @@ from PyQtShell.qthelpers import translate
 
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""
+    sep = os.path.pathsep
     for key in envdict:
-        if os.path.pathsep in envdict[key]:
-            envdict[key] = [path.strip() for path in envdict[key].split(';')]
+        if sep in envdict[key]:
+            envdict[key] = [path.strip() for path in envdict[key].split(sep)]
     return envdict
 
 def listdict2envdict(listdict):
@@ -58,7 +59,8 @@ class EnvDialog(DictEditor):
 
 try:
     #---- Windows platform
-    from _winreg import OpenKey, EnumValue, QueryInfoKey, SetValueEx, QueryValueEx
+    from _winreg import (OpenKey, EnumValue, QueryInfoKey,
+                         SetValueEx, QueryValueEx)
     from _winreg import HKEY_CURRENT_USER, KEY_SET_VALUE, REG_EXPAND_SZ
 
     def get_user_env():
@@ -94,8 +96,12 @@ try:
                title="HKEY_CURRENT_USER\Environment", width=600)
             if parent is None:
                 parent = self
-            QMessageBox.warning(parent, translate("WinUserEnvDialog", "Warning"),
-                translate("WinUserEnvDialog", "If you accept changes, this will modify the current user environment variables (in Windows registry). Use it with precautions, at your own risks."))
+            QMessageBox.warning(parent,
+                translate("WinUserEnvDialog", "Warning"),
+                translate("WinUserEnvDialog", "If you accept changes, "
+                          "this will modify the current user environment "
+                          "variables (in Windows registry). Use it with "
+                          "precautions, at your own risks."))
             
         def accept(self):
             """Reimplement Qt method"""
@@ -107,9 +113,11 @@ try:
                 SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
                                    "Environment", SMTO_ABORTIFHUNG, 5000)
             except ImportError:
-                QMessageBox.warning(self, translate("WinUserEnvDialog", "Warning"),
+                QMessageBox.warning(self,
+                    translate("WinUserEnvDialog", "Warning"),
                     translate("WinUserEnvDialog",
-                              "Module pywin32 was not found: restart session to take these changes into account."))
+                              "Module pywin32 was not found: restart session "
+                              "to take these changes into account."))
             QDialog.accept(self)
 
 except ImportError:
