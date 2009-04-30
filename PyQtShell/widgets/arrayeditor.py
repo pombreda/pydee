@@ -207,28 +207,28 @@ class ArrayDelegate(QItemDelegate):
 class ArrayEditor(QDialog):
     """Array Editor Dialog"""
     FORMATS = {
-               N.dtype('single'): '%.3f',
-               N.dtype('double'): '%.3f',
-               N.dtype('float_'): '%.3f',
-               N.dtype('float32'): '%.3f',
-               N.dtype('float64'): '%.3f',
-               N.dtype('float96'): '%.3f',
-               N.dtype('int_'): '%d',
-               N.dtype('int8'): '%d',
-               N.dtype('int16'): '%d',
-               N.dtype('int32'): '%d',
-               N.dtype('int64'): '%d',
-               N.dtype('uint'): '%d',
-               N.dtype('uint8'): '%d',
-               N.dtype('uint16'): '%d',
-               N.dtype('uint32'): '%d',
-               N.dtype('uint64'): '%d',
-               N.dtype('bool'): '%r'
+               'single': '%.3f',
+               'double': '%.3f',
+               'float_': '%.3f',
+               'float32': '%.3f',
+               'float64': '%.3f',
+               'float96': '%.3f',
+               'int_': '%d',
+               'int8': '%d',
+               'int16': '%d',
+               'int32': '%d',
+               'int64': '%d',
+               'uint': '%d',
+               'uint8': '%d',
+               'uint16': '%d',
+               'uint32': '%d',
+               'uint64': '%d',
+               'bool': '%r'
                }
     
     def __init__(self, data, title='', xy=False):
         super(ArrayEditor, self).__init__()
-        format = self.get_format(data.dtype)
+        format = self.get_format(data)
         
         self.copy = data.copy()
         self.data = self.copy.view()
@@ -286,14 +286,15 @@ class ArrayEditor(QDialog):
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
 
-    def get_format(self, dtype):
+    def get_format(self, data):
         """Return (type, format) depending on array dtype"""
+        name = data.dtype.name
         try:
-            return self.FORMATS[dtype]
+            return self.FORMATS[name]
         except KeyError:
             QMessageBox.warning(self, self.tr("Array editor"),
                 self.tr("Warning: %1 arrays are currently not supported") \
-                .arg(unicode(dtype)))
+                .arg(name))
             return '%.3f'
 
     def resize_to_contents(self):
