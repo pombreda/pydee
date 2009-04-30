@@ -40,22 +40,26 @@ class MatplotlibFigure(QWidget, WidgetMixin):
         QWidget.__init__(self, None) # Bug if parent is not None!!
         WidgetMixin.__init__(self, parent)
         
-        self.num = num
         self.canvas = canvas
-        self.v_layout = QVBoxLayout()
-        self.v_layout.addWidget(self.canvas)
+        self.num = num
 
+        # Close button
+        self.close_button = QPushButton(get_icon("close.png"), self.tr("Close"))
+        self.close_button.setToolTip(self.tr("Close figure %1").arg(num))
+        self.close_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.connect(self.close_button, SIGNAL('clicked()'),
+                     self.close)
+        
+        # Top horizontal layout
         self.h_layout = QHBoxLayout()
         self.statusbar = self.set_statusbar()        
         self.h_layout.addWidget(self.statusbar)
-        self.close_button = QPushButton(get_icon('close.png'), self.tr("Close"))
-        self.close_button.setToolTip(self.tr("Close figure %1").arg(num))
-        self.connect(self.close_button, SIGNAL('clicked()'),
-                     self.close)
-        self.close_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.h_layout.addWidget(self.close_button)
         
-        self.v_layout.addLayout(self.h_layout)        
+        # Main vertical layout
+        self.v_layout = QVBoxLayout()
+        self.v_layout.addLayout(self.h_layout)
+        self.v_layout.addWidget(self.canvas)
         self.setLayout(self.v_layout)
         
     def set_statusbar(self):
