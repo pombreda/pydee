@@ -29,7 +29,7 @@ NumPy Array Editor Dialog based on PyQt4
 
 from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
 from PyQt4.QtCore import SIGNAL, SLOT
-from PyQt4.QtGui import (QHBoxLayout, QColor, QLabel, QTableView, QItemDelegate,
+from PyQt4.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                          QLineEdit, QCheckBox, QGridLayout, QDoubleValidator,
                          QDialog, QDialogButtonBox, QMessageBox, QPushButton,
                          QInputDialog)
@@ -39,11 +39,22 @@ import numpy as N
 from PyQtShell.config import get_icon, get_font
 
 
-#TODO: Support data types other than float
+def is_float(dtype):
+    """Return True if datatype dtype is a float kind"""
+    return ('float' in dtype.name) or dtype.name in ['single', 'double']
+
+def is_number(dtype):
+    """Return True is datatype dtype is a number kind"""
+    return is_float(dtype) or ('int' in dtype.name) or ('long' in dtype.name) \
+           or ('short' in dtype.name)
+
+
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
-    def __init__(self, data, datatype, format="%.3f", xy_mode=False):
+    def __init__(self, data, format="%.3f", xy_mode=False, parent=None):
         super(ArrayModel, self).__init__()
+
+        self.dialog = parent
 
         # Backgroundcolor settings
         huerange = [.66, .99] # Hue
@@ -52,7 +63,6 @@ class ArrayModel(QAbstractTableModel):
         self.alp = .6 # Alpha-channel
 
         self._data = data
-        self._datatype = datatype
         self._format = format
         self._xy = xy_mode
         
@@ -113,12 +123,19 @@ class ArrayModel(QAbstractTableModel):
             return False
         i = index.row()
         j = index.column()
-        val, isok = None, False
-        if self._datatype == int:
-            val, isok = value.toInt()
-        elif self._datatype == float:
-            val, isok = value.toDouble()
-        if isok:
+        value = str(value.toString())
+        if self._data.dtype.name == "bool":
+            try:
+                val = bool(float(value))
+            except ValueError:
+                val = value.lower() == "true"
+        else:
+            try:
+                val = float(value)
+            except ValueError, e:
+                QMessageBox.critical(self.dialog, "Error",
+                                     "Value error: %s" % e.message)
+        try:
             self._data[i, j] = val
             self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                       index, index)
@@ -127,6 +144,10 @@ class ArrayModel(QAbstractTableModel):
             if val < self.vmin:
                 self.vmin = val
             return True
+        except OverflowError, e:
+            print type(e.message)
+            QMessageBox.critical(self.dialog, "Error",
+                                 "Overflow error: %s" % e.message)
         return False
     
     def flags(self, index):
@@ -156,16 +177,17 @@ class ArrayModel(QAbstractTableModel):
 
 class ArrayDelegate(QItemDelegate):
     """Array Editor Item Delegate"""
-    def __init__(self, parent=None, datatype = float):
+    def __init__(self, dtype, parent=None):
         super(ArrayDelegate, self).__init__(parent)
-        self._datatype = datatype
+        self.dtype = dtype
 
     def createEditor(self, parent, option, index):
         """Create editor widget"""
         editor = QLineEdit(parent)
         editor.setFont(get_font('arrayeditor'))
         editor.setAlignment(Qt.AlignCenter)
-        editor.setValidator(QDoubleValidator(editor))
+        if is_number(self.dtype):
+            editor.setValidator( QDoubleValidator(editor) )
         self.connect(editor, SIGNAL("returnPressed()"),
                      self.commitAndCloseEditor)
         return editor
@@ -179,19 +201,34 @@ class ArrayDelegate(QItemDelegate):
     def setEditorData(self, editor, index):
         """Set editor widget's data"""
         text = index.model().data(index, Qt.DisplayRole).toString()
-        convert = self._datatype
-        editor.setText( str(convert(text)) )
+        editor.setText( text )
+
 
 class ArrayEditor(QDialog):
     """Array Editor Dialog"""
-    FMTS = {N.dtype('float32'): (float, '%.3f'),
-            N.dtype('float64'): (float, '%.3f'),
-            N.dtype('int32'): (int, '%d'),
-            N.dtype('int64'): (int, '%d')}
+    FORMATS = {
+               N.dtype('single'): '%.3f',
+               N.dtype('double'): '%.3f',
+               N.dtype('float_'): '%.3f',
+               N.dtype('float32'): '%.3f',
+               N.dtype('float64'): '%.3f',
+               N.dtype('float96'): '%.3f',
+               N.dtype('int_'): '%d',
+               N.dtype('int8'): '%d',
+               N.dtype('int16'): '%d',
+               N.dtype('int32'): '%d',
+               N.dtype('int64'): '%d',
+               N.dtype('uint'): '%d',
+               N.dtype('uint8'): '%d',
+               N.dtype('uint16'): '%d',
+               N.dtype('uint32'): '%d',
+               N.dtype('uint64'): '%d',
+               N.dtype('bool'): '%r'
+               }
     
     def __init__(self, data, title='', xy=False):
         super(ArrayEditor, self).__init__()
-        datatype, format = self.get_type_format(data.dtype)
+        format = self.get_format(data.dtype)
         
         self.copy = data.copy()
         self.data = self.copy.view()
@@ -211,9 +248,10 @@ class ArrayEditor(QDialog):
 
         # Table configuration
         self.view = QTableView()
-        self.model = ArrayModel(self.data, datatype, format=format, xy_mode=xy)
+        self.model = ArrayModel(self.data, format=format,
+                                xy_mode=xy, parent=self)
         self.view.setModel(self.model)
-        self.view.setItemDelegate(ArrayDelegate(self, datatype))
+        self.view.setItemDelegate(ArrayDelegate(data.dtype, self))
         total_width = 0
         for k in xrange(self.data.shape[1]):
             total_width += self.view.columnWidth(k)
@@ -224,7 +262,8 @@ class ArrayEditor(QDialog):
 
         layout = QHBoxLayout()
         btn = QPushButton(self.tr("Format"))
-        btn.setEnabled(datatype == float) # disable format button for int type
+        # disable format button for int type
+        btn.setEnabled( is_float(data.dtype) )
         layout.addWidget( btn )
         self.connect(btn, SIGNAL("clicked()"), self.change_format )
         btn = QPushButton(self.tr("Resize"))
@@ -247,15 +286,15 @@ class ArrayEditor(QDialog):
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
 
-    def get_type_format(self, dtype):
+    def get_format(self, dtype):
         """Return (type, format) depending on array dtype"""
         try:
-            return self.FMTS[dtype]
+            return self.FORMATS[dtype]
         except KeyError:
             QMessageBox.warning(self, self.tr("Array editor"),
                 self.tr("Warning: %1 arrays are currently not supported") \
                 .arg(unicode(dtype)))
-            return float, '%.3f'
+            return '%.3f'
 
     def resize_to_contents(self):
         """Resize cells to contents"""
@@ -282,9 +321,9 @@ class ArrayEditor(QDialog):
         return self.copy
     
     
-def aedit(arr):
+def aedit(data, title=""):
     """
-    Edit the array 'arr' with the ArrayEditor and return the edited copy
+    Edit the array 'data' with the ArrayEditor and return the edited copy
     (if Cancel is pressed, return None)
     (instantiate a new QApplication if necessary,
     so it can be called directly from the interpreter)
@@ -292,12 +331,14 @@ def aedit(arr):
     from PyQt4.QtGui import QApplication
     if QApplication.startingUp():
         QApplication([])
-    dialog = ArrayEditor(arr)
+    dialog = ArrayEditor(data, title)
     if dialog.exec_():
         return dialog.get_copy()
 
 if __name__ == "__main__":
-    arr_int = N.array([1, 2, 3])
-    arr_float = N.random.rand(20, 20)
-    print "result:", aedit(arr_int)
-    print "result:", aedit(arr_float)
+    arr = N.array([True, False, True])
+    print "result:", aedit(arr, "bool array")
+    arr = N.array([1, 2, 3], dtype="int8")
+    print "result:", aedit(arr, "int array")
+    arr = N.random.rand(20, 20)
+    print "result:", aedit(arr, "float array")
