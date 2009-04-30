@@ -422,15 +422,6 @@ class MainWindow(QMainWindow):
                 
         self.widgetlist.append(child)
     
-    def add_toolbar(self, widget):
-        """Add toolbar including a widget"""
-        toolbar = self.addToolBar(widget.get_name())
-        toolbar.addWidget(widget)
-        toolbar.setObjectName(widget.get_name())
-        toolbar.setToolTip(widget.get_name())
-        if not self.light:
-            self.view_menu.addAction(toolbar.toggleViewAction())
-        
     def add_to_menubar(self, widget, title=None):
         """Add menu and actions to menubar"""
         actions = widget.menu_actions
