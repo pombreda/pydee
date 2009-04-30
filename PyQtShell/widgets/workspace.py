@@ -160,7 +160,9 @@ class Workspace(DictEditorTableView, WidgetMixin):
         """Setup actions"""
         new_action = create_action(self, self.tr("New..."), None,
             'ws_new.png', self.tr("Create a new workspace"),
-            triggered = self.new)        
+            triggered = self.new)
+        close_action = create_action(self, self.tr("Close..."), None,
+            None, self.tr("Close the workspace"), triggered = self.close)
         open_action = create_action(self, self.tr("Open..."), None,
             'ws_open.png', self.tr("Open a workspace"), triggered = self.load)
         save_action = create_action(self, self.tr("Save"), None, 'ws_save.png',
@@ -202,8 +204,8 @@ class Workspace(DictEditorTableView, WidgetMixin):
                         self.sort_action, self.inplace_action, None,
                         exclude_private_action, exclude_upper_action, None,
                         new_action, open_action,
-                        save_action, save_as_action, autosave_action,
-                        None, clear_action)
+                        save_action, save_as_action, close_action,
+                        autosave_action, None, clear_action)
         toolbar_actions = (refresh_action, open_action, save_action)
         return (menu_actions, toolbar_actions)
     
@@ -254,10 +256,12 @@ class Workspace(DictEditorTableView, WidgetMixin):
     def load_temp_namespace(self):
         """Attempt to load last session namespace"""
         self.filename = self.file_path
+        print self.filename
         if osp.isfile(self.filename):
             self.load(self.filename)
         else:
             self.namespace = None
+            self.refresh()
 
     def load(self, filename=None):
         """Attempt to load namespace"""
@@ -281,6 +285,7 @@ class Workspace(DictEditorTableView, WidgetMixin):
             if self.namespace is None:
                 self.namespace = namespace
             else:
+                self._clear_namespace()
                 for key in namespace:
                     self.interpreter.namespace[key] = namespace[key]
         except (EOFError, ValueError):
@@ -292,24 +297,31 @@ class Workspace(DictEditorTableView, WidgetMixin):
         if self.main:
             self.main.splash.hide()
 
-    def new(self):
-        """Attempt to close the current workspace and create a new one"""
+    def close(self):
+        """"""
         answer = QMessageBox.question(self, self.tr("Save workspace"),
             self.tr("Do you want to save current workspace "
-                    "before creating a new one?"),
-            QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
+                    "before closing it?"),
+            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+        if answer == QMessageBox.Cancel:
+            return False
+        elif answer == QMessageBox.Yes:
             self.save()
         self._clear_namespace()
         self.main.console.shell.restore_stds()
+        self.load_temp_namespace()
+        return True
+    
+    def new(self):
+        """Attempt to close the current workspace and create a new one"""
+        if not self.close():
+            return
         filename = QFileDialog.getSaveFileName(self,
                         self.tr("New workspace"), self.filename,
                         self.tr("Workspaces")+" (*.ws)")
         self.main.console.shell.redirect_stds()
         if filename:
             self.filename = unicode(filename)
-        else:
-            self.load_temp_namespace()
         self.save()
     
     def save_as(self):
@@ -344,7 +356,7 @@ class Workspace(DictEditorTableView, WidgetMixin):
             self.main.splash.hide()
         self.refresh()
         return True
-        
+
     def toggle_exclude_private(self, checked):
         """Toggle exclude private references"""
         CONF.set(self.ID, 'exclude_private', checked)
