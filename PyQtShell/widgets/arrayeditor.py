@@ -41,7 +41,7 @@ from PyQtShell.config import get_icon, get_font
 #TODO: Support data types other than float
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
-    def __init__(self, data, fmt="%.3f", xy_mode=False):
+    def __init__(self, data, dataType, fmt="%.3f", xy_mode=False):
         super(ArrayModel, self).__init__()
 
         # Backgroundcolor settings
@@ -51,6 +51,7 @@ class ArrayModel(QAbstractTableModel):
         self.alp = .6 # Alpha-channel
 
         self._data = data
+        self._dataType = dataType
         self._fmt = fmt
         self._xy = xy_mode
         
@@ -106,7 +107,11 @@ class ArrayModel(QAbstractTableModel):
             return False
         i = index.row()
         j = index.column()
-        val, isok = value.toDouble()
+        val, isok = None, False
+        if self._dataType == 'int':
+            val, isok = value.toInt()
+        else:
+            val, isok = value.toDouble()
         if isok:
             self._data[i, j] = val
             self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
@@ -143,8 +148,9 @@ class ArrayModel(QAbstractTableModel):
 
 class ArrayDelegate(QItemDelegate):
     """Array Editor Item Delegate"""
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, dataType = 'float'):
         super(ArrayDelegate, self).__init__(parent)
+        self._dataType = dataType
 
     def createEditor(self, parent, option, index):
         editor = QLineEdit(parent)
@@ -162,17 +168,23 @@ class ArrayDelegate(QItemDelegate):
 
     def setEditorData(self, editor, index):
         text = index.model().data(index, Qt.DisplayRole).toString()
-        value = str(float(text))
-        editor.setText(value)
-
+        if self._dataType == 'int':
+            editor.setText(str(int(text)))
+        else:
+            editor.setText(str(float(text)))
 
 class ArrayEditor(QDialog):
     """Array Editor Dialog"""
-    def __init__(self, data, title='', format="%.3f", xy=False):
+    
+    FMTS = {N.dtype('float32'): ('float', '%.3f'),
+            N.dtype('float64'): ('float', '%.3f'),
+            N.dtype('int32'): ('int', '%d'),
+            N.dtype('int64'): ('int', '%d')}
+    
+    def __init__(self, data, title='', xy=False):
         super(ArrayEditor, self).__init__()
-        if data.dtype != N.dtype('float64'):
-            QMessageBox.warning(self, self.tr("Array editor"),
-                self.tr("Warning: array editor currently supports only float arrays"))
+        dataType, format = self.get_type_fmt(data.dtype)
+        
         self.copy = data.copy()
         self.data = self.copy.view()
         if len(self.data.shape)==1:
@@ -190,9 +202,9 @@ class ArrayEditor(QDialog):
 
         # Table configuration
         self.view = QTableView()
-        self.model = ArrayModel(self.data, fmt=format, xy_mode=xy)
+        self.model = ArrayModel(self.data, dataType, fmt=format, xy_mode=xy)
         self.view.setModel(self.model)
-        self.view.setItemDelegate(ArrayDelegate(self))
+        self.view.setItemDelegate(ArrayDelegate(self,dataType))
         total_width = 0
         for k in xrange(self.data.shape[1]):
             total_width += self.view.columnWidth(k)
@@ -204,6 +216,7 @@ class ArrayEditor(QDialog):
         layout = QHBoxLayout()
         btn = QPushButton(self.tr("Format"))
         layout.addWidget( btn )
+        if dataType == 'int': btn.setEnabled(False)
         self.connect(btn, SIGNAL("clicked()"), self.change_format )
         btn = QPushButton(self.tr("Resize"))
         layout.addWidget( btn )
@@ -224,7 +237,15 @@ class ArrayEditor(QDialog):
         
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
-        
+
+    def get_type_fmt(self,dtype):
+        try:
+            return self.FMTS.get(dtype)
+        except KeyError:
+            QMessageBox.warning(self, self.tr("Array editor"),
+                self.tr("Warning: array format not supported"))
+            return 'float', '%.3f'
+
     def resize_to_contents(self):
         self.view.resizeColumnsToContents()
         self.view.resizeRowsToContents()

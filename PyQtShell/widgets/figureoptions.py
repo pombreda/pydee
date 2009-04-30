@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PyQtShell.widgets.formlayout import fedit
+from formlayout import fedit
 
 LINESTYLES = {
               '-': 'Solid',
@@ -127,10 +127,11 @@ def figure_edit(canvas, parent=None):
             line.set_linestyle(linestyle)
             line.set_linewidth(linewidth)
             line.set_color(color)
-            line.set_marker(marker)
-            line.set_markersize(markersize)
-            line.set_markerfacecolor(markerfacecolor)
-            line.set_markeredgecolor(markeredgecolor)
+            if marker is not 'none':
+              line.set_marker(marker)
+              line.set_markersize(markersize)
+              line.set_markerfacecolor(markerfacecolor)
+              line.set_markeredgecolor(markeredgecolor)
         
     # Redraw
     canvas.draw()
