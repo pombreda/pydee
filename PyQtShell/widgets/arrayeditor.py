@@ -250,11 +250,11 @@ class ArrayEditor(QDialog):
     def get_type_format(self, dtype):
         """Return (type, format) depending on array dtype"""
         try:
-            return self.FMTS.get(dtype)
+            return self.FMTS[dtype]
         except KeyError:
             QMessageBox.warning(self, self.tr("Array editor"),
                 self.tr("Warning: %1 arrays are currently not supported") \
-                .arg(dtype))
+                .arg(unicode(dtype)))
             return float, '%.3f'
 
     def resize_to_contents(self):
