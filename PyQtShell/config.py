@@ -82,6 +82,13 @@ DEFAULTS = [
               'size' : (650, 400),
               'position' : (30, 30),
               }),
+            ('scintilla',
+             {
+              'margins/backgroundcolor' : '#DADADA',
+              'margins/foregroundcolor' : 'white',
+              'foldmarginpattern/backgroundcolor' : '#ECECFF',
+              'foldmarginpattern/foregroundcolor' : '#ECECFF',
+              }),
             ('shell',
              {
               'working_dir_history' : 10,

@@ -26,7 +26,7 @@
 # pylint: disable-msg=R0201
 
 import sys, os
-from PyQt4.QtGui import QMouseEvent
+from PyQt4.QtGui import QMouseEvent, QColor
 from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 
@@ -83,6 +83,18 @@ class QsciEditor(QsciBase):
 
         # Lexer
         self.setLexer( QsciLexerPython(self) )
+                
+        # Colors
+        fcol = CONF.get('scintilla', 'margins/foregroundcolor')
+        bcol = CONF.get('scintilla', 'margins/backgroundcolor')
+        if fcol:
+            self.setMarginsForegroundColor(QColor(fcol))
+        if bcol:
+            self.setMarginsBackgroundColor(QColor(bcol))
+        fcol = CONF.get('scintilla', 'foldmarginpattern/foregroundcolor')
+        bcol = CONF.get('scintilla', 'foldmarginpattern/backgroundcolor')
+        if fcol and bcol:
+            self.setFoldMarginColors(QColor(fcol), QColor(bcol))
         
     def setup_api(self):
         """Load and prepare API"""
