@@ -287,6 +287,12 @@ class MainWindow(QMainWindow):
                 self.restoreState( QByteArray().fromHex(hexstate) )
             
         self.splash.hide()
+        
+        # Enabling tear off for all menus except help menu
+        for child in self.menuBar().children():
+            if isinstance(child, QMenu) and child != help_menu:
+                child.setTearOffEnabled(True)
+        
         # Give focus to shell widget
         self.console.shell.setFocus()
         
