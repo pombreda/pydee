@@ -94,6 +94,8 @@ def unsorted_unique(lista):
 def value_to_display(value, truncate=False, trunc_len=80):
     """Convert value for display purpose"""
     if truncate and isinstance(value, ndarray):
+        if value.size == 0:
+            return repr(value)
         try:
             return 'Min: %r\nMax: %r\nStd: %r' % (value.min(), value.max(),
                                                   value.std())
@@ -359,6 +361,8 @@ class DictDelegate(QItemDelegate):
         #---editor = ArrayEditor
         elif isinstance(value, ndarray) and ndarray is not FakeObject \
                                         and not self.inplace:
+            if value.size == 0:
+                return None
             editor = ArrayEditor(value, key)
             if editor.exec_() and not readonly:
                 index.model().set_value(index, editor.get_copy())
@@ -781,6 +785,7 @@ if __name__ == "__main__":
                'dict': testdict,
                'float': 1.2233,
                'array': N.random.rand(10, 10),
+               'empty_array': N.array([]),
                'date': testdate,
                'datetime': datetime.datetime(1945, 5, 8),
             }
