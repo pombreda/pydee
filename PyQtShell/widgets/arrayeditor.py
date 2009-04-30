@@ -31,7 +31,8 @@ from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
 from PyQt4.QtCore import SIGNAL, SLOT
 from PyQt4.QtGui import (QHBoxLayout, QColor, QLabel, QTableView, QItemDelegate,
                          QLineEdit, QCheckBox, QGridLayout, QDoubleValidator,
-                         QDialog, QDialogButtonBox, QMessageBox, QPushButton)
+                         QDialog, QDialogButtonBox, QMessageBox, QPushButton,
+                         QInputDialog)
 import numpy as N
 
 # Local import
@@ -41,7 +42,7 @@ from PyQtShell.config import get_icon, get_font
 #TODO: Support data types other than float
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
-    def __init__(self, data, dataType, fmt="%.3f", xy_mode=False):
+    def __init__(self, data, datatype, format="%.3f", xy_mode=False):
         super(ArrayModel, self).__init__()
 
         # Backgroundcolor settings
@@ -51,8 +52,8 @@ class ArrayModel(QAbstractTableModel):
         self.alp = .6 # Alpha-channel
 
         self._data = data
-        self._dataType = dataType
-        self._fmt = fmt
+        self._datatype = datatype
+        self._format = format
         self._xy = xy_mode
         
         self.vmin = data.min()
@@ -64,9 +65,14 @@ class ArrayModel(QAbstractTableModel):
         
         self.bgcolor_enabled = True
         
-    def set_format(self, fmt):
+    def get_format(self):
+        """Return current format"""
+        # Avoid accessing the private attribute _format from outside
+        return self._format
+        
+    def set_format(self, format):
         """Change display format"""
-        self._fmt = fmt
+        self._format = format
         self.reset()
 
     def columnCount(self, qindex=QModelIndex()):
@@ -79,7 +85,7 @@ class ArrayModel(QAbstractTableModel):
 
     def bgcolor(self, state):
         """Toggle backgroundcolor"""
-        self.bgcolor_enabled = state>0
+        self.bgcolor_enabled = state > 0
         self.reset()
 
     def data(self, index, role=Qt.DisplayRole):
@@ -90,7 +96,7 @@ class ArrayModel(QAbstractTableModel):
         j = index.column()
         value = self._data[i, j]
         if role == Qt.DisplayRole:
-            return QVariant( self._fmt % value )
+            return QVariant( self._format % value )
         elif role == Qt.TextAlignmentRole:
             return QVariant(int(Qt.AlignCenter|Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole and self.bgcolor_enabled:
@@ -108,9 +114,9 @@ class ArrayModel(QAbstractTableModel):
         i = index.row()
         j = index.column()
         val, isok = None, False
-        if self._dataType == 'int':
+        if self._datatype == int:
             val, isok = value.toInt()
-        else:
+        elif self._datatype == float:
             val, isok = value.toDouble()
         if isok:
             self._data[i, j] = val
@@ -124,12 +130,14 @@ class ArrayModel(QAbstractTableModel):
         return False
     
     def flags(self, index):
+        """Set editable flag"""
         if not index.isValid():
             return Qt.ItemIsEnabled
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
                             Qt.ItemIsEditable)
                 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
+        """Set header data"""
         if role != Qt.DisplayRole:
             return QVariant()
         if orientation == Qt.Horizontal:
@@ -148,11 +156,12 @@ class ArrayModel(QAbstractTableModel):
 
 class ArrayDelegate(QItemDelegate):
     """Array Editor Item Delegate"""
-    def __init__(self, parent=None, dataType = 'float'):
+    def __init__(self, parent=None, datatype = float):
         super(ArrayDelegate, self).__init__(parent)
-        self._dataType = dataType
+        self._datatype = datatype
 
     def createEditor(self, parent, option, index):
+        """Create editor widget"""
         editor = QLineEdit(parent)
         editor.setFont(get_font('arrayeditor'))
         editor.setAlignment(Qt.AlignCenter)
@@ -162,28 +171,27 @@ class ArrayDelegate(QItemDelegate):
         return editor
 
     def commitAndCloseEditor(self):
+        """Commit and close editor"""
         editor = self.sender()
         self.emit(SIGNAL("commitData(QWidget*)"), editor)
         self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
 
     def setEditorData(self, editor, index):
+        """Set editor widget's data"""
         text = index.model().data(index, Qt.DisplayRole).toString()
-        if self._dataType == 'int':
-            editor.setText(str(int(text)))
-        else:
-            editor.setText(str(float(text)))
+        convert = self._datatype
+        editor.setText( str(convert(text)) )
 
 class ArrayEditor(QDialog):
     """Array Editor Dialog"""
-    
-    FMTS = {N.dtype('float32'): ('float', '%.3f'),
-            N.dtype('float64'): ('float', '%.3f'),
-            N.dtype('int32'): ('int', '%d'),
-            N.dtype('int64'): ('int', '%d')}
+    FMTS = {N.dtype('float32'): (float, '%.3f'),
+            N.dtype('float64'): (float, '%.3f'),
+            N.dtype('int32'): (int, '%d'),
+            N.dtype('int64'): (int, '%d')}
     
     def __init__(self, data, title='', xy=False):
         super(ArrayEditor, self).__init__()
-        dataType, format = self.get_type_fmt(data.dtype)
+        datatype, format = self.get_type_format(data.dtype)
         
         self.copy = data.copy()
         self.data = self.copy.view()
@@ -191,7 +199,8 @@ class ArrayEditor(QDialog):
             self.data.shape = (self.data.shape[0], 1)
 
         if len(self.data.shape)!=2:
-            raise RuntimeError( "ArrayEditor doesn't support arrays with more than 2 dimensions" )
+            raise RuntimeError( "ArrayEditor doesn't support arrays"
+                                " with more than 2 dimensions" )
         
         self.layout = QGridLayout()
         self.setLayout(self.layout)
@@ -202,9 +211,9 @@ class ArrayEditor(QDialog):
 
         # Table configuration
         self.view = QTableView()
-        self.model = ArrayModel(self.data, dataType, fmt=format, xy_mode=xy)
+        self.model = ArrayModel(self.data, datatype, format=format, xy_mode=xy)
         self.view.setModel(self.model)
-        self.view.setItemDelegate(ArrayDelegate(self,dataType))
+        self.view.setItemDelegate(ArrayDelegate(self, datatype))
         total_width = 0
         for k in xrange(self.data.shape[1]):
             total_width += self.view.columnWidth(k)
@@ -215,8 +224,8 @@ class ArrayEditor(QDialog):
 
         layout = QHBoxLayout()
         btn = QPushButton(self.tr("Format"))
+        btn.setEnabled(datatype == float) # disable format button for int type
         layout.addWidget( btn )
-        if dataType == 'int': btn.setEnabled(False)
         self.connect(btn, SIGNAL("clicked()"), self.change_format )
         btn = QPushButton(self.tr("Resize"))
         layout.addWidget( btn )
@@ -238,42 +247,35 @@ class ArrayEditor(QDialog):
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
 
-    def get_type_fmt(self,dtype):
+    def get_type_format(self, dtype):
+        """Return (type, format) depending on array dtype"""
         try:
             return self.FMTS.get(dtype)
         except KeyError:
             QMessageBox.warning(self, self.tr("Array editor"),
-                self.tr("Warning: array format not supported"))
-            return 'float', '%.3f'
+                self.tr("Warning: %1 arrays are currently not supported") \
+                .arg(dtype))
+            return float, '%.3f'
 
     def resize_to_contents(self):
+        """Resize cells to contents"""
         self.view.resizeColumnsToContents()
         self.view.resizeRowsToContents()
         
     def change_format(self):
-        dlg = QDialog()
-        layout = QGridLayout()
-        dlg.setLayout(layout)
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel )
-        self.connect(bbox, SIGNAL("accepted()"), dlg, SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), dlg, SLOT("reject()"))
-        lbl = QLabel(self.tr("Float formatting"))
-        edt = QLineEdit(self.model._fmt)
-        layout.addWidget(lbl, 0, 0)
-        layout.addWidget(edt, 0, 1)
-        layout.addWidget(bbox, 1, 0, 1, 2)
-        dlg.setWindowTitle(self.tr('Format'))
-        dlg.setWindowIcon(self.windowIcon())
-        res = dlg.exec_()
-        if res:
-            new_fmt = str(edt.text())
+        """Change display format"""
+        format, valid = QInputDialog.getText(self, self.tr('Format'),
+                          self.tr("Float formatting"), QLineEdit.Normal,
+                          self.model.get_format())
+        if valid:
+            format = str(format)
             try:
-                new_fmt % 1.1
+                format % 1.1
             except:
                 QMessageBox.critical(self, self.tr("Error"),
-                      self.tr("Format (%1) is incorrect").arg(new_fmt))
+                      self.tr("Format (%1) is incorrect").arg(format))
                 return
-            self.model.set_format(new_fmt)
+            self.model.set_format(format)
 
     def get_copy(self):
         """Return modified copy of ndarray"""
@@ -295,5 +297,7 @@ def aedit(arr):
         return dialog.get_copy()
 
 if __name__ == "__main__":
-    example = N.random.rand(20, 20)
-    print "result:", aedit(example)
+    arr_int = N.array([1, 2, 3])
+    arr_float = N.random.rand(20, 20)
+    print "result:", aedit(arr_int)
+    print "result:", aedit(arr_float)

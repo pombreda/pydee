@@ -25,7 +25,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QFileDialog, QShortcut, QKeySequence, QMessageBox
+from PyQt4.QtGui import QFileDialog, QMessageBox
 from PyQt4.QtCore import Qt
 
 import os, sys, cPickle
@@ -162,7 +162,7 @@ class Workspace(DictEditorTableView, WidgetMixin):
             'ws_new.png', self.tr("Create a new workspace"),
             triggered = self.new)
         close_action = create_action(self, self.tr("Close..."), None,
-            None, self.tr("Close the workspace"), triggered = self.close)
+            None, self.tr("Close the workspace"), triggered=self.close)
         open_action = create_action(self, self.tr("Open..."), None,
             'ws_open.png', self.tr("Open a workspace"), triggered = self.load)
         save_action = create_action(self, self.tr("Save"), None, 'ws_save.png',
@@ -172,12 +172,14 @@ class Workspace(DictEditorTableView, WidgetMixin):
             triggered = self.save_as)
         exclude_private_action = create_action(self,
             self.tr("Exclude private references"),
-            tip=self.tr("Exclude references which name starts with an underscore"),
+            tip=self.tr("Exclude references which name starts"
+                        " with an underscore"),
             toggled=self.toggle_exclude_private)
-        exclude_private_action.setChecked( CONF.get(self.ID, 'exclude_private') )
+        exclude_private_action.setChecked(CONF.get(self.ID, 'exclude_private'))
         exclude_upper_action = create_action(self,
             self.tr("Exclude capitalized references"),
-            tip=self.tr("Exclude references which name starts with an upper-case character"),
+            tip=self.tr("Exclude references which name starts with an "
+                        "upper-case character"),
             toggled=self.toggle_exclude_upper)
         exclude_upper_action.setChecked( CONF.get(self.ID, 'exclude_upper') )
 
@@ -191,7 +193,8 @@ class Workspace(DictEditorTableView, WidgetMixin):
         
         autosave_action = create_action(self, self.tr("Auto save"),
             toggled=self.toggle_autosave,
-            tip=self.tr("Automatically save workspace in a temporary file when quitting"))
+            tip=self.tr("Automatically save workspace in a temporary file"
+                        " when quitting"))
         autosave_action.setChecked( CONF.get(self.ID, 'autosave') )
         
         clear_action = create_action(self, self.tr("Clear workspace"),
@@ -241,7 +244,8 @@ class Workspace(DictEditorTableView, WidgetMixin):
                 if cancelable:
                     buttons = buttons | QMessageBox.Cancel
                 answer = QMessageBox.question(self, self.get_name(),
-                   self.tr("Workspace is currently keeping reference to %1 object%2.\n\nDo you want to save %3?") \
+                   self.tr("Workspace is currently keeping reference "
+                           "to %1 object%2.\n\nDo you want to save %3?") \
                    .arg(srefnb).arg(s_or_not).arg(it_or_them), buttons)
                 if answer == QMessageBox.Yes:
                     # Saving workspace
@@ -256,7 +260,6 @@ class Workspace(DictEditorTableView, WidgetMixin):
     def load_temp_namespace(self):
         """Attempt to load last session namespace"""
         self.filename = self.file_path
-        print self.filename
         if osp.isfile(self.filename):
             self.load(self.filename)
         else:
@@ -298,7 +301,7 @@ class Workspace(DictEditorTableView, WidgetMixin):
             self.main.splash.hide()
 
     def close(self):
-        """"""
+        """Close workspace"""
         answer = QMessageBox.question(self, self.tr("Save workspace"),
             self.tr("Do you want to save current workspace "
                     "before closing it?"),
