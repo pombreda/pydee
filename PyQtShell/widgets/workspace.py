@@ -98,7 +98,7 @@ class Workspace(DictEditorTableView, WidgetMixin):
         self.interpreter = None
         self.namespace = None
         self.filename = None
-        DictEditorTableView.__init__(self, parent, None)
+        DictEditorTableView.__init__(self, parent, None, names=True)
         WidgetMixin.__init__(self, parent)
         self.load_temp_namespace()
         
@@ -203,8 +203,7 @@ class Workspace(DictEditorTableView, WidgetMixin):
                                  triggered=self.clear)
         
         menu_actions = (refresh_action, autorefresh_action, None,
-                        self.fulldisplay_action,
-                        self.sort_action, self.inplace_action, None,
+                        self.fulldisplay_action, self.inplace_action, None,
                         exclude_private_action, exclude_upper_action, None,
                         new_action, open_action,
                         save_action, save_as_action, close_action,
