@@ -78,9 +78,19 @@ COLORS = {
           tuple: Qt.lightGray,
           (str, unicode): Qt.darkRed,
           ndarray: Qt.green,
-          datetime.date: Qt.darkYellow
+          datetime.date: Qt.darkYellow,
           }
 
+def get_color(value, alpha):
+    """Return color depending on value type"""
+    color = QColor()
+    for typ in COLORS:
+        if isinstance(value, typ):
+            color = QColor(COLORS[typ])
+    color.setAlphaF(alpha)
+    return color
+
+#----Sorting
 def sort_against(lista, listb, reverse=False):
     """Arrange lista items in the same order as sorted(listb)"""
     return [item for _, item in sorted(zip(listb, lista), reverse=reverse)]
@@ -91,13 +101,15 @@ def unsorted_unique(lista):
     map(set.__setitem__,lista,[])
     return set.keys()
 
+#----Display <--> Value
 def value_to_display(value, truncate=False, trunc_len=80):
     """Convert value for display purpose"""
     if truncate and isinstance(value, ndarray):
         if value.size == 0:
             return repr(value)
         try:
-            return 'Min: %r\nMax: %r\nStd: %r' % (value.min(), value.max(),
+            return 'Min: %r\nMax: %r\nStd: %r' % (value.min(),
+                                                  value.max(),
                                                   value.std())
         except TypeError:
             pass
@@ -152,13 +164,15 @@ def get_type(item):
         text += '\n('+str(item.dtype)+')'
     return text[text.find('.')+1:]
 
+
 class DictModelRO(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
-    def __init__(self, parent, data, sortkeys=True, title=""):
+    def __init__(self, parent, data, title="", names=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
-        self.sortkeys = sortkeys
+        self.names = names
+        self.header0 = None
         self._data = None
         self.showndata = None
         self.keys = None
@@ -180,6 +194,9 @@ class DictModelRO(QAbstractTableModel):
         if dictfilter is not None:
             data = dictfilter(data)
         self.showndata = data
+        self.header0 = translate("DictEditor", "Index")
+        if self.names:
+            self.header0 = translate("DictEditor", "Name")
         if isinstance(data, tuple):
             self.keys = range(len(data))
             self.title += translate("DictEditor", "Tuple")
@@ -189,6 +206,8 @@ class DictModelRO(QAbstractTableModel):
         elif isinstance(data, dict):
             self.keys = data.keys()
             self.title += translate("DictEditor", "Dictionary")
+            if not self.names:
+                self.header0 = translate("DictEditor", "Key")
         else:
             raise RuntimeError("Invalid data type")
         self.title += ' ('+str(len(self.keys))+' '+ \
@@ -197,38 +216,37 @@ class DictModelRO(QAbstractTableModel):
                        for index in range(len(self.keys)) ]
         self.types = [ get_type(data[self.keys[index]])
                        for index in range(len(self.keys)) ]
-        if self.sortkeys:
-            self.sort(-1)
+        self.reset()
 
     def sort(self, column, order=Qt.AscendingOrder):
         """Overriding sort method"""
         reverse = (order==Qt.DescendingOrder)
         if column == 0:
+            self.sizes = sort_against(self.sizes, self.keys, reverse)
+            self.types = sort_against(self.types, self.keys, reverse)
+            self.keys.sort(reverse=reverse)
+        elif column == 1:
             self.keys = sort_against(self.keys, self.types, reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
             self.types.sort(reverse=reverse)
-        elif column == 1:
-            self.keys = sort_against(self.keys, self.sizes, reverse)
-            self.types = sort_against(self.types, self.sizes, reverse)
-            self.sizes.sort(reverse=reverse)
         elif column == 2:
             self.keys = sort_against(self.keys, self.sizes, reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
             self.sizes.sort(reverse=reverse)
         elif column == 3:
+            self.keys = sort_against(self.keys, self.sizes, reverse)
+            self.types = sort_against(self.types, self.sizes, reverse)
+            self.sizes.sort(reverse=reverse)
+        elif column == 4:
             values = [self._data[key] for key in self.keys]
             self.keys = sort_against(self.keys, values, reverse)
             self.sizes = sort_against(self.sizes, values, reverse)
             self.types = sort_against(self.types, values, reverse)
-        elif column == -1:
-            self.sizes = sort_against(self.sizes, self.keys, reverse)
-            self.types = sort_against(self.types, self.keys, reverse)
-            self.keys.sort(reverse=reverse)
         self.reset()
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column number"""
-        return 3
+        return 4
 
     def rowCount(self, qindex=QModelIndex()):
         """Array row number"""
@@ -241,16 +259,25 @@ class DictModelRO(QAbstractTableModel):
     def get_value(self, index):
         """Return current value"""
         if index.column()==0:
-            return self.types[ index.row() ]
+            return self.keys[ index.row() ]
         elif index.column()==1:
+            return self.types[ index.row() ]
+        elif index.column()==2:
             return self.sizes[ index.row() ]
         else:
             return self._data[ self.keys[index.row()] ]
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
-        color = QColor(Qt.lightGray)
-        color.setAlphaF(.3)
+        if index.column()==0:
+            color = QColor(Qt.lightGray)
+            color.setAlphaF(.05)
+        elif index.column()<3:
+            color = QColor(Qt.lightGray)
+            color.setAlphaF(.2)
+        else:
+            color = QColor(Qt.lightGray)
+            color.setAlphaF(.3)
         return color
 
     def data(self, index, role=Qt.DisplayRole):
@@ -258,13 +285,13 @@ class DictModelRO(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
         value = self.get_value(index)
-        display = value_to_display(value, index.column()==2 and self.truncate)
+        display = value_to_display(value, index.column()==3 and self.truncate)
         if role == Qt.DisplayRole:
             return QVariant(display)
         elif role == Qt.EditRole:
             return QVariant(value_to_display(value))
         elif role == Qt.TextAlignmentRole:
-            if index.column()==2:
+            if index.column()==3:
                 if len(display.splitlines())<3:
                     return QVariant(int(Qt.AlignLeft|Qt.AlignVCenter))
                 else:
@@ -274,7 +301,10 @@ class DictModelRO(QAbstractTableModel):
         elif role == Qt.BackgroundColorRole:
             return QVariant( self.get_bgcolor(index) )
         elif role == Qt.FontRole:
-            return QVariant(get_font('dicteditor'))
+            if index.column()<3:
+                return QVariant(QFont())
+            else:
+                return QVariant(get_font('dicteditor'))
         return QVariant()
     
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -283,12 +313,13 @@ class DictModelRO(QAbstractTableModel):
             return QVariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
-            headers = (translate("DictEditor", "Type"),
+            headers = (self.header0,
+                       translate("DictEditor", "Type"),
                        translate("DictEditor", "Size"),
                        translate("DictEditor", "Value"))
             return QVariant( headers[i_column] )
         else:
-            return QVariant( self.keys[i_column] )
+            return QVariant()
 
     def flags(self, index):
         """Overriding method flags"""
@@ -308,28 +339,21 @@ class DictModel(DictModelRO):
         self.showndata[ self.keys[index.row()] ] = value
         self.sizes[index.row()] = get_size(value)
         self.types[index.row()] = get_type(value)
-        if self.sortkeys:
-            self.sort(-1)
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
         value = self.get_value(index)
-        if index.column()<2:
-            color = QColor(Qt.lightGray)
-            color.setAlphaF(.2)
+        if index.column()<3:
+            color = DictModelRO.get_bgcolor(self, index)
         else:
-            color = QColor()
-            for typ in COLORS:
-                if isinstance(value, typ):
-                    color = QColor(COLORS[typ])
-            color.setAlphaF(.2)
+            color = get_color(value, .2)
         return color
 
     def setData(self, index, value, role=Qt.EditRole):
         """Cell content change"""
         if not index.isValid():
             return False
-        if index.column()<2:
+        if index.column()<3:
             return False
         value = display_to_value( value, self.get_value(index) )
         self.set_value(index, value)
@@ -441,37 +465,44 @@ class DictDelegate(QItemDelegate):
 
 class DictEditorTableView(QTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data, readonly=False, sort_by=None, title=""):
+    def __init__(self, parent, data, readonly=False, title="", names=False):
         QTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
-        self.sort_by = sort_by
         self.model = None
         self.delegate = None
         if self.readonly:
-            self.model = DictModelRO(self, data, title=title)
+            self.model = DictModelRO(self, data, title, names=names)
         else:
-            self.model = DictModel(self, data, title=title)
+            self.model = DictModel(self, data, title, names=names)
         self.setModel(self.model)
         self.delegate = DictDelegate(self)
         self.setItemDelegate(self.delegate)
         self.horizontalHeader().setStretchLastSection(True)
         self.adjust_columns()
         self.verticalHeader().setContextMenuPolicy(Qt.CustomContextMenu)
-        self.connect(self.verticalHeader(),SIGNAL("customContextMenuRequested(QPoint)"),
+        self.connect(self.verticalHeader(),
+                     SIGNAL("customContextMenuRequested(QPoint)"),
                      self.vertHeaderContextMenu)        
         self.menu, self.vert_menu = self.setup_menu()
+        
+        # Sorting columns
+        self.setSortingEnabled(True)
+        self.sortByColumn(0, Qt.AscendingOrder)
     
     def setup_menu(self):
         """Setup context menu"""
         self.edit_action = create_action(self, 
                                       translate("DictEditor", "Edit"),
+                                      icon=get_icon('edit.png'),
                                       triggered=self.edit_item)
         self.insert_action = create_action(self, 
                                       translate("DictEditor", "Insert"),
+                                      icon=get_icon('insert.png'),
                                       triggered=self.insert_item)
         self.paste_action = create_action(self,
                                       translate("DictEditor", "Paste"),
+                                      icon=get_icon('paste.png'),
                                       triggered=self.paste)
         self.remove_action = create_action(self, 
                                       translate("DictEditor", "Remove"),
@@ -481,9 +512,6 @@ class DictEditorTableView(QTableView):
                                     translate("DictEditor", "Display complete "
                                               "values"),
                                     toggled=self.set_fulldisplay)
-        self.sort_action = create_action(self,
-                                    translate("DictEditor", "Sort columns"),
-                                    toggled=self.setSortingEnabled)
         self.inplace_action = create_action(self,
                                        translate("DictEditor",
                                                  "Always edit in-place"),
@@ -495,12 +523,13 @@ class DictEditorTableView(QTableView):
                                     translate("DictEditor", "Duplicate"),
                                     triggered=self.duplicate_item)
         menu = QMenu(self)
-        add_actions( menu, (self.edit_action, self.insert_action, self.paste_action,
-                            self.remove_action, None, self.fulldisplay_action,
-                            self.sort_action, self.inplace_action) )
+        add_actions( menu,
+                     (self.edit_action, self.insert_action, self.paste_action,
+                      self.remove_action, None, self.fulldisplay_action,
+                      self.inplace_action) )
         vert_menu = QMenu(self)
         add_actions(vert_menu, (self.rename_action,self.duplicate_action,
-                            self.remove_action))
+                                self.remove_action))
         return menu, vert_menu
     
     def keyPressEvent(self, event):
@@ -673,7 +702,7 @@ class DictEditorTableView(QTableView):
 
     def adjust_columns(self):
         """Resize two first columns to contents"""
-        for col in range(2):
+        for col in range(3):
             self.resizeColumnToContents(col)
         
     def set_inplace_editor(self, state):
@@ -780,7 +809,7 @@ if __name__ == "__main__":
     testdict = {'d': 1, 'a': N.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     example = {'str': 'kjkj kj k j j kj k jkj',
-               'list': [1, 3, 4, 'kjkj', None],
+               'list': [1, 3, [4, 5, 6], 'kjkj', None],
                'tuple': ([1, testdate, testdict], 'kjkj', None),
                'dict': testdict,
                'float': 1.2233,
