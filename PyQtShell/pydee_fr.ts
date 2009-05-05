@@ -1,44 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="1.1" language="fr">
+<defaultcodec></defaultcodec>
 <context>
     <name>ArrayEditor</name>
     <message>
-        <location filename="widgets/arrayeditor.py" line="255"/>
+        <location filename="widgets/arrayeditor.py" line="295"/>
         <source>Array editor</source>
         <translation>Éditeur de tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="267"/>
+        <location filename="widgets/arrayeditor.py" line="307"/>
         <source>Format</source>
         <translation>Format</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="230"/>
+        <location filename="widgets/arrayeditor.py" line="269"/>
         <source>Resize</source>
         <translation>Ajuster</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="233"/>
+        <location filename="widgets/arrayeditor.py" line="272"/>
         <source>Background color</source>
         <translation>Couleur d&apos;arrière-plan</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="268"/>
+        <location filename="widgets/arrayeditor.py" line="308"/>
         <source>Float formatting</source>
         <translation>Format de flottant</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="275"/>
+        <location filename="widgets/arrayeditor.py" line="315"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="276"/>
+        <location filename="widgets/arrayeditor.py" line="316"/>
         <source>Format (%1) is incorrect</source>
         <translation>Le format (%1) n&apos;est pas valide</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="257"/>
+        <location filename="widgets/arrayeditor.py" line="297"/>
         <source>Warning: %1 arrays are currently not supported</source>
         <translation>Attention : les tableaux de type %1 ne sont pas pris en charge</translation>
     </message>
@@ -179,99 +180,119 @@
 <context>
     <name>DictEditor</name>
     <message>
-        <location filename="widgets/dicteditor.py" line="284"/>
+        <location filename="widgets/dicteditor.py" line="319"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="285"/>
+        <location filename="widgets/dicteditor.py" line="320"/>
         <source>Size</source>
         <translation>Taille</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="286"/>
+        <location filename="widgets/dicteditor.py" line="321"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="184"/>
+        <location filename="widgets/dicteditor.py" line="205"/>
         <source>Tuple</source>
         <translation>Tuple</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="187"/>
+        <location filename="widgets/dicteditor.py" line="208"/>
         <source>List</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="190"/>
+        <location filename="widgets/dicteditor.py" line="211"/>
         <source>Dictionary</source>
         <translation>Dictionnaire</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="193"/>
+        <location filename="widgets/dicteditor.py" line="216"/>
         <source>elements</source>
         <translation>éléments</translation>
     </message>
     <message>
         <location filename="widgets/dicteditor.py" line="481"/>
         <source>Sort columns</source>
-        <translation>Classement des colonnes</translation>
+        <translation type="obsolete">Classement des colonnes</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="485"/>
+        <location filename="widgets/dicteditor.py" line="519"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="464"/>
+        <location filename="widgets/dicteditor.py" line="498"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="638"/>
+        <location filename="widgets/dicteditor.py" line="673"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="532"/>
+        <location filename="widgets/dicteditor.py" line="567"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="534"/>
+        <location filename="widgets/dicteditor.py" line="569"/>
         <source>Do you want to remove selected item%1?</source>
         <translation>Souhaitez-vous supprimer la sélection ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="629"/>
+        <location filename="widgets/dicteditor.py" line="664"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="639"/>
+        <location filename="widgets/dicteditor.py" line="674"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="592"/>
+        <location filename="widgets/dicteditor.py" line="627"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="491"/>
+        <location filename="widgets/dicteditor.py" line="525"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="478"/>
+        <location filename="widgets/dicteditor.py" line="515"/>
         <source>Display complete values</source>
         <translation>Afficher les valeurs complètes</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="571"/>
+        <location filename="widgets/dicteditor.py" line="606"/>
         <source>Paste</source>
         <translation>Coller</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="200"/>
+        <source>Index</source>
+        <translation>Indice</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="202"/>
+        <source>Name</source>
+        <translation>Nom</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="213"/>
+        <source>Key</source>
+        <translation>Clé</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="765"/>
+        <source>Tree view</source>
+        <translation>Arborescence</translation>
     </message>
 </context>
 <context>
@@ -732,17 +753,17 @@ Souhaitez-vous continuer ?</translation>
 <context>
     <name>MatplotlibFigure</name>
     <message>
-        <location filename="widgets/figure.py" line="51"/>
+        <location filename="widgets/figure.py" line="47"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
     <message>
-        <location filename="widgets/figure.py" line="52"/>
+        <location filename="widgets/figure.py" line="48"/>
         <source>Close figure %1</source>
         <translation>Fermer la figure %1</translation>
     </message>
     <message>
-        <location filename="widgets/figure.py" line="81"/>
+        <location filename="widgets/figure.py" line="85"/>
         <source>Figure %d</source>
         <translation>Figure %d</translation>
     </message>
@@ -928,17 +949,17 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>WinUserEnvDialog</name>
     <message>
-        <location filename="environ.py" line="110"/>
+        <location filename="environ.py" line="117"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="environ.py" line="98"/>
+        <location filename="environ.py" line="104"/>
         <source>If you accept changes, this will modify the current user environment variables (in Windows registry). Use it with precautions, at your own risks.</source>
         <translation>Si vous acceptez les changements effectués, cela modifiera les variables d&apos;environnement de l&apos;utilisateur courant (dans le registre Windows). Utilisez cette fonctionnalité avec précautions et à vos risques et périls.</translation>
     </message>
     <message>
-        <location filename="environ.py" line="112"/>
+        <location filename="environ.py" line="120"/>
         <source>Module pywin32 was not found: restart session to take these changes into account.</source>
         <translation>Le module pywin32 n&apos;a pas été trouvé : une réouverture de session est nécessaire pour tenir compte des changements effectués.</translation>
     </message>
@@ -984,22 +1005,22 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="238"/>
+        <location filename="widgets/workspace.py" line="237"/>
         <source>them</source>
         <translation>les</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="240"/>
+        <location filename="widgets/workspace.py" line="239"/>
         <source>one</source>
         <translation>un</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="242"/>
+        <location filename="widgets/workspace.py" line="241"/>
         <source>it</source>
         <translation>le</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="249"/>
+        <location filename="widgets/workspace.py" line="248"/>
         <source>Workspace is currently keeping reference to %1 object%2.
 
 Do you want to save %3?</source>
@@ -1043,42 +1064,42 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Enregistrer automatiquement l&apos;espace de travail dans un fichier temporaire en quittant</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="272"/>
+        <location filename="widgets/workspace.py" line="271"/>
         <source>Open workspace</source>
         <translation>Ouvrir un espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="335"/>
+        <location filename="widgets/workspace.py" line="334"/>
         <source>Workspaces</source>
         <translation>Espaces de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="286"/>
+        <location filename="widgets/workspace.py" line="285"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="297"/>
+        <location filename="widgets/workspace.py" line="296"/>
         <source>Unable to load the following workspace:</source>
         <translation>Impossible d&apos;ouvrir l&apos;espace de travail suivant :</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="354"/>
+        <location filename="widgets/workspace.py" line="353"/>
         <source>Save workspace</source>
         <translation>Enregistrer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="348"/>
+        <location filename="widgets/workspace.py" line="347"/>
         <source>Saving workspace...</source>
         <translation>Enregistrement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="355"/>
+        <location filename="widgets/workspace.py" line="354"/>
         <source>Unable to save current workspace</source>
         <translation>Impossible d&apos;enregistrer l&apos;espace de travail suivant</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="357"/>
+        <location filename="widgets/workspace.py" line="356"/>
         <source>Unable to save current workspace:</source>
         <translation>Impossible d&apos;enregistrer l&apos;espace de travail suivant :</translation>
     </message>
@@ -1128,7 +1149,7 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Créer un nouvel espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="323"/>
+        <location filename="widgets/workspace.py" line="322"/>
         <source>New workspace</source>
         <translation>Nouvel espace de travail</translation>
     </message>
@@ -1158,7 +1179,7 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Fermer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="widgets/workspace.py" line="307"/>
+        <location filename="widgets/workspace.py" line="306"/>
         <source>Do you want to save current workspace before closing it?</source>
         <translation>Souhaitez-vous enregistrer l&apos;espace de travail avant de le fermer ?</translation>
     </message>
