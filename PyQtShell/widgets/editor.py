@@ -734,7 +734,7 @@ class DocComboBox(EditableComboBox):
     """
     def __init__(self, parent):
         super(DocComboBox, self).__init__(parent)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: self.tr("Press enter to validate this object name"),
                      False: self.tr('This object name is incorrect')}
         
