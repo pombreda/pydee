@@ -32,6 +32,7 @@ Dictionary Editor Widget and Dialog based on PyQt4
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
+import re
 from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
                           SIGNAL, SLOT, QDateTime, QString)
 from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
@@ -159,9 +160,9 @@ def get_size(item):
 
 def get_type(item):
     """Return type of an item"""
-    text = str(type(item)).replace("<type '", "").replace("'>", "")
+    text = re.findall(r"<type '([\S]*)'>", str(type(item)))[0]
     if text.endswith('ndarray'):
-        text += '\n('+str(item.dtype)+')'
+        text = item.dtype.name
     return text[text.find('.')+1:]
 
 
