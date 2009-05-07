@@ -725,6 +725,7 @@ def main():
     if options.pylab:
         # Customizing matplotlib's parameters
         from matplotlib import rcParams
+        rcParams['font.size'] = CONF.get('figure', 'font/size')
         rcParams["interactive"]=True # interactive mode
         rcParams["backend"]="Qt4Agg" # using Qt4 to render figures
         bgcolor = unicode( \

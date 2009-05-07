@@ -178,6 +178,7 @@ DEFAULTS = [
             ('figure',
              {
               'size' : MPL_SIZE,
+              'font/size' : 9,
               'statusbar/font/family' : SANS_SERIF,
               'statusbar/font/size' : 8,
               'statusbar/font/bold' : False,
