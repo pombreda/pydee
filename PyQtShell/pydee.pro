@@ -10,5 +10,6 @@ SOURCES	     += widgets/shellbase.py
 SOURCES	     += widgets/console.py
 SOURCES	     += widgets/workdir.py
 SOURCES	     += widgets/workspace.py
+SOURCES	     += widgets/explorer.py
 TRANSLATIONS += pydee_fr.ts
 
