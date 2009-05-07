@@ -28,7 +28,7 @@
 from PyQt4.QtGui import (QWidget, QHBoxLayout, QVBoxLayout, QLabel, QFileDialog,
                          QTabWidget, QMenu, QCheckBox, QMessageBox, QPushButton,
                          QFontDialog, QSizePolicy, QToolBar, QAction, QComboBox)
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtCore import Qt, SIGNAL, QStringList
 
 import os, sys, re
 import os.path as osp
@@ -559,9 +559,11 @@ class Editor(QWidget, WidgetMixin):
         if self.dockwidget:
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
-            
-        if not isinstance(filenames, list):
-            filenames = [filenames]
+        
+        if not isinstance(filenames, (list, QStringList)):
+            filenames = [unicode(filenames)]
+        else:
+            filenames = [unicode(fname) for fname in list(filenames)]
             
         for filename in filenames:
             # -- Do not open an already opened file
@@ -583,7 +585,13 @@ class Editor(QWidget, WidgetMixin):
                 title = self.get_title(filename)
                 index = self.tabwidget.addTab(editor, title)
                 self.tabwidget.setTabToolTip(index, filename)
-                self.tabwidget.setTabIcon(index, get_icon('python.png'))
+                
+                # Set tab icon
+                icons = {'.py': 'python.png', '.pyw': 'python.png',
+                         '.txt': 'txt.png', '': 'file.png'}
+                icon = icons.get( osp.splitext(filename)[1] )
+                if icon is not None:
+                    self.tabwidget.setTabIcon(index, get_icon(icon))
                 
                 self.find_widget.set_editor(editor)
                
