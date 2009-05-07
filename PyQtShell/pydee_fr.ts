@@ -298,12 +298,12 @@
 <context>
     <name>DocComboBox</name>
     <message>
-        <location filename="widgets/editor.py" line="730"/>
+        <location filename="widgets/editor.py" line="738"/>
         <source>Press enter to validate this object name</source>
         <translation>Appuyer sur Entrée pour valider ce nom d&apos;objet</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="733"/>
+        <location filename="widgets/editor.py" line="741"/>
         <source>This object name is incorrect</source>
         <translation>Ce nom d&apos;objet n&apos;est pas valide</translation>
     </message>
@@ -311,32 +311,32 @@
 <context>
     <name>DocViewer</name>
     <message>
-        <location filename="widgets/editor.py" line="778"/>
+        <location filename="widgets/editor.py" line="786"/>
         <source>Object</source>
         <translation>Objet</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="786"/>
+        <location filename="widgets/editor.py" line="794"/>
         <source>Show source</source>
         <translation>Afficher les sources</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="889"/>
+        <location filename="widgets/editor.py" line="897"/>
         <source>No documentation available.</source>
         <translation>Aucune documentation disponible.</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="814"/>
+        <location filename="widgets/editor.py" line="822"/>
         <source>Doc</source>
         <translation>Aide</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="852"/>
+        <location filename="widgets/editor.py" line="860"/>
         <source>Unlock</source>
         <translation>Déverrouiller</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="853"/>
+        <location filename="widgets/editor.py" line="861"/>
         <source>Lock</source>
         <translation>Verrouiller</translation>
     </message>
@@ -344,12 +344,12 @@
 <context>
     <name>EditableComboBox</name>
     <message>
-        <location filename="widgets/base.py" line="118"/>
+        <location filename="widgets/base.py" line="121"/>
         <source>Press enter to validate this entry</source>
         <translation>Appuyer sur Entrée pour valider cette saisie</translation>
     </message>
     <message>
-        <location filename="widgets/base.py" line="121"/>
+        <location filename="widgets/base.py" line="124"/>
         <source>This entry is incorrect</source>
         <translation>Cette saisie n&apos;est pas correcte</translation>
     </message>
@@ -402,17 +402,17 @@
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="605"/>
+        <location filename="widgets/editor.py" line="613"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="604"/>
+        <location filename="widgets/editor.py" line="612"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="630"/>
+        <location filename="widgets/editor.py" line="638"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -589,34 +589,57 @@ Do you want to save changes?</source>
     </message>
 </context>
 <context>
+    <name>Explorer</name>
+    <message>
+        <location filename="widgets/explorer.py" line="181"/>
+        <source>Explorer</source>
+        <translation>Explorateur</translation>
+    </message>
+    <message>
+        <location filename="widgets/explorer.py" line="162"/>
+        <source>Wrap lines</source>
+        <translation>Retour à la ligne</translation>
+    </message>
+    <message>
+        <location filename="widgets/explorer.py" line="168"/>
+        <source>Show hidden files</source>
+        <translation>Afficher les fichiers cachés</translation>
+    </message>
+    <message>
+        <location filename="widgets/explorer.py" line="172"/>
+        <source>Show all files</source>
+        <translation>Afficher tous les fichiers</translation>
+    </message>
+</context>
+<context>
     <name>FindReplace</name>
     <message>
-        <location filename="widgets/base.py" line="211"/>
+        <location filename="widgets/base.py" line="214"/>
         <source>Case Sensitive</source>
         <translation>Respecter la casse</translation>
     </message>
     <message>
-        <location filename="widgets/base.py" line="213"/>
+        <location filename="widgets/base.py" line="216"/>
         <source>Whole words</source>
         <translation>Mots entiers</translation>
     </message>
     <message>
-        <location filename="widgets/base.py" line="224"/>
+        <location filename="widgets/base.py" line="227"/>
         <source>Replace with:</source>
         <translation>Remplacer par :</translation>
     </message>
     <message>
-        <location filename="widgets/base.py" line="231"/>
+        <location filename="widgets/base.py" line="234"/>
         <source>Replace all</source>
         <translation>Remplacer tout</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="87"/>
+        <location filename="pydee.py" line="96"/>
         <source>Find text</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="90"/>
+        <location filename="pydee.py" line="99"/>
         <source>Replace text</source>
         <translation>Remplacer</translation>
     </message>
@@ -624,7 +647,7 @@ Do you want to save changes?</source>
 <context>
     <name>HistoryLog</name>
     <message>
-        <location filename="widgets/editor.py" line="702"/>
+        <location filename="widgets/editor.py" line="710"/>
         <source>History log</source>
         <translation>Historique</translation>
     </message>
@@ -632,87 +655,87 @@ Do you want to save changes?</source>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="pydee.py" line="82"/>
+        <location filename="pydee.py" line="91"/>
         <source>Toolbar</source>
         <translation>Barre d&apos;outils</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="140"/>
+        <location filename="pydee.py" line="149"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="145"/>
+        <location filename="pydee.py" line="154"/>
         <source>&amp;Edit</source>
         <translation>&amp;Édition</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="151"/>
+        <location filename="pydee.py" line="160"/>
         <source>&amp;View</source>
         <translation>&amp;Affichage</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="159"/>
+        <location filename="pydee.py" line="168"/>
         <source>Welcome to Pydee!</source>
         <translation>Bienvenue dans Pydee !</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="160"/>
+        <location filename="pydee.py" line="169"/>
         <source>Status bar</source>
         <translation>Barre de status</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="169"/>
+        <location filename="pydee.py" line="178"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="201"/>
+        <location filename="pydee.py" line="210"/>
         <source>Loading editor widget...</source>
         <translation>Chargement de l&apos;éditeur...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="204"/>
+        <location filename="pydee.py" line="213"/>
         <source>&amp;Source</source>
         <translation>&amp;Source</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="210"/>
+        <location filename="pydee.py" line="219"/>
         <source>Loading workspace widget...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="221"/>
+        <location filename="pydee.py" line="242"/>
         <source>Loading history widget...</source>
         <translation>Chargement de l&apos;historique...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="231"/>
+        <location filename="pydee.py" line="252"/>
         <source>Loading docviewer widget...</source>
         <translation>Chargement de l&apos;aide...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="266"/>
+        <location filename="pydee.py" line="287"/>
         <source>About %1...</source>
         <translation>À propos de %1...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="448"/>
+        <location filename="pydee.py" line="474"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="535"/>
+        <location filename="pydee.py" line="561"/>
         <source>Restart Python interpreter</source>
         <translation>Redémarrer l&apos;interpréteur Python</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="251"/>
+        <location filename="pydee.py" line="272"/>
         <source>Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another</source>
         <translation>Démarrer un nouvel interpréteur Python : les objets de la session en cours seront supprimés, à l&apos;exception des données de l&apos;espace du travail qui pourront être conservées</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="536"/>
+        <location filename="pydee.py" line="562"/>
         <source>Python interpreter will be restarted: all the objects created during this session will be lost (that includes imported modules which will have to be imported again).
 
 Do you want to continue?</source>
@@ -721,17 +744,17 @@ Do you want to continue?</source>
 Souhaitez-vous continuer ?</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="542"/>
+        <location filename="pydee.py" line="568"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="543"/>
+        <location filename="pydee.py" line="569"/>
         <source>Do you want to keep workspace data available?</source>
         <translation>Souhaitez-vous conserver les données de l&apos;espace de travail ?</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="464"/>
+        <location filename="pydee.py" line="490"/>
         <source>&lt;b&gt;%1&lt;/b&gt; v %2
             &lt;br&gt;PYthon Development EnvironmEnt
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
@@ -771,12 +794,12 @@ Souhaitez-vous continuer ?</translation>
 <context>
     <name>PathComboBox</name>
     <message>
-        <location filename="widgets/base.py" line="161"/>
+        <location filename="widgets/base.py" line="164"/>
         <source>Press enter to validate this path</source>
         <translation>Appuyez sur Entrée pour valider ce chemin d&apos;accès</translation>
     </message>
     <message>
-        <location filename="widgets/base.py" line="166"/>
+        <location filename="widgets/base.py" line="169"/>
         <source>This path is incorrect.
 Enter a correct directory path.
 Then press enter to validate</source>
@@ -928,12 +951,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Sélectionner tout</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="110"/>
+        <location filename="pydee.py" line="119"/>
         <source>Always copy selection</source>
         <translation>Toujours copier la sélection</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="113"/>
+        <location filename="pydee.py" line="122"/>
         <source>Always copy selected text (with mouse) to clipboard</source>
         <translation>Toujours copier le texte sélectionné (avec la souris) dans le presse-papier</translation>
     </message>

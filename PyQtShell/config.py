@@ -182,10 +182,19 @@ DEFAULTS = [
               'statusbar/font/size' : 8,
               'statusbar/font/bold' : False,
               }),
+            ('explorer',
+             {
+              'enable': True,
+              'wrap': True,
+              'valid_filetypes': ('', '.py', '.pyw', '.ws',
+                                  '.txt', '.csv', '.mat', '.h5'),
+              'show_hidden_files': True,
+              'show_all_files': False,
+              }),
             ]
 
 DEV = not __file__.startswith(sys.prefix)
-DEV = False
+#DEV = False
 CONF = UserConfig('PyQtShell', DEFAULTS, version='0.2.3', load=(not DEV))
 
 def get_conf_path(filename):

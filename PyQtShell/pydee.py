@@ -41,6 +41,7 @@ from PyQtShell.widgets.console import Console
 from PyQtShell.widgets.workdir import WorkingDirectory
 from PyQtShell.widgets.editor import Editor, HistoryLog, DocViewer
 from PyQtShell.widgets.workspace import Workspace
+from PyQtShell.widgets.explorer import Explorer
 from PyQtShell.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate)
 from PyQtShell.config import get_icon, get_image_path, CONF
@@ -57,6 +58,14 @@ class MainWindow(QMainWindow):
         self.init_workdir = options.working_directory
         self.debug = options.debug
         self.light = options.light
+        
+        # Widgets
+        self.console = None
+        self.editor = None
+        self.workspace = None
+        self.explorer = None
+        self.docviewer = None
+        self.historylog = None
         
         # Set Window title and icon
         title = "Pydee"
@@ -205,7 +214,7 @@ class MainWindow(QMainWindow):
             self.add_to_toolbar(self.editor)
         
             # Workspace
-            if CONF.get('workspace', 'enable'):
+            if self.workspace is not None:
                 if first_start:
                     self.set_splash(self.tr("Loading workspace widget..."))
                     self.add_dockwidget(self.workspace)
@@ -214,6 +223,18 @@ class MainWindow(QMainWindow):
                 self.workspace.set_interpreter(self.console.shell.interpreter)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.workspace.refresh)
+
+            # Explorer
+            if CONF.get('explorer', 'enable'):
+                if first_start:
+                    self.explorer = Explorer()
+                    self.add_dockwidget(self.explorer)
+                self.connect(self.explorer, SIGNAL("opendir(QString)"),
+                             self.workdir.chdir)
+                self.connect(self.explorer, SIGNAL("openfile(QString)"),
+                             self.editor.load)
+                self.connect(self.console.shell, SIGNAL("refresh()"),
+                             self.explorer.refresh)
 
             # History log widget
             if CONF.get('history', 'enable'):
@@ -295,6 +316,11 @@ class MainWindow(QMainWindow):
         
         # Give focus to shell widget
         self.console.shell.setFocus()
+        if self.explorer is not None:
+            #XXX UGLY! When dockwidgets will be better handled (i.e. when
+            # widgets.base.WidgetMixin will be replaced by a DockWidget base
+            # class), try to remove the following line:
+            self.explorer.refresh()
         
     def update_file_menu(self):
         """Update file menu to show recent files"""
