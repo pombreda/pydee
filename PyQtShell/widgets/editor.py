@@ -50,7 +50,9 @@ except ImportError, e:
         "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
 
 # Package local imports
-from PyQtShell.widgets.base import PydeeWidget, EditableComboBox, FindReplace
+from PyQtShell.widgets.base import PydeeWidget
+from PyQtShell.widgets.comboboxes import EditableComboBox
+from PyQtShell.widgets.findreplace import FindReplace
 
 
 class SimpleEditor(QsciEditor):

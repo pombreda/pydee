@@ -40,7 +40,8 @@ from PyQtShell.config import CONF, get_conf_path
 from PyQtShell.qthelpers import get_std_icon, create_action
 
 # Package local imports
-from PyQtShell.widgets.base import WidgetMixin, PathComboBox
+from PyQtShell.widgets.base import WidgetMixin
+from PyQtShell.widgets.comboboxes import PathComboBox
 
 
 class WorkingDirectory(QToolBar, WidgetMixin):

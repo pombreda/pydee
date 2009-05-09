@@ -46,7 +46,8 @@ except ImportError:
 
 # Local package imports
 from PyQtShell.widgets.shellbase import ShellBaseWidget
-from PyQtShell.widgets.base import PydeeWidget, FindReplace
+from PyQtShell.widgets.base import PydeeWidget
+from PyQtShell.widgets.findreplace import FindReplace
 
 
 class Console(PydeeWidget):
