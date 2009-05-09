@@ -25,9 +25,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QApplication, QCursor, QVBoxLayout, QFontMetricsF,
-                         QFileDialog, QFontDialog, QInputDialog, QLineEdit)
-from PyQt4.QtCore import Qt, SIGNAL, QSize
+from PyQt4.QtGui import (QApplication, QCursor, QVBoxLayout, QFileDialog,
+                         QFontDialog, QInputDialog, QLineEdit)
+from PyQt4.QtCore import Qt, SIGNAL
 
 import os, re, sys
 
@@ -54,6 +54,7 @@ class Console(PydeeWidget):
     Console widget
     """
     ID = 'shell'
+    location = Qt.RightDockWidgetArea
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None):
         # Shell
@@ -83,12 +84,6 @@ class Console(PydeeWidget):
         # Accepting drops
         self.setAcceptDrops(True)
         
-    def minimumSizeHint(self):
-        """Reimplement Qt method to set minimum size"""
-        font = get_font(self.ID)
-        fm = QFontMetricsF(font)
-        return QSize(fm.width(" "*80), fm.height()*10)
-        
     def change_cursor(self, state):
         """Change widget cursor"""
         if state:
@@ -108,6 +103,9 @@ class Console(PydeeWidget):
     def quit(self):
         """Quit mainwindow"""
         self.main.close()
+        
+    def refresh(self):
+        pass
     
     def set_actions(self):
         """Setup actions"""
