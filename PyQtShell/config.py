@@ -58,7 +58,7 @@ SANS_SERIF.insert(0, unicode(QFont().family()))
 MONOSPACE = ['Consolas', 'Courier New', 'Bitstream Vera Sans Mono',
              'Andale Mono', 'Monaco', 'Nimbus Mono L', 'Courier', 
              'Fixed', 'monospace', 'Terminal']
-MEDIUM = 10
+MEDIUM = 9
 SMALL = 8
 
 try:
@@ -143,7 +143,7 @@ DEFAULTS = [
               'enable' : True,
               'max_history_entries' : 20,
               'font/family' : MONOSPACE,
-              'font/size' : MEDIUM,
+              'font/size' : SMALL,
               'font/bold' : False,
               'wrap' : True,
               }),
@@ -178,9 +178,9 @@ DEFAULTS = [
             ('figure',
              {
               'size' : MPL_SIZE,
-              'font/size' : 9,
+              'font/size' : MEDIUM,
               'statusbar/font/family' : SANS_SERIF,
-              'statusbar/font/size' : 8,
+              'statusbar/font/size' : SMALL,
               'statusbar/font/bold' : False,
               }),
             ('explorer',
@@ -195,7 +195,7 @@ DEFAULTS = [
             ]
 
 DEV = not __file__.startswith(sys.prefix)
-DEV = False
+#DEV = False
 CONF = UserConfig('PyQtShell', DEFAULTS, version='0.2.3', load=(not DEV))
 
 def get_conf_path(filename):
