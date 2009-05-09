@@ -80,10 +80,6 @@ class QsciTerminal(QsciBase):
         # Call-tips
         self.calltips = True
         self.docviewer = None
-        
-        # Minimum size
-        self.setMinimumWidth(300)
-        self.setMinimumHeight(150)
 
         # Give focus to widget
         self.setFocus()

@@ -47,11 +47,7 @@ class QsciEditor(QsciBase):
         
         # Mouse selection copy feature
         self.always_copy_selection = False
-        
-        # Minimum size
-        self.setMinimumWidth(200)
-        self.setMinimumHeight(100)
-        
+                
         if margin:
             self.connect( self, SIGNAL('linesChanged()'), self.lines_changed )
         else:

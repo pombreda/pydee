@@ -53,6 +53,10 @@ class MainWindow(QMainWindow):
     def __init__(self, commands=None, intitle="", message="", options=None):
         super(MainWindow, self).__init__()
         
+        # Area occupied by a dock widget can be split in either direction
+        # to contain more dock widgets:
+        self.setDockNestingEnabled(True)
+        
         self.commands = commands
         self.message = message
         self.init_workdir = options.working_directory
@@ -136,7 +140,7 @@ class MainWindow(QMainWindow):
                                       ]
         self.start()
         
-    #TODO: restart interpreter without restarting the Console widget
+    #FIXME: restart interpreter without restarting the Console widget
     def start(self, namespace=None, first_start=True):
         """
         Start shell and dependent widgets
@@ -187,7 +191,10 @@ class MainWindow(QMainWindow):
             self.console.shell.interpreter.save_history()
         self.console = Console(self, namespace, self.commands, self.message,
                                self.debug, self.closing)
-        self.setCentralWidget(self.console)
+        if self.light:
+            self.setCentralWidget(self.console)
+        else:
+            self.add_dockwidget(self.console)
         if first_start:
             self.widgetlist.append(self.console)
         else:

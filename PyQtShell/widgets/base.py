@@ -45,8 +45,7 @@ class WidgetMixin(object):
     """Useful methods to bind widgets to the main window
     See PydeeWidget class for required widget interface"""
     flags = Qt.Window
-    allowed_areas = Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea | \
-                    Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea
+    allowed_areas = Qt.AllDockWidgetAreas
     location = Qt.LeftDockWidgetArea
     features = QDockWidget.DockWidgetClosable | \
                QDockWidget.DockWidgetFloatable | \
