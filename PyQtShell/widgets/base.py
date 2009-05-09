@@ -38,11 +38,19 @@ STDOUT = sys.stdout
 
 # Local imports
 from PyQtShell.qthelpers import toggle_actions, get_std_icon
-from PyQtShell.config import CONF
+from PyQtShell.config import CONF, get_font
 
 
 class WidgetMixin(object):
-    """Useful methods to bind widgets to the main window"""
+    """Useful methods to bind widgets to the main window
+    See PydeeWidget class for required widget interface"""
+    flags = Qt.Window
+    allowed_areas = Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea | \
+                    Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea
+    location = Qt.LeftDockWidgetArea
+    features = QDockWidget.DockWidgetClosable | \
+               QDockWidget.DockWidgetFloatable | \
+               QDockWidget.DockWidgetMovable
     def __init__(self, main):
         """Bind widget to a QMainWindow instance"""
         super(WidgetMixin, self).__init__()
@@ -50,13 +58,48 @@ class WidgetMixin(object):
         self.menu_actions, self.toolbar_actions = self.set_actions()
         self.dockwidget = None
         
+    def create_dockwidget(self):
+        """Add to parent QMainWindow as a dock widget"""
+        dock = QDockWidget(self.get_widget_title(), self.main)#, self.flags) -> bug in Qt 4.4
+        dock.setObjectName(self.__class__.__name__+"_dw")
+        dock.setAllowedAreas(self.allowed_areas)
+        dock.setFeatures(self.features)
+        dock.setWidget(self)
+        self.connect(dock, SIGNAL('visibilityChanged(bool)'),
+                     self.visibility_changed)
+        self.dockwidget = dock
+        self.refresh()
+        return (dock, self.location)
+
+    def visibility_changed(self, enable):
+        """DockWidget visibility has changed
+        enable: this parameter is not used because we want to detect if
+        DockWiget is visible or not, with 'not toplevel = visible'"""
+        enable = self.dockwidget.isVisible()
+        toggle_actions(self.menu_actions, enable)
+        toggle_actions(self.toolbar_actions, enable)
+        self.refresh() #XXX Is it a good idea?
+
+
+class PydeeWidget(QWidget, WidgetMixin):
+    """Pydee base widget class
+    Pydee's widgets either inherit this class or reimplement its interface"""
+    ID = None
+    def __init__(self, parent):
+        QWidget.__init__(self, parent)
+        WidgetMixin.__init__(self, parent)
+        assert self.ID is not None
+        self.setWindowTitle(self.get_widget_title())
+        
+    def get_widget_title(self):
+        """Return widget title
+        Note: after some thinking, it appears that using a method
+        is more flexible here than using a class attribute"""
+        raise NotImplementedError
+        
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         # Must return True or False (if cancelable)
-        raise NotImplementedError
-        
-    def get_name(self):
-        """Return widget name"""
         raise NotImplementedError
         
     def refresh(self):
@@ -67,42 +110,6 @@ class WidgetMixin(object):
         """Setup actions"""
         # Return menu and toolbar actions
         raise NotImplementedError
-        
-    def get_dockwidget_properties(self):
-        """Return QDockWidget properties"""
-        raise NotImplementedError
-    
-    def get_dockwidget_features(self):
-        """Return QDockWidget features"""
-        return QDockWidget.DockWidgetClosable | \
-               QDockWidget.DockWidgetFloatable | \
-               QDockWidget.DockWidgetMovable
-        
-    def create_dockwidget(self):
-        """Add to parent QMainWindow as a dock widget"""
-        allowed_areas, location = self.get_dockwidget_properties()
-        dock = QDockWidget(self.get_name(), self.main)
-        dock.setObjectName(self.__class__.__name__+"_dw")
-        dock.setAllowedAreas(allowed_areas)
-        dock.setFeatures( self.get_dockwidget_features() )
-        dock.setWidget(self)
-        self.connect(dock, SIGNAL('visibilityChanged(bool)'),
-                     self.visibility_changed)
-        self.dockwidget = dock
-        self.refresh()
-        return (dock, location)
-
-    def visibility_changed(self, enable):
-        """DockWidget visibility has changed
-        enable: this parameter is not used because we want to detect if
-        DockWiget is visible or not, with 'not toplevel = visible'"""
-        enable = self.dockwidget.isVisible()
-        toggle_actions(self.menu_actions, enable)
-        toggle_actions(self.toolbar_actions, enable)
-    
-    def chdir(self, dirname):
-        """Change working directory"""
-        self.main.workdir.chdir(dirname)
 
 
 class EditableComboBox(QComboBox):
@@ -172,7 +179,7 @@ class PathComboBox(EditableComboBox):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
             directory = unicode(self.currentText())
             if osp.isdir( directory ):
-                self.parent().chdir(directory)
+                self.emit(SIGNAL("opendir(QString)"), directory)
                 self.set_default_style()
                 if hasattr(self.parent(), 'main'):
                     if self.parent().main is not None:

@@ -102,15 +102,9 @@ class Workspace(DictEditorTableView, WidgetMixin):
         WidgetMixin.__init__(self, parent)
         self.load_temp_namespace()
         
-    def get_name(self):
-        """Return widget name"""
+    def get_widget_title(self):
+        """Return widget title"""
         return self.tr('Workspace')
-    
-    def get_dockwidget_properties(self):
-        """Return QDockWidget properties"""
-        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
-                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.LeftDockWidgetArea)
         
     def set_interpreter(self, interpreter):
         """Bind to interpreter"""
@@ -131,7 +125,8 @@ class Workspace(DictEditorTableView, WidgetMixin):
     def _update_dock_title(self):
         """Set the dockwidget title"""
         if hasattr(self, "dockwidget") and self.dockwidget:
-            title = self.get_name() + ' - ' + osp.basename(self.filename)
+            title = self.get_widget_title() + \
+                                 ' - ' + osp.basename(self.filename)
             self.dockwidget.setWindowTitle(title)
     
     def clear(self):
@@ -242,7 +237,7 @@ class Workspace(DictEditorTableView, WidgetMixin):
                 buttons = QMessageBox.Yes | QMessageBox.No
                 if cancelable:
                     buttons = buttons | QMessageBox.Cancel
-                answer = QMessageBox.question(self, self.get_name(),
+                answer = QMessageBox.question(self, self.get_widget_title(),
                    self.tr("Workspace is currently keeping reference "
                            "to %1 object%2.\n\nDo you want to save %3?") \
                    .arg(srefnb).arg(s_or_not).arg(it_or_them), buttons)

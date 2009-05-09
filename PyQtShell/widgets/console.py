@@ -25,9 +25,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QWidget, QApplication, QCursor, QVBoxLayout,
-                         QFileDialog, QFontDialog, QInputDialog, QLineEdit,
-                         QFontMetricsF)
+from PyQt4.QtGui import (QApplication, QCursor, QVBoxLayout, QFontMetricsF,
+                         QFileDialog, QFontDialog, QInputDialog, QLineEdit)
 from PyQt4.QtCore import Qt, SIGNAL, QSize
 
 import os, re, sys
@@ -47,9 +46,10 @@ except ImportError:
 
 # Local package imports
 from PyQtShell.widgets.shellbase import ShellBaseWidget
-from PyQtShell.widgets.base import WidgetMixin, FindReplace
+from PyQtShell.widgets.base import PydeeWidget, FindReplace
 
-class Console(QWidget, WidgetMixin):
+
+class Console(PydeeWidget):
     """
     Console widget
     """
@@ -60,8 +60,7 @@ class Console(QWidget, WidgetMixin):
         self.shell = ShellBaseWidget(parent, namespace, commands,
                                      message, debug, exitfunc)
         
-        QWidget.__init__(self, parent)
-        WidgetMixin.__init__(self, parent)
+        PydeeWidget.__init__(self, parent)
         
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -96,10 +95,10 @@ class Console(QWidget, WidgetMixin):
             QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         else:
             QApplication.restoreOverrideCursor()
-
-    def get_name(self):
-        """Return widget name"""
-        return self.tr("Console")
+            
+    def get_widget_title(self):
+        """Return widget title"""
+        return self.tr('Console')
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -163,12 +162,6 @@ class Console(QWidget, WidgetMixin):
         add_actions(self.shell.menu, menu_actions)
         
         return menu_actions, toolbar_actions
-    
-    def get_dockwidget_properties(self):
-        """Return QDockWidget properties"""
-        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
-                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.RightDockWidgetArea)
     
     def show_env(self):
         """Show environment variables"""
@@ -237,9 +230,9 @@ class Console(QWidget, WidgetMixin):
         "Change history max entries"""
         depth, valid = QInputDialog.getInteger(self, self.tr('History'),
                            self.tr('Maximum entries'),
-                           CONF.get('history', 'max_entries'), 10, 10000)
+                           CONF.get('historylog', 'max_entries'), 10, 10000)
         if valid:
-            CONF.set('history', 'max_entries', depth)
+            CONF.set('historylog', 'max_entries', depth)
         
     def change_exteditor(self):
         """Change external editor path"""

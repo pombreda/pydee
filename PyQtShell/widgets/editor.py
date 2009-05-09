@@ -25,7 +25,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QWidget, QHBoxLayout, QVBoxLayout, QLabel, QFileDialog,
+from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QFileDialog,
                          QTabWidget, QMenu, QCheckBox, QMessageBox, QPushButton,
                          QFontDialog, QSizePolicy, QToolBar, QAction, QComboBox)
 from PyQt4.QtCore import Qt, SIGNAL, QStringList
@@ -50,7 +50,7 @@ except ImportError, e:
         "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
 
 # Package local imports
-from PyQtShell.widgets.base import WidgetMixin, EditableComboBox, FindReplace
+from PyQtShell.widgets.base import PydeeWidget, EditableComboBox, FindReplace
 
 
 class SimpleEditor(QsciEditor):
@@ -175,7 +175,7 @@ class Tabs(QTabWidget):
             self.menu.popup(event.globalPos())
 
 #TODO: Add a 'run' argument list which is associated to each opened script (attribute)
-class Editor(QWidget, WidgetMixin):
+class Editor(PydeeWidget):
     """
     Multi-file Editor widget
     """
@@ -184,8 +184,7 @@ class Editor(QWidget, WidgetMixin):
     def __init__(self, parent):
         self.file_dependent_actions = []
         self.dock_toolbar_actions = None
-        QWidget.__init__(self, parent)
-        WidgetMixin.__init__(self, parent)
+        PydeeWidget.__init__(self, parent)
         
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -222,6 +221,10 @@ class Editor(QWidget, WidgetMixin):
             
         # Accepting drops
         self.setAcceptDrops(True)
+            
+    def get_widget_title(self):
+        """Return widget title"""
+        return self.tr('Editor')
 
     def add_recent_file(self, fname):
         """Add to recent file list"""
@@ -242,7 +245,7 @@ class Editor(QWidget, WidgetMixin):
             for action in self.file_dependent_actions:
                 action.setEnabled(enable)
         # Set current editor
-        title = self.get_name()
+        title = self.get_widget_title()
         if self.tabwidget.count():
             index = self.tabwidget.currentIndex()
             editor = self.editors[index]
@@ -257,7 +260,7 @@ class Editor(QWidget, WidgetMixin):
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
-        WidgetMixin.visibility_changed(self, enable)
+        PydeeWidget.visibility_changed(self, enable)
         if self.dockwidget.isWindow():
             self.dock_toolbar.show()
         else:
@@ -278,16 +281,6 @@ class Editor(QWidget, WidgetMixin):
             title = title[:-1]
         self.tabwidget.setTabText(index, title)
         self.save_action.setEnabled(state)
-        
-    def get_name(self):
-        """Return widget name"""
-        return self.tr('Editor')
-    
-    def get_dockwidget_properties(self):
-        """Return QDockWidget properties"""
-        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
-                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.LeftDockWidgetArea)
 
     def set_actions(self):
         """Setup actions"""
@@ -320,6 +313,8 @@ class Editor(QWidget, WidgetMixin):
             'execute_interact.png',
             self.tr("Execute current script and set focus to shell"),
             triggered=self.exec_script_and_interact)
+        #TODO: remove common indents before executing selection
+        #TODO: implement Paste special to paste & removing leading >>>
         self.exec_selected_action = create_action(self,
             self.tr("Execute selection"), "Ctrl+F9", 'execute_selection.png',
             self.tr("Execute selected text in current script"
@@ -405,8 +400,8 @@ class Editor(QWidget, WidgetMixin):
         index = self.tabwidget.currentIndex()
         if index:
             filename = self.filenames[index]
-            self.chdir( os.path.dirname(os.path.abspath(filename)) )
-            self.emit(SIGNAL("refresh()"))
+            directory = os.path.dirname(os.path.abspath(filename))
+            self.emit(SIGNAL("opendir(QString)"), directory)
         
     def load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
@@ -494,7 +489,7 @@ class Editor(QWidget, WidgetMixin):
             if filename == self.file_path:
                 self.save()
             if self.editors[index].isModified():
-                answer = QMessageBox.question(self, self.get_name(),
+                answer = QMessageBox.question(self, self.get_widget_title(),
                     osp.basename(filename)+' '+ \
                     self.tr(" has been modified.\nDo you want to save changes?"),
                     buttons)
@@ -551,7 +546,8 @@ class Editor(QWidget, WidgetMixin):
             self.main.console.shell.redirect_stds()
             filenames = list(filenames)
             if len(filenames):
-#                self.chdir( os.path.dirname(unicode(filenames[-1])) )
+#                directory = os.path.dirname(unicode(filenames[-1]))
+#                self.emit(SIGNAL("opendir(QString)"), directory)
                 filenames = [osp.normpath(unicode(fname)) for fname in filenames]
             else:
                 return
@@ -615,7 +611,8 @@ class Editor(QWidget, WidgetMixin):
             if filename:
                 filename = unicode(filename)
                 self.filenames[index] = filename
-#                self.chdir( os.path.dirname(filename) )
+#                directory = os.path.dirname(filename)
+#                self.emit(SIGNAL("opendir(QString)"), directory)
             else:
                 return False
             self.save()
@@ -670,14 +667,14 @@ class Editor(QWidget, WidgetMixin):
         event.acceptProposedAction()
 
 
-class HistoryLog(QWidget, WidgetMixin):
+#TODO: add a combo box to select an history date range to show
+class HistoryLog(PydeeWidget):
     """
     History log widget
     """
-    ID = 'history'
+    ID = 'historylog'
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
-        WidgetMixin.__init__(self, parent)
+        PydeeWidget.__init__(self, parent)
 
         # Read-only editor
         self.editor = SimpleEditor(self, margin=False)
@@ -697,21 +694,15 @@ class HistoryLog(QWidget, WidgetMixin):
         self.setLayout(layout)
         
         self.history = None
+            
+    def get_widget_title(self):
+        """Return widget title"""
+        return self.tr('History log')
         
     def set_interpreter(self, interpreter):
         """Set history log's associated interpreter"""
         self.history = interpreter.rawhistory
         self.refresh()
-        
-    def get_name(self):
-        """Return widget name"""
-        return self.tr('History log')
-    
-    def get_dockwidget_properties(self):
-        """Return QDockWidget properties"""
-        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
-                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.RightDockWidgetArea)
         
     def refresh(self):
         """Refresh widget"""
@@ -757,15 +748,14 @@ class DocComboBox(EditableComboBox):
         else:
             QComboBox.keyPressEvent(self, event)
     
-class DocViewer(QWidget, WidgetMixin):
+class DocViewer(PydeeWidget):
     """
     Docstrings viewer widget
     """
     ID = 'docviewer'
     log_path = get_conf_path('.docviewer')
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
-        WidgetMixin.__init__(self, parent)
+        PydeeWidget.__init__(self, parent)
         
         # locked = disable link with Console
         self.locked = False
@@ -814,16 +804,10 @@ class DocViewer(QWidget, WidgetMixin):
         layout.addWidget(self.editor)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
-        
-    def get_name(self):
-        """Return widget name"""
+            
+    def get_widget_title(self):
+        """Return widget title"""
         return self.tr('Doc')
-    
-    def get_dockwidget_properties(self):
-        """Return QDockWidget properties"""
-        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
-                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.LeftDockWidgetArea)
         
     def load_dvhistory(self, obj=None):
         """Load history from a text file in user home directory"""

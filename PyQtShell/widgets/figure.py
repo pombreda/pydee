@@ -23,25 +23,24 @@
 Matplotlib figure integration
 """
 
-from PyQt4.QtGui import (QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
+from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
                          QSizePolicy, QDockWidget)
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtCore import SIGNAL
 
 # Local imports
-from PyQtShell.widgets.base import WidgetMixin
+from PyQtShell.widgets.base import PydeeWidget
 from PyQtShell.config import get_font, get_icon
 
-class MatplotlibFigure(QWidget, WidgetMixin):
+class MatplotlibFigure(PydeeWidget):
     """
     Matplotlib Figure Dockwidget
     """
     ID = 'figure'
-    def __init__(self, parent, canvas, num):
-        QWidget.__init__(self, None) # Bug if parent is not None!!
-        WidgetMixin.__init__(self, parent)
-        
+    features = QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable
+    def __init__(self, parent, canvas, num):        
         self.canvas = canvas
         self.num = num
+        PydeeWidget.__init__(self, parent)
 
         # Close button
         self.close_button = QPushButton(get_icon("close.png"), self.tr("Close"))
@@ -61,6 +60,10 @@ class MatplotlibFigure(QWidget, WidgetMixin):
         self.v_layout.addLayout(self.h_layout)
         self.v_layout.addWidget(self.canvas)
         self.setLayout(self.v_layout)
+            
+    def get_widget_title(self):
+        """Return widget title"""
+        return self.tr("Figure %d" % self.num)
         
     def set_statusbar(self):
         """Set status bar"""
@@ -79,20 +82,6 @@ class MatplotlibFigure(QWidget, WidgetMixin):
     def addToolBar(self, toolbar):
         """Fake Qt method --> for matplotlib"""
         self.h_layout.insertWidget(0, toolbar)
-        
-    def get_name(self):
-        """Return widget name"""
-        return self.tr("Figure %d" % self.num)
-        
-    def get_dockwidget_properties(self):
-        """Return QDockWidget properties"""
-        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
-                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.TopDockWidgetArea)
-    
-    def get_dockwidget_features(self):
-        """Return QDockWidget features"""
-        return QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable
         
     def refresh(self):
         """Refresh widget"""

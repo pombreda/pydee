@@ -495,6 +495,7 @@ class QsciTerminal(QsciBase):
             self.redo()
                 
         elif key == Qt.Key_Question:
+            #FIXME: bug, e.g. when typing 'N.array?'
             self.show_docstring(self.__get_last_obj())
             self.insert_text(text)
             

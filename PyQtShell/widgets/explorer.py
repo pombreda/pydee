@@ -143,17 +143,18 @@ class ExplorerWidget(QListWidget):
 
 #TODO: middle-click runs selected .py/.pyw file ??
 #TODO: add context menu entry to run selected .py/.pyw file
+#FIXME: bugs after Python interpreter has been restarted
+#       (it will certainly be fixed when restart will be nicely implemented)
 class Explorer(ExplorerWidget, WidgetMixin):
-    """File and Directories Explorer Widget"""
-    def __init__(self, path=None, parent=None):
-        valid_types = CONF.get('explorer', 'valid_filetypes')
-        show_hidden = CONF.get('explorer', 'show_hidden_files')
-        show_all = CONF.get('explorer', 'show_all_files')
-        ExplorerWidget.__init__(self, parent, path, valid_types,
-                                show_hidden, show_all)
+    """File and Directories Explorer DockWidget"""
+    ID = 'explorer'
+    def __init__(self, parent=None, path=None):
         WidgetMixin.__init__(self, parent)
-        self.setWindowTitle(self.get_name())
-        self.setObjectName(self.get_name()) # Used to save Window state
+        valid_types = CONF.get(self.ID, 'valid_filetypes')
+        show_hidden = CONF.get(self.ID, 'show_hidden_files')
+        show_all = CONF.get(self.ID, 'show_all_files')
+        ExplorerWidget.__init__(self, parent, path,
+                                valid_types, show_hidden, show_all)
         
         self.menu = QMenu(self)
 
@@ -161,7 +162,7 @@ class Explorer(ExplorerWidget, WidgetMixin):
         # Wrap
         wrap_action = create_action(self, self.tr("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
-        wrap = CONF.get('explorer', 'wrap')
+        wrap = CONF.get(self.ID, 'wrap')
         wrap_action.setChecked(wrap)
         self.toggle_wrap_mode(wrap)
         # Show hidden files
@@ -173,17 +174,11 @@ class Explorer(ExplorerWidget, WidgetMixin):
                                    toggled=self.toggle_all)
         all_action.setChecked(show_all)
         add_actions(self.menu, [wrap_action, hidden_action, all_action])
-                
-    def get_name(self):
-        """Return widget name"""
-        return self.tr('Explorer')
-    
-    def get_dockwidget_properties(self):
-        """Return QDockWidget properties"""
-        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea |
-                Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea,
-                Qt.LeftDockWidgetArea)
         
+    def get_widget_title(self):
+        """Return widget title"""
+        return self.tr("Explorer")
+    
     def set_actions(self):
         """Setup actions"""
         return (None, None)
@@ -191,21 +186,27 @@ class Explorer(ExplorerWidget, WidgetMixin):
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
+    
+#remove this if it's safe to let "self.refresh()" in the base class method
+#    def visibility_changed(self, enable):
+#        """Reimplement PydeeDockWidget method"""
+#        PydeeDockWidget.visibility_changed(self, enable)
+#        self.refresh()
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
-        CONF.set('explorer', 'wrap', checked)
+        CONF.set(self.ID, 'wrap', checked)
         self.setWrapping(checked)
         
     def toggle_hidden(self, checked):
         """Toggle hidden files mode"""
-        CONF.set('explorer', 'show_hidden', checked)
+        CONF.set(self.ID, 'show_hidden', checked)
         self.show_hidden = checked
         self.refresh()
         
     def toggle_all(self, checked):
         """Toggle all files mode"""
-        CONF.set('explorer', 'show_all', checked)
+        CONF.set(self.ID, 'show_all', checked)
         self.show_all = checked
         self.refresh()
         
@@ -213,6 +214,7 @@ class Explorer(ExplorerWidget, WidgetMixin):
         """Override Qt method"""
         if self.menu:
             self.menu.popup(event.globalPos())
+
         
 
 class Test(QDialog):
