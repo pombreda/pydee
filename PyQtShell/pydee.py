@@ -73,9 +73,8 @@ class MainWindow(QMainWindow):
             title += " (%s)" % intitle
         self.setWindowTitle(title)
         self.setWindowIcon(get_icon('pydee.png'))
-                       
-    def setup(self):
-        """Setup main window"""
+        
+        # Showing splash screen
         self.splash = QSplashScreen(QPixmap(get_image_path('splash.png'),
                                             'png'))
         self.splash.show()
@@ -85,7 +84,9 @@ class MainWindow(QMainWindow):
         
         # Flag used if closing() is called by the exit() shell command
         self.already_closed = False
-
+                       
+    def setup(self):
+        """Setup main window"""
         if not self.light:
             # Toolbar
             self.toolbar = self.addToolBar(self.tr("Toolbar"))
@@ -127,14 +128,15 @@ class MainWindow(QMainWindow):
                                        triggered=self.global_callback,
                                        data="selectAll")
             self.edit_menu_actions = [self.undo_action, self.redo_action,
-                                 None, self.cut_action, self.copy_action,
-                                 self.paste_action, self.delete_action,
-                                 self.alwayscopyselection_action, None,
-                                 self.selectall_action, None,
-                                 self.find_action, self.replace_action,
-                                 ]
+                                      None, self.cut_action, self.copy_action,
+                                      self.paste_action, self.delete_action,
+                                      self.alwayscopyselection_action, None,
+                                      self.selectall_action, None,
+                                      self.find_action, self.replace_action,
+                                      ]
         self.start()
         
+    #TODO: restart interpreter without restarting the Console widget
     def start(self, namespace=None, first_start=True):
         """
         Start shell and dependent widgets
@@ -209,6 +211,8 @@ class MainWindow(QMainWindow):
                 # Editor widget
                 self.set_splash(self.tr("Loading editor widget..."))
                 self.editor = Editor( self )
+                self.connect(self.editor, SIGNAL("opendir(QString)"),
+                             self.workdir.chdir)
                 self.add_dockwidget(self.editor)
             self.add_to_menubar(self.editor, self.tr("&Source"))
             self.add_to_toolbar(self.editor)
@@ -227,7 +231,7 @@ class MainWindow(QMainWindow):
             # Explorer
             if CONF.get('explorer', 'enable'):
                 if first_start:
-                    self.explorer = Explorer()
+                    self.explorer = Explorer(self)
                     self.add_dockwidget(self.explorer)
                 self.connect(self.explorer, SIGNAL("opendir(QString)"),
                              self.workdir.chdir)
@@ -235,9 +239,11 @@ class MainWindow(QMainWindow):
                              self.editor.load)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.explorer.refresh)
+                self.connect(self.workdir, SIGNAL("chdir()"),
+                             self.explorer.refresh)
 
             # History log widget
-            if CONF.get('history', 'enable'):
+            if CONF.get('historylog', 'enable'):
                 if first_start:
                     self.set_splash(self.tr("Loading history widget..."))
                     self.historylog = HistoryLog( self )
@@ -316,11 +322,6 @@ class MainWindow(QMainWindow):
         
         # Give focus to shell widget
         self.console.shell.setFocus()
-        if self.explorer is not None:
-            #XXX UGLY! When dockwidgets will be better handled (i.e. when
-            # widgets.base.WidgetMixin will be replaced by a DockWidget base
-            # class), try to remove the following line:
-            self.explorer.refresh()
         
     def update_file_menu(self):
         """Update file menu to show recent files"""
@@ -453,7 +454,7 @@ class MainWindow(QMainWindow):
         actions = widget.menu_actions
         if actions is not None:
             if not title:
-                title = widget.get_name()
+                title = widget.get_widget_title()
             menu = self.menuBar().addMenu(title)
             add_actions(menu, actions)
 

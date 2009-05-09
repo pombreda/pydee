@@ -25,8 +25,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QToolBar, QLabel, QSizePolicy, QFileDialog
-from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QToolBar, QLabel, QFileDialog
+from PyQt4.QtCore import SIGNAL
 
 import os, sys
 import os.path as osp
@@ -47,18 +47,22 @@ class WorkingDirectory(QToolBar, WidgetMixin):
     """
     Working directory changer widget
     """
+    ID = 'workingdir'
+#    allowed_areas = Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea
+#    location = Qt.TopDockWidgetArea
     log_path = get_conf_path('.workingdir')
     def __init__(self, parent, workdir=None):
         QToolBar.__init__(self, parent)
         WidgetMixin.__init__(self, parent)
         
-        self.setWindowTitle(self.get_name()) # Toolbar title
-        self.setObjectName(self.get_name()) # Used to save Window state
+        self.setWindowTitle(self.get_widget_title()) # Toolbar title
+        self.setObjectName(self.get_widget_title()) # Used to save Window state
         
         self.addWidget( QLabel(self.tr("Working directory:")+" ") )
         
         # Path combo box
         self.pathedit = PathComboBox(self)
+        self.connect(self.pathedit, SIGNAL("opendir(QString)"), self.chdir)
         self.pathedit.setMaxCount(CONF.get('shell', 'working_dir_history'))
         wdhistory = self.load_wdhistory( workdir )
         if workdir is None:
@@ -85,14 +89,9 @@ class WorkingDirectory(QToolBar, WidgetMixin):
                                       triggered=self.parent_directory)
         self.addAction(parent_action)
         
-    def get_name(self):
-        """Return widget name"""
+    def get_widget_title(self):
+        """Return widget title"""
         return self.tr('Working directory')
-    
-    def get_dockwidget_properties(self):
-        """Return QDockWidget properties"""
-        return (Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea,
-                Qt.TopDockWidgetArea)
         
     def set_actions(self):
         """Setup actions"""
@@ -149,4 +148,5 @@ class WorkingDirectory(QToolBar, WidgetMixin):
         os.chdir( unicode(directory) )
         sys.path.append(os.getcwdu())
         self.refresh()
+        self.emit(SIGNAL("chdir()"))
 

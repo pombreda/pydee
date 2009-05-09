@@ -56,7 +56,7 @@ class Interpreter(code.InteractiveConsole):
             self.namespace['raw_input'] = rawinputfunc
         
         # history
-        self.max_history_entries = CONF.get('history', 'max_entries')
+        self.max_history_entries = CONF.get('historylog', 'max_entries')
         self.rawhistory, self.history = self.load_history()
         
     def load_history(self):
