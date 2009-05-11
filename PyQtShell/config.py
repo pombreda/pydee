@@ -205,17 +205,30 @@ def get_conf_path(filename):
         os.mkdir(conf_dir)
     return osp.join(conf_dir, filename)
 
+IMG_PATH_ROOT = osp.join(APP_PATH, 'images')
+IMG_PATH = [IMG_PATH_ROOT]
+for root, dirs, files in os.walk(IMG_PATH_ROOT):
+    for dir in dirs:
+        IMG_PATH.append(osp.join(IMG_PATH_ROOT, dir))
+
 def get_image_path( name, default="not_found.png" ):
     """Return image absolute path"""
-    img_path = osp.join(APP_PATH, 'images')
-    full_path = osp.join(img_path, name)
-    if osp.isfile(full_path):
-        return osp.abspath(full_path)
-    return osp.abspath(osp.join(img_path, default))
+    for img_path in IMG_PATH:
+        full_path = osp.join(img_path, name)
+        if osp.isfile(full_path):
+            return osp.abspath(full_path)
+    if default is not None:
+        return osp.abspath(osp.join(img_path, default))
 
-def get_icon( name, default="not_found.png" ):
+def get_icon( name, default=None ):
     """Return image inside a QIcon object"""
-    return QIcon(get_image_path(name, default))
+    if default is None:
+        return QIcon(get_image_path(name))
+    elif isinstance(default, QIcon):
+        icon_path = get_image_path(name, default=None)
+        return default if icon_path is None else QIcon(icon_path)
+    else:
+        return QIcon(get_image_path(name, default))
 
 def get_image_label( name, default="not_found.png" ):
     """Return image inside a QLabel object"""
