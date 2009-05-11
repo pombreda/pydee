@@ -20,11 +20,11 @@
 
 """Shell Interpreter"""
 
-import time, atexit
+import time, atexit, os, code
 import os.path as osp
-import code
 
 # Local import
+from PyQtShell import __version__
 import encoding
 from config import CONF, get_conf_path
 
@@ -34,10 +34,10 @@ class Interpreter(code.InteractiveConsole):
     log_path = get_conf_path('.history.py')
     inithistory = [
                    '# -*- coding: utf-8 -*-',
-                   '# *** history: v0.3 ***',
+                   '# *** PyQtShell v%s -- History log ***' % __version__,
                    '',
                    ]
-    separator = '\n# ---(%s)---' % time.ctime()
+    separator = '%s# ---(%s)---' % (os.linesep, time.ctime())
         
     def __init__(self, namespace=None, exitfunc=None,
                  rawinputfunc=None):
