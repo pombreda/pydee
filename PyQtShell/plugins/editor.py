@@ -177,6 +177,9 @@ class Tabs(QTabWidget):
             self.menu.popup(event.globalPos())
 
 #TODO: Add a 'run' argument list which is associated to each opened script (attribute)
+#TODO: Select the QScintilla Lexer depending on opened file type
+#TODO: Google-Code feature request: interrupt an executed script
+#TODO: Google-Code feature request: add a class/function browser
 class Editor(PluginWidget):
     """
     Multi-file Editor widget
