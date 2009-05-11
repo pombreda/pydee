@@ -40,7 +40,7 @@ STDOUT = sys.stdout
 from PyQtShell import encoding
 from PyQtShell.config import CONF, get_conf_path, get_icon, get_font, set_font
 from PyQtShell.qthelpers import (create_action, add_actions, mimedata2url,
-                                 keybinding, translate)
+                                 keybinding, translate, get_filetype_icon)
 from PyQtShell.dochelpers import getdoc, getsource
 try:
     from PyQtShell.widgets.editorbase import QsciEditor
@@ -50,9 +50,9 @@ except ImportError, e:
         "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
 
 # Package local imports
-from PyQtShell.widgets.base import PydeeWidget
 from PyQtShell.widgets.comboboxes import EditableComboBox
 from PyQtShell.widgets.findreplace import FindReplace
+from PyQtShell.plugins import PluginWidget
 
 
 class SimpleEditor(QsciEditor):
@@ -177,7 +177,7 @@ class Tabs(QTabWidget):
             self.menu.popup(event.globalPos())
 
 #TODO: Add a 'run' argument list which is associated to each opened script (attribute)
-class Editor(PydeeWidget):
+class Editor(PluginWidget):
     """
     Multi-file Editor widget
     """
@@ -186,7 +186,7 @@ class Editor(PydeeWidget):
     def __init__(self, parent):
         self.file_dependent_actions = []
         self.dock_toolbar_actions = None
-        PydeeWidget.__init__(self, parent)
+        PluginWidget.__init__(self, parent)
         
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -262,7 +262,7 @@ class Editor(PydeeWidget):
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
-        PydeeWidget.visibility_changed(self, enable)
+        PluginWidget.visibility_changed(self, enable)
         if self.dockwidget.isWindow():
             self.dock_toolbar.show()
         else:
@@ -583,13 +583,7 @@ class Editor(PydeeWidget):
                 title = self.get_title(filename)
                 index = self.tabwidget.addTab(editor, title)
                 self.tabwidget.setTabToolTip(index, filename)
-                
-                # Set tab icon
-                icons = {'.py': 'python.png', '.pyw': 'python.png',
-                         '.txt': 'txt.png', '': 'file.png'}
-                icon = icons.get( osp.splitext(filename)[1] )
-                if icon is not None:
-                    self.tabwidget.setTabIcon(index, get_icon(icon))
+                self.tabwidget.setTabIcon(index, get_filetype_icon(filename))
                 
                 self.find_widget.set_editor(editor)
                
@@ -670,13 +664,13 @@ class Editor(PydeeWidget):
 
 
 #TODO: add a combo box to select an history date range to show
-class HistoryLog(PydeeWidget):
+class HistoryLog(PluginWidget):
     """
     History log widget
     """
     ID = 'historylog'
     def __init__(self, parent):
-        PydeeWidget.__init__(self, parent)
+        PluginWidget.__init__(self, parent)
 
         # Read-only editor
         self.editor = SimpleEditor(self, margin=False)
@@ -750,14 +744,14 @@ class DocComboBox(EditableComboBox):
         else:
             QComboBox.keyPressEvent(self, event)
     
-class DocViewer(PydeeWidget):
+class DocViewer(PluginWidget):
     """
     Docstrings viewer widget
     """
     ID = 'docviewer'
     log_path = get_conf_path('.docviewer')
     def __init__(self, parent):
-        PydeeWidget.__init__(self, parent)
+        PluginWidget.__init__(self, parent)
         
         # locked = disable link with Console
         self.locked = False

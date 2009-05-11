@@ -43,14 +43,12 @@ try:
     from PyQtShell.environ import WinUserEnvDialog
 except ImportError:
     WinUserEnvDialog = None
-
-# Local package imports
 from PyQtShell.widgets.shellbase import ShellBaseWidget
-from PyQtShell.widgets.base import PydeeWidget
 from PyQtShell.widgets.findreplace import FindReplace
+from PyQtShell.plugins import PluginWidget
 
 
-class Console(PydeeWidget):
+class Console(PluginWidget):
     """
     Console widget
     """
@@ -62,7 +60,7 @@ class Console(PydeeWidget):
         self.shell = ShellBaseWidget(parent, namespace, commands,
                                      message, debug, exitfunc)
         
-        PydeeWidget.__init__(self, parent)
+        PluginWidget.__init__(self, parent)
         
         # Find/replace widget
         self.find_widget = FindReplace(self)

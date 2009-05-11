@@ -28,10 +28,10 @@ from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
 from PyQt4.QtCore import SIGNAL
 
 # Local imports
-from PyQtShell.widgets.base import PydeeWidget
+from PyQtShell.plugins import PluginWidget
 from PyQtShell.config import get_font, get_icon
 
-class MatplotlibFigure(PydeeWidget):
+class MatplotlibFigure(PluginWidget):
     """
     Matplotlib Figure Dockwidget
     """
@@ -40,7 +40,7 @@ class MatplotlibFigure(PydeeWidget):
     def __init__(self, parent, canvas, num):        
         self.canvas = canvas
         self.num = num
-        PydeeWidget.__init__(self, parent)
+        PluginWidget.__init__(self, parent)
 
         # Close button
         self.close_button = QPushButton(get_icon("close.png"), self.tr("Close"))

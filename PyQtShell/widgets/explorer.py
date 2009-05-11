@@ -26,7 +26,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
-                         QLabel, QHBoxLayout, QDrag, QMenu)
+                         QLabel, QHBoxLayout, QDrag)
 from PyQt4.QtCore import Qt, SIGNAL, QMimeData
 
 import os, sys
@@ -36,9 +36,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from PyQtShell.config import CONF, get_icon
-from PyQtShell.qthelpers import get_std_icon, create_action, add_actions
-from PyQtShell.widgets.base import WidgetMixin
+from PyQtShell.qthelpers import get_std_icon
 
 
 def listdir(path, valid_types=('.py', '.pyw'),
@@ -56,12 +54,17 @@ def listdir(path, valid_types=('.py', '.pyw'),
 
 
 class ExplorerWidget(QListWidget):
-    """File and Directories Explorer Widget"""
-    def __init__(self, parent=None, path=None,
+    """File and Directories Explorer Widget
+    get_filetype_icon(fname): fn which returns a QIcon for file extension"""
+    def __init__(self, parent=None, path=None, get_filetype_icon=None,
                  valid_types=('.py', '.pyw'),
                  show_hidden=False, show_all=False):
         QListWidget.__init__(self, parent)
         
+        if get_filetype_icon is None:
+            def get_filetype_icon(fname):
+                return get_std_icon('FileIcon')
+        self.get_filetype_icon = get_filetype_icon
         self.valid_types = valid_types
         self.show_hidden = show_hidden
         self.show_all = show_all
@@ -90,10 +93,8 @@ class ExplorerWidget(QListWidget):
             item = QListWidgetItem(name)
             if osp.isdir(osp.join(path, name)):
                 item.setIcon(get_std_icon('DirClosedIcon'))
-            elif osp.splitext(name)[1] in ('.py', '.pyw'):
-                item.setIcon(get_icon('py.png'))
             else:
-                item.setIcon(get_std_icon('FileIcon'))
+                item.setIcon( self.get_filetype_icon(name) )
             self.addItem(item)
 
     def keyPressEvent(self, event):
@@ -139,82 +140,6 @@ class ExplorerWidget(QListWidget):
         drag = QDrag(self)
         drag.setMimeData(mimeData)
         drag.exec_()
-
-
-#TODO: middle-click runs selected .py/.pyw file ??
-#TODO: add context menu entry to run selected .py/.pyw file
-#FIXME: bugs after Python interpreter has been restarted
-#       (it will certainly be fixed when restart will be nicely implemented)
-class Explorer(ExplorerWidget, WidgetMixin):
-    """File and Directories Explorer DockWidget"""
-    ID = 'explorer'
-    def __init__(self, parent=None, path=None):
-        WidgetMixin.__init__(self, parent)
-        valid_types = CONF.get(self.ID, 'valid_filetypes')
-        show_hidden = CONF.get(self.ID, 'show_hidden_files')
-        show_all = CONF.get(self.ID, 'show_all_files')
-        ExplorerWidget.__init__(self, parent, path,
-                                valid_types, show_hidden, show_all)
-        
-        self.menu = QMenu(self)
-
-        #---- Setup context menu
-        # Wrap
-        wrap_action = create_action(self, self.tr("Wrap lines"),
-                                    toggled=self.toggle_wrap_mode)
-        wrap = CONF.get(self.ID, 'wrap')
-        wrap_action.setChecked(wrap)
-        self.toggle_wrap_mode(wrap)
-        # Show hidden files
-        hidden_action = create_action(self, self.tr("Show hidden files"),
-                                      toggled=self.toggle_hidden)
-        hidden_action.setChecked(show_hidden)
-        # Show all files
-        all_action = create_action(self, self.tr("Show all files"),
-                                   toggled=self.toggle_all)
-        all_action.setChecked(show_all)
-        add_actions(self.menu, [wrap_action, hidden_action, all_action])
-        
-    def get_widget_title(self):
-        """Return widget title"""
-        return self.tr("Explorer")
-    
-    def set_actions(self):
-        """Setup actions"""
-        return (None, None)
-        
-    def closing(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-    
-#remove this if it's safe to let "self.refresh()" in the base class method
-#    def visibility_changed(self, enable):
-#        """Reimplement PydeeDockWidget method"""
-#        PydeeDockWidget.visibility_changed(self, enable)
-#        self.refresh()
-            
-    def toggle_wrap_mode(self, checked):
-        """Toggle wrap mode"""
-        CONF.set(self.ID, 'wrap', checked)
-        self.setWrapping(checked)
-        
-    def toggle_hidden(self, checked):
-        """Toggle hidden files mode"""
-        CONF.set(self.ID, 'show_hidden', checked)
-        self.show_hidden = checked
-        self.refresh()
-        
-    def toggle_all(self, checked):
-        """Toggle all files mode"""
-        CONF.set(self.ID, 'show_all', checked)
-        self.show_all = checked
-        self.refresh()
-        
-    def contextMenuEvent(self, event):
-        """Override Qt method"""
-        if self.menu:
-            self.menu.popup(event.globalPos())
-
         
 
 class Test(QDialog):

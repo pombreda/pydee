@@ -40,11 +40,11 @@ from PyQtShell.config import CONF, get_conf_path
 from PyQtShell.qthelpers import get_std_icon, create_action
 
 # Package local imports
-from PyQtShell.widgets.base import WidgetMixin
 from PyQtShell.widgets.comboboxes import PathComboBox
+from PyQtShell.plugins import PluginMixin
 
 
-class WorkingDirectory(QToolBar, WidgetMixin):
+class WorkingDirectory(QToolBar, PluginMixin):
     """
     Working directory changer widget
     """
@@ -54,7 +54,7 @@ class WorkingDirectory(QToolBar, WidgetMixin):
     log_path = get_conf_path('.workingdir')
     def __init__(self, parent, workdir=None):
         QToolBar.__init__(self, parent)
-        WidgetMixin.__init__(self, parent)
+        PluginMixin.__init__(self, parent)
         
         self.setWindowTitle(self.get_widget_title()) # Toolbar title
         self.setObjectName(self.get_widget_title()) # Used to save Window state
