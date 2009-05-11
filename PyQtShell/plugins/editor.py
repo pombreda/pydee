@@ -732,7 +732,7 @@ class DocComboBox(EditableComboBox):
         """Return True if string is valid"""
         try:
             eval(unicode(qstr),
-                 self.parent().main.console.shell.interpreter.locals)
+                 self.parent().interpreter.locals)
             return True
         except:
             return False
@@ -755,6 +755,8 @@ class DocViewer(PluginWidget):
     log_path = get_conf_path('.docviewer')
     def __init__(self, parent):
         PluginWidget.__init__(self, parent)
+        
+        self.interpreter = None
         
         # locked = disable link with Console
         self.locked = False
@@ -843,6 +845,11 @@ class DocViewer(PluginWidget):
         tip = self.tr("Unlock") if self.locked else self.tr("Lock")
         self.locked_button.setToolTip(tip)
         
+    def set_interpreter(self, interpreter):
+        """Bind to interpreter"""
+        self.interpreter = interpreter
+        self.refresh()
+        
     def refresh(self, text=None, force=False):
         """Refresh widget"""
         if self.locked and not force:
@@ -865,7 +872,7 @@ class DocViewer(PluginWidget):
         hlp_text = None
         try:
             obj = eval(obj_text,
-                       self.main.console.shell.interpreter.locals)
+                       self.interpreter.locals)
             if self.docstring:
                 hlp_text = getdoc(obj)
                 if hlp_text is None:
