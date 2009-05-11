@@ -40,7 +40,7 @@ STDOUT = sys.stdout
 from PyQtShell import encoding
 from PyQtShell.config import CONF, get_conf_path, get_icon, get_font, set_font
 from PyQtShell.qthelpers import (create_action, add_actions, mimedata2url,
-                                 keybinding, translate, get_filetype_icon)
+                                 get_filetype_icon)
 from PyQtShell.dochelpers import getdoc, getsource
 try:
     from PyQtShell.widgets.editorbase import QsciEditor
@@ -55,76 +55,13 @@ from PyQtShell.widgets.findreplace import FindReplace
 from PyQtShell.plugins import PluginWidget
 
 
-class SimpleEditor(QsciEditor):
-    """
-    Simple Editor Widget
-    QsciEditor -> *SimpleEditor* -> SimpleScriptEditor, DocViewer, ...
-    """
-    def __init__(self, parent, margin=True):
-        super(SimpleEditor, self).__init__(parent, margin=margin)
-        # Context menu
-        self.undo_action = create_action(self,
-                           translate("SimpleEditor", "Undo"),
-                           shortcut=keybinding('Undo'),
-                           icon=get_icon('undo.png'), triggered=self.undo)
-        self.redo_action = create_action(self,
-                           translate("SimpleEditor", "Redo"),
-                           shortcut=keybinding('Redo'),
-                           icon=get_icon('redo.png'), triggered=self.redo)
-        self.cut_action = create_action(self,
-                           translate("SimpleEditor", "Cut"),
-                           shortcut=keybinding('Cut'),
-                           icon=get_icon('cut.png'), triggered=self.cut)
-        self.copy_action = create_action(self,
-                           translate("SimpleEditor", "Copy"),
-                           shortcut=keybinding('Copy'),
-                           icon=get_icon('copy.png'), triggered=self.copy)
-        paste_action = create_action(self,
-                           translate("SimpleEditor", "Paste"),
-                           shortcut=keybinding('Paste'),
-                           icon=get_icon('paste.png'), triggered=self.paste)
-        self.delete_action = create_action(self,
-                           translate("SimpleEditor", "Delete"),
-                           shortcut=keybinding('Delete'),
-                           icon=get_icon('delete.png'),
-                           triggered=self.removeSelectedText)
-        selectall_action = create_action(self,
-                           translate("SimpleEditor", "Select all"),
-                           shortcut=keybinding('SelectAll'),
-                           icon=get_icon('selectall.png'),
-                           triggered=self.selectAll)
-        self.menu = QMenu(self)
-        add_actions(self.menu, (self.undo_action, self.redo_action, None,
-                                self.cut_action, self.copy_action,
-                                paste_action, self.delete_action,
-                                None, selectall_action))        
-        # Read-only context-menu
-        self.readonly_menu = QMenu(self)
-        add_actions(self.readonly_menu, (self.copy_action, None, selectall_action))        
-        
-    def contextMenuEvent(self, event):
-        """Reimplement Qt method"""
-        state = self.hasSelectedText()
-        self.copy_action.setEnabled(state)
-        self.cut_action.setEnabled(state)
-        self.delete_action.setEnabled(state)
-        self.undo_action.setEnabled( self.isUndoAvailable() )
-        self.redo_action.setEnabled( self.isRedoAvailable() )
-        menu = self.menu
-        if self.isReadOnly():
-            menu = self.readonly_menu
-        menu.popup(event.globalPos())
-        event.accept()
-
-    
-class SimpleScriptEditor(SimpleEditor):
+class CodeEditor(QsciEditor):
     """
     Simple Script Editor Widget
-    QsciEditor/QtEditor -> SimpleEditor
-                            -> *SimpleScriptEditor* -> Editor's tabwidget
+    QsciEditor -> *CodeEditor* -> Editor's tabwidget
     """
-    def __init__(self, parent, text):
-        super(SimpleScriptEditor, self).__init__(parent)
+    def __init__(self, parent, text, language=None):
+        super(CodeEditor, self).__init__(parent, language=language)
         self.setup_editor(text)
         
     def setup_editor(self, text):
@@ -580,7 +517,10 @@ class Editor(PluginWidget):
                 self.encodings.append(enc)
                 
                 # Editor widget creation
-                editor = SimpleScriptEditor(self, txt)
+                ext = osp.splitext(filename)[1]
+                if ext.startswith('.'):
+                    ext = ext[1:] # file extension with leading dot
+                editor = CodeEditor(self, txt, language=ext)
                 self.editors.append(editor)
                 
                 title = self.get_title(filename)
@@ -676,7 +616,7 @@ class HistoryLog(PluginWidget):
         PluginWidget.__init__(self, parent)
 
         # Read-only editor
-        self.editor = SimpleEditor(self, margin=False)
+        self.editor = QsciEditor(self, margin=False, language='py')
         self.editor.setReadOnly(True)
         self.editor.set_font( get_font(self.ID) )
         self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )
@@ -762,7 +702,7 @@ class DocViewer(PluginWidget):
         self.locked = False
 
         # Read-only editor
-        self.editor = SimpleEditor(self, margin=False)
+        self.editor = QsciEditor(self, margin=False, language='py')
         self.editor.setReadOnly(True)
         self.editor.set_font( get_font(self.ID) )
         self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )

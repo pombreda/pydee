@@ -38,7 +38,7 @@ class QsciBase(QsciScintilla):
     """
     def __init__(self, parent=None):
         QsciScintilla.__init__(self, parent)
-        self.setup_scintilla()
+        self.setup_scintilla()        
         
     def setup_scintilla(self):
         """Configure Scintilla"""
