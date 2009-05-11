@@ -222,7 +222,7 @@ class MainWindow(QMainWindow):
                 self.connect(self.explorer, SIGNAL("opendir(QString)"),
                              self.workdir.chdir)
                 self.connect(self.explorer, SIGNAL("openfile(QString)"),
-                             self.editor.load)
+                             self.open_file_from_explorer)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.explorer.refresh)
                 self.connect(self.workdir, SIGNAL("chdir()"),
@@ -306,6 +306,21 @@ class MainWindow(QMainWindow):
         
         # Give focus to shell widget
         self.console.shell.setFocus()
+        
+    def open_file_from_explorer(self, fname):
+        """Open file from explorer widget
+        Redirect to the right widget (txt -> editor, ws -> workspace, ...)"""
+        fname = unicode(fname)
+        ext = os.path.splitext(fname)[1]
+        if ext in CONF.get('editor', 'valid_filetypes'):
+            self.editor.load(fname)
+        elif ext == '.ws':
+            raise NotImplementedError()
+        elif os.name == 'nt':
+            try:
+                os.startfile(fname)
+            except WindowsError:
+                self.editor.load(fname)
         
     def update_file_menu(self):
         """Update file menu to show recent files"""
