@@ -315,7 +315,7 @@ class MainWindow(QMainWindow):
         if ext in CONF.get('editor', 'valid_filetypes'):
             self.editor.load(fname)
         elif ext == '.ws':
-            raise NotImplementedError()
+            self.workspace.load(fname)
         elif os.name == 'nt':
             try:
                 os.startfile(fname)
