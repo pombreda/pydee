@@ -125,10 +125,6 @@ class ShellBaseWidget(QsciTerminal):
         # KeyboardInterrupt support
         self.interrupted = False
         
-        # Init interpreter
-        #TODO: multithreaded Interpreter (if option.thread)
-        self.interpreter = Interpreter(namespace, exitfunc, self.raw_input)
-        
         # Multiline entry
         self.multiline_entry = []
         
@@ -145,13 +141,27 @@ class ShellBaseWidget(QsciTerminal):
         self.stdin = self
         self.redirect_stds()
 
+        # Init interpreter
+        self.exitfunc = exitfunc
+        self.commands = commands
+        self.message = message
+        self.interpreter = None
+        self.start_interpreter(namespace)
+        
+    def start_interpreter(self, namespace):
+        """Start Python interpreter"""
+        self.clear()
+        
+        #TODO: multithreaded Interpreter (if option.thread)
+        self.interpreter = Interpreter(namespace, self.exitfunc, self.raw_input)
+
         # interpreter banner
-        banner = create_banner(self.tr('Type "copyright", "credits" or "license" for more information.'), message)
+        banner = create_banner(self.tr('Type "copyright", "credits" or "license" for more information.'), self.message)
         self.setUndoRedoEnabled(False) #-disable undo/redo for a time being
         self.write(banner, flush=True)
 
         # Initial commands
-        for cmd in commands:
+        for cmd in self.commands:
             self.run_command(cmd, history=False, multiline=True)
                 
         # First prompt
@@ -159,7 +169,9 @@ class ShellBaseWidget(QsciTerminal):
         self.write(self.prompt, flush=True)
         self.setUndoRedoEnabled(True) #-enable undo/redo
         self.emit(SIGNAL("refresh()"))
-  
+        
+        return self.interpreter
+
     def setup_context_menu(self):
         """Setup shell context menu"""
         # Create a little context menu        

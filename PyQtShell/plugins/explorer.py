@@ -41,8 +41,6 @@ from PyQtShell.plugins import PluginMixin
 
 #TODO: middle-click runs selected .py/.pyw file ??
 #TODO: add context menu entry to run selected .py/.pyw file
-#FIXME: bugs after Python interpreter has been restarted
-#       (it will certainly be fixed when restart will be nicely implemented)
 class Explorer(ExplorerWidget, PluginMixin):
     """File and Directories Explorer DockWidget"""
     ID = 'explorer'
