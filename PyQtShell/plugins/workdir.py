@@ -61,6 +61,24 @@ class WorkingDirectory(QToolBar, PluginMixin):
         
         self.addWidget( QLabel(self.tr("Working directory:")+" ") )
         
+        # Previous dir action
+        self.history = []
+        self.histindex = None
+        self.previous_action = create_action(self, "previous", None,
+                                     get_std_icon('ArrowBack', 16),
+                                     self.tr('Back'),
+                                     triggered=self.previous_directory)
+        self.addAction(self.previous_action)
+        
+        # Next dir action
+        self.history = []
+        self.histindex = None
+        self.next_action = create_action(self, "next", None,
+                                     get_std_icon('ArrowForward', 16),
+                                     self.tr('Next'),
+                                     triggered=self.next_directory)
+        self.addAction(self.next_action)
+        
         # Path combo box
         self.pathedit = PathComboBox(self)
         self.connect(self.pathedit, SIGNAL("opendir(QString)"), self.chdir)
@@ -71,7 +89,7 @@ class WorkingDirectory(QToolBar, PluginMixin):
                 workdir = wdhistory[0]
             else:
                 workdir = "."
-        self.chdir( workdir )
+        self.chdir(workdir)
         self.pathedit.addItems( wdhistory )
         self.refresh()
         self.addWidget(self.pathedit)
@@ -89,7 +107,7 @@ class WorkingDirectory(QToolBar, PluginMixin):
                                       self.tr('Change to parent directory'),
                                       triggered=self.parent_directory)
         self.addAction(parent_action)
-        
+                
     def get_widget_title(self):
         """Return widget title"""
         return self.tr('Working directory')
@@ -129,6 +147,10 @@ class WorkingDirectory(QToolBar, PluginMixin):
         self.pathedit.insertItem(0, curdir)
         self.pathedit.setCurrentIndex(0)
         self.save_wdhistory()
+        self.previous_action.setEnabled(self.histindex is not None and \
+                                        self.histindex > 0)
+        self.next_action.setEnabled(self.histindex is not None and \
+                                    self.histindex < len(self.history)-1)
         
     def select_directory(self):
         """Select directory"""
@@ -139,13 +161,34 @@ class WorkingDirectory(QToolBar, PluginMixin):
             self.chdir(directory)
         self.main.console.shell.redirect_stds()
         
+    def previous_directory(self):
+        """Back to previous directory"""
+        self.histindex -= 1
+        self.chdir(browsing_history=True)
+        
+    def next_directory(self):
+        """Return to next directory"""
+        self.histindex += 1
+        self.chdir(browsing_history=True)
+        
     def parent_directory(self):
         """Change working directory to parent directory"""
-        os.chdir(os.path.join(os.getcwdu(), os.path.pardir))
-        self.refresh()
+        self.chdir(os.path.join(os.getcwdu(), os.path.pardir))
         
-    def chdir(self, directory):
-        """Set directory as working directory"""
+    def chdir(self, directory=None, browsing_history=False):
+        """Set directory as working directory"""        
+        # Working directory history management
+        if browsing_history:
+            directory = self.history[self.histindex]
+        else:
+            if self.histindex is None:
+                self.history = []
+            else:
+                self.history = self.history[:self.histindex+1]
+            self.history.append( osp.abspath((unicode(directory))) )
+            self.histindex = len(self.history)-1
+        
+        # Changing working directory
         os.chdir( unicode(directory) )
         sys.path.append(os.getcwdu())
         self.refresh()
