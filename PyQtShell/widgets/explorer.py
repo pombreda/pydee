@@ -109,16 +109,21 @@ class ExplorerWidget(QListWidget):
         """Reimplement Qt method"""
         self.clicked()
         event.accept()
+
+    def get_filename(self):
+        """Return selected filename"""
+        if self.currentItem() is not None:
+            return unicode(self.currentItem().text())
             
     def clicked(self):
         """Selected item was double-clicked or enter/return was pressed"""
-        if self.currentItem() is not None:
-            selection = unicode(self.currentItem().text())
-            if osp.isdir(osp.join(self.path, selection)):
-                self.emit(SIGNAL("opendir(QString)"), selection)
+        fname = self.get_filename()
+        if fname:
+            if osp.isdir(osp.join(self.path, fname)):
+                self.emit(SIGNAL("open_dir(QString)"), fname)
                 self.refresh()
             else:
-                self.emit(SIGNAL("openfile(QString)"), selection)
+                self.emit(SIGNAL("open_file(QString)"), fname)
             
     def dragEnterEvent(self, event):
         """Drag and Drop - Enter event"""
@@ -157,7 +162,7 @@ class Test(QDialog):
         hlayout1.addWidget(label)
         self.label1 = QLabel()
         hlayout1.addWidget(self.label1)
-        self.connect(self.explorer, SIGNAL("openfile(QString)"),
+        self.connect(self.explorer, SIGNAL("open_file(QString)"),
                      self.label1.setText)
         
         hlayout2 = QHBoxLayout()
@@ -167,7 +172,7 @@ class Test(QDialog):
         hlayout2.addWidget(label)
         self.label2 = QLabel()
         hlayout2.addWidget(self.label2)
-        self.connect(self.explorer, SIGNAL("opendir(QString)"),
+        self.connect(self.explorer, SIGNAL("open_dir(QString)"),
                      self.label2.setText)
 
 if __name__ == "__main__":

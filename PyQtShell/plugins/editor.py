@@ -342,7 +342,7 @@ class Editor(PluginWidget):
         if index:
             filename = self.filenames[index]
             directory = os.path.dirname(os.path.abspath(filename))
-            self.emit(SIGNAL("opendir(QString)"), directory)
+            self.emit(SIGNAL("open_dir(QString)"), directory)
         
     def load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
@@ -488,7 +488,7 @@ class Editor(PluginWidget):
             filenames = list(filenames)
             if len(filenames):
 #                directory = os.path.dirname(unicode(filenames[-1]))
-#                self.emit(SIGNAL("opendir(QString)"), directory)
+#                self.emit(SIGNAL("open_dir(QString)"), directory)
                 filenames = [osp.normpath(unicode(fname)) for fname in filenames]
             else:
                 return
@@ -550,7 +550,7 @@ class Editor(PluginWidget):
                 filename = unicode(filename)
                 self.filenames[index] = filename
 #                directory = os.path.dirname(filename)
-#                self.emit(SIGNAL("opendir(QString)"), directory)
+#                self.emit(SIGNAL("open_dir(QString)"), directory)
             else:
                 return False
             self.save()
