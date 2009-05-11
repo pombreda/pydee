@@ -23,7 +23,7 @@
 PyQtShell.widgets
 =================
 
-Copyright © 2009 Pierre Raybaut
-This software is licensed under the terms of the GNU General Public
-License version 2 as published by the Free Software Foundation.
+Widgets defined in this module may be used in any other PyQt4-based application
+
+They are also used in Pydee through the Plugin interface (see PyQtShell.plugins)
 """

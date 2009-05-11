@@ -37,13 +37,13 @@ from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
 # Local imports
 from PyQtShell import __version__
 from PyQtShell import encoding
-from PyQtShell.widgets.console import Console
-from PyQtShell.widgets.workdir import WorkingDirectory
-from PyQtShell.widgets.editor import Editor, HistoryLog, DocViewer
-from PyQtShell.widgets.workspace import Workspace
-from PyQtShell.widgets.explorer import Explorer
+from PyQtShell.plugins.console import Console
+from PyQtShell.plugins.workdir import WorkingDirectory
+from PyQtShell.plugins.editor import Editor, HistoryLog, DocViewer
+from PyQtShell.plugins.workspace import Workspace
+from PyQtShell.plugins.explorer import Explorer
 from PyQtShell.qthelpers import (create_action, add_actions, get_std_icon,
-                                 keybinding, translate)
+                                 keybinding, translate, get_filetype_icon)
 from PyQtShell.config import get_icon, get_image_path, CONF
 
 WIDGET_LIST = ['console', 'editor', 'docviewer', 'historylog']
@@ -344,7 +344,7 @@ class MainWindow(QMainWindow):
                 action = create_action(self,
                                        "&%d %s" % (i+1,
                                                    os.path.basename(fname)),
-                                       icon=get_icon("python.png"),
+                                       icon=get_filetype_icon(fname),
                                        triggered=self.editor.load)
                 action.setData(QVariant(fname))
                 self.file_menu.addAction(action)
@@ -432,7 +432,7 @@ class MainWindow(QMainWindow):
         self.addDockWidget(location, dockwidget)
         
         # Matplotlib figures
-        from PyQtShell.widgets.figure import MatplotlibFigure
+        from PyQtShell.plugins.figure import MatplotlibFigure
         if isinstance(child, MatplotlibFigure):
             dockwidget.setVisible(True)
             # Tabifying
@@ -742,7 +742,7 @@ def main():
         
         # Monkey patching matplotlib's figure manager for better integration
         from matplotlib.backends import backend_qt4
-        from PyQtShell.widgets.figure import MatplotlibFigure
+        from PyQtShell.plugins.figure import MatplotlibFigure
         import matplotlib
         
         # ****************************************************************

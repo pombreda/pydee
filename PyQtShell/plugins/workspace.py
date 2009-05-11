@@ -26,7 +26,6 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QFileDialog, QMessageBox
-from PyQt4.QtCore import Qt
 
 import os, sys, cPickle
 import os.path as osp
@@ -39,8 +38,8 @@ from PyQtShell.config import CONF, get_conf_path, str2type
 from PyQtShell.qthelpers import create_action, get_std_icon
 
 # Package local imports
-from PyQtShell.widgets.base import WidgetMixin
 from PyQtShell.widgets.dicteditor import DictEditorTableView
+from PyQtShell.plugins import PluginMixin
 
 
 class NoValue(object):
@@ -88,7 +87,7 @@ def wsfilter(obj_in, rec=0):
     return obj_out            
 
 
-class Workspace(DictEditorTableView, WidgetMixin):
+class Workspace(DictEditorTableView, PluginMixin):
     """
     Workspace widget (namespace explorer)
     """
@@ -99,7 +98,7 @@ class Workspace(DictEditorTableView, WidgetMixin):
         self.namespace = None
         self.filename = None
         DictEditorTableView.__init__(self, parent, None, names=True)
-        WidgetMixin.__init__(self, parent)
+        PluginMixin.__init__(self, parent)
         self.load_temp_namespace()
         
     def get_widget_title(self):

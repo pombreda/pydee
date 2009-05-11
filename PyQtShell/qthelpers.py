@@ -20,6 +20,8 @@
 
 """Qt utilities"""
 
+import os.path as osp
+
 from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                          QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
                          QKeySequence)
@@ -93,6 +95,14 @@ def get_std_icon(name, size=None):
         return icon
     else:
         return QIcon( icon.pixmap(size, size) )
+
+def get_filetype_icon(fname):
+    """Return file type icon"""
+    ext = osp.splitext(fname)[1]
+    if ext.startswith('.'):
+        ext = ext[1:]
+    return get_icon( "%s.png" % ext, get_std_icon('FileIcon') )
+
 
 class ShowStdIcons(QWidget):
     """
