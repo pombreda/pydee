@@ -11,3 +11,4 @@
 \clone.
 syntax: glob
 Capture-Standard Platform Icons.png
+glob:qtbase.py
