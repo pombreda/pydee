@@ -26,8 +26,10 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QMenu
+from PyQt4.QtCore import SIGNAL
 
-import sys
+import sys, os
+import os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -39,8 +41,6 @@ from PyQtShell.widgets.explorer import ExplorerWidget
 from PyQtShell.plugins import PluginMixin
 
 
-#TODO: middle-click runs selected .py/.pyw file ??
-#TODO: add context menu entry to run selected .py/.pyw file
 class Explorer(ExplorerWidget, PluginMixin):
     """File and Directories Explorer DockWidget"""
     ID = 'explorer'
@@ -53,8 +53,6 @@ class Explorer(ExplorerWidget, PluginMixin):
         ExplorerWidget.__init__(self, parent, path, get_filetype_icon,
                                 valid_types, show_hidden, show_all)
         
-        self.menu = QMenu(self)
-
         #---- Setup context menu
         # Wrap
         wrap_action = create_action(self, self.tr("Wrap lines"),
@@ -70,7 +68,9 @@ class Explorer(ExplorerWidget, PluginMixin):
         all_action = create_action(self, self.tr("Show all files"),
                                    toggled=self.toggle_all)
         all_action.setChecked(show_all)
-        add_actions(self.menu, [wrap_action, hidden_action, all_action])
+        self.common_actions = [wrap_action, hidden_action, all_action]
+        
+        self.connect(self, SIGNAL("open_file(QString)"), self.open)
         
     def get_widget_title(self):
         """Return widget title"""
@@ -109,5 +109,59 @@ class Explorer(ExplorerWidget, PluginMixin):
         
     def contextMenuEvent(self, event):
         """Override Qt method"""
-        if self.menu:
-            self.menu.popup(event.globalPos())
+        menu = QMenu(self)
+        actions = []
+        if self.currentItem() is not None:
+            ext = osp.splitext( self.get_filename() )[1]
+            run_action = create_action(self, self.tr("Run"),
+                                       icon="run.png",
+                                       triggered=self.run)
+            edit_action = create_action(self, self.tr("Edit"),
+                                        icon="edit.png",
+                                        triggered=self.clicked)
+            open_action = create_action(self, self.tr("Open"),
+                                        triggered=self.startfile)
+            if ext in ('.py', '.pyw'):
+                actions.append(run_action)
+            if ext in CONF.get('editor', 'valid_filetypes') \
+               or os.name != 'nt':
+                actions.append(edit_action)
+            else:
+                actions.append(open_action)
+            if actions:
+                actions.append(None)
+        actions += self.common_actions
+        add_actions(menu, actions)
+        menu.popup(event.globalPos())
+        
+    def open(self, fname):
+        """Open filename with the appropriate application
+        Redirect to the right widget (txt -> editor, ws -> workspace, ...)"""
+        fname = unicode(fname)
+        ext = osp.splitext(fname)[1]
+        if ext in CONF.get('editor', 'valid_filetypes'):
+            self.emit(SIGNAL("edit(QString)"), fname)
+        elif ext == '.ws':
+            self.emit(SIGNAL("open_workspace(QString)"), fname)
+        else:
+            self.startfile(fname)
+        
+    def startfile(self, fname=None):
+        """Windows only: open file in the associated application"""
+        if fname is None:
+            fname = self.get_filename()
+        emit = False
+        if os.name == 'nt':
+            try:
+                os.startfile(fname)
+            except WindowsError:
+                emit = True
+        else:
+            emit = True
+        if emit:
+            self.emit(SIGNAL("edit(QString)"), fname)
+        
+    def run(self):
+        """Run Python script"""
+        self.emit(SIGNAL("run(QString)"), self.get_filename())
+                

@@ -105,7 +105,7 @@ class PathComboBox(EditableComboBox):
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
             directory = unicode(self.currentText())
             if osp.isdir( directory ):
-                self.emit(SIGNAL("opendir(QString)"), directory)
+                self.emit(SIGNAL("open_dir(QString)"), directory)
                 self.set_default_style()
                 if hasattr(self.parent(), 'main'):
                     if self.parent().main is not None:

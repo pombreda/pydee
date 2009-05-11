@@ -199,7 +199,7 @@ class MainWindow(QMainWindow):
             # Editor widget
             self.set_splash(self.tr("Loading editor widget..."))
             self.editor = Editor( self )
-            self.connect(self.editor, SIGNAL("opendir(QString)"),
+            self.connect(self.editor, SIGNAL("open_dir(QString)"),
                          self.workdir.chdir)
             self.add_dockwidget(self.editor)
             self.add_to_menubar(self.editor, self.tr("&Source"))
@@ -219,10 +219,17 @@ class MainWindow(QMainWindow):
             if CONF.get('explorer', 'enable'):
                 self.explorer = Explorer(self)
                 self.add_dockwidget(self.explorer)
-                self.connect(self.explorer, SIGNAL("opendir(QString)"),
+                self.connect(self.explorer, SIGNAL("open_dir(QString)"),
                              self.workdir.chdir)
-                self.connect(self.explorer, SIGNAL("openfile(QString)"),
-                             self.open_file_from_explorer)
+                self.connect(self.explorer, SIGNAL("edit(QString)"),
+                             self.editor.load)
+                self.connect(self.explorer, SIGNAL("open_workspace(QString)"),
+                             self.workspace.load)
+                self.connect(self.explorer, SIGNAL("run(QString)"),
+                             lambda filename: \
+                             self.console.run_script(filename=filename,
+                                                     silent=True,
+                                                     set_focus=True))
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.explorer.refresh)
                 self.connect(self.workdir, SIGNAL("chdir()"),
@@ -306,21 +313,6 @@ class MainWindow(QMainWindow):
         
         # Give focus to shell widget
         self.console.shell.setFocus()
-        
-    def open_file_from_explorer(self, fname):
-        """Open file from explorer widget
-        Redirect to the right widget (txt -> editor, ws -> workspace, ...)"""
-        fname = unicode(fname)
-        ext = os.path.splitext(fname)[1]
-        if ext in CONF.get('editor', 'valid_filetypes'):
-            self.editor.load(fname)
-        elif ext == '.ws':
-            self.workspace.load(fname)
-        elif os.name == 'nt':
-            try:
-                os.startfile(fname)
-            except WindowsError:
-                self.editor.load(fname)
         
     def update_file_menu(self):
         """Update file menu to show recent files"""
