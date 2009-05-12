@@ -126,19 +126,19 @@ class QsciEditor(QsciBase):
         self.cut_action = create_action(self,
                            translate("SimpleEditor", "Cut"),
                            shortcut=keybinding('Cut'),
-                           icon=get_icon('cut.png'), triggered=self.cut)
+                           icon=get_icon('editcut.png'), triggered=self.cut)
         self.copy_action = create_action(self,
                            translate("SimpleEditor", "Copy"),
                            shortcut=keybinding('Copy'),
-                           icon=get_icon('copy.png'), triggered=self.copy)
+                           icon=get_icon('editcopy.png'), triggered=self.copy)
         paste_action = create_action(self,
                            translate("SimpleEditor", "Paste"),
                            shortcut=keybinding('Paste'),
-                           icon=get_icon('paste.png'), triggered=self.paste)
+                           icon=get_icon('editpaste.png'), triggered=self.paste)
         self.delete_action = create_action(self,
                            translate("SimpleEditor", "Delete"),
                            shortcut=keybinding('Delete'),
-                           icon=get_icon('delete.png'),
+                           icon=get_icon('editdelete.png'),
                            triggered=self.removeSelectedText)
         selectall_action = create_action(self,
                            translate("SimpleEditor", "Select all"),

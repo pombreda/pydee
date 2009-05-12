@@ -110,7 +110,7 @@ class Console(PluginWidget):
         """Setup actions"""
         self.quit_action = create_action(self,
                             self.tr("&Quit"), self.tr("Ctrl+Q"),
-                            get_std_icon("DialogCloseButton"), self.tr("Quit"),
+                            'exit.png', self.tr("Quit"),
                             triggered=self.quit)
         run_action = create_action(self,
                             self.tr("&Run..."), self.tr("Ctrl+R"),
@@ -141,10 +141,9 @@ class Console(PluginWidget):
         calltips_action = create_action(self, self.tr("Balloon tips"),
             toggled=self.toggle_calltips)
         calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
-        menu_actions = [run_action, environ_action, None,
-                             font_action, history_action, wrap_action,
-                             calltips_action, exteditor_action,
-                             None, self.quit_action]
+        menu_actions = [run_action, environ_action, None, font_action,
+                        history_action, wrap_action, calltips_action,
+                        exteditor_action, None, self.quit_action]
         toolbar_actions = []
         if WinUserEnvDialog is not None:
             winenv_action = create_action(self,

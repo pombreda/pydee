@@ -104,20 +104,20 @@ class MainWindow(QMainWindow):
             self.replace_action = create_action(self, _text, "Ctrl+H",
                                                 'replace.png', _text,
                                                 triggered = self.replace)
-            def create_edit_action(text):
+            def create_edit_action(text, icon_name):
                 return create_action(self, translate("SimpleEditor", text),
                                      shortcut=keybinding(text),
-                                     icon=get_icon('%s.png' % text.lower()),
+                                     icon=get_icon(icon_name),
                                      triggered=self.global_callback,
                                      data=text.lower())
-            self.undo_action = create_edit_action("Undo")
-            self.redo_action = create_edit_action("Redo")
-            self.copy_action = create_edit_action("Copy")
-            self.cut_action = create_edit_action("Cut")
-            self.paste_action = create_edit_action("Paste")
+            self.undo_action = create_edit_action("Undo",'undo.png')
+            self.redo_action = create_edit_action("Redo", 'redo.png')
+            self.copy_action = create_edit_action("Copy", 'editcopy.png')
+            self.cut_action = create_edit_action("Cut", 'editcut.png')
+            self.paste_action = create_edit_action("Paste", 'editpaste.png')
             self.delete_action = create_action(self,
                                        translate("SimpleEditor", "Delete"),
-                                       icon=get_icon('delete.png'),
+                                       icon=get_icon('editdelete.png'),
                                        triggered=self.global_callback,
                                        data="removeSelectedText")
             self.alwayscopyselection_action = create_action(self,
@@ -268,7 +268,7 @@ class MainWindow(QMainWindow):
             restart_action = create_action(self,
                self.tr("Restart Python interpreter"),
                tip=self.tr("Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another"),
-               icon=get_icon('clear.png'),
+               icon=get_icon('restart.png'),
                triggered=self.restart_interpreter)
             self.console.menu_actions += [None, restart_action]
             self.add_to_menubar(self.console)
