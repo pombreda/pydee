@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
         self.message = message
         self.init_workdir = options.working_directory
         self.debug = options.debug
+        self.profile = options.profile
         self.light = options.light
         
         # Widgets
@@ -139,6 +140,7 @@ class MainWindow(QMainWindow):
                                       self.find_action, self.replace_action,
                                       ]
 
+        namespace = None
         if not self.light:
             # File menu
             self.file_menu = self.menuBar().addMenu(self.tr("&File"))
@@ -176,7 +178,7 @@ class MainWindow(QMainWindow):
                 
         # Console widget: window's central widget
         self.console = Console(self, namespace, self.commands, self.message,
-                               self.debug, self.closing)
+                               self.debug, self.closing, self.profile)
         if self.light:
             self.setCentralWidget(self.console)
         else:
@@ -591,7 +593,8 @@ def get_options():
                       help="Import all optional modules (options below)")
     parser.add_option('-p', '--pylab', dest="pylab", action='store_true',
                       default=False,
-                      help="Import pylab in interactive mode and add option --numpy")
+                      help="Import pylab in interactive mode"
+                           " and add option --numpy")
     parser.add_option('-o', '--os', dest="os", action='store_true',
                       default=False,
                       help="Import os and os.path as osp")
@@ -604,6 +607,10 @@ def get_options():
     parser.add_option('-d', '--debug', dest="debug", action='store_true',
                       default=False,
                       help="Debug mode (stds are not redirected)")
+    parser.add_option('--profile', dest="profile", action='store_true',
+                      default=False,
+                      help="Profile mode (internal test, "
+                           "not related with Python profiling)")
     options, _args = parser.parse_args()
     
     messagelist = []
