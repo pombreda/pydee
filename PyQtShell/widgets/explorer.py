@@ -26,11 +26,12 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
-                         QLabel, QHBoxLayout, QDrag)
+                         QLabel, QHBoxLayout, QDrag, QApplication)
 from PyQt4.QtCore import Qt, SIGNAL, QMimeData
 
 import os, sys
 import os.path as osp
+from sets import Set
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -70,7 +71,9 @@ class ExplorerWidget(QListWidget):
         self.show_all = show_all
         
         self.path = None
-        self.set_path(os.getcwd() if path is None else path)
+        self.itemdict = None
+        self.nameset = None
+        self.refresh(path)
         
         self.setWrapping(True)
 #        self.setFlow(QListWidget.LeftToRight)
@@ -80,22 +83,40 @@ class ExplorerWidget(QListWidget):
         # Enable drag events
         self.setDragEnabled(True)
         
-    def refresh(self):
-        """Refresh widget"""
-        self.set_path(os.getcwd())
+    def resizeEvent(self, event):
+        """Reimplement Qt Method"""
+        self.reset()
+        QApplication.processEvents()
+        event.ignore()
         
-    def set_path(self, path):
-        """Set Explorer path"""
-        self.path = path
-        self.clear()
-        for name in listdir(path, self.valid_types,
-                            self.show_hidden, self.show_all):
-            item = QListWidgetItem(name)
-            if osp.isdir(osp.join(path, name)):
-                item.setIcon(get_std_icon('DirClosedIcon'))
-            else:
-                item.setIcon( self.get_filetype_icon(name) )
-            self.addItem(item)
+    def refresh(self, new_path=None):
+        """Refresh widget"""
+        if new_path is None:
+            new_path = os.getcwd()
+
+        names = listdir(new_path, self.valid_types,
+                        self.show_hidden, self.show_all)
+        new_nameset = Set(names)
+        
+        if (new_path != self.path):
+            self.path = new_path
+            self.nameset = Set([])
+            self.itemdict = {}
+            self.clear()
+
+        if new_nameset - self.nameset:
+            for name in names:
+                item = self.itemdict.get(name)
+                if item is None:
+                    # Adding new item
+                    item = QListWidgetItem(name)
+                    if osp.isdir(osp.join(self.path, name)):
+                        item.setIcon(get_std_icon('DirClosedIcon'))
+                    else:
+                        item.setIcon( self.get_filetype_icon(name) )
+                    self.itemdict[name] = item
+                self.addItem(item)
+            self.nameset = new_nameset
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
@@ -176,7 +197,6 @@ class Test(QDialog):
                      self.label2.setText)
 
 if __name__ == "__main__":
-    from PyQt4.QtGui import QApplication
     QApplication([])
     test = Test()
     test.exec_()

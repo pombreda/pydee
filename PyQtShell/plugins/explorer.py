@@ -83,12 +83,6 @@ class Explorer(ExplorerWidget, PluginMixin):
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-    
-#remove this if it's safe to let "self.refresh()" in the base class method
-#    def visibility_changed(self, enable):
-#        """Reimplement PydeeDockWidget method"""
-#        PydeeDockWidget.visibility_changed(self, enable)
-#        self.refresh()
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
