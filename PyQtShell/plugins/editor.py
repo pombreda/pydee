@@ -25,9 +25,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QFileDialog,
-                         QTabWidget, QMenu, QCheckBox, QMessageBox, QPushButton,
-                         QFontDialog, QSizePolicy, QToolBar, QAction, QComboBox)
+from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QFileDialog, QMenu,
+                         QSizePolicy, QToolButton, QMessageBox, QFontDialog,
+                         QTabWidget, QCheckBox, QToolBar, QAction, QComboBox)
 from PyQt4.QtCore import Qt, SIGNAL, QStringList
 
 import os, sys, re
@@ -134,10 +134,10 @@ class Editor(PluginWidget):
         
         # Tab widget with close button
         self.tabwidget = Tabs(self, self.tab_actions)
-        self.close_button = QPushButton(get_icon("close.png"), "")
+        self.close_button = QToolButton(self.tabwidget)
+        self.close_button.setIcon(get_icon("fileclose.png"))
         self.close_button.setToolTip(self.tr("Close current script"))
-        self.close_button.setFlat(True)
-        self.close_button.setFixedWidth(20)
+        self.close_button.setAutoRaise(True)
         self.connect(self.close_button, SIGNAL("clicked()"), self.close)
         self.tabwidget.setCornerWidget(self.close_button)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
@@ -226,22 +226,23 @@ class Editor(PluginWidget):
     def set_actions(self):
         """Setup actions"""
         self.new_action = create_action(self, self.tr("New..."), "Ctrl+N",
-            'new.png', self.tr("Create a new Python script"),
+            'filenew.png', self.tr("Create a new Python script"),
             triggered = self.new)
         self.open_action = create_action(self, self.tr("Open..."), "Ctrl+O",
-            'open.png', self.tr("Open a Python script"),
+            'fileopen.png', self.tr("Open a Python script"),
             triggered = self.load)
         self.save_action = create_action(self, self.tr("Save"), "Ctrl+S",
-            'save.png', self.tr("Save current script"),
+            'filesave.png', self.tr("Save current script"),
             triggered = self.save)
         self.save_as_action = create_action(self, self.tr("Save as..."), None,
-            'saveas.png', self.tr("Save current script as..."),
+            'filesaveas.png', self.tr("Save current script as..."),
             triggered = self.save_as)
         self.close_action = create_action(self, self.tr("Close"), "Ctrl+W",
-            'close.png', self.tr("Close current script"),
+            'fileclose.png', self.tr("Close current script"),
             triggered = self.close)
         self.close_all_action = create_action(self, self.tr("Close all"),
-            "Ctrl+Maj+W", 'close_all.png', self.tr("Close all opened scripts"),
+            "Ctrl+Maj+W", 'filecloseall.png',
+            self.tr("Close all opened scripts"),
             triggered = self.close_all)
         self.check_action = create_action(self, self.tr("&Check syntax"), "F5",
             'check.png', self.tr("Check current script for syntax errors"),
@@ -605,7 +606,7 @@ class Editor(PluginWidget):
         event.acceptProposedAction()
 
 
-#TODO: add a combo box to select an history date range to show
+#TODO: add a combo box to select a date from the shown history
 class HistoryLog(PluginWidget):
     """
     History log widget
@@ -730,9 +731,8 @@ class DocViewer(PluginWidget):
         self.toggle_help(Qt.Unchecked)
         
         # Lock checkbox
-        self.locked_button = QPushButton("")
-        self.locked_button.setFlat(True)
-        self.locked_button.setFixedWidth(20)
+        self.locked_button = QToolButton(self)
+        self.locked_button.setAutoRaise(True)
         self.connect(self.locked_button, SIGNAL("clicked()"),
                      self.toggle_locked)
         layout_edit.addWidget(self.locked_button)

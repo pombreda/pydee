@@ -179,18 +179,19 @@ class ShellBaseWidget(QsciTerminal):
         self.cut_action = create_action(self,
                            translate("ShellBaseWidget", "Cut"),
                            shortcut=keybinding('Cut'),
-                           icon=get_icon('cut.png'), triggered=self.cut)
+                           icon=get_icon('editcut.png'), triggered=self.cut)
         self.copy_action = create_action(self,
                            translate("ShellBaseWidget", "Copy"),
                            shortcut=keybinding('Copy'),
-                           icon=get_icon('copy.png'), triggered=self.copy)
+                           icon=get_icon('editcopy.png'), triggered=self.copy)
         paste_action = create_action(self,
                            translate("ShellBaseWidget", "Paste"),
                            shortcut=keybinding('Paste'),
-                           icon=get_icon('paste.png'), triggered=self.paste)
+                           icon=get_icon('editpaste.png'), triggered=self.paste)
         clear_line_action = create_action(self,
                            self.tr("Clear line"),
                            QKeySequence("Escape"),
+                           icon=get_icon('eraser.png'),
                            tip=translate("ShellBaseWidget", "Clear line"),
                            triggered=self.clear_line)
         clear_action = create_action(self,

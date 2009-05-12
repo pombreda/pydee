@@ -156,7 +156,8 @@ class Workspace(DictEditorTableView, PluginMixin):
             'ws_new.png', self.tr("Create a new workspace"),
             triggered = self.new)
         close_action = create_action(self, self.tr("Close..."), None,
-            'close.png', self.tr("Close the workspace"), triggered=self.close)
+            'fileclose.png', self.tr("Close the workspace"),
+            triggered=self.close)
         open_action = create_action(self, self.tr("Open..."), None,
             'ws_open.png', self.tr("Open a workspace"), triggered = self.load)
         save_action = create_action(self, self.tr("Save"), None, 'ws_save.png',

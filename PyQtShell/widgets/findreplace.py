@@ -25,7 +25,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QPushButton, QHBoxLayout, QGridLayout, QCheckBox,
+from PyQt4.QtGui import (QToolButton, QHBoxLayout, QGridLayout, QCheckBox,
                          QLabel, QWidget, QLineEdit, QShortcut, QKeySequence)
 from PyQt4.QtCore import SIGNAL, Qt
 
@@ -49,7 +49,9 @@ class FindReplace(QWidget):
         self.editor = None
         self.setLayout(QGridLayout())
         
-        self.close_button = QPushButton(get_std_icon("DialogCloseButton"), "")
+        self.close_button = QToolButton(self)
+        self.close_button.setIcon(get_std_icon("DialogCloseButton"))
+        self.close_button.setAutoRaise(True)
         self.connect(self.close_button, SIGNAL('clicked()'), self.hide)
         self.layout().addWidget(self.close_button, 0, 0)
         
@@ -58,10 +60,14 @@ class FindReplace(QWidget):
         self.connect(self.edit, SIGNAL("textChanged(QString)"),
                      self.text_has_changed)
         
-        self.previous_button = QPushButton(get_std_icon("ArrowBack"), "")
+        self.previous_button = QToolButton(self)
+        self.previous_button.setIcon(get_std_icon("ArrowBack"))
+        self.previous_button.setAutoRaise(True)
         self.connect(self.previous_button, SIGNAL('clicked()'),
                      self.find_previous)
-        self.next_button = QPushButton(get_std_icon("ArrowForward"), "")
+        self.next_button = QToolButton(self)
+        self.next_button.setIcon(get_std_icon("ArrowForward"))
+        self.next_button.setAutoRaise(True)
         self.connect(self.next_button, SIGNAL('clicked()'),
                      self.find_next)
 
@@ -81,7 +87,9 @@ class FindReplace(QWidget):
         replace_with = QLabel(self.tr("Replace with:"))
         self.replace_edit = QLineEdit()
         
-        self.replace_button = QPushButton(get_std_icon("DialogApplyButton"), "")
+        self.replace_button = QToolButton(self)
+        self.replace_button.setIcon(get_std_icon("DialogApplyButton"))
+        self.replace_button.setAutoRaise(True)
         self.connect(self.replace_button, SIGNAL('clicked()'),
                      self.replace_find)
         
@@ -102,15 +110,7 @@ class FindReplace(QWidget):
         # Escape shortcut
         QShortcut(QKeySequence("Escape"), self, self.hide)
                 
-        self.tweak_buttons()
         self.refresh()
-        
-    def tweak_buttons(self):
-        """Change buttons appearance"""
-        for widget in self.widgets:
-            if isinstance(widget, QPushButton):
-                widget.setFlat(True)
-                widget.setFixedWidth(20)
         
     def show(self):
         """Overrides Qt Method"""

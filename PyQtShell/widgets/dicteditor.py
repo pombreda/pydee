@@ -27,6 +27,9 @@ Dictionary Editor Widget and Dialog based on PyQt4
 
 #TODO: Copy/paste data --> Excel spreadsheet
 
+#TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
+#      at the same time
+
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
 # pylint: disable-msg=R0911
@@ -503,11 +506,11 @@ class DictEditorTableView(QTableView):
                                       triggered=self.insert_item)
         self.paste_action = create_action(self,
                                       translate("DictEditor", "Paste"),
-                                      icon=get_icon('paste.png'),
+                                      icon=get_icon('editpaste.png'),
                                       triggered=self.paste)
         self.remove_action = create_action(self, 
                                       translate("DictEditor", "Remove"),
-                                      icon=get_icon('delete.png'),
+                                      icon=get_icon('editdelete.png'),
                                       triggered=self.remove_item)
         self.fulldisplay_action = create_action(self,
                                     translate("DictEditor", "Display complete "
