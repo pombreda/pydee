@@ -55,10 +55,10 @@ class Console(PluginWidget):
     ID = 'shell'
     location = Qt.RightDockWidgetArea
     def __init__(self, parent=None, namespace=None, commands=None, message="",
-                 debug=False, exitfunc=None):
+                 debug=False, exitfunc=None, profile=False):
         # Shell
         self.shell = ShellBaseWidget(parent, namespace, commands,
-                                     message, debug, exitfunc)
+                                     message, debug, exitfunc, profile)
         
         PluginWidget.__init__(self, parent)
         

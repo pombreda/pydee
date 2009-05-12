@@ -109,10 +109,13 @@ class ShellBaseWidget(QsciTerminal):
     except AttributeError:
         p2 = "... "
     def __init__(self, parent=None, namespace=None, commands=None, message="",
-                 debug=False, exitfunc=None):
+                 debug=False, exitfunc=None, profile=False):
         self.__buffer = []
         self.__timestamp = 0.0
         QsciTerminal.__init__(self, parent)
+        
+        # Simple profiling test (look for it in terminal.py -- temporary):
+        self.profile = profile
         
         # Context menu
         self.menu = None

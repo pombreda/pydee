@@ -377,7 +377,16 @@ class QsciTerminal(QsciBase):
                 else:
                     buf = self.get_new_line()
                     self.busy = True
-                    self.execute_command(buf)
+                    if self.profile:
+                        # Simple profiling test
+                        from time import time
+                        t0 = time()
+                        for _ in range(10):
+                            self.execute_command(buf)
+                        self.insert_text(u"\n<Δt>=%dms\n" % (1e2*(time()-t0)))
+                        self.insert_text(self.prompt)
+                    else:
+                        self.execute_command(buf)
                     self.busy = False
                     self.__flush_eventqueue()
             # add and run selection
