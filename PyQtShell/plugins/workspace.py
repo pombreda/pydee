@@ -41,50 +41,42 @@ from PyQtShell.qthelpers import create_action, get_std_icon
 from PyQtShell.widgets.dicteditor import DictEditorTableView
 from PyQtShell.plugins import PluginMixin
 
+FILTERS = tuple(str2type(CONF.get('workspace', 'filters')))
+# Max number of filter iterations for worskpace display:
+# (for workspace saving, itermax == -1, see Workspace.save)
+ITERMAX = -1 #XXX: To be adjusted if it takes too much to compute... 2, 3?
 
-class NoValue(object):
-    """Dummy class used by wsfilter"""
-    pass
+def is_supported(value, iter=0, itermax=-1):
+    """Return True if the value is supported, False otherwise"""
+    if iter == itermax:
+        return True
+    elif not isinstance(value, FILTERS):
+        return False
+    elif isinstance(value, (list, tuple, set)):
+        for val in value:
+            if not is_supported(val, iter+1):
+                return False
+    elif isinstance(value, dict):
+        for key, val in value.iteritems():
+            if not is_supported(key, iter+1) or not is_supported(val, iter+1):
+                return False
+    return True
 
-def wsfilter(obj_in, rec=0):
+def wsfilter(input_dict, itermax=ITERMAX):
     """Keep only objects that can be saved"""
-    filters = tuple(str2type(CONF.get('workspace', 'filters')))
     exclude_private = CONF.get('workspace', 'exclude_private')
     exclude_upper = CONF.get('workspace', 'exclude_upper')
-    if rec == 2:
-        return NoValue
-    obj_out = obj_in
-    if isinstance(obj_in, dict):
-        obj_out = {}
-        for key in obj_in:
-            value = obj_in[key]
-            if rec == 0:
-                # Excluded references for namespace to be saved without error
-                if key in CONF.get('workspace', 'excluded'):
-                    continue
-                if exclude_private and key.startswith('_'):
-                    continue
-                if exclude_upper and key[0].isupper():
-                    continue
-                if isinstance(value, filters):
-                    value = wsfilter(value, rec+1)
-                    if value is not NoValue:
-                        obj_out[key] = value
-            elif isinstance(value, filters) and isinstance(key, filters):
-                # Just for rec == 1
-                obj_out[key] = value
-            else:
-                return NoValue
-#    elif isinstance(obj_in, (list, tuple)):
-#        obj_out = []
-#        for value in obj_in:
-#            if isinstance(value, filters):
-#                value = wsfilter(value, rec+1)
-#                if value is not NoValue:
-#                    obj_out.append(value)
-#        if isinstance(obj_in, tuple):
-#            obj_out = tuple(obj_out)
-    return obj_out            
+    exclude_unsupported = CONF.get('workspace', 'exclude_unsupported_datatypes')
+    excluded_names = CONF.get('workspace', 'excluded')
+    output_dict = input_dict.copy() # Shallow copy
+    for key in input_dict:
+        if (exclude_private and key.startswith('_')) or \
+           (exclude_upper and key[0].isupper()) or \
+           (key in excluded_names) or \
+           (exclude_unsupported and not is_supported(input_dict[key],
+                                                     itermax=itermax)):
+            output_dict.pop(key)
+    return output_dict
 
 
 class Workspace(DictEditorTableView, PluginMixin):
@@ -110,9 +102,9 @@ class Workspace(DictEditorTableView, PluginMixin):
         self.interpreter = interpreter
         self.refresh()
         
-    def get_namespace(self):
+    def get_namespace(self, itermax=ITERMAX):
         """Return filtered namespace"""
-        return wsfilter(self.namespace)
+        return wsfilter(self.namespace, itermax=itermax)
     
     def _clear_namespace(self):
         """Clear namespace"""
@@ -177,6 +169,13 @@ class Workspace(DictEditorTableView, PluginMixin):
                         "upper-case character"),
             toggled=self.toggle_exclude_upper)
         exclude_upper_action.setChecked( CONF.get(self.ID, 'exclude_upper') )
+        exclude_unsupported_action = create_action(self,
+            self.tr("Exclude unsupported data types"),
+            tip=self.tr("Exclude references to unsupported data types"
+                        " (i.e. which won't be handled/saved correctly)"),
+            toggled=self.toggle_exclude_unsupported)
+        exclude_unsupported_action.setChecked(CONF.get(self.ID,
+                                              'exclude_unsupported_datatypes'))
 
         refresh_action = create_action(self, self.tr("Refresh"), None,
             'ws_refresh.png', self.tr("Refresh workspace"),
@@ -199,7 +198,8 @@ class Workspace(DictEditorTableView, PluginMixin):
         
         menu_actions = (refresh_action, autorefresh_action, None,
                         self.fulldisplay_action, self.inplace_action, None,
-                        exclude_private_action, exclude_upper_action, None,
+                        exclude_private_action, exclude_upper_action,
+                        exclude_unsupported_action, None,
                         new_action, open_action,
                         save_action, save_as_action, close_action,
                         autosave_action, None, clear_action)
@@ -221,7 +221,7 @@ class Workspace(DictEditorTableView, PluginMixin):
             # Saving workspace
             self.save()
         else:
-            workspace = self.get_namespace()
+            workspace = self.get_namespace(itermax=-1)
             if workspace is None:
                 return True
             refnb = len(workspace)
@@ -341,14 +341,20 @@ class Workspace(DictEditorTableView, PluginMixin):
         if self.main:
             self.main.set_splash(self.tr("Saving workspace..."))
         try:
-            cPickle.dump(self.get_namespace(), file(self.filename, 'w'))
+            cPickle.dump(self.get_namespace(itermax=-1),
+                         file(self.filename, 'w'))
         except RuntimeError, error:
             if self.main:
                 self.main.splash.hide()
             QMessageBox.critical(self, self.tr("Save workspace"),
-                self.tr("Unable to save current workspace"))
-            raise RuntimeError(self.tr("Unable to save current workspace:") + \
-                               '\n\r' + error)
+                self.tr("<b>Unable to save current workspace</b><br><br>Error message:<br>%1") \
+                .arg(str(error)))
+        except (cPickle.PicklingError, TypeError), error:
+            if self.main:
+                self.main.splash.hide()
+            QMessageBox.critical(self, self.tr("Save workspace"),
+                self.tr("<b>Unable to save current workspace</b><br><br>Error message:<br>%1") \
+                .arg(error.message))
         if self.main:
             self.main.splash.hide()
         self.refresh()
@@ -364,3 +370,7 @@ class Workspace(DictEditorTableView, PluginMixin):
         CONF.set(self.ID, 'exclude_upper', checked)
         self.refresh()
 
+    def toggle_exclude_unsupported(self, checked):
+        """Toggle exclude unsupported datatypes"""
+        CONF.set(self.ID, 'exclude_unsupported_datatypes', checked)
+        self.refresh()

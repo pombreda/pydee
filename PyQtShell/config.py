@@ -40,7 +40,13 @@ except ImportError:
     pass
 
 EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc', 'e', 'pi',
-            'sctypes', 'typecodes', 'rcParams', 'rcParamsDefault']
+            'typecodes']
+# The following exhaustive list is no longer necessary since v0.3.27 and the
+# improvements on Worskpace filter function:
+# (to be removed)
+#EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc', 'e', 'pi',
+#            'sctypes', 'typecodes', 'rcParams', 'rcParamsDefault',
+#            'typeNA', 'nbytes', 'sctypeDict', 'sctypeNA', 'cast', 'typeDict']
 
 def type2str(types):
     """Convert types to strings"""
@@ -160,6 +166,7 @@ DEFAULTS = [
               'excluded': EXCLUDED,
               'exclude_private': True,
               'exclude_upper': True,
+              'exclude_unsupported_datatypes': True,
               }),
             ('arrayeditor',
              {
