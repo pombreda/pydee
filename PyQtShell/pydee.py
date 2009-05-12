@@ -471,6 +471,8 @@ class MainWindow(QMainWindow):
             <a href="http://www.fsf.org/licensing/">GNU GPL v2</a>
             <p><i>Project manager and main developer:</i> Pierre Raybaut
             <br><i>Contributors:</i> Christopher Brown, Alexandre Radicchi, Brian Clowers
+            <p>Most of the icons are coming from the <i>Crystal Project</i>:
+            <br>Copyright &copy; 2006-2007 Everaldo Coelho
             <p>Pydee is based on PyQtShell module v %2
             <br>Bug reports and feature requests: 
             <a href="http://code.google.com/p/pyqtshell/">Google Code</a><br>
