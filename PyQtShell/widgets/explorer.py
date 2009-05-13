@@ -134,6 +134,14 @@ class ExplorerWidget(QListWidget):
         else:
             QListWidget.keyPressEvent(self, event)
 
+    def mousePressEvent(self, event):
+        """Reimplement Qt method"""
+        if self.itemAt(event.pos()) is None:
+            self.setCurrentItem(None)
+            event.accept()
+        else:
+            QListWidget.mousePressEvent(self, event)
+
     def mouseDoubleClickEvent(self, event):
         """Reimplement Qt method"""
         self.clicked()
