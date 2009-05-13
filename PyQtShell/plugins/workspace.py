@@ -30,6 +30,16 @@ from PyQt4.QtGui import QFileDialog, QMessageBox
 import os, sys, cPickle
 import os.path as osp
 
+try:
+    import numpy as N
+    def save_array(data, basename, index):
+        """Save numpy array"""
+        fname = basename + '_%04d.npy' % index
+        N.save(fname, data)
+        return fname
+except ImportError:
+    N = None
+
 # For debugging purpose:
 STDOUT = sys.stdout
 
@@ -279,6 +289,21 @@ class Workspace(DictEditorTableView, PluginMixin):
             if self.main:
                 self.main.set_splash(self.tr("Loading workspace..."))
             namespace = cPickle.load(file(self.filename))
+            if N is not None:
+                # Loading numpy arrays saved with N.save
+                saved_arrays = namespace.get('__saved_arrays__')
+                if saved_arrays:
+                    for nametuple, fname in saved_arrays.iteritems():
+                        name, index = nametuple
+                        if osp.isfile(fname):
+                            data = N.load(fname)
+                            if index is None:
+                                namespace[name] = data
+                            elif isinstance(namespace[name], dict):
+                                namespace[name][index] = data
+                            else:
+                                namespace[name].insert(index, data)
+                            os.remove(fname)
             if self.namespace is None:
                 self.namespace = namespace
             else:
@@ -341,8 +366,36 @@ class Workspace(DictEditorTableView, PluginMixin):
         if self.main:
             self.main.set_splash(self.tr("Saving workspace..."))
         try:
-            cPickle.dump(self.get_namespace(itermax=-1),
-                         file(self.filename, 'w'))
+            namespace = self.get_namespace(itermax=-1).copy()
+            if N is not None:
+                # Saving numpy arrays with N.save
+                saved_arrays = {}
+                basename = self.filename[:-3]
+                for name in namespace.keys():
+                    if isinstance(namespace[name], N.ndarray):
+                        # Saving arrays at namespace root
+                        fname = save_array(namespace[name], basename,
+                                           len(saved_arrays))
+                        saved_arrays[(name, None)] = fname
+                        namespace.pop(name)
+                    elif isinstance(namespace[name], (list, dict)):
+                        # Saving arrays nested in lists or dictionaries
+                        if isinstance(namespace[name], list):
+                            iterator = enumerate(namespace[name])
+                        else:
+                            iterator = namespace[name].iteritems()
+                        to_remove = []
+                        for index, value in iterator:
+                            if isinstance(value, N.ndarray):
+                                fname = save_array(value, basename,
+                                                   len(saved_arrays))
+                                saved_arrays[(name, index)] = fname
+                                to_remove.append(index)
+                        for index in sorted(to_remove, reverse=True):
+                            namespace[name].pop(index)
+                if saved_arrays:
+                    namespace['__saved_arrays__'] = saved_arrays
+            cPickle.dump(namespace, file(self.filename, 'w'))
         except RuntimeError, error:
             if self.main:
                 self.main.splash.hide()
