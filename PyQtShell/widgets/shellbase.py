@@ -267,7 +267,7 @@ class ShellBaseWidget(QsciTerminal):
     
     def readline(self):
         """For help() support (to be implemented...)"""
-        #TODO: help() support
+        #TODO: help() support -> won't implement it (because IPython is coming)
         inp = self.wait_input()
         return inp
         

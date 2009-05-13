@@ -22,5 +22,5 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-__version__ = '0.3.27'
+__version__ = '0.4.0'
 #TODO: Rename PyQtShell into pydee?
