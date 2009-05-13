@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="1.1" language="fr">
+<defaultcodec></defaultcodec>
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -613,39 +614,49 @@ Do you want to save changes?</source>
 <context>
     <name>Explorer</name>
     <message>
-        <location filename="plugins/explorer.py" line="79"/>
+        <location filename="plugins/explorer.py" line="80"/>
         <source>Explorer</source>
         <translation>Explorateur</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="58"/>
+        <location filename="plugins/explorer.py" line="59"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="64"/>
+        <location filename="plugins/explorer.py" line="65"/>
         <source>Show hidden files</source>
         <translation>Afficher les fichiers cachés</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="68"/>
+        <location filename="plugins/explorer.py" line="69"/>
         <source>Show all files</source>
         <translation>Afficher tous les fichiers</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="110"/>
+        <location filename="plugins/explorer.py" line="115"/>
         <source>Run</source>
         <translation>Exécuter</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="113"/>
+        <location filename="plugins/explorer.py" line="118"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="116"/>
+        <location filename="plugins/explorer.py" line="124"/>
         <source>Open</source>
         <translation>Ouvrir</translation>
+    </message>
+    <message>
+        <location filename="plugins/explorer.py" line="121"/>
+        <source>Browse</source>
+        <translation>Parcourir</translation>
+    </message>
+    <message>
+        <location filename="plugins/explorer.py" line="137"/>
+        <source>Open in Windows Explorer</source>
+        <translation>Ouvrir dans l&apos;explorateur Windows</translation>
     </message>
 </context>
 <context>
@@ -1186,7 +1197,7 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Impossible d&apos;ouvrir l&apos;espace de travail suivant :</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="355"/>
+        <location filename="plugins/workspace.py" line="358"/>
         <source>Save workspace</source>
         <translation>Enregistrer l&apos;espace de travail</translation>
     </message>
@@ -1296,7 +1307,7 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Exclure les références dont le type n&apos;est pas supporté par l&apos;espace de travail (en particulier, l&apos;enregistrement ne fonctionnera pas)</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="357"/>
+        <location filename="plugins/workspace.py" line="360"/>
         <source>&lt;b&gt;Unable to save current workspace&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer l&apos;espace de travail&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>

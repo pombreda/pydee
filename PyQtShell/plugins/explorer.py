@@ -36,7 +36,8 @@ STDOUT = sys.stdout
 
 # Local imports
 from PyQtShell.config import CONF
-from PyQtShell.qthelpers import create_action, add_actions, get_filetype_icon
+from PyQtShell.qthelpers import (create_action, add_actions, get_filetype_icon,
+                                 get_std_icon)
 from PyQtShell.widgets.explorer import ExplorerWidget
 from PyQtShell.plugins import PluginMixin
 
@@ -106,22 +107,36 @@ class Explorer(ExplorerWidget, PluginMixin):
         menu = QMenu(self)
         actions = []
         if self.currentItem() is not None:
-            ext = osp.splitext( self.get_filename() )[1]
+            fname = self.get_filename()
+            is_dir = osp.isdir(fname)
+            ext = osp.splitext(fname)[1]
+            #TODO: Action to create a new directory
+            #TODO: Action to rename dir/file
             run_action = create_action(self, self.tr("Run"),
                                        icon="run.png",
                                        triggered=self.run)
             edit_action = create_action(self, self.tr("Edit"),
                                         icon="edit.png",
                                         triggered=self.clicked)
+            browse_action = create_action(self, self.tr("Browse"),
+                                          icon=get_std_icon("CommandLink"),
+                                          triggered=self.clicked)
             open_action = create_action(self, self.tr("Open"),
                                         triggered=self.startfile)
             if ext in ('.py', '.pyw'):
                 actions.append(run_action)
             if ext in CONF.get('editor', 'valid_filetypes') \
                or os.name != 'nt':
-                actions.append(edit_action)
+                actions.append(browse_action if is_dir else edit_action)
             else:
                 actions.append(open_action)
+            if is_dir and os.name == 'nt':
+                # Actions specific to Windows directories
+                #TODO: Action to start cmd.exe here
+                actions.append( create_action(self,
+                                           self.tr("Open in Windows Explorer"),
+                                           icon="magnifier.png",
+                                           triggered=self.startfile) )
             if actions:
                 actions.append(None)
         actions += self.common_actions
