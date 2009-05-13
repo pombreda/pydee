@@ -26,7 +26,8 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
-                         QLabel, QHBoxLayout, QDrag, QApplication)
+                         QLabel, QHBoxLayout, QDrag, QApplication, QMessageBox,
+                         QInputDialog, QLineEdit)
 from PyQt4.QtCore import Qt, SIGNAL, QMimeData
 
 import os, sys
@@ -37,7 +38,7 @@ from sets import Set
 STDOUT = sys.stdout
 
 # Local imports
-from PyQtShell.qthelpers import get_std_icon
+from PyQtShell.qthelpers import get_std_icon, translate
 
 
 def listdir(path, valid_types=('.py', '.pyw'),
@@ -83,12 +84,6 @@ class ExplorerWidget(QListWidget):
         # Enable drag events
         self.setDragEnabled(True)
         
-    def resizeEvent(self, event):
-        """Reimplement Qt Method"""
-        self.reset()
-        QApplication.processEvents()
-        event.ignore()
-        
     def refresh(self, new_path=None):
         """Refresh widget"""
         if new_path is None:
@@ -104,24 +99,37 @@ class ExplorerWidget(QListWidget):
             self.itemdict = {}
             self.clear()
 
+        for name in self.nameset - new_nameset:
+            self.takeItem(self.row(self.itemdict[name]))
+            self.itemdict.pop(name)
+
         if new_nameset - self.nameset:
-            for name in names:
-                item = self.itemdict.get(name)
-                if item is None:
+            for row, name in enumerate(names):
+                if not self.itemdict.has_key(name):
                     # Adding new item
                     item = QListWidgetItem(name)
+                    #item.setFlags(item.flags() | Qt.ItemIsEditable)
                     if osp.isdir(osp.join(self.path, name)):
                         item.setIcon(get_std_icon('DirClosedIcon'))
                     else:
                         item.setIcon( self.get_filetype_icon(name) )
                     self.itemdict[name] = item
-                self.addItem(item)
+                    self.insertItem(row, item)
             self.nameset = new_nameset
+        
+    def resizeEvent(self, event):
+        """Reimplement Qt Method"""
+        self.reset()
+        QApplication.processEvents()
+        event.ignore()
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         if event.key() in (Qt.Key_Enter, Qt.Key_Return):
             self.clicked()
+            event.accept()
+        elif event.key() == Qt.Key_F2:
+            self.rename()
             event.accept()
         else:
             QListWidget.keyPressEvent(self, event)
@@ -145,6 +153,29 @@ class ExplorerWidget(QListWidget):
                 self.refresh()
             else:
                 self.emit(SIGNAL("open_file(QString)"), fname)
+            
+    def rename(self):
+        """Rename selected item"""
+        fname = self.get_filename()
+        if fname:
+            path, valid = QInputDialog.getText(self,
+                                          translate('Explorer', 'Rename item'),
+                                          translate('Explorer', 'New name:'),
+                                          QLineEdit.Normal, fname)
+            if valid and path != fname:
+                try:
+                    os.rename(fname, path)
+                except IOError, error:
+                    QMessageBox.critical(self,
+                        translate('Explorer', "Rename item"),
+                        translate('Explorer',
+                                  "<b>Unable to rename selected item</b>"
+                                  "<br><br>Error message:<br>%1") \
+                        .arg(str(error)))
+                finally:
+                    selected_row = self.currentRow()
+                    self.refresh()
+                    self.setCurrentRow(selected_row)
             
     def dragEnterEvent(self, event):
         """Drag and Drop - Enter event"""

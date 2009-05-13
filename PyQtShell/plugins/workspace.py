@@ -400,13 +400,15 @@ class Workspace(DictEditorTableView, PluginMixin):
             if self.main:
                 self.main.splash.hide()
             QMessageBox.critical(self, self.tr("Save workspace"),
-                self.tr("<b>Unable to save current workspace</b><br><br>Error message:<br>%1") \
+                self.tr("<b>Unable to save current workspace</b>"
+                        "<br><br>Error message:<br>%1") \
                 .arg(str(error)))
         except (cPickle.PicklingError, TypeError), error:
             if self.main:
                 self.main.splash.hide()
             QMessageBox.critical(self, self.tr("Save workspace"),
-                self.tr("<b>Unable to save current workspace</b><br><br>Error message:<br>%1") \
+                self.tr("<b>Unable to save current workspace</b>"
+                        "<br><br>Error message:<br>%1") \
                 .arg(error.message))
         if self.main:
             self.main.splash.hide()
