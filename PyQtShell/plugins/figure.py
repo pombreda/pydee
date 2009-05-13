@@ -23,13 +23,13 @@
 Matplotlib figure integration
 """
 
-from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QToolButton,
-                         QSizePolicy, QDockWidget)
+from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QDockWidget
 from PyQt4.QtCore import SIGNAL
 
 # Local imports
 from PyQtShell.plugins import PluginWidget
 from PyQtShell.config import get_font, get_icon
+from PyQtShell.qthelpers import create_toolbutton
 
 class MatplotlibFigure(PluginWidget):
     """
@@ -43,10 +43,9 @@ class MatplotlibFigure(PluginWidget):
         PluginWidget.__init__(self, parent)
 
         # Close button
-        self.close_button = QToolButton(self)
-        self.close_button.setIcon(get_icon("fileclose.png"))
-        self.close_button.setToolTip(self.tr("Close figure %1").arg(num))
-        self.close_button.setAutoRaise(True)
+        self.close_button = create_toolbutton(self, callback=self.close,
+                                      icon=get_icon("fileclose.png"),
+                                      tip=self.tr("Close figure %1").arg(num))
         self.connect(self.close_button, SIGNAL('clicked()'),
                      self.close)
         

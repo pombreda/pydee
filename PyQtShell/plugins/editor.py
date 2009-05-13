@@ -26,8 +26,8 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QFileDialog, QMenu,
-                         QSizePolicy, QToolButton, QMessageBox, QFontDialog,
-                         QTabWidget, QCheckBox, QToolBar, QAction, QComboBox)
+                         QSizePolicy, QMessageBox, QFontDialog, QTabWidget,
+                         QCheckBox, QToolBar, QAction, QComboBox)
 from PyQt4.QtCore import Qt, SIGNAL, QStringList
 
 import os, sys, re
@@ -40,7 +40,7 @@ STDOUT = sys.stdout
 from PyQtShell import encoding
 from PyQtShell.config import CONF, get_conf_path, get_icon, get_font, set_font
 from PyQtShell.qthelpers import (create_action, add_actions, mimedata2url,
-                                 get_filetype_icon)
+                                 get_filetype_icon, create_toolbutton)
 from PyQtShell.dochelpers import getdoc, getsource
 try:
     from PyQtShell.widgets.editorbase import QsciEditor
@@ -134,11 +134,10 @@ class Editor(PluginWidget):
         
         # Tab widget with close button
         self.tabwidget = Tabs(self, self.tab_actions)
-        self.close_button = QToolButton(self.tabwidget)
-        self.close_button.setIcon(get_icon("fileclose.png"))
-        self.close_button.setToolTip(self.tr("Close current script"))
-        self.close_button.setAutoRaise(True)
-        self.connect(self.close_button, SIGNAL("clicked()"), self.close)
+        self.close_button = create_toolbutton(self.tabwidget,
+                                          icon=get_icon("fileclose.png"),
+                                          callback=self.close,
+                                          tip=self.tr("Close current script"))
         self.tabwidget.setCornerWidget(self.close_button)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh)
@@ -731,10 +730,8 @@ class DocViewer(PluginWidget):
         self.toggle_help(Qt.Unchecked)
         
         # Lock checkbox
-        self.locked_button = QToolButton(self)
-        self.locked_button.setAutoRaise(True)
-        self.connect(self.locked_button, SIGNAL("clicked()"),
-                     self.toggle_locked)
+        self.locked_button = create_toolbutton(self,
+                                               callback=self.toggle_locked)
         layout_edit.addWidget(self.locked_button)
         self._update_lock_icon()
 
