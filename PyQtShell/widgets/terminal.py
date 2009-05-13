@@ -500,9 +500,12 @@ class QsciTerminal(QsciBase):
             self.redo()
                 
         elif key == Qt.Key_Question:
-            #FIXME: bug, e.g. when typing 'N.array?'
             self.show_docstring(self.__get_last_obj())
+            _, self.calltip_index = self.getCursorPosition()
             self.insert_text(text)
+            # In case calltip and completion are shown at the same time:
+            if self.isListActive():
+                self.completion_chars += 1
             
         elif key == Qt.Key_ParenLeft:
             self.cancelList()
@@ -543,7 +546,7 @@ class QsciTerminal(QsciBase):
             # QScintilla does not support user-defined calltips)
             _, index = self.getCursorPosition() # need the new index
             try:
-                if (self.text(line)[self.calltip_index] != '(') or \
+                if (self.text(line)[self.calltip_index] not in ['?','(']) or \
                    index < self.calltip_index or \
                    key in (Qt.Key_ParenRight, Qt.Key_Period, Qt.Key_Tab):
                     QToolTip.hideText()
