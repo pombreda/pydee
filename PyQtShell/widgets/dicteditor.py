@@ -106,15 +106,13 @@ def unsorted_unique(lista):
     return set.keys()
 
 #----Display <--> Value
-def value_to_display(value, truncate=False, trunc_len=80):
+def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
     """Convert value for display purpose"""
-    if truncate and isinstance(value, ndarray):
+    if minmax and isinstance(value, ndarray):
         if value.size == 0:
             return repr(value)
         try:
-            return 'Min: %r\nMax: %r\nStd: %r' % (value.min(),
-                                                  value.max(),
-                                                  value.std())
+            return 'Min: %r\nMax: %r' % (value.min(), value.max())
         except TypeError:
             pass
     if not isinstance(value, (str, unicode)):
@@ -173,11 +171,14 @@ def get_type(item):
 
 class DictModelRO(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
-    def __init__(self, parent, data, title="", names=False):
+    def __init__(self, parent, data, title="", names=False,
+                 truncate=True, minmax=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
         self.names = names
+        self.truncate = truncate
+        self.minmax = minmax
         self.header0 = None
         self._data = None
         self.showndata = None
@@ -188,7 +189,6 @@ class DictModelRO(QAbstractTableModel):
         self.sizes = None
         self.types = None
         self.set_data(data)
-        self.truncate = True
         
     def get_data(self):
         """Return model data"""
@@ -291,7 +291,9 @@ class DictModelRO(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
         value = self.get_value(index)
-        display = value_to_display(value, index.column()==3 and self.truncate)
+        display = value_to_display(value,
+                                   truncate=index.column()==3 and self.truncate,
+                                   minmax=self.minmax)
         if role == Qt.DisplayRole:
             return QVariant(display)
         elif role == Qt.EditRole:
@@ -471,16 +473,16 @@ class DictDelegate(QItemDelegate):
 
 class DictEditorTableView(QTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data, readonly=False, title="", names=False):
+    def __init__(self, parent, data, readonly=False, title="",
+                 names=False, truncate=True, minmax=False):
         QTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
         self.model = None
         self.delegate = None
-        if self.readonly:
-            self.model = DictModelRO(self, data, title, names=names)
-        else:
-            self.model = DictModel(self, data, title, names=names)
+        DictModelClass = DictModelRO if self.readonly else DictModel
+        self.model = DictModelClass(self, data, title, names=names,
+                                    truncate=truncate, minmax=minmax)
         self.setModel(self.model)
         self.delegate = DictDelegate(self)
         self.setItemDelegate(self.delegate)
@@ -490,13 +492,13 @@ class DictEditorTableView(QTableView):
         self.connect(self.verticalHeader(),
                      SIGNAL("customContextMenuRequested(QPoint)"),
                      self.vertHeaderContextMenu)        
-        self.menu, self.vert_menu = self.setup_menu()
+        self.menu, self.vert_menu = self.setup_menu(truncate, minmax)
         
         # Sorting columns
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
     
-    def setup_menu(self):
+    def setup_menu(self, truncate, minmax):
         """Setup context menu"""
         self.edit_action = create_action(self, 
                                       translate("DictEditor", "Edit"),
@@ -517,8 +519,13 @@ class DictEditorTableView(QTableView):
         self.truncate_action = create_action(self,
                                     translate("DictEditor", "Truncate values"),
                                     toggled=self.toggle_truncate)
-        self.truncate_action.setChecked(True)
-        self.toggle_truncate(True)
+        self.truncate_action.setChecked(truncate)
+        self.toggle_truncate(truncate)
+        self.minmax_action = create_action(self,
+                                translate("DictEditor", "Show arrays min/max"),
+                                toggled=self.toggle_minmax)
+        self.minmax_action.setChecked(minmax)
+        self.toggle_minmax(minmax)
         self.inplace_action = create_action(self,
                                        translate("DictEditor",
                                                  "Always edit in-place"),
@@ -533,7 +540,7 @@ class DictEditorTableView(QTableView):
         add_actions( menu,
                      (self.edit_action, self.insert_action, self.paste_action,
                       self.remove_action, None, self.truncate_action,
-                      self.inplace_action) )
+                      self.inplace_action, self.minmax_action) )
         vert_menu = QMenu(self)
         add_actions(vert_menu, (self.rename_action,self.duplicate_action,
                                 self.remove_action))
@@ -713,12 +720,16 @@ class DictEditorTableView(QTableView):
             self.resizeColumnToContents(col)
         
     def toggle_inplace(self, state):
-        """Set option in-place editor"""
+        """Toggle in-place editor option"""
         self.delegate.inplace = state
         
     def toggle_truncate(self, state):
-        """Set display truncating option"""
+        """Toggle display truncating option"""
         self.model.truncate = state
+        
+    def toggle_minmax(self, state):
+        """Toggle min/max display for numpy arrays"""
+        self.model.minmax = state
         
     def set_filter(self, dictfilter=None):
         """Set table dict filter"""
