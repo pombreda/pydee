@@ -739,6 +739,7 @@ class DictEditorTableView(QTableView):
         """Set table data"""
         if data is not None:
             self.model.set_data(data, self.dictfilter)
+            self.sortByColumn(0, Qt.AscendingOrder)
 
 class DictEditorWidget(QWidget):
     """Dictionary Editor Dialog"""
