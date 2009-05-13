@@ -163,8 +163,10 @@ def get_size(item):
 
 def get_type(item):
     """Return type of an item"""
-    text = re.findall(r"<type '([\S]*)'>", str(type(item)))[0]
-    if text.endswith('ndarray'):
+    found = re.findall(r"<type '([\S]*)'>", str(type(item)))
+    text = unicode(translate('DictEditor', 'unknown')) \
+           if not found else found[0]
+    if isinstance(item, ndarray):
         text = item.dtype.name
     return text[text.find('.')+1:]
 
