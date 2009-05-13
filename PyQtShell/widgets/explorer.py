@@ -226,6 +226,8 @@ class Test(QDialog):
         hlayout2.addWidget(self.label2)
         self.connect(self.explorer, SIGNAL("open_dir(QString)"),
                      self.label2.setText)
+        self.connect(self.explorer, SIGNAL("open_dir(QString)"),
+                     lambda path: os.chdir(unicode(path)))
 
 if __name__ == "__main__":
     QApplication([])

@@ -24,8 +24,8 @@ import os.path as osp
 
 from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                          QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
-                         QKeySequence)
-from PyQt4.QtCore import SIGNAL, QVariant
+                         QKeySequence, QToolButton)
+from PyQt4.QtCore import SIGNAL, QVariant, QObject, Qt
 
 # Local import
 from config import get_icon
@@ -45,6 +45,21 @@ def mimedata2url(source):
         paths = [unicode(url.toString()) for url in source.urls()]
         return [path[8:] for path in paths if path.startswith(r"file://") \
                 and (path.endswith(".py") or path.endswith(".pyw"))]
+
+def create_toolbutton(parent, icon=None, callback=None, tip=None, text=None):
+    """Create a QToolButton"""
+    button = QToolButton(parent)
+    if text is not None:
+        button.setText(text)
+    if icon is not None:
+        button.setIcon(icon)
+    if text is not None or tip is not None:
+        button.setToolTip(text if tip is None else tip)
+    button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+    button.setAutoRaise(True)
+    if callback is not None:
+        QObject.connect(button, SIGNAL('clicked()'), callback)
+    return button
 
 def toggle_actions(actions, enable):
     """Enable/disable actions"""

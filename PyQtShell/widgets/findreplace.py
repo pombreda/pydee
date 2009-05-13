@@ -25,8 +25,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QToolButton, QHBoxLayout, QGridLayout, QCheckBox,
-                         QLabel, QWidget, QLineEdit, QShortcut, QKeySequence)
+from PyQt4.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QKeySequence,
+                         QLabel, QWidget, QLineEdit, QShortcut)
 from PyQt4.QtCore import SIGNAL, Qt
 
 import sys
@@ -35,7 +35,7 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from PyQtShell.qthelpers import get_std_icon
+from PyQtShell.qthelpers import get_std_icon, create_toolbutton
 
 
 class FindReplace(QWidget):
@@ -49,10 +49,8 @@ class FindReplace(QWidget):
         self.editor = None
         self.setLayout(QGridLayout())
         
-        self.close_button = QToolButton(self)
-        self.close_button.setIcon(get_std_icon("DialogCloseButton"))
-        self.close_button.setAutoRaise(True)
-        self.connect(self.close_button, SIGNAL('clicked()'), self.hide)
+        self.close_button = create_toolbutton(self, callback=self.hide,
+                                      icon=get_std_icon("DialogCloseButton"))
         self.layout().addWidget(self.close_button, 0, 0)
         
         # Find layout
@@ -60,16 +58,12 @@ class FindReplace(QWidget):
         self.connect(self.edit, SIGNAL("textChanged(QString)"),
                      self.text_has_changed)
         
-        self.previous_button = QToolButton(self)
-        self.previous_button.setIcon(get_std_icon("ArrowBack"))
-        self.previous_button.setAutoRaise(True)
-        self.connect(self.previous_button, SIGNAL('clicked()'),
-                     self.find_previous)
-        self.next_button = QToolButton(self)
-        self.next_button.setIcon(get_std_icon("ArrowForward"))
-        self.next_button.setAutoRaise(True)
-        self.connect(self.next_button, SIGNAL('clicked()'),
-                     self.find_next)
+        self.previous_button = create_toolbutton(self,
+                                             callback=self.find_previous,
+                                             icon=get_std_icon("ArrowBack"))
+        self.next_button = create_toolbutton(self,
+                                             callback=self.find_next,
+                                             icon=get_std_icon("ArrowForward"))
 
         self.case_check = QCheckBox(self.tr("Case Sensitive"))
         self.connect(self.case_check, SIGNAL("stateChanged(int)"), self.find)
@@ -87,11 +81,9 @@ class FindReplace(QWidget):
         replace_with = QLabel(self.tr("Replace with:"))
         self.replace_edit = QLineEdit()
         
-        self.replace_button = QToolButton(self)
-        self.replace_button.setIcon(get_std_icon("DialogApplyButton"))
-        self.replace_button.setAutoRaise(True)
-        self.connect(self.replace_button, SIGNAL('clicked()'),
-                     self.replace_find)
+        self.replace_button = create_toolbutton(self,
+                                     callback=self.replace_find,
+                                     icon=get_std_icon("DialogApplyButton"))
         
         self.all_check = QCheckBox(self.tr("Replace all"))
         
