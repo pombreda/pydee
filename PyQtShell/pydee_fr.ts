@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="1.1" language="fr">
-<defaultcodec></defaultcodec>
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -188,17 +187,17 @@
 <context>
     <name>DictEditor</name>
     <message>
-        <location filename="widgets/dicteditor.py" line="324"/>
+        <location filename="widgets/dicteditor.py" line="326"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="325"/>
+        <location filename="widgets/dicteditor.py" line="327"/>
         <source>Size</source>
         <translation>Taille</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="326"/>
+        <location filename="widgets/dicteditor.py" line="328"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
@@ -228,57 +227,57 @@
         <translation type="obsolete">Classement des colonnes</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="524"/>
+        <location filename="widgets/dicteditor.py" line="532"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="503"/>
+        <location filename="widgets/dicteditor.py" line="505"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="678"/>
+        <location filename="widgets/dicteditor.py" line="686"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="572"/>
+        <location filename="widgets/dicteditor.py" line="580"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="574"/>
+        <location filename="widgets/dicteditor.py" line="582"/>
         <source>Do you want to remove selected item%1?</source>
-        <translation>Souhaitez-vous supprimer la sélection ?</translation>
+        <translation>Souhaitez-vous supprimer l&apos;élément %1 ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="669"/>
+        <location filename="widgets/dicteditor.py" line="677"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="679"/>
+        <location filename="widgets/dicteditor.py" line="687"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="632"/>
+        <location filename="widgets/dicteditor.py" line="640"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="530"/>
+        <location filename="widgets/dicteditor.py" line="538"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
         <location filename="widgets/dicteditor.py" line="520"/>
         <source>Display complete values</source>
-        <translation>Afficher les valeurs complètes</translation>
+        <translation type="obsolete">Afficher les valeurs complètes</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="611"/>
+        <location filename="widgets/dicteditor.py" line="619"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
@@ -298,14 +297,24 @@
         <translation>Clé</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="770"/>
+        <location filename="widgets/dicteditor.py" line="777"/>
         <source>Tree view</source>
         <translation>Arborescence</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="168"/>
+        <location filename="widgets/dicteditor.py" line="166"/>
         <source>unknown</source>
         <translation>inconnu</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="521"/>
+        <source>Truncate values</source>
+        <translation>Tronquer les valeurs</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="526"/>
+        <source>Show arrays min/max</source>
+        <translation>Afficher les min/max des tableaux</translation>
     </message>
 </context>
 <context>
