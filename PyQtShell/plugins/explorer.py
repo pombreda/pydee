@@ -110,14 +110,13 @@ class Explorer(ExplorerWidget, PluginMixin):
             fname = self.get_filename()
             is_dir = osp.isdir(fname)
             ext = osp.splitext(fname)[1]
-            #TODO: Action to create a new directory
-            #TODO: Action to rename dir/file
-            run_action = create_action(self, self.tr("Run"),
-                                       icon="run.png",
+            run_action = create_action(self, self.tr("Run"), icon="run.png",
                                        triggered=self.run)
-            edit_action = create_action(self, self.tr("Edit"),
-                                        icon="edit.png",
+            edit_action = create_action(self, self.tr("Edit"), icon="edit.png",
                                         triggered=self.clicked)
+            rename_action = create_action(self, self.tr("Rename"),
+                                          icon="rename.png",
+                                          triggered=self.rename)
             browse_action = create_action(self, self.tr("Browse"),
                                           icon=get_std_icon("CommandLink"),
                                           triggered=self.clicked)
@@ -130,6 +129,7 @@ class Explorer(ExplorerWidget, PluginMixin):
                 actions.append(browse_action if is_dir else edit_action)
             else:
                 actions.append(open_action)
+            actions.append(rename_action)
             if is_dir and os.name == 'nt':
                 # Actions specific to Windows directories
                 #TODO: Action to start cmd.exe here
