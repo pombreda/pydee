@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="1.1" language="fr">
+<defaultcodec></defaultcodec>
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -623,32 +624,32 @@ Do you want to save changes?</source>
         <translation>Afficher tous les fichiers</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="115"/>
+        <location filename="plugins/explorer.py" line="113"/>
         <source>Run</source>
         <translation>Exécuter</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="118"/>
+        <location filename="plugins/explorer.py" line="115"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="127"/>
+        <location filename="plugins/explorer.py" line="123"/>
         <source>Open</source>
         <translation>Ouvrir</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="124"/>
+        <location filename="plugins/explorer.py" line="120"/>
         <source>Browse</source>
         <translation>Parcourir</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="141"/>
+        <location filename="plugins/explorer.py" line="140"/>
         <source>Open in Windows Explorer</source>
         <translation>Ouvrir dans l&apos;explorateur Windows</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="121"/>
+        <location filename="plugins/explorer.py" line="117"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
@@ -666,6 +667,11 @@ Do you want to save changes?</source>
         <location filename="widgets/explorer.py" line="174"/>
         <source>&lt;b&gt;Unable to rename selected item&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible de renommer l&apos;élément sélectionné&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
+    </message>
+    <message>
+        <location filename="plugins/explorer.py" line="136"/>
+        <source>Open command prompt here</source>
+        <translation>Ouvrir un invité de commandes ici</translation>
     </message>
 </context>
 <context>

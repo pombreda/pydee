@@ -132,11 +132,15 @@ class Explorer(ExplorerWidget, PluginMixin):
             actions.append(rename_action)
             if is_dir and os.name == 'nt':
                 # Actions specific to Windows directories
-                #TODO: Action to start cmd.exe here
                 actions.append( create_action(self,
-                                           self.tr("Open in Windows Explorer"),
-                                           icon="magnifier.png",
-                                           triggered=self.startfile) )
+                           self.tr("Open in Windows Explorer"),
+                           icon="magnifier.png",
+                           triggered=self.startfile) )
+            if os.name == 'nt':
+                actions.append( create_action(self,
+                           self.tr("Open command prompt here"),
+                           icon="cmdprompt.png",
+                           triggered=lambda cmd='cmd.exe': os.startfile(cmd)) )
             if actions:
                 actions.append(None)
         actions += self.common_actions
