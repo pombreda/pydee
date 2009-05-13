@@ -197,7 +197,7 @@ class Workspace(DictEditorTableView, PluginMixin):
                                  triggered=self.clear)
         
         menu_actions = (refresh_action, autorefresh_action, None,
-                        self.fulldisplay_action, self.inplace_action, None,
+                        self.truncate_action, self.inplace_action, None,
                         exclude_private_action, exclude_upper_action,
                         exclude_unsupported_action, None,
                         new_action, open_action,

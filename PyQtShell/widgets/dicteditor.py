@@ -514,14 +514,15 @@ class DictEditorTableView(QTableView):
                                       translate("DictEditor", "Remove"),
                                       icon=get_icon('editdelete.png'),
                                       triggered=self.remove_item)
-        self.fulldisplay_action = create_action(self,
-                                    translate("DictEditor", "Display complete "
-                                              "values"),
-                                    toggled=self.set_fulldisplay)
+        self.truncate_action = create_action(self,
+                                    translate("DictEditor", "Truncate values"),
+                                    toggled=self.toggle_truncate)
+        self.truncate_action.setChecked(True)
+        self.toggle_truncate(True)
         self.inplace_action = create_action(self,
                                        translate("DictEditor",
                                                  "Always edit in-place"),
-                                       toggled=self.set_inplace_editor)
+                                       toggled=self.toggle_inplace)
         self.rename_action = create_action(self,
                                     translate("DictEditor", "Rename"),
                                     triggered=self.rename_item)
@@ -531,7 +532,7 @@ class DictEditorTableView(QTableView):
         menu = QMenu(self)
         add_actions( menu,
                      (self.edit_action, self.insert_action, self.paste_action,
-                      self.remove_action, None, self.fulldisplay_action,
+                      self.remove_action, None, self.truncate_action,
                       self.inplace_action) )
         vert_menu = QMenu(self)
         add_actions(vert_menu, (self.rename_action,self.duplicate_action,
@@ -711,19 +712,13 @@ class DictEditorTableView(QTableView):
         for col in range(3):
             self.resizeColumnToContents(col)
         
-    def set_inplace_editor(self, state):
+    def toggle_inplace(self, state):
         """Set option in-place editor"""
-        if state:
-            self.delegate.inplace = True
-        else:
-            self.delegate.inplace = False
+        self.delegate.inplace = state
         
-    def set_fulldisplay(self, state):
+    def toggle_truncate(self, state):
         """Set display truncating option"""
-        if state:
-            self.model.truncate = False
-        else:
-            self.model.truncate = True
+        self.model.truncate = state
         
     def set_filter(self, dictfilter=None):
         """Set table dict filter"""
