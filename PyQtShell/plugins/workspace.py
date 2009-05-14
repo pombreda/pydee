@@ -44,8 +44,8 @@ except ImportError:
 STDOUT = sys.stdout
 
 # Local imports
-from PyQtShell.config import CONF, get_conf_path, str2type
-from PyQtShell.qthelpers import create_action, get_std_icon
+from PyQtShell.config import CONF, get_conf_path, str2type, get_icon
+from PyQtShell.qthelpers import create_action
 
 # Package local imports
 from PyQtShell.widgets.dicteditor import DictEditorTableView
