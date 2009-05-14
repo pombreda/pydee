@@ -181,9 +181,9 @@ class MainWindow(QMainWindow):
                                self.debug, self.closing, self.profile)
         if self.light:
             self.setCentralWidget(self.console)
+            self.widgetlist.append(self.console)
         else:
             self.add_dockwidget(self.console)
-        self.widgetlist.append(self.console)
         
         # Working directory changer widget
         self.workdir = WorkingDirectory( self, self.init_workdir )
