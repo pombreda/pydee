@@ -199,7 +199,7 @@ class ShellBaseWidget(QsciTerminal):
                            triggered=self.clear_line)
         clear_action = create_action(self,
                            translate("ShellBaseWidget", "Clear shell"),
-                           icon=get_std_icon("TrashIcon"),
+                           icon=get_icon('clear.png'),
                            tip=translate("ShellBaseWidget",
                                    "Clear shell contents ('cls' command)"),
                            triggered=self.clear_terminal)
@@ -470,7 +470,7 @@ class ShellBaseWidget(QsciTerminal):
             self.interpreter.resetbuffer()
             
         # After running command
-        self.emit( SIGNAL("executing_command(bool)"), False )
+        self.emit(SIGNAL("executing_command(bool)"), False)
         self.emit(SIGNAL("status(QString)"), QString())
     
     def show_code_completion(self, text):
