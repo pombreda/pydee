@@ -221,8 +221,18 @@ class MainWindow(QMainWindow):
             if CONF.get('explorer', 'enable'):
                 self.explorer = Explorer(self)
                 self.add_dockwidget(self.explorer)
+                self.connect(self.workdir, SIGNAL("set_previous_enabled(bool)"),
+                             self.explorer.previous_button.setEnabled)
+                self.connect(self.workdir, SIGNAL("set_next_enabled(bool)"),
+                             self.explorer.next_button.setEnabled)
                 self.connect(self.explorer, SIGNAL("open_dir(QString)"),
                              self.workdir.chdir)
+                self.connect(self.explorer, SIGNAL("open_previous_dir()"),
+                             self.workdir.previous_directory)
+                self.connect(self.explorer, SIGNAL("open_next_dir()"),
+                             self.workdir.next_directory)
+                self.connect(self.explorer, SIGNAL("open_parent_dir()"),
+                             self.workdir.parent_directory)
                 self.connect(self.explorer, SIGNAL("edit(QString)"),
                              self.editor.load)
                 self.connect(self.explorer, SIGNAL("open_workspace(QString)"),
@@ -339,6 +349,9 @@ class MainWindow(QMainWindow):
         
     def update_edit_menu(self):
         """Update edit menu"""
+        #FIXME: Update the edit actions by another mean
+        #       -> currently, when clicking on a plugin, these actions aren't
+        #          updated (the problem is: they are also in app toolbar!)
         widget = self.which_has_focus()        
         not_readonly = widget in [self.editor, self.console]
         
