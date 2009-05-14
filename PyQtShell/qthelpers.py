@@ -30,6 +30,16 @@ from PyQt4.QtCore import SIGNAL, QVariant, QObject, Qt
 # Local import
 from config import get_icon
 
+# Note: How to redirect a signal from widget *a* to widget *b* ?
+# ----
+# It has to be done manually:
+#  * typing 'SIGNAL("clicked()")' works
+#  * typing 'signalstr = "clicked()"; SIGNAL(signalstr)' won't work
+# Here is an example of how to do it:
+# (self.listwidget is widget *a* and self is widget *b*)
+#    self.connect(self.listwidget, SIGNAL('option_changed'),
+#                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
+
 def translate(context, string):
     """Translation"""
     return QApplication.translate(context, string)
@@ -46,7 +56,7 @@ def mimedata2url(source):
         return [path[8:] for path in paths if path.startswith(r"file://") \
                 and (path.endswith(".py") or path.endswith(".pyw"))]
 
-def create_toolbutton(parent, icon=None, callback=None, tip=None, text=None):
+def create_toolbutton(parent, icon=None, text=None, callback=None, tip=None):
     """Create a QToolButton"""
     button = QToolButton(parent)
     if text is not None:
