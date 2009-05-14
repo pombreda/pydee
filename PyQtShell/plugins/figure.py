@@ -23,6 +23,11 @@
 Matplotlib figure integration
 """
 
+import sys
+
+# For debugging purpose:
+STDOUT = sys.stdout
+
 from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QDockWidget
 from PyQt4.QtCore import SIGNAL
 
@@ -46,8 +51,6 @@ class MatplotlibFigure(PluginWidget):
         self.close_button = create_toolbutton(self, callback=self.close,
                                       icon=get_icon("fileclose.png"),
                                       tip=self.tr("Close figure %1").arg(num))
-        self.connect(self.close_button, SIGNAL('clicked()'),
-                     self.close)
         
         # Top horizontal layout
         self.h_layout = QHBoxLayout()
@@ -98,9 +101,6 @@ class MatplotlibFigure(PluginWidget):
     def closeEvent(self, event):
         """closeEvent reimplementation"""
         self.main.widgetlist.pop(self.main.widgetlist.index(self))
-        if not self.main.light:
-            action = self.dockwidget.toggleViewAction()
-            self.main.view_menu.removeAction(action)
         self.dockwidget.close()
         event.accept()
 
