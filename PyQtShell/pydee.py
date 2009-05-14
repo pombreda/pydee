@@ -788,6 +788,7 @@ def main():
         
                 if matplotlib.is_interactive():
                     main.add_dockwidget(self.window)
+                    main.console.shell.setFocus()
         
                 # attach a show method to the figure for pylab ease of use
                 self.canvas.figure.show = lambda *args: self.window.show()
