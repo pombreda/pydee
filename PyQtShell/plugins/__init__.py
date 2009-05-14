@@ -33,7 +33,7 @@ These plugins inherit the following classes (PluginMixin & PluginWidget)
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QDockWidget, QWidget
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtCore import SIGNAL, Qt, QObject
 
 import sys
 
@@ -42,6 +42,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from PyQtShell.qthelpers import toggle_actions
+from PyQtShell.config import CONF
 
 
 class PluginMixin(object):
@@ -59,6 +60,7 @@ class PluginMixin(object):
         self.main = main
         self.menu_actions, self.toolbar_actions = self.set_actions()
         self.dockwidget = None
+        QObject.connect(self, SIGNAL('option_changed'), self.option_changed)
         
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
@@ -81,6 +83,14 @@ class PluginMixin(object):
         toggle_actions(self.menu_actions, enable)
         toggle_actions(self.toolbar_actions, enable)
         self.refresh() #XXX Is it a good idea?
+
+    def option_changed(self, option, value):
+        """
+        Change a plugin option in configuration file
+        Use a SIGNAL to call it, e.g.:
+        self.emit(SIGNAL('option_changed'), 'show_all', checked)
+        """
+        CONF.set(self.ID, option, value)
 
 
 class PluginWidget(QWidget, PluginMixin):

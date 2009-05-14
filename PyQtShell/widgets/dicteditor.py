@@ -372,9 +372,9 @@ class DictModel(DictModelRO):
 
 class DictDelegate(QItemDelegate):
     """DictEditor Item Delegate"""
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, inplace=False):
         QItemDelegate.__init__(self, parent)
-        self.inplace = False
+        self.inplace = inplace
 
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
@@ -474,7 +474,7 @@ class DictDelegate(QItemDelegate):
 class DictEditorTableView(QTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
-                 names=False, truncate=True, minmax=False):
+                 names=False, truncate=True, minmax=False, inplace=False):
         QTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
@@ -484,7 +484,7 @@ class DictEditorTableView(QTableView):
         self.model = DictModelClass(self, data, title, names=names,
                                     truncate=truncate, minmax=minmax)
         self.setModel(self.model)
-        self.delegate = DictDelegate(self)
+        self.delegate = DictDelegate(self, inplace=inplace)
         self.setItemDelegate(self.delegate)
         self.horizontalHeader().setStretchLastSection(True)
         self.adjust_columns()
@@ -492,13 +492,13 @@ class DictEditorTableView(QTableView):
         self.connect(self.verticalHeader(),
                      SIGNAL("customContextMenuRequested(QPoint)"),
                      self.vertHeaderContextMenu)        
-        self.menu, self.vert_menu = self.setup_menu(truncate, minmax)
+        self.menu, self.vert_menu = self.setup_menu(truncate, minmax, inplace)
         
         # Sorting columns
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
     
-    def setup_menu(self, truncate, minmax):
+    def setup_menu(self, truncate, minmax, inplace):
         """Setup context menu"""
         self.edit_action = create_action(self, 
                                       translate("DictEditor", "Edit"),
@@ -530,6 +530,8 @@ class DictEditorTableView(QTableView):
                                        translate("DictEditor",
                                                  "Always edit in-place"),
                                        toggled=self.toggle_inplace)
+        self.inplace_action.setChecked(inplace)
+        self.toggle_minmax(inplace)
         self.rename_action = create_action(self,
                                     translate("DictEditor", "Rename"),
                                     triggered=self.rename_item)
@@ -721,14 +723,17 @@ class DictEditorTableView(QTableView):
         
     def toggle_inplace(self, state):
         """Toggle in-place editor option"""
+        self.emit(SIGNAL('option_changed'), 'inplace', state)
         self.delegate.inplace = state
         
     def toggle_truncate(self, state):
         """Toggle display truncating option"""
+        self.emit(SIGNAL('option_changed'), 'truncate', state)
         self.model.truncate = state
         
     def toggle_minmax(self, state):
         """Toggle min/max display for numpy arrays"""
+        self.emit(SIGNAL('option_changed'), 'minmax', state)
         self.model.minmax = state
         
     def set_filter(self, dictfilter=None):
