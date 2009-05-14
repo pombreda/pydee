@@ -99,7 +99,12 @@ class Workspace(DictEditorTableView, PluginMixin):
         self.interpreter = None
         self.namespace = None
         self.filename = None
-        DictEditorTableView.__init__(self, parent, None, names=True)
+        truncate = CONF.get(self.ID, 'truncate')
+        inplace = CONF.get(self.ID, 'inplace')
+        minmax = CONF.get(self.ID, 'minmax')
+        DictEditorTableView.__init__(self, parent, None, names=True,
+                                     truncate=truncate, inplace=inplace,
+                                     minmax=minmax)
         PluginMixin.__init__(self, parent)
         self.load_temp_namespace()
         
@@ -202,7 +207,7 @@ class Workspace(DictEditorTableView, PluginMixin):
         autosave_action.setChecked( CONF.get(self.ID, 'autosave') )
         
         clear_action = create_action(self, self.tr("Clear workspace"),
-                                 icon=get_std_icon("TrashIcon"),
+                                 icon=get_icon('clear.png'),
                                  tip=self.tr("Clear all data from workspace"),
                                  triggered=self.clear)
         
