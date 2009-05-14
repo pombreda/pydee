@@ -114,7 +114,7 @@ class Tabs(QTabWidget):
             self.menu.popup(event.globalPos())
 
 #TODO: Add a 'run' argument list which is associated to each opened script (attribute)
-#TODO: Google-Code feature request: interrupt an executed script
+#TODO: Google-Code feature request: interrupt an executed script ->QTimer?
 #TODO: Google-Code feature request: add a class/function browser
 class Editor(PluginWidget):
     """

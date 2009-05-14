@@ -36,8 +36,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from PyQtShell.config import CONF, get_font, set_font
-from PyQtShell.qthelpers import (get_std_icon, create_action,add_actions,
-                                 mimedata2url)
+from PyQtShell.qthelpers import create_action,add_actions, mimedata2url
 from PyQtShell.environ import EnvDialog
 try:
     from PyQtShell.environ import WinUserEnvDialog
