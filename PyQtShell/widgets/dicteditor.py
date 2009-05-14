@@ -37,11 +37,13 @@ Dictionary Editor Widget and Dialog based on PyQt4
 
 import re
 from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
-                          SIGNAL, SLOT, QDateTime, QString)
+                          SIGNAL, SLOT, QDateTime, QString, QSize, QRect)
 from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
                          QVBoxLayout, QWidget, QColor, QDialog, QDateEdit,
                          QDialogButtonBox, QMenu, QInputDialog, QDateTimeEdit,
-                         QApplication, QKeySequence)
+                         QApplication, QKeySequence, QSplitter, QTreeWidget,
+                         QTreeWidgetItem, QFont, QPixmap, QIcon,
+                         QItemSelectionModel)
 
 # Local import
 from PyQtShell.config import get_icon, get_font
@@ -700,6 +702,17 @@ class DictEditorTableView(QTableView):
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
         self.insert_action.setEnabled( not self.readonly )
+
+#    def mousePressEvent(self, event):
+#        """Reimplement Qt method"""
+#        index = self.indexAt(event.pos())
+#        if not index.isValid():
+#            self.setSelection(QRect(), QItemSelectionModel.Clear)
+#            event.accept()
+#        else:
+#            self.setSelection(QRect(event.pos(), QSize(2, 2)),
+#                              QItemSelectionModel.ToggleCurrent)
+#            QTableView.mousePressEvent(self, event)
         
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
@@ -746,11 +759,12 @@ class DictEditorTableView(QTableView):
             self.model.set_data(data, self.dictfilter)
             self.sortByColumn(0, Qt.AscendingOrder)
 
+
 class DictEditorWidget(QWidget):
     """Dictionary Editor Dialog"""
-    def __init__(self, parent, data, readonly=False, sort_by=None, title=""):
+    def __init__(self, parent, data, readonly=False, title=""):
         QWidget.__init__(self, parent)
-        self.editor = DictEditorTableView(self, data, readonly, sort_by, title)
+        self.editor = DictEditorTableView(self, data, readonly, title)
         layout = QVBoxLayout()
         layout.addWidget(self.editor)
         self.setLayout(layout)
@@ -764,18 +778,88 @@ class DictEditorWidget(QWidget):
         return self.editor.model.title
 
 
-class DictEditor(QDialog):
+#TODO: Populate only the two first levels at a time
+class DictTreeWidget(QTreeWidget):
+    def __init__(self, parent, data, editor):
+        QTreeWidget.__init__(self, parent)
+        self.editor = editor
+        if data is not None:
+            self.set_data(data)
+        
+    def set_data(self, data):
+        """Set DictTreeWidget data"""
+#        selected = None
+        self.clear()
+        self.setColumnCount(1)
+        self.setHeaderLabels([translate("DictEditor", "Tree view")])
+        self.setItemsExpandable(True)
+        self.populate(data)
+        self.resizeColumnToContents(0)
+        self.collapseAll()
+#        if selected is not None:
+#            selected.setSelected(True)
+#            self.setCurrentItem(selected)
+        
+    def populate(self, data, parent=None):
+        """Populate tree"""
+        for index, value in enumerate(data):
+            if isinstance(data, (list, tuple)):
+                key = index
+            else:
+                key = value
+            value = data[key]
+            prop = [unicode(key)]
+            item = QTreeWidgetItem(self if parent is None else parent, prop)
+                        
+            pixmap = QPixmap(QSize(8, 8))
+            pixmap.fill(get_color(value, .4))
+            item.setIcon(0, QIcon(pixmap))
+            
+            self.expandItem(parent)
+            if isinstance(value, (list, tuple, dict)):
+                self.populate(value, item)
+
+#TODO: use a stack widget to open multiple DictEditorTableView instances
+# The following widget will replace DictEditorWidget when it's ready
+class DictEditorWidget_Experimental(QSplitter):
+    """Dictionary Editor Dialog"""
+    def __init__(self, parent, data, readonly=False, title="", names=False):
+        QSplitter.__init__(self, Qt.Horizontal, parent)
+        self.editor = DictEditorTableView(self, data, readonly, title, names)
+        self.tree = DictTreeWidget(self, data, self.editor)
+        self.addWidget(self.tree)
+        self.addWidget(self.editor)
+        self.setStretchFactor(0, 1)
+        self.setStretchFactor(1, 4)
+        
+    def set_data(self, data):
+        """Set DictEditor data"""
+        self.tree.set_data(data)
+        self.editor.set_data(data)
+        
+    def set_filter(self, dictfilter=None):
+        """Set table dict filter"""
+        self.editor.set_filter(dictfilter)
+        
+    def get_title(self):
+        """Get model title"""
+        return self.editor.model.title
+
+
+class DictEditor_Experimental(QDialog):
     """Dictionary/List Editor Dialog"""
-    def __init__(self, data, title="", width=500,
+    def __init__(self, data, title="", width=650,
                  readonly=False, icon='dictedit.png'):
         QDialog.__init__(self)
         import copy
         self.data_copy = copy.deepcopy(data)
-        self.widget = DictEditorWidget(self, self.data_copy, sort_by='type',
-                                       title=title, readonly=readonly)
+        self.widget = DictEditorWidget_Experimental(self, self.data_copy,
+                                                    title=title,
+                                                    readonly=readonly)
         
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
+        self.setLayout(layout)
         
         # Buttons configuration
         buttons = QDialogButtonBox.Ok
@@ -787,7 +871,55 @@ class DictEditor(QDialog):
             self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
         layout.addWidget(bbox)
 
+        constant = 121
+        row_height = 30
+        error_margin = 20
+        height = constant + row_height*min([20, len(data)]) + error_margin
+        self.resize(width, height)
+        
+        self.setWindowTitle(self.widget.get_title())
+        if isinstance(icon, (str, unicode)):
+            icon = get_icon(icon)
+        self.setWindowIcon(icon)
+        # Make the dialog act as a window
+        self.setWindowFlags(Qt.Window)
+        
+    def get_copy(self):
+        """Return modified copy of dictionary or list"""
+        return self.data_copy
+    
+def dedit_experimental(seq):
+    if QApplication.startingUp():
+        QApplication([])
+    dialog = DictEditor_Experimental(seq)
+    if dialog.exec_():
+        return dialog.get_copy()
+
+
+class DictEditor(QDialog):
+    """Dictionary/List Editor Dialog"""
+    def __init__(self, data, title="", width=500,
+                 readonly=False, icon='dictedit.png'):
+        QDialog.__init__(self)
+        import copy
+        self.data_copy = copy.deepcopy(data)
+        self.widget = DictEditorWidget(self, self.data_copy, title=title,
+                                       readonly=readonly)
+        
+        layout = QVBoxLayout()
+        layout.addWidget(self.widget)
         self.setLayout(layout)
+        
+        # Buttons configuration
+        buttons = QDialogButtonBox.Ok
+        if not readonly:
+            buttons = buttons | QDialogButtonBox.Cancel
+        bbox = QDialogButtonBox(buttons)
+        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        if not readonly:
+            self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        layout.addWidget(bbox)
+
         constant = 121
         row_height = 30
         error_margin = 20
@@ -836,5 +968,5 @@ if __name__ == "__main__":
                'date': testdate,
                'datetime': datetime.datetime(1945, 5, 8),
             }
-    print "result:", dedit(example)
+    print "result:", dedit_experimental(example)
     
