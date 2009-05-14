@@ -559,6 +559,8 @@ class Editor(PluginWidget):
         """Save the currently edited Python script file"""
         if self.tabwidget.count():
             index = self.tabwidget.currentIndex()
+            if not self.editors[index].isModified():
+                return True
             txt = unicode(self.editors[index].get_text())
             self.encodings[index] = encoding.write(txt,
                                                    self.filenames[index],
