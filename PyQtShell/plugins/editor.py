@@ -562,12 +562,19 @@ class Editor(PluginWidget):
             if not self.editors[index].isModified():
                 return True
             txt = unicode(self.editors[index].get_text())
-            self.encodings[index] = encoding.write(txt,
-                                                   self.filenames[index],
-                                                   self.encodings[index])
-            self.editors[index].setModified(False)
-            self.change()
-            return True
+            try:
+                self.encodings[index] = encoding.write(txt,
+                                                       self.filenames[index],
+                                                       self.encodings[index])
+                self.editors[index].setModified(False)
+                self.change()
+                return True
+            except IOError, error:
+                QMessageBox.critical(self, self.tr("Save"),
+                self.tr("<b>Unable to save script '%1'</b>"
+                        "<br><br>Error message:<br>%2") \
+                .arg(osp.basename(self.filenames[index])).arg(str(error)))
+                return False
         
     def change_font(self):
         """Change editor font"""
