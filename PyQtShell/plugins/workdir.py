@@ -36,7 +36,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from PyQtShell import encoding
-from PyQtShell.config import CONF, get_conf_path
+from PyQtShell.config import CONF, get_conf_path, get_icon
 from PyQtShell.qthelpers import get_std_icon, create_action
 
 # Package local imports
@@ -65,8 +65,7 @@ class WorkingDirectory(QToolBar, PluginMixin):
         self.history = []
         self.histindex = None
         self.previous_action = create_action(self, "previous", None,
-                                     get_std_icon('ArrowBack', 16),
-                                     self.tr('Back'),
+                                     get_icon('previous.png'), self.tr('Back'),
                                      triggered=self.previous_directory)
         self.addAction(self.previous_action)
         
@@ -74,10 +73,15 @@ class WorkingDirectory(QToolBar, PluginMixin):
         self.history = []
         self.histindex = None
         self.next_action = create_action(self, "next", None,
-                                     get_std_icon('ArrowForward', 16),
-                                     self.tr('Next'),
+                                     get_icon('next.png'), self.tr('Next'),
                                      triggered=self.next_directory)
         self.addAction(self.next_action)
+        
+        # Enable/disable previous/next actions
+        self.connect(self, SIGNAL("set_previous_enabled(bool)"),
+                     self.previous_action.setEnabled)
+        self.connect(self, SIGNAL("set_next_enabled(bool)"),
+                     self.next_action.setEnabled)
         
         # Path combo box
         self.pathedit = PathComboBox(self)
@@ -103,7 +107,7 @@ class WorkingDirectory(QToolBar, PluginMixin):
         
         # Parent dir action
         parent_action = create_action(self, "parent", None,
-                                      get_std_icon('FileDialogToParent', 16),
+                                      get_icon('up.png'),
                                       self.tr('Change to parent directory'),
                                       triggered=self.parent_directory)
         self.addAction(parent_action)
@@ -147,10 +151,11 @@ class WorkingDirectory(QToolBar, PluginMixin):
         self.pathedit.insertItem(0, curdir)
         self.pathedit.setCurrentIndex(0)
         self.save_wdhistory()
-        self.previous_action.setEnabled(self.histindex is not None and \
-                                        self.histindex > 0)
-        self.next_action.setEnabled(self.histindex is not None and \
-                                    self.histindex < len(self.history)-1)
+        self.emit(SIGNAL("set_previous_enabled(bool)"),
+                  self.histindex is not None and self.histindex > 0)
+        self.emit(SIGNAL("set_next_enabled(bool)"),
+                  self.histindex is not None and \
+                  self.histindex < len(self.history)-1)
         
     def select_directory(self):
         """Select directory"""
