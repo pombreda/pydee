@@ -43,7 +43,8 @@ class Explorer(ExplorerWidget, PluginMixin):
     """File and Directories Explorer DockWidget"""
     ID = 'explorer'
     def __init__(self, parent=None, path=None):
-        valid_types = CONF.get(self.ID, 'valid_filetypes')
+        valid_types = CONF.get(self.ID, 'valid_filetypes') + \
+                      CONF.get('editor', 'valid_filetypes')
         show_hidden = CONF.get(self.ID, 'show_hidden')
         show_all = CONF.get(self.ID, 'show_all')
         wrap = CONF.get(self.ID, 'wrap')
@@ -80,4 +81,6 @@ class Explorer(ExplorerWidget, PluginMixin):
             self.emit(SIGNAL("edit(QString)"), fname)
         elif ext == '.ws':
             self.emit(SIGNAL("open_workspace(QString)"), fname)
+        else:
+            self.listwidget.startfile(fname)
 
