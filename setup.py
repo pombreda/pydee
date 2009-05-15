@@ -32,9 +32,16 @@ name = 'PyQtShell'
 from PyQtShell import __version__ as version
 google_url = 'http://%s.googlecode.com' % name.lower()
 download_url = '%s/files/%s-%s-py2.5.egg' % (google_url, name, version)
-py_modules = ['xyinstall']
-packages = ['PyQtShell', 'PyQtShell.widgets']
-package_data={'PyQtShell': ['images/*.png', '*.qm', 'python.api']}
+packages = [name, '%s.widgets' % name, '%s.plugins' % name]
+package_data={name: ['*.qm', 'python.api']}
+
+# Images
+from PyQtShell.config import IMG_PATH
+import os.path as osp
+images = [img.replace(IMG_PATH[0], osp.basename(IMG_PATH[0]))+r'/*.png'
+          for img in IMG_PATH]
+package_data[name] += images
+
 scripts = ['pydee.pyw']
 import os
 if os.name == 'posix':
@@ -71,7 +78,6 @@ setup(
       license = 'GPLv2',
       keywords = keywords,
       platforms = ['any'],
-      py_modules = py_modules,
       packages = packages,
       package_data = package_data,
       requires=["PyQt4 (>4.3)"],
