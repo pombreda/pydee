@@ -131,10 +131,10 @@ DEFAULTS = [
               'wrap' : False,
               'wrapflag' : True,
               'api' : osp.join(APP_PATH, 'python.api'),
-              'valid_filetypes': ('', '.py', '.pyw', '.txt', '.patch',
+              'valid_filetypes': ['', '.py', '.pyw', '.txt', '.patch',
                                   '.diff', '.rej', '.css', '.htm', '.html',
                                   '.c', '.cpp', '.h', '.properties',
-                                  '.session', '.ini', '.inf', '.reg', '.cfg'),
+                                  '.session', '.ini', '.inf', '.reg', '.cfg'],
               }),
             ('historylog',
              {
@@ -201,8 +201,8 @@ DEFAULTS = [
              {
               'enable': True,
               'wrap': True,
-              'valid_filetypes': ('', '.py', '.pyw', '.ws',
-                                  '.txt', '.csv', '.mat', '.h5'),
+              'valid_filetypes': ['', '.py', '.pyw', '.ws',
+                                  '.txt', '.csv', '.mat', '.h5'],
               'show_hidden': True,
               'show_all': True,
               'show_toolbar': True,
@@ -211,7 +211,7 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 #DEV = False
-CONF = UserConfig('PyQtShell', DEFAULTS, version='0.3.0', load=(not DEV))
+CONF = UserConfig('PyQtShell', DEFAULTS, version='0.4.0', load=(not DEV))
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""
