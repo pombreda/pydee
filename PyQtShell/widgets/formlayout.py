@@ -36,7 +36,7 @@ import sys
 STDERR = sys.stderr
 
 try:
-    from PyQt4.QtGui import QFormLayoutx
+    from PyQt4.QtGui import QFormLayout
 except ImportError:
     raise ImportError, "Warning: PyQt4 version is outdated (formlayout requires >v4.3)"
 
