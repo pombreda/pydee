@@ -818,15 +818,21 @@ def main():
         # ****************************************************************
         # *  NavigationToolbar2QT
         # ****************************************************************
-        from PyQtShell.widgets.figureoptions import figure_edit
+        try:
+            from PyQtShell.widgets.figureoptions import figure_edit
+        except ImportError:
+            figure_edit = None
+            print >> STDOUT, "Warning: Matplotlib figure config dialog box won't be available (please update PyQt4)"
         class NavigationToolbar2QT( backend_qt4.NavigationToolbar2QT ):
             def _init_toolbar(self):
                 super(NavigationToolbar2QT, self)._init_toolbar()
-                a = self.addAction(get_icon("customize.png"),
-                                   'Customize', self.edit_parameters)
-                a.setToolTip('Edit curves line and axes parameters')
+                if figure_edit:
+                    a = self.addAction(get_icon("customize.png"),
+                                       'Customize', self.edit_parameters)
+                    a.setToolTip('Edit curves line and axes parameters')
             def edit_parameters(self):
-                figure_edit(self.canvas, self)
+                if figure_edit:
+                    figure_edit(self.canvas, self)
             def save_figure( self ):
                 main.console.shell.restore_stds()
                 super(NavigationToolbar2QT, self).save_figure()
