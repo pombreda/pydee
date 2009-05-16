@@ -28,18 +28,22 @@ This software is licensed under the terms of the GNU General Public
 License version 2 as published by the Free Software Foundation.
 """
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 DEBUG = False
 
 import sys
 STDERR = sys.stderr
 
-from PyQt4.QtGui import (QFormLayoutx, QWidget, QLineEdit, QComboBox, QLabel,
-                         QSpinBox, QIcon, QDialogButtonBox, QHBoxLayout,
-                         QVBoxLayout, QDialog, QColor, QPushButton, QCheckBox,
-                         QColorDialog, QPixmap, QTabWidget, QApplication,
-                         QStackedWidget)
+try:
+    from PyQt4.QtGui import QFormLayoutx
+except ImportError:
+    raise ImportError, "Warning: PyQt4 version is outdated (formlayout requires >v4.3)"
+
+from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox,
+                         QIcon, QDialogButtonBox, QHBoxLayout, QVBoxLayout,
+                         QDialog, QColor, QPushButton, QCheckBox, QColorDialog,
+                         QPixmap, QTabWidget, QApplication, QStackedWidget)
 from PyQt4.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
                           pyqtSignature, pyqtProperty)
 

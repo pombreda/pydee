@@ -820,9 +820,9 @@ def main():
         # ****************************************************************
         try:
             from PyQtShell.widgets.figureoptions import figure_edit
-        except ImportError:
+        except ImportError, error:
+            print >> STDOUT, error
             figure_edit = None
-            print >> STDOUT, "Warning: Matplotlib figure config dialog box won't be available (please update PyQt4)"
         class NavigationToolbar2QT( backend_qt4.NavigationToolbar2QT ):
             def _init_toolbar(self):
                 super(NavigationToolbar2QT, self)._init_toolbar()
