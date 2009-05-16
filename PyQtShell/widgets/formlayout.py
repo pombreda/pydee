@@ -35,7 +35,7 @@ DEBUG = False
 import sys
 STDERR = sys.stderr
 
-from PyQt4.QtGui import (QFormLayout, QWidget, QLineEdit, QComboBox, QLabel,
+from PyQt4.QtGui import (QFormLayoutx, QWidget, QLineEdit, QComboBox, QLabel,
                          QSpinBox, QIcon, QDialogButtonBox, QHBoxLayout,
                          QVBoxLayout, QDialog, QColor, QPushButton, QCheckBox,
                          QColorDialog, QPixmap, QTabWidget, QApplication,
