@@ -89,6 +89,8 @@ class MainWindow(QMainWindow):
         
         # Flag used if closing() is called by the exit() shell command
         self.already_closed = False
+        
+        self.window_size = None
                        
     def setup(self):
         """Setup main window"""
@@ -304,6 +306,7 @@ class MainWindow(QMainWindow):
         section = 'lightwindow' if self.light else 'window'
         width, height = CONF.get(section, 'size')
         self.resize( QSize(width, height) )
+        self.window_size = self.size()
         posx, posy = CONF.get(section, 'position')
         self.move( QPoint(posx, posy) )
         
@@ -315,6 +318,9 @@ class MainWindow(QMainWindow):
             # Window layout
             hexstate = CONF.get(section, 'state')
             self.restoreState( QByteArray().fromHex(hexstate) )
+            # Is maximized?
+            if CONF.get(section, 'is_maximized'):
+                self.setWindowState(Qt.WindowMaximized)
             
         self.splash.hide()
         
@@ -397,14 +403,21 @@ class MainWindow(QMainWindow):
             event.accept()
         else:
             event.ignore()
+            
+    def resizeEvent(self, event):
+        """Reimplement Qt method"""
+        if not self.isMaximized():
+            self.window_size = self.size()
+        QMainWindow.resizeEvent(self, event)
         
     def closing(self, cancelable=False):
         """Exit tasks"""
         if self.already_closed:
             return True
-        size = self.size()
+        size = self.window_size
         section = 'lightwindow' if self.light else 'window'
         CONF.set(section, 'size', (size.width(), size.height()))
+        CONF.set(section, 'is_maximized', self.isMaximized())
         pos = self.pos()
         CONF.set(section, 'position', (pos.x(), pos.y()))
         if not self.light:
