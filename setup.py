@@ -33,15 +33,12 @@ from PyQtShell import __version__ as version
 google_url = 'http://%s.googlecode.com' % name.lower()
 download_url = '%s/files/%s-%s-py2.5.egg' % (google_url, name, version)
 packages = [name, '%s.widgets' % name, '%s.plugins' % name]
-package_data={name: ['*.qm', 'python.api']}
-
-# Images
-from PyQtShell.config import IMG_PATH
-import os.path as osp
-images = [img.replace(IMG_PATH[0], osp.basename(IMG_PATH[0]))+r'/*.png'
-          for img in IMG_PATH]
-package_data[name] += images
-
+package_data={name: ['*.qm', 'python.api', 'images/*.png',
+                     'images/console/*.png', 'images/docviewer/*.png',
+                     'images/edit/*.png', 'images/editor/*.png',
+                     'images/explorer/*.png', 'images/file/*.png',
+                     'images/filetypes/*.png', 'images/workspace/*.png',
+                     ]}
 scripts = ['pydee.pyw']
 import os
 if os.name == 'posix':
@@ -64,7 +61,7 @@ try:
         },
         )
 except ImportError:
-    pass
+    addl_args = {}
 
 setup(
       name = name,
@@ -91,5 +88,5 @@ setup(
         'Operating System :: Unix',
         'Programming Language :: Python :: 2.5',
         ],
-    **addl_args
+      **addl_args
     )
