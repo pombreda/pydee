@@ -254,7 +254,6 @@ class Editor(PluginWidget):
             'execute_interact.png',
             self.tr("Execute current script and set focus to shell"),
             triggered=self.exec_script_and_interact)
-        #TODO: remove common indents before executing selection
         #TODO: implement Paste special to paste & removing leading >>>
         self.exec_selected_action = create_action(self,
             self.tr("Execute selection"), "Ctrl+F9", 'execute_selection.png',
@@ -413,6 +412,13 @@ class Editor(PluginWidget):
         """Execute selected text in current script and set focus to shell"""
         index = self.tabwidget.currentIndex()
         lines = unicode( self.editors[index].selectedText() )
+        # If there is a common indent to all lines, remove it
+        min_indent = 999
+        for line in lines.split(os.linesep):
+            min_indent = min(len(line)-len(line.lstrip()), min_indent)
+        if min_indent:
+            lines = [line[min_indent:] for line in lines.split(os.linesep)]
+            lines = os.linesep.join(lines)
         # If there is only one line of code, add an EOL char
         if (r"\n" not in lines) or (r"\r" not in lines):
             lines += os.linesep
