@@ -51,10 +51,14 @@ def is_number(dtype):
 
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
-    def __init__(self, data, format="%.3f", xy_mode=False, parent=None):
+    def __init__(self, data, changes,
+                 format="%.3f", xy_mode=False, readonly=False, parent=None):
         super(ArrayModel, self).__init__()
 
         self.dialog = parent
+        self.changes = changes
+        self.readonly = readonly
+        self.test_array = N.array([0], dtype=data.dtype)
 
         # Backgroundcolor settings
         huerange = [.66, .99] # Hue
@@ -104,7 +108,7 @@ class ArrayModel(QAbstractTableModel):
             return QVariant()
         i = index.row()
         j = index.column()
-        value = self._data[i, j]
+        value = self.changes.get((i, j), self._data[i, j])
         if role == Qt.DisplayRole:
             return QVariant( self._format % value )
         elif role == Qt.TextAlignmentRole:
@@ -119,7 +123,7 @@ class ArrayModel(QAbstractTableModel):
 
     def setData(self, index, value, role=Qt.EditRole):
         """Cell content change"""
-        if not index.isValid():
+        if not index.isValid() or self.readonly:
             return False
         i = index.row()
         j = index.column()
@@ -136,19 +140,22 @@ class ArrayModel(QAbstractTableModel):
                 QMessageBox.critical(self.dialog, "Error",
                                      "Value error: %s" % e.message)
         try:
-            self._data[i, j] = val
-            self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                      index, index)
-            if val > self.vmax:
-                self.vmax = val
-            if val < self.vmin:
-                self.vmin = val
-            return True
+            self.test_array[0] = val # will raise an Exception eventually
         except OverflowError, e:
             print type(e.message)
             QMessageBox.critical(self.dialog, "Error",
                                  "Overflow error: %s" % e.message)
-        return False
+            return False
+        
+        # Add change to self.changes
+        self.changes[(i, j)] = val
+        self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                  index, index)
+        if val > self.vmax:
+            self.vmax = val
+        if val < self.vmin:
+            self.vmin = val
+        return True
     
     def flags(self, index):
         """Set editable flag"""
@@ -226,13 +233,15 @@ class ArrayEditor(QDialog):
                'bool': '%r'
                }
     
-    def __init__(self, data, title='', xy=False):
+    def __init__(self, data, title='', xy=False, readonly=False):
         super(ArrayEditor, self).__init__()
         format = self.get_format(data)
         
-        self.copy = data.copy()
-        self.data = self.copy.view()
+        self.data = data
+        self.changes = {}
+        self.old_data_shape = None
         if len(self.data.shape)==1:
+            self.old_data_shape = self.data.shape
             self.data.shape = (self.data.shape[0], 1)
 
         if len(self.data.shape)!=2:
@@ -242,14 +251,17 @@ class ArrayEditor(QDialog):
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
-        self.setWindowTitle(self.tr("Array editor") + \
-                            "%s" % (" - "+str(title) if str(title) else ""))
+        title = self.tr("Array editor") + \
+                "%s" % (" - "+str(title) if str(title) else "")
+        if readonly:
+            title += ' (' + self.tr('read only') + ')'
+        self.setWindowTitle(title)
         self.resize(600, 500)
 
         # Table configuration
         self.view = QTableView()
-        self.model = ArrayModel(self.data, format=format,
-                                xy_mode=xy, parent=self)
+        self.model = ArrayModel(self.data, self.changes, format=format,
+                                xy_mode=xy, readonly=readonly, parent=self)
         self.view.setModel(self.model)
         self.view.setItemDelegate(ArrayDelegate(data.dtype, self))
         total_width = 0
@@ -285,6 +297,14 @@ class ArrayEditor(QDialog):
         
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
+        
+    def accept(self):
+        """Reimplement Qt method"""
+        for (i, j), value in self.changes.iteritems():
+            self.data[i, j] = value
+        if self.old_data_shape:
+            self.data.shape = self.old_data_shape
+        QDialog.accept(self)
 
     def get_format(self, data):
         """Return (type, format) depending on array dtype"""
@@ -316,10 +336,6 @@ class ArrayEditor(QDialog):
                       self.tr("Format (%1) is incorrect").arg(format))
                 return
             self.model.set_format(format)
-
-    def get_copy(self):
-        """Return modified copy of ndarray"""
-        return self.copy
     
     
 def aedit(data, title=""):
@@ -334,12 +350,15 @@ def aedit(data, title=""):
         QApplication([])
     dialog = ArrayEditor(data, title)
     if dialog.exec_():
-        return dialog.get_copy()
+        return data
 
 if __name__ == "__main__":
-    arr = N.array([True, False, True])
-    print "result:", aedit(arr, "bool array")
+    arr_in = N.array([True, False, True])
+    print "in:", arr_in
+    arr_out = aedit(arr_in, "bool array")
+    print "out:", arr_out
+    print arr_in is arr_out
     arr = N.array([1, 2, 3], dtype="int8")
-    print "result:", aedit(arr, "int array")
-    arr = N.random.rand(20, 20)
-    print "result:", aedit(arr, "float array")
+    print "out:", aedit(arr, "int array")
+    arr = N.random.rand(5, 5)
+    print "out:", aedit(arr, "float array")
