@@ -397,9 +397,7 @@ class DictDelegate(QItemDelegate):
                                         and not self.inplace:
             if value.size == 0:
                 return None
-            editor = ArrayEditor(value, key)
-            if editor.exec_() and not readonly:
-                index.model().set_value(index, editor.get_copy())
+            ArrayEditor(value, title=key, readonly=readonly).exec_()
             return None
         #---editor = QDateTimeEdit
         elif isinstance(value, datetime.datetime) and not self.inplace:
@@ -968,5 +966,6 @@ if __name__ == "__main__":
                'date': testdate,
                'datetime': datetime.datetime(1945, 5, 8),
             }
-    print "result:", dedit_experimental(example)
+    out = dedit_experimental(example)
+    print "out:", out
     
