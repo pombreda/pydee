@@ -67,8 +67,7 @@ class Interpreter(code.InteractiveConsole):
         """
         assert isinstance(text, (str, unicode))
         try:
-            obj = eval(text, self.locals)
-            return obj, True
+            return eval(text, self.locals), True
         except:
             return None, False
         

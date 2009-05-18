@@ -691,7 +691,8 @@ class QsciTerminal(QsciBase):
             self.insert_text(txt)
             self.completion_chars = 0
         
-    def show_calltip(self, text, tipsize=600, font=None):
+    def show_calltip(self, title, text, tipsize=600,
+                     font=None, color='#2D62FF'):
         """Show calltip"""
         if not self.calltips:
             return
@@ -700,18 +701,16 @@ class QsciTerminal(QsciBase):
         if font is None:
             font = QFont()
         weight = 'bold' if font.bold() else 'normal'
-        format1 = '<span style=\'font-size: %spt\'>' % font.pointSize()
+        format1 = '<span style=\'font-size: %spt; color: %s\'>' % (font.pointSize(), color)
         format2 = '\n<hr><span style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (font.family(), font.pointSize(), weight)
         if isinstance(text, list):
             text = "\n    ".join(text)
-            text = format1+'<b>Arguments</b></span>:'+format2+text+"</span>"
         else:
-            if len(text) > tipsize:
-                text = text[:tipsize] + " ..."
             text = text.replace('\n', '<br>')
-            text = format1+'<b>Documentation</b></span>:'+format2+text+"</span>"
+        if len(text) > tipsize:
+            text = text[:tipsize] + " ..."
+        tiptext = format1 + ('<b>%s</b></span>' % title) \
+                  + format2 + text + "</span>"
         # Showing tooltip at cursor position:
         cx, cy = self.get_cursor_coordinates()
-        QToolTip.showText(self.mapToGlobal(QPoint(cx, cy)), text)
-        
-
+        QToolTip.showText(self.mapToGlobal(QPoint(cx, cy)), tiptext)
