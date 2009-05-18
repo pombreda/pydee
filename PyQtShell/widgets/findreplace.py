@@ -111,6 +111,7 @@ class FindReplace(QWidget):
             text = self.editor.selectedText()
             if len(text)>0:
                 self.edit.setText(text)
+                self.edit.selectAll()
                 self.refresh()
         
     def hide(self):
