@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="1.1" language="fr">
+<defaultcodec></defaultcodec>
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -136,7 +137,7 @@
     <message>
         <location filename="plugins/console.py" line="137"/>
         <source>Wrap lines</source>
-        <translation>Retour à la ligne</translation>
+        <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
         <location filename="plugins/console.py" line="140"/>
@@ -461,7 +462,7 @@
     <message>
         <location filename="plugins/editor.py" line="280"/>
         <source>Wrap lines</source>
-        <translation>Retour à la ligne</translation>
+        <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
         <location filename="plugins/editor.py" line="441"/>
@@ -640,7 +641,7 @@ Do you want to save changes?</source>
     <message>
         <location filename="widgets/explorer.py" line="97"/>
         <source>Wrap lines</source>
-        <translation>Retour à la ligne</translation>
+        <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
         <location filename="widgets/explorer.py" line="103"/>
