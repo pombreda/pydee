@@ -684,13 +684,9 @@ class DocComboBox(EditableComboBox):
         
     def is_valid(self, qstr):
         """Return True if string is valid"""
-        try:
-            eval(unicode(qstr),
-                 self.parent().interpreter.locals)
-            return True
-        except:
-            return False
-
+        _, valid = self.parent().interpreter.eval(unicode(qstr))
+        return valid
+        
     def keyPressEvent(self, event):
         """Handle key press events"""
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
@@ -819,11 +815,12 @@ class DocViewer(PluginWidget):
         
     def set_help(self, obj_text):
         """Show help"""
+        if self.interpreter is None:
+            return
         obj_text = unicode(obj_text)
         hlp_text = None
-        try:
-            obj = eval(obj_text,
-                       self.interpreter.locals)
+        obj, valid = self.interpreter.eval(obj_text)
+        if valid:
             if self.docstring:
                 hlp_text = getdoc(obj)
                 if hlp_text is None:
@@ -831,8 +828,6 @@ class DocViewer(PluginWidget):
                     return
             else:
                 hlp_text = getsource(obj)
-        except:
-            pass
         if hlp_text is None:
             hlp_text = self.tr("No documentation available.")
         self.editor.set_text(hlp_text)

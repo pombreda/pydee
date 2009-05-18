@@ -59,6 +59,19 @@ class Interpreter(code.InteractiveConsole):
         self.max_history_entries = CONF.get('historylog', 'max_entries')
         self.rawhistory, self.history = self.load_history()
         
+    def eval(self, text):
+        """
+        Evaluate text and return (obj, valid)
+        where *obj* is the object represented by *text*
+        and *valid* is True if object evaluation did not raise any exception
+        """
+        assert isinstance(text, (str, unicode))
+        try:
+            obj = eval(text, self.locals)
+            return obj, True
+        except:
+            return None, False
+        
     def load_history(self):
         """Load history from a .py file in user home directory"""
         if osp.isfile(self.log_path):
