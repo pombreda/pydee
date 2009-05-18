@@ -477,13 +477,8 @@ class ShellBaseWidget(QsciTerminal):
         """
         Display a completion list based on the last token
         """
-        try:
-            obj = eval(text, self.interpreter.locals)
-        except:
-            # No valid object was extracted from text
-            pass
-        else:
-            # Object obj is valid
+        obj, valid = self.interpreter.eval(text)
+        if valid:
             self.show_completion_list(dir(obj), 'dir(%s)' % text) 
 
     def show_file_completion(self):
@@ -495,13 +490,8 @@ class ShellBaseWidget(QsciTerminal):
         
     def show_docstring(self, text, call=False):
         """Show docstring or arguments"""
-        try:
-            obj = eval(text, self.interpreter.locals)
-        except:
-            # No valid object was extracted from text
-            pass
-        else:
-            # Object obj is valid
+        obj, valid = self.interpreter.eval(text)
+        if valid:
             tipsize = CONF.get('calltips', 'size')
             font = get_font('calltips')
             done = False
