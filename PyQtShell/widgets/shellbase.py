@@ -501,10 +501,20 @@ class ShellBaseWidget(QsciTerminal):
                 self.docviewer.refresh(text)
                 if call:
                     # Display argument list if this is function call
-                    arglist = getargtxt(obj)
-                    if arglist:
-                        self.show_calltip(arglist, tipsize, font)
+                    if callable(obj):
+                        arglist = getargtxt(obj)
+                        if arglist:
+                            done = True
+                            self.show_calltip(self.tr("Arguments"),
+                                              arglist, tipsize, font,
+                                              color='#129625')
+                    else:
                         done = True
+                        self.show_calltip(self.tr("Warning"),
+                                          self.tr("Object <i>%1</i> "
+                                                  "is not callable").arg(text),
+                                          font=font, color='#FF0000')
             if not done:
-                self.show_calltip(obj.__doc__, tipsize, font)
+                self.show_calltip(self.tr("Documentation"),
+                                  obj.__doc__, tipsize, font)
                 
