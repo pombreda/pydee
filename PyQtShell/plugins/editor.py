@@ -112,9 +112,13 @@ class Tabs(QTabWidget):
         """Override Qt method"""
         if self.menu:
             self.menu.popup(event.globalPos())
+            
+    def mousePressEvent(self, event):
+        """Override Qt method"""
+        if event.button() == Qt.MidButton:
+            self.emit(SIGNAL("close_file"))
 
 #TODO: Add a 'run' argument list which is associated to each opened script (attribute)
-#TODO: Google-Code feature request: interrupt an executed script ->QTimer?
 #TODO: Google-Code feature request: add a class/function browser
 class Editor(PluginWidget):
     """
@@ -134,6 +138,7 @@ class Editor(PluginWidget):
         
         # Tab widget with close button
         self.tabwidget = Tabs(self, self.tab_actions)
+        self.connect(self.tabwidget, SIGNAL("close_file"), self.close)
         self.close_button = create_toolbutton(self.tabwidget,
                                           icon=get_icon("fileclose.png"),
                                           callback=self.close,
