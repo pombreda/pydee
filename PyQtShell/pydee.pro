@@ -13,6 +13,7 @@ SOURCES	     += widgets/dicteditor.py
 SOURCES	     += widgets/editorbase.py
 SOURCES	     += widgets/explorer.py
 SOURCES	     += widgets/findreplace.py
+SOURCES      += widgets/importwizard.py
 SOURCES	     += widgets/shellbase.py
 SOURCES	     += widgets/terminal.py
 SOURCES	     += widgets/texteditor.py

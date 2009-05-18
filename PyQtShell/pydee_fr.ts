@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="1.1" language="fr">
-<defaultcodec></defaultcodec>
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -193,135 +192,160 @@
 <context>
     <name>DictEditor</name>
     <message>
-        <location filename="widgets/dicteditor.py" line="327"/>
+        <location filename="widgets/dicteditor.py" line="328"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="328"/>
+        <location filename="widgets/dicteditor.py" line="329"/>
         <source>Size</source>
         <translation>Taille</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="329"/>
+        <location filename="widgets/dicteditor.py" line="330"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="211"/>
+        <location filename="widgets/dicteditor.py" line="212"/>
         <source>Tuple</source>
         <translation>Tuple</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="214"/>
+        <location filename="widgets/dicteditor.py" line="215"/>
         <source>List</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="217"/>
+        <location filename="widgets/dicteditor.py" line="218"/>
         <source>Dictionary</source>
         <translation>Dictionnaire</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="222"/>
+        <location filename="widgets/dicteditor.py" line="223"/>
         <source>elements</source>
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="531"/>
+        <location filename="widgets/dicteditor.py" line="532"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="504"/>
+        <location filename="widgets/dicteditor.py" line="505"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="687"/>
+        <location filename="widgets/dicteditor.py" line="701"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="581"/>
+        <location filename="widgets/dicteditor.py" line="582"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="583"/>
+        <location filename="widgets/dicteditor.py" line="584"/>
         <source>Do you want to remove selected item%1?</source>
         <translation>Souhaitez-vous supprimer l&apos;élément %1 ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="678"/>
+        <location filename="widgets/dicteditor.py" line="692"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="688"/>
+        <location filename="widgets/dicteditor.py" line="702"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="641"/>
+        <location filename="widgets/dicteditor.py" line="655"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="539"/>
+        <location filename="widgets/dicteditor.py" line="540"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="620"/>
+        <location filename="widgets/dicteditor.py" line="513"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="206"/>
+        <location filename="widgets/dicteditor.py" line="207"/>
         <source>Index</source>
         <translation>Indice</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="208"/>
+        <location filename="widgets/dicteditor.py" line="209"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="219"/>
+        <location filename="widgets/dicteditor.py" line="220"/>
         <source>Key</source>
         <translation>Clé</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="792"/>
+        <location filename="widgets/dicteditor.py" line="806"/>
         <source>Tree view</source>
         <translation>Arborescence</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="167"/>
+        <location filename="widgets/dicteditor.py" line="168"/>
         <source>unknown</source>
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="520"/>
+        <location filename="widgets/dicteditor.py" line="521"/>
         <source>Truncate values</source>
         <translation>Tronquer les valeurs</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="525"/>
+        <location filename="widgets/dicteditor.py" line="526"/>
         <source>Show arrays min/max</source>
         <translation>Afficher les min/max des tableaux</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="640"/>
+        <source>Empty clipboard</source>
+        <translation>Presse-papiers vide</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="642"/>
+        <source>Nothing to be imported from clipboard.</source>
+        <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="624"/>
+        <source>new</source>
+        <translation>nouveau</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="630"/>
+        <source>Import from clipboard</source>
+        <translation>Importer depuis le presse-papiers</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="632"/>
+        <source>Clipboard contents</source>
+        <translation>Contenu du presse-papiers</translation>
     </message>
 </context>
 <context>
     <name>DocComboBox</name>
     <message>
-        <location filename="plugins/editor.py" line="676"/>
+        <location filename="plugins/editor.py" line="682"/>
         <source>Press enter to validate this object name</source>
         <translation>Appuyer sur Entrée pour valider ce nom d&apos;objet</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="679"/>
+        <location filename="plugins/editor.py" line="685"/>
         <source>This object name is incorrect</source>
         <translation>Ce nom d&apos;objet n&apos;est pas valide</translation>
     </message>
@@ -329,32 +353,32 @@
 <context>
     <name>DocViewer</name>
     <message>
-        <location filename="plugins/editor.py" line="725"/>
+        <location filename="plugins/editor.py" line="727"/>
         <source>Object</source>
         <translation>Objet</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="733"/>
+        <location filename="plugins/editor.py" line="735"/>
         <source>Show source</source>
         <translation>Afficher les sources</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="832"/>
+        <location filename="plugins/editor.py" line="833"/>
         <source>No documentation available.</source>
         <translation>Aucune documentation disponible.</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="758"/>
+        <location filename="plugins/editor.py" line="760"/>
         <source>Doc</source>
         <translation>Aide</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="790"/>
+        <location filename="plugins/editor.py" line="792"/>
         <source>Unlock</source>
         <translation>Déverrouiller</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="791"/>
+        <location filename="plugins/editor.py" line="793"/>
         <source>Lock</source>
         <translation>Verrouiller</translation>
     </message>
@@ -405,58 +429,58 @@
         <translation>Exécuter le script actuel</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="278"/>
+        <location filename="plugins/editor.py" line="277"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="279"/>
+        <location filename="plugins/editor.py" line="278"/>
         <source>Set editor font style</source>
         <translation>Modifier la police d&apos;écriture de l&apos;éditeur</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="485"/>
+        <location filename="plugins/editor.py" line="491"/>
         <source>Open Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="547"/>
+        <location filename="plugins/editor.py" line="553"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="546"/>
+        <location filename="plugins/editor.py" line="552"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="582"/>
+        <location filename="plugins/editor.py" line="588"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="281"/>
+        <location filename="plugins/editor.py" line="280"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="435"/>
+        <location filename="plugins/editor.py" line="441"/>
         <source> has been modified.
 Do you want to save changes?</source>
         <translation>a été modifié. Souhaitez-vous sauvegarder ces changements ?</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="355"/>
+        <location filename="plugins/editor.py" line="354"/>
         <source>This temporary script file is located here:</source>
         <translation>Ce script temporaire est sauvegardé ici :</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="353"/>
+        <location filename="plugins/editor.py" line="352"/>
         <source>PyQtShell Editor</source>
         <translation>Éditeur de PyQtShell</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="573"/>
+        <location filename="plugins/editor.py" line="579"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
@@ -496,27 +520,27 @@ Do you want to save changes?</source>
         <translation>Fermer tous les scripts en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="367"/>
+        <location filename="plugins/editor.py" line="366"/>
         <source>untitled</source>
         <translation>sanstitre</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="373"/>
+        <location filename="plugins/editor.py" line="372"/>
         <source>New Python script</source>
         <translation>Nouveau script Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="468"/>
+        <location filename="plugins/editor.py" line="474"/>
         <source>Temporary file</source>
         <translation>Fichier temporaire</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="284"/>
+        <location filename="plugins/editor.py" line="283"/>
         <source>Set working directory</source>
         <translation>Changer le répertoire de travail</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="285"/>
+        <location filename="plugins/editor.py" line="284"/>
         <source>Change working directory to current script directory</source>
         <translation>Choisir le répertoire du script en cours d&apos;édition comme répertoire de travail</translation>
     </message>
@@ -541,42 +565,42 @@ Do you want to save changes?</source>
         <translation>Vérifier la syntaxe du script actuel</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="395"/>
+        <location filename="plugins/editor.py" line="394"/>
         <source>Check syntax</source>
         <translation>Vérifier la syntaxe</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="399"/>
+        <location filename="plugins/editor.py" line="398"/>
         <source>There is no error in your program.</source>
         <translation>Aucune erreur de syntaxe n&apos;a été trouvée dans votre script.</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="260"/>
+        <location filename="plugins/editor.py" line="259"/>
         <source>Execute selection</source>
         <translation>Exécuter la sélection</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="262"/>
+        <location filename="plugins/editor.py" line="261"/>
         <source>Execute selected text in current script and set focus to shell</source>
         <translation>Exécuter la sélection et basculer vers la console</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="264"/>
+        <location filename="plugins/editor.py" line="263"/>
         <source>Comment</source>
         <translation>Commenter</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="265"/>
+        <location filename="plugins/editor.py" line="264"/>
         <source>Comment current line or selection</source>
         <translation>Commenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="267"/>
+        <location filename="plugins/editor.py" line="266"/>
         <source>Uncomment</source>
         <translation>Décommenter</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="269"/>
+        <location filename="plugins/editor.py" line="268"/>
         <source>Uncomment current line or selection</source>
         <translation>Décommenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
@@ -586,38 +610,33 @@ Do you want to save changes?</source>
         <translation>Éditeur</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="271"/>
+        <location filename="plugins/editor.py" line="270"/>
         <source>Indent</source>
         <translation>Indenter</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="272"/>
+        <location filename="plugins/editor.py" line="271"/>
         <source>Indent current line or selection</source>
         <translation>Indenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="274"/>
+        <location filename="plugins/editor.py" line="273"/>
         <source>Unindent</source>
         <translation>Désindenter</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="276"/>
+        <location filename="plugins/editor.py" line="275"/>
         <source>Unindent current line or selection</source>
         <translation>Désindenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="576"/>
+        <location filename="plugins/editor.py" line="582"/>
         <source>&lt;b&gt;Unable to save script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
 </context>
 <context>
     <name>Explorer</name>
-    <message>
-        <location filename="plugins/explorer.py" line="80"/>
-        <source>Explorer</source>
-        <translation type="obsolete">Explorateur</translation>
-    </message>
     <message>
         <location filename="widgets/explorer.py" line="97"/>
         <source>Wrap lines</source>
@@ -750,9 +769,97 @@ Do you want to save changes?</source>
 <context>
     <name>HistoryLog</name>
     <message>
-        <location filename="plugins/editor.py" line="649"/>
+        <location filename="plugins/editor.py" line="655"/>
         <source>History log</source>
         <translation>Historique</translation>
+    </message>
+</context>
+<context>
+    <name>ImportWizard</name>
+    <message>
+        <location filename="widgets/importwizard.py" line="67"/>
+        <source>Import as</source>
+        <translation>Importer en tant que</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="69"/>
+        <source>data</source>
+        <translation>données</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="224"/>
+        <source>text</source>
+        <translation>texte</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="83"/>
+        <source>Transpose</source>
+        <translation>Transposer</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="89"/>
+        <source>Column separator:</source>
+        <translation>Séparateur de colonne :</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="91"/>
+        <source>Tab</source>
+        <translation>Tab</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="94"/>
+        <source>other</source>
+        <translation>autre</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="207"/>
+        <source>Import wizard</source>
+        <translation>Assistant d&apos;importation</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="213"/>
+        <source>Raw text</source>
+        <translation>Text brut</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="216"/>
+        <source>variable_name</source>
+        <translation>nom_de_variable</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="227"/>
+        <source>table</source>
+        <translation>tableau</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="228"/>
+        <source>Preview</source>
+        <translation>Aperçu</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="236"/>
+        <source>Name</source>
+        <translation>Nom</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="244"/>
+        <source>Cancel</source>
+        <translation>Annuler</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="250"/>
+        <source>Previous</source>
+        <translation>Précédent</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="255"/>
+        <source>Next</source>
+        <translation>Suivant</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="259"/>
+        <source>Done</source>
+        <translation>Terminer</translation>
     </message>
 </context>
 <context>
