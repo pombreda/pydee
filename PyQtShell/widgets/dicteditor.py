@@ -49,6 +49,7 @@ from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
 from PyQtShell.config import get_icon, get_font
 from PyQtShell.qthelpers import translate, add_actions, create_action
 from PyQtShell.widgets.texteditor import TextEditor
+from PyQtShell.widgets.importwizard import ImportWizard
 
 #----Numpy arrays support
 class FakeObject(object):
@@ -602,7 +603,7 @@ class DictEditorTableView(QTableView):
         for row in textRows:
             if row.isEmpty(): continue
             line = QString(row).split("\t")
-            line = map(lambda x: try_to_eval(unicode(x)),line)
+            line = map(lambda x: try_to_eval(unicode(x)), line)
             out.append(self._simplify_shape(line))
         return self._simplify_shape(out)
 
@@ -613,19 +614,32 @@ class DictEditorTableView(QTableView):
         raise NotImplementedError()
     
     def paste(self):
-        """Paste text from clipboard"""
+        """Import complex data from clipboard"""
+        #TODO: Implement the paste feature in DictEditor
+        #      by using a GUI to define the data types.
         clipboard = QApplication.clipboard()
         if clipboard.mimeData().hasText():
-            key, valid = QInputDialog.getText(self,
-                  translate("DictEditor", 'Paste'),
-                  translate("DictEditor", 'Key:'),
-                  QLineEdit.Normal)
-            if valid and not key.isEmpty():
-                key = try_to_eval(unicode(key))
-                content = self._decode_text(clipboard.text())
-                data = self.model.get_data()
-                data[key] = try_to_eval(repr(content))
+            data = self.model.get_data()
+            varname_base = translate("DictEditor", "new")
+            get_varname = lambda index: varname_base + ("%03d" % index)
+            index = 0
+            while data.has_key(get_varname(index)):
+                index += 1
+            editor = ImportWizard(self, clipboard.text(),
+                                  title=translate("DictEditor",
+                                                  "Import from clipboard"),
+                                  contents_title=translate("DictEditor",
+                                                           "Clipboard contents"),
+                                  varname=get_varname(index))
+            if editor.exec_():
+                var_name, clip_data = editor.get_data()
+                data[var_name] = clip_data
                 self.set_data(data)
+        else:
+            QMessageBox.warning(self,
+                                translate("DictEditor", "Empty clipboard"),
+                                translate("DictEditor", "Nothing to be imported"
+                                          " from clipboard."))
 
     def _copy_item(self,erase_original=False):
         """Copy item"""
