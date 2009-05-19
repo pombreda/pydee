@@ -511,8 +511,10 @@ class ShellBaseWidget(QsciTerminal):
                     else:
                         done = True
                         self.show_calltip(self.tr("Warning"),
-                                          self.tr("Object <i>%1</i> "
-                                                  "is not callable").arg(text),
+                                          self.tr("Object `%1` is not callable"
+                                                  " (i.e. not a function, "
+                                                  "a method or a class "
+                                                  "constructor)").arg(text),
                                           font=font, color='#FF0000')
             if not done:
                 self.show_calltip(self.tr("Documentation"),
