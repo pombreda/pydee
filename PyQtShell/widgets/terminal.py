@@ -28,7 +28,7 @@
 import sys
 from time import time
 
-from PyQt4.QtGui import QMenu, QKeySequence
+from PyQt4.QtGui import QMenu
 from PyQt4.QtCore import Qt, QString, QEventLoop, QCoreApplication
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython
 
@@ -42,22 +42,6 @@ from PyQtShell.qthelpers import (translate, keybinding, create_action,
                                  add_actions)
 from PyQtShell.widgets.qscibase import QsciBase
 
-#TODO: Outside QsciTerminal: replace most of 'insert_text' occurences by 'write'
-
-#TODO: Prepare code for IPython integration:
-#    - implement the self.input_buffer property (see qt_console_widget.py)
-#    - remove all references to prompt (there is no need to keep prompt
-#      string in self.prompt) and use prompt position instead (like it's
-#      done in qt_console_widget.py: self.current_prompt_pos -- do not
-#      implement self.current_prompt_line which is dead code from the
-#      porting from wx's console_widget.py)
-#    - implement the 'new_prompt' method like in qt_console_widget.py
-#    - implement the 'pop_completion' method like in qt_console_widget.py
-#      (easy... just rename a few methods here and there)
-#    - implement the 'new_prompt' method like in qt_console_widget.py
-#    - implement '_configure_scintilla', '_apply_style', ...
-#    - implement 'write' method -> this change will eventually require
-#      to merge with shellbase.py where there's already a 'write' method
 
 class IOHandler(object):
     """Handle stream output"""
@@ -154,20 +138,8 @@ class QsciTerminal(QsciBase):
                            translate("ShellBaseWidget", "Paste"),
                            shortcut=keybinding('Paste'),
                            icon=get_icon('editpaste.png'), triggered=self.paste)
-        clear_line_action = create_action(self,
-                           self.tr("Clear line"),
-                           QKeySequence("Escape"),
-                           icon=get_icon('eraser.png'),
-                           tip=translate("ShellBaseWidget", "Clear line"),
-                           triggered=self.clear_line)
-        clear_action = create_action(self,
-                           translate("ShellBaseWidget", "Clear shell"),
-                           icon=get_icon('clear.png'),
-                           tip=translate("ShellBaseWidget",
-                                   "Clear shell contents ('cls' command)"),
-                           triggered=self.clear_terminal)
-        add_actions(self.menu, (self.cut_action, self.copy_action, paste_action,
-                                clear_line_action, None, clear_action, None) )
+        add_actions(self.menu, (self.cut_action, self.copy_action,
+                                paste_action) )
           
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
@@ -331,17 +303,3 @@ class QsciTerminal(QsciBase):
             event.accept()
         else:
             event.ignore()
-
-
-    #------ Clear line, terminal
-    def clear_line(self):
-        """Clear current line"""
-        cline, _cindex = self.getCursorPosition()
-        self.setSelection(cline, len(self.prompt),
-                          cline, self.lineLength(cline))
-        self.removeSelectedText()
-            
-    def clear_terminal(self):
-        """Clear terminal window and write prompt"""
-        self.clear()
-        self.write(self.prompt, flush=True)

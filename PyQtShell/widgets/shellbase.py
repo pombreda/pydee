@@ -42,7 +42,8 @@ import os.path as osp
 
 STDOUT = sys.stdout
 
-from PyQt4.QtGui import QCursor, QMessageBox, QToolTip, QClipboard, QApplication
+from PyQt4.QtGui import (QCursor, QMessageBox, QToolTip, QClipboard,
+                         QKeySequence, QApplication)
 from PyQt4.QtCore import SIGNAL, QString, Qt, QStringList
 
 # Local import
@@ -51,7 +52,7 @@ from PyQtShell.qthelpers import (translate, create_action, get_std_icon,
 from PyQtShell.interpreter import Interpreter
 from PyQtShell.dochelpers import getargtxt, getobj
 from PyQtShell.encoding import transcode
-from PyQtShell.config import CONF, get_font
+from PyQtShell.config import CONF, get_font, get_icon
 try:
     from PyQt4.Qsci import QsciScintilla
     from PyQtShell.widgets.terminal import QsciTerminal
@@ -88,6 +89,20 @@ def create_banner(moreinfo, message=''):
     return 'Python %s on %s\n' % (sys.version, sys.platform) + \
             moreinfo+'\n' + message + '\n'
 
+
+#TODO: Outside QsciTerminal: replace most of 'insert_text' occurences by 'write'
+
+#TODO: Prepare code for IPython integration:
+#    - implement the self.input_buffer property (see qt_console_widget.py)
+#    - remove all references to prompt (there is no need to keep prompt
+#      string in self.prompt) and use prompt position instead (like it's
+#      done in qt_console_widget.py: self.current_prompt_pos -- do not
+#      implement self.current_prompt_line which is dead code from the
+#      porting from wx's console_widget.py)
+#    - implement the 'new_prompt' method like in qt_console_widget.py
+#    - implement the 'pop_completion' method like in qt_console_widget.py
+#      (easy... just rename a few methods here and there)
+#    - implement '_configure_scintilla', '_apply_style', ...
 
 
 class ShellBaseWidget(QsciTerminal):
@@ -285,12 +300,25 @@ class ShellBaseWidget(QsciTerminal):
     def setup_context_menu(self):
         """Reimplement QsciTerminal method"""
         QsciTerminal.setup_context_menu(self)
+        clear_line_action = create_action(self,
+                           self.tr("Clear line"),
+                           QKeySequence("Escape"),
+                           icon=get_icon('eraser.png'),
+                           tip=translate("ShellBaseWidget", "Clear line"),
+                           triggered=self.clear_line)
+        clear_action = create_action(self,
+                           translate("ShellBaseWidget", "Clear shell"),
+                           icon=get_icon('clear.png'),
+                           tip=translate("ShellBaseWidget",
+                                   "Clear shell contents ('cls' command)"),
+                           triggered=self.clear_terminal)
         self.help_action = create_action(self,
                            translate("ShellBaseWidget", "Help..."),
                            shortcut="F1",
                            icon=get_std_icon('DialogHelpButton'),
                            triggered=self.help)
-        add_actions(self.menu, (self.help_action,))
+        add_actions(self.menu, (clear_line_action, None, clear_action, None,
+                                self.help_action))
 
     def help(self):
         """Help on PyQtShell console"""
@@ -348,6 +376,20 @@ class ShellBaseWidget(QsciTerminal):
         if self.interrupted:
             self.interrupted = False
             raise KeyboardInterrupt
+
+
+    #------ Clear line, terminal
+    def clear_line(self):
+        """Clear current line"""
+        cline, _cindex = self.getCursorPosition()
+        self.setSelection(cline, len(self.prompt),
+                          cline, self.lineLength(cline))
+        self.removeSelectedText()
+            
+    def clear_terminal(self):
+        """Clear terminal window and write prompt"""
+        self.clear()
+        self.write(self.prompt, flush=True)
 
 
     #------ Copy/paste
