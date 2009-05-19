@@ -26,6 +26,8 @@
 # pylint: disable-msg=R0201
 
 import sys
+from PyQt4.QtGui import QFont, QToolTip
+from PyQt4.QtCore import QPoint
 from PyQt4.Qsci import QsciScintilla
 
 # For debugging purpose:
@@ -120,3 +122,25 @@ class QsciBase(QsciScintilla):
         y_pt = self.SendScintilla(QsciScintilla.SCI_POINTYFROMPOSITION, 0, pos)
         return x_pt, y_pt
 
+    def show_calltip(self, title, text, tipsize=600,
+                     font=None, color='#2D62FF'):
+        """Show calltip
+        This is here because QScintilla does not implement calltips"""
+        if text is None or len(text)==0:
+            return
+        if font is None:
+            font = QFont()
+        weight = 'bold' if font.bold() else 'normal'
+        format1 = '<span style=\'font-size: %spt; color: %s\'>' % (font.pointSize(), color)
+        format2 = '\n<hr><span style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (font.family(), font.pointSize(), weight)
+        if isinstance(text, list):
+            text = "\n    ".join(text)
+        else:
+            text = text.replace('\n', '<br>')
+        if len(text) > tipsize:
+            text = text[:tipsize] + " ..."
+        tiptext = format1 + ('<b>%s</b></span>' % title) \
+                  + format2 + text + "</span>"
+        # Showing tooltip at cursor position:
+        cx, cy = self.get_cursor_coordinates()
+        QToolTip.showText(self.mapToGlobal(QPoint(cx, cy)), tiptext)
