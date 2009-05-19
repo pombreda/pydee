@@ -48,10 +48,9 @@ except ImportError, e:
     raise ImportError, str(e) + \
         "\nPyQtShell v0.3.23+ is exclusively based on QScintilla2\n" + \
         "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
-
-# Package local imports
 from PyQtShell.widgets.comboboxes import EditableComboBox
 from PyQtShell.widgets.findreplace import FindReplace
+from PyQtShell.widgets.safeshell import create_process
 from PyQtShell.plugins import PluginWidget
 
 
@@ -157,6 +156,7 @@ class Editor(PluginWidget):
         self.filenames = []
         self.encodings = []
         self.editors = []
+        self.processlist = []
         
         filenames = CONF.get(self.ID, 'filenames', [])
         if filenames:
@@ -248,7 +248,7 @@ class Editor(PluginWidget):
             "Ctrl+Maj+W", 'filecloseall.png',
             self.tr("Close all opened scripts"),
             triggered = self.close_all)
-        self.check_action = create_action(self, self.tr("&Check syntax"), "F5",
+        self.check_action = create_action(self, self.tr("&Check syntax"), "F8",
             'check.png', self.tr("Check current script for syntax errors"),
             triggered=self.check_script)
         self.exec_action = create_action(self, self.tr("&Execute"), "F9",
@@ -265,6 +265,10 @@ class Editor(PluginWidget):
             self.tr("Execute selected text in current script"
                     " and set focus to shell"),
             triggered=self.exec_selected_text)
+        self.exec_process_action = create_action(self,
+            self.tr("Execute in another process"), "F5", 'execute_process.png',
+            self.tr("Execute current script in another process (currently limited to GUI-based programs)"),
+            triggered=self.exec_script_in_another_process)
         self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+K",
             'comment.png', self.tr("Comment current line or selection"),
             triggered = self.comment)
@@ -291,7 +295,8 @@ class Editor(PluginWidget):
         menu_actions = (self.comment_action, self.uncomment_action,
                 self.indent_action, self.unindent_action, None,
                 self.check_action, self.exec_action, self.exec_interact_action,
-                self.exec_selected_action, None, font_action, wrap_action)
+                self.exec_selected_action, self.exec_process_action, None,
+                font_action, wrap_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
                 None, self.main.find_action, self.main.replace_action, None,
                 self.check_action, self.exec_action, self.exec_selected_action]
@@ -301,8 +306,8 @@ class Editor(PluginWidget):
                  self.unindent_action]
         self.file_dependent_actions = (self.save_action, self.save_as_action,
                 self.check_action, self.exec_action, self.exec_interact_action,
-                self.exec_selected_action, workdir_action, self.close_action,
-                self.close_all_action,
+                self.exec_selected_action, self.exec_process_action,
+                workdir_action, self.close_action, self.close_all_action,
                 self.comment_action, self.uncomment_action,
                 self.indent_action, self.unindent_action)
         self.tab_actions = (self.save_action, self.save_as_action,
@@ -401,6 +406,18 @@ class Editor(PluginWidget):
             else:
                 QMessageBox.information(self, title,
                                         self.tr("There is no error in your program.")) 
+    
+    def exec_script_in_another_process(self):
+        """Execute current script in another process"""
+        if self.save():
+            index = self.tabwidget.currentIndex()
+            fname = self.filenames[index]
+            directory = os.path.dirname(os.path.abspath(fname))
+            process = create_process(fname, directory)
+            self.processlist.append( (fname, process) )
+            if not process.waitForStarted():
+                QMessageBox.critical(self, self.tr("Error"), self.tr("Python "
+                                     "interpreter failed to start"))
     
     def exec_script(self, set_focus=False):
         """Execute current script"""
