@@ -48,6 +48,7 @@ except ImportError, e:
     raise ImportError, str(e) + \
         "\nPyQtShell v0.3.23+ is exclusively based on QScintilla2\n" + \
         "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
+from PyQtShell.widgets import Tabs
 from PyQtShell.widgets.comboboxes import EditableComboBox
 from PyQtShell.widgets.findreplace import FindReplace
 from PyQtShell.widgets.safeshell import create_process
@@ -100,22 +101,6 @@ class CodeEditor(QsciEditor):
                 msg = "*** " + str(err)
             return self.tr("There's an error in your program:") + "\n" + msg
 
-class Tabs(QTabWidget):
-    """TabWidget with a context-menu"""
-    def __init__(self, parent, actions):
-        QTabWidget.__init__(self, parent)
-        self.menu = QMenu(self)
-        add_actions(self.menu, actions)
-        
-    def contextMenuEvent(self, event):
-        """Override Qt method"""
-        if self.menu:
-            self.menu.popup(event.globalPos())
-            
-    def mousePressEvent(self, event):
-        """Override Qt method"""
-        if event.button() == Qt.MidButton:
-            self.emit(SIGNAL("close_file"))
 
 #TODO: Add a 'run' argument list which is associated to each opened script (attribute)
 #TODO: Google-Code feature request: add a class/function browser
@@ -137,7 +122,7 @@ class Editor(PluginWidget):
         
         # Tab widget with close button
         self.tabwidget = Tabs(self, self.tab_actions)
-        self.connect(self.tabwidget, SIGNAL("close_file"), self.close)
+        self.connect(self.tabwidget, SIGNAL("close_tab"), self.close)
         self.close_button = create_toolbutton(self.tabwidget,
                                           icon=get_icon("fileclose.png"),
                                           callback=self.close,
