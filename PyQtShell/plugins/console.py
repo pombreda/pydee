@@ -29,7 +29,8 @@ from PyQt4.QtGui import (QApplication, QCursor, QVBoxLayout, QFileDialog,
                          QFontDialog, QInputDialog, QLineEdit)
 from PyQt4.QtCore import Qt, SIGNAL
 
-import os, re, sys
+import os, sys
+import os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -43,6 +44,7 @@ try:
 except ImportError:
     WinUserEnvDialog = None
 from PyQtShell.widgets.shellbase import ShellBaseWidget
+from PyQtShell.widgets.shellhelpers import get_error_match
 from PyQtShell.widgets.findreplace import FindReplace
 from PyQtShell.plugins import PluginWidget
 
@@ -192,13 +194,9 @@ class Console(PluginWidget):
         else:
             self.shell.write(command)
             
-    def get_error_match(self, text):
-        """Return error match"""
-        return re.match(r'  File "(.*)", line (\d*)', text)
-            
     def go_to_error(self, text):
         """Go to error if relevant"""
-        match = self.get_error_match(text)
+        match = get_error_match(text)
         if match:
             fname, lnb = match.groups()
             self.edit_script(fname, int(lnb))
