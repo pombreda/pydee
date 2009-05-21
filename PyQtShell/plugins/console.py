@@ -91,7 +91,7 @@ class Console(PluginWidget):
             
     def get_widget_title(self):
         """Return widget title"""
-        return self.tr('Console')
+        return self.tr('Interactive console')
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -211,7 +211,8 @@ class Console(PluginWidget):
             self.shell.external_editor(filename, goto)
             return
         if filename is not None:
-            self.main.editor.load(os.path.abspath(filename), goto)
+            self.emit(SIGNAL("edit_goto(QString,int)"),
+                      osp.abspath(filename), goto)
         
     def change_font(self):
         """Change console font"""

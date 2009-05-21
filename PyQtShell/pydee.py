@@ -203,6 +203,8 @@ class MainWindow(QMainWindow):
             # Editor widget
             self.set_splash(self.tr("Loading editor widget..."))
             self.editor = Editor( self )
+            self.connect(self.console, SIGNAL("edit_goto(QString,int)"),
+                         self.editor.load)            
             self.connect(self.editor, SIGNAL("open_dir(QString)"),
                          self.workdir.chdir)
             self.add_dockwidget(self.editor)
