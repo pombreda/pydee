@@ -51,7 +51,6 @@ except ImportError, e:
 from PyQtShell.widgets import Tabs
 from PyQtShell.widgets.comboboxes import EditableComboBox
 from PyQtShell.widgets.findreplace import FindReplace
-from PyQtShell.widgets.safeshell import create_process
 from PyQtShell.plugins import PluginWidget
 
 
@@ -236,24 +235,38 @@ class Editor(PluginWidget):
         self.check_action = create_action(self, self.tr("&Check syntax"), "F8",
             'check.png', self.tr("Check current script for syntax errors"),
             triggered=self.check_script)
-        self.exec_action = create_action(self, self.tr("&Execute"), "F9",
-            'execute.png', self.tr("Execute current script"),
+        self.exec_action = create_action(self, self.tr("&Run"), "F9",
+            'execute.png',
+            self.tr("Run current script in interactive console"),
             triggered=self.exec_script)
         self.exec_interact_action = create_action(self,
-            self.tr("Execute and &interact"), "Shift+F9",
+            self.tr("Run and &interact"), "Shift+F9",
             'execute_interact.png',
-            self.tr("Execute current script and set focus to shell"),
+            self.tr("Run current script in interactive console "
+                    "and set focus to shell"),
             triggered=self.exec_script_and_interact)
         #TODO: implement Paste special to paste & removing leading >>>
         self.exec_selected_action = create_action(self,
-            self.tr("Execute selection"), "Ctrl+F9", 'execute_selection.png',
-            self.tr("Execute selected text in current script"
+            self.tr("Run selection"), "Ctrl+F9", 'execute_selection.png',
+            self.tr("Run selected text in interactive console"
                     " and set focus to shell"),
             triggered=self.exec_selected_text)
         self.exec_process_action = create_action(self,
-            self.tr("Execute in another process"), "F5", 'execute_process.png',
-            self.tr("Execute current script in another process (currently limited to GUI-based programs)"),
-            triggered=self.exec_script_in_another_process)
+            self.tr("Run in a separate process"), "F5", 'execute_safe.png',
+            self.tr("Run current script in a separate process"),
+            triggered=lambda: self.exec_script_in_another_process(False, False))
+        self.exec_process_interact_action = create_action(self,
+            self.tr("Run/interact in a separate process"),
+            "Shift+F5",
+            tip=self.tr("Run current script in a separate process and interact "
+                        "with Python interpreter when program has finished"),
+            triggered=lambda: self.exec_script_in_another_process(False, True))
+        self.exec_process_args_action = create_action(self,
+            self.tr("Run with arguments"),
+            "Ctrl+F5",
+            tip=self.tr("Run current script in a separate process specifying "
+                        "command line arguments"),
+            triggered=lambda: self.exec_script_in_another_process(True, False))
         self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+K",
             'comment.png', self.tr("Comment current line or selection"),
             triggered = self.comment)
@@ -280,11 +293,13 @@ class Editor(PluginWidget):
         menu_actions = (self.comment_action, self.uncomment_action,
                 self.indent_action, self.unindent_action, None,
                 self.check_action, self.exec_action, self.exec_interact_action,
-                self.exec_selected_action, self.exec_process_action, None,
-                font_action, wrap_action)
+                self.exec_selected_action, self.exec_process_action,
+                self.exec_process_args_action,self.exec_process_interact_action,
+                None, font_action, wrap_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
                 None, self.main.find_action, self.main.replace_action, None,
-                self.check_action, self.exec_action, self.exec_selected_action]
+                self.check_action, self.exec_action, self.exec_selected_action,
+                self.exec_process_action]
         self.dock_toolbar_actions = toolbar_actions + \
                 [self.exec_interact_action, self.comment_action,
                  self.uncomment_action, self.indent_action,
@@ -392,31 +407,28 @@ class Editor(PluginWidget):
                 QMessageBox.information(self, title,
                                         self.tr("There is no error in your program.")) 
     
-    def exec_script_in_another_process(self):
-        """Execute current script in another process"""
+    def exec_script_in_another_process(self, ask_for_arguments=False,
+                                       interact=False):
+        """Run current script in another process"""
         if self.save():
             index = self.tabwidget.currentIndex()
-            fname = self.filenames[index]
-            directory = os.path.dirname(os.path.abspath(fname))
-            process = create_process(fname, directory)
-            self.processlist.append( (fname, process) )
-            if not process.waitForStarted():
-                QMessageBox.critical(self, self.tr("Error"), self.tr("Python "
-                                     "interpreter failed to start"))
+            fname = os.path.abspath(self.filenames[index])
+            self.emit(SIGNAL('open_safe_console(QString,bool,bool)'),
+                      fname, ask_for_arguments, interact)
     
     def exec_script(self, set_focus=False):
-        """Execute current script"""
+        """Run current script"""
         if self.save():
             index = self.tabwidget.currentIndex()
             self.main.console.run_script(self.filenames[index],
                                          silent=True, set_focus=set_focus)
     
     def exec_script_and_interact(self):
-        """Execute current script and set focus to shell"""
+        """Run current script and set focus to shell"""
         self.exec_script(set_focus=True)
         
     def exec_selected_text(self):
-        """Execute selected text in current script and set focus to shell"""
+        """Run selected text in current script and set focus to shell"""
         index = self.tabwidget.currentIndex()
         lines = unicode( self.editors[index].selectedText() )
         # If there is a common indent to all lines, remove it
@@ -453,20 +465,21 @@ class Editor(PluginWidget):
                     return False
         return True
     
-    def close(self):
+    def close(self, index=None):
         """Close current Python script file"""
-        if self.tabwidget.count():
+        if index is None and self.tabwidget.count():
             index = self.tabwidget.currentIndex()
-            is_ok = self.save_if_changed(cancelable=True)
-            if is_ok:
-                self.tabwidget.removeTab(index)
-                self.filenames.pop(index)
-                self.encodings.pop(index)
-                self.editors.pop(index)
-                self.refresh()
-            return is_ok
         else:
             self.find_widget.set_editor(None)
+            return        
+        is_ok = self.save_if_changed(cancelable=True)
+        if is_ok:
+            self.tabwidget.removeTab(index)
+            self.filenames.pop(index)
+            self.encodings.pop(index)
+            self.editors.pop(index)
+            self.refresh()
+        return is_ok
             
     def close_all(self):
         """Close all opened scripts"""

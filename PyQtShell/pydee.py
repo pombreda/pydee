@@ -42,11 +42,12 @@ from PyQtShell.plugins.workdir import WorkingDirectory
 from PyQtShell.plugins.editor import Editor, HistoryLog, DocViewer
 from PyQtShell.plugins.workspace import Workspace
 from PyQtShell.plugins.explorer import Explorer
+from PyQtShell.plugins.safeconsole import SafeConsole
 from PyQtShell.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate, get_filetype_icon)
 from PyQtShell.config import get_icon, get_image_path, CONF
 
-WIDGET_LIST = ['console', 'editor', 'docviewer', 'historylog']
+WIDGET_LIST = ['console', 'editor', 'docviewer', 'historylog', 'safeconsole']
 
 class MainWindow(QMainWindow):
     """Console QDialog"""
@@ -71,6 +72,7 @@ class MainWindow(QMainWindow):
         self.explorer = None
         self.docviewer = None
         self.historylog = None
+        self.safeconsole = None
         
         # Set Window title and icon
         title = "Pydee"
@@ -207,6 +209,9 @@ class MainWindow(QMainWindow):
                          self.editor.load)            
             self.connect(self.editor, SIGNAL("open_dir(QString)"),
                          self.workdir.chdir)
+            self.connect(self.editor,
+                         SIGNAL("open_safe_console(QString,bool,bool)"),
+                         self.open_safe_console)
             self.add_dockwidget(self.editor)
             self.add_to_menubar(self.editor, self.tr("&Source"))
             self.add_to_toolbar(self.editor)
@@ -467,6 +472,12 @@ class MainWindow(QMainWindow):
             # Matplotlib figures are not added to view menu
             # because closing a figure will not hide it but delete it
             self.view_menu.addAction(dockwidget.toggleViewAction())
+
+        if isinstance(child, SafeConsole):
+            dockwidget.setVisible(True)
+            for widget in self.widgetlist:
+                if isinstance(widget, Console):
+                    self.tabifyDockWidget(widget.dockwidget, dockwidget)
                 
         self.widgetlist.append(child)
     
@@ -533,6 +544,8 @@ class MainWindow(QMainWindow):
             return False
         for widget_name in widget_list:
             widget = getattr(self, widget_name)
+            if widget is None:
+                continue
             callback = getattr( widget, "hasFocus" )
             has_focus = callback() or children_has_focus(widget)
             if has_focus:
@@ -556,6 +569,10 @@ class MainWindow(QMainWindow):
         """Return editor for given widget"""
         if widget == self.console:
             return self.console.shell
+        elif widget == self.safeconsole:
+            if self.safeconsole is not None and \
+               self.safeconsole.tabwidget.count():
+                return self.safeconsole.tabwidget.currentWidget().terminal
         elif widget in [self.docviewer, self.historylog]:
             return widget.editor
         elif widget == self.editor:
@@ -577,8 +594,10 @@ class MainWindow(QMainWindow):
         """Toggle always copy selection feature"""
         for widget_name in WIDGET_LIST:
             if hasattr(self, widget_name):
-                editor = self.get_editor( getattr(self, widget_name))
-                editor.always_copy_selection = state
+                widget = getattr(self, widget_name)
+                if widget is not None:
+                    editor = self.get_editor(widget)
+                    editor.always_copy_selection = state
                 
     def restart_interpreter(self):
         """Restart Python interpreter"""
@@ -598,6 +617,16 @@ class MainWindow(QMainWindow):
         self.workspace.set_interpreter(interpreter)
         self.historylog.set_interpreter(interpreter)
         self.docviewer.set_interpreter(interpreter)
+        
+    def open_safe_console(self, fname, ask_for_arguments, interact):
+        """Open safe console"""
+        if self.safeconsole is None:
+            self.safeconsole = SafeConsole(self)
+            self.connect(self.safeconsole, SIGNAL("edit_goto(QString,int)"),
+                         self.editor.load)
+            self.add_dockwidget(self.safeconsole)
+        self.safeconsole.setVisible(True)
+        self.safeconsole.start(unicode(fname), ask_for_arguments, interact)
 
         
 def get_options():
