@@ -62,6 +62,10 @@ class QsciTerminal(QsciBase):
         parent : specifies the parent widget
         """
         QsciBase.__init__(self, parent)
+        
+        # Context menu
+        self.menu = None
+        self.setup_context_menu()
 
         # Debug mode
         self.debug = debug
@@ -189,7 +193,8 @@ class QsciTerminal(QsciBase):
         """Simulate stderr"""
 #        self.flush()
         self.write(text, flush=True, error=True)
-        STDERR.write(text)
+        if self.debug:
+            STDERR.write(text)
 
     def write(self, text, flush=False, error=False):
         """Simulate stdout and stderr"""
