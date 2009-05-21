@@ -49,6 +49,7 @@ from PyQt4.QtCore import SIGNAL, QString, Qt, QStringList
 # Local import
 from PyQtShell.qthelpers import (translate, create_action, get_std_icon,
                                  add_actions)
+from PyQtShell.widgets.shellhelpers import get_error_match
 from PyQtShell.interpreter import Interpreter
 from PyQtShell.dochelpers import getargtxt, getobj
 from PyQtShell.encoding import transcode
@@ -112,10 +113,6 @@ class ShellBaseWidget(QsciTerminal):
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None, profile=False):
         QsciTerminal.__init__(self, parent, debug, profile)
-        
-        # Context menu
-        self.menu = None
-        self.setup_context_menu()
         
         # KeyboardInterrupt support
         self.interrupted = False
@@ -452,7 +449,7 @@ class ShellBaseWidget(QsciTerminal):
         """Show Pointing Hand Cursor on error messages"""
         if event.modifiers() & Qt.ControlModifier:
             text = unicode(self.text(self.lineAt(event.pos())))
-            if self.parent().get_error_match(text):
+            if get_error_match(text):
                 QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
                 return
         QApplication.restoreOverrideCursor()

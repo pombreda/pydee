@@ -4,6 +4,7 @@ SOURCES	     += plugins/console.py
 SOURCES	     += plugins/editor.py
 SOURCES	     += plugins/explorer.py
 SOURCES	     += plugins/figure.py
+SOURCES	     += plugins/safeconsole.py
 SOURCES	     += plugins/workdir.py
 SOURCES	     += plugins/workspace.py
 
@@ -14,6 +15,7 @@ SOURCES	     += widgets/editorbase.py
 SOURCES	     += widgets/explorer.py
 SOURCES	     += widgets/findreplace.py
 SOURCES      += widgets/importwizard.py
+SOURCES	     += widgets/safeshell.py
 SOURCES	     += widgets/shellbase.py
 SOURCES	     += widgets/terminal.py
 SOURCES	     += widgets/texteditor.py
