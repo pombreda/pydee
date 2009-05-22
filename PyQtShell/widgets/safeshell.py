@@ -43,13 +43,12 @@ from PyQt4.Qsci import QsciScintilla
 from PyQtShell.widgets.terminal import QsciTerminal
 from PyQtShell.widgets.shellhelpers import get_error_match
 from PyQtShell.qthelpers import create_toolbutton
-from PyQtShell.config import get_font, get_icon
+from PyQtShell.config import get_icon
 
 
 class SafeShellBaseWidget(QsciTerminal):
     def __init__(self, parent=None, debug=False, profile=False, history=None):
         QsciTerminal.__init__(self, parent, debug, profile)
-        self.set_font(get_font('shell'))
         self.new_input_line = True
         self.prompt_index = 0
         # history
@@ -194,7 +193,8 @@ class SafeShellBaseWidget(QsciTerminal):
 
 
 class SafeShell(QWidget):
-    def __init__(self, parent, fname, ask_arguments=False, interact=True):
+    def __init__(self, parent, fname,
+                 ask_arguments=False, interact=False, debug=False):
         QWidget.__init__(self, parent)
         self.fname = fname
         self.directory = osp.dirname(fname)
@@ -223,6 +223,8 @@ class SafeShell(QWidget):
         
         self.interact_check = QCheckBox(self.tr("Interact"), self)
         self.interact_check.setChecked(interact)
+        self.debug_check = QCheckBox(self.tr("Debug"), self)
+        self.debug_check.setChecked(debug)
         
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.state_label)
@@ -230,6 +232,7 @@ class SafeShell(QWidget):
         hlayout.addWidget(self.time_label)
         hlayout.addStretch(0)
         hlayout.addWidget(self.interact_check)
+        hlayout.addWidget(self.debug_check)
         hlayout.addWidget(self.run_button)
         hlayout.addWidget(self.terminate_button)
         hlayout.addWidget(self.kill_button)
@@ -275,6 +278,7 @@ class SafeShell(QWidget):
     def set_running_state(self, state=True):
         self.run_button.setEnabled(not state)
         self.interact_check.setEnabled(not state)
+        self.debug_check.setEnabled(not state)
         self.terminate_button.setEnabled(state)
         self.kill_button.setEnabled(state)
         self.shell.setReadOnly(not state)
@@ -301,11 +305,15 @@ class SafeShell(QWidget):
     
     def create_process(self, args=None):
         self.shell.clear()
-        if args is None:
-            args = []
-        args = ['-u', self.fname] + args
+        p_args = ['-u']
         if self.interact_check.isChecked():
-            args.insert(1, '-i')
+            p_args.append('-i')
+        if self.debug_check.isChecked():
+            p_args.extend(['-m', 'pdb'])
+        if self.fname:
+            p_args.append(self.fname)
+        if args:
+            p_args.extend(args)
         self.process = QProcess(self)
         self.process.setWorkingDirectory(self.directory)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
@@ -318,12 +326,14 @@ class SafeShell(QWidget):
         self.connect(self.terminate_button, SIGNAL("clicked()"),
                      self.process.terminate)
         self.connect(self.kill_button, SIGNAL("clicked()"), self.process.kill)
-        self.process.start(sys.executable, args)
-        if not self.process.waitForStarted():
+        self.process.start(sys.executable, p_args)
+        running = self.process.waitForStarted()
+        self.set_running_state(running)
+        if not running:
             QMessageBox.critical(self, self.tr("Error"), self.tr("Python "
                                  "interpreter failed to start"))
-        self.set_running_state(True)
-        self.shell.setFocus()
+        else:
+            self.shell.setFocus()
         return self.process
     
     def finished(self, exit_code, exit_status):
@@ -348,9 +358,6 @@ class SafeShell(QWidget):
         while self.process.bytesAvailable():
             bytes += self.process.readAllStandardError()
         text = unicode(QString.fromUtf8(bytes.data()))
-        
-        # Ugly, but still haven't found out how to get this right:
-        text = text.replace('>>> >>>', '>>>')
         
         lines = text.splitlines()
         if len(lines) == 1:

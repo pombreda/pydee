@@ -210,7 +210,7 @@ class MainWindow(QMainWindow):
             self.connect(self.editor, SIGNAL("open_dir(QString)"),
                          self.workdir.chdir)
             self.connect(self.editor,
-                         SIGNAL("open_safe_console(QString,bool,bool)"),
+                         SIGNAL("open_safe_console(QString,bool,bool,bool)"),
                          self.open_safe_console)
             self.add_dockwidget(self.editor)
             self.add_to_menubar(self.editor, self.tr("&Source"))
@@ -618,7 +618,7 @@ class MainWindow(QMainWindow):
         self.historylog.set_interpreter(interpreter)
         self.docviewer.set_interpreter(interpreter)
         
-    def open_safe_console(self, fname, ask_for_arguments, interact):
+    def open_safe_console(self, fname, ask_for_arguments, interact, debug):
         """Open safe console"""
         if self.safeconsole is None:
             self.safeconsole = SafeConsole(self)
@@ -626,7 +626,8 @@ class MainWindow(QMainWindow):
                          self.editor.load)
             self.add_dockwidget(self.safeconsole)
         self.safeconsole.setVisible(True)
-        self.safeconsole.start(unicode(fname), ask_for_arguments, interact)
+        self.safeconsole.start(unicode(fname),
+                               ask_for_arguments, interact, debug)
 
         
 def get_options():
