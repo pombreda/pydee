@@ -235,38 +235,43 @@ class Editor(PluginWidget):
         self.check_action = create_action(self, self.tr("&Check syntax"), "F8",
             'check.png', self.tr("Check current script for syntax errors"),
             triggered=self.check_script)
-        self.exec_action = create_action(self, self.tr("&Run"), "F9",
-            'execute.png',
+        self.exec_action = create_action(self,
+            self.tr("&Run in interactive console"), "F9", 'execute.png',
             self.tr("Run current script in interactive console"),
             triggered=self.exec_script)
         self.exec_interact_action = create_action(self,
-            self.tr("Run and &interact"), "Shift+F9",
-            'execute_interact.png',
+            self.tr("Run and &interact"), "Shift+F9", 'execute_interact.png',
             self.tr("Run current script in interactive console "
                     "and set focus to shell"),
             triggered=self.exec_script_and_interact)
         #TODO: implement Paste special to paste & removing leading >>>
         self.exec_selected_action = create_action(self,
-            self.tr("Run selection"), "Ctrl+F9", 'execute_selection.png',
+            self.tr("Run &selection"), "Ctrl+F9", 'execute_selection.png',
             self.tr("Run selected text in interactive console"
                     " and set focus to shell"),
             triggered=self.exec_selected_text)
         self.exec_process_action = create_action(self,
-            self.tr("Run in a separate process"), "F5", 'execute_safe.png',
-            self.tr("Run current script in a separate process"),
-            triggered=lambda: self.exec_script_in_another_process(False, False))
+            self.tr("Run in e&xternal console"), "F5", 'execute_safe.png',
+            self.tr("Run current script in external console"
+                    "\n(external console is executed in a separate process)"),
+            triggered=lambda: self.exec_script_safeconsole())
         self.exec_process_interact_action = create_action(self,
-            self.tr("Run/interact in a separate process"),
-            "Shift+F5",
-            tip=self.tr("Run current script in a separate process and interact "
-                        "with Python interpreter when program has finished"),
-            triggered=lambda: self.exec_script_in_another_process(False, True))
+            self.tr("Run and interact"), "Shift+F5",
+            tip=self.tr("Run current script in external console and interact "
+                        "\nwith Python interpreter when program has finished"
+                        "\n(external console is executed in a separate process)"),
+            triggered=lambda: self.exec_script_safeconsole(interact=True))
         self.exec_process_args_action = create_action(self,
-            self.tr("Run with arguments"),
-            "Ctrl+F5",
-            tip=self.tr("Run current script in a separate process specifying "
-                        "command line arguments"),
-            triggered=lambda: self.exec_script_in_another_process(True, False))
+            self.tr("Run with arguments"), "Ctrl+F5",
+            tip=self.tr("Run current script in external console specifying "
+                        "command line arguments"
+                        "\n(external console is executed in a separate process)"),
+            triggered=lambda: self.exec_script_safeconsole(ask_for_arguments=True))
+        self.exec_process_debug_action = create_action(self,
+            self.tr("Debug"), "Ctrl+Shift+F5",
+            tip=self.tr("Debug current script in external console"
+                        "\n(external console is executed in a separate process)"),
+            triggered=lambda: self.exec_script_safeconsole(ask_for_arguments=True, debug=True))
         self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+K",
             'comment.png', self.tr("Comment current line or selection"),
             triggered = self.comment)
@@ -291,11 +296,11 @@ class Editor(PluginWidget):
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
         menu_actions = (self.comment_action, self.uncomment_action,
-                self.indent_action, self.unindent_action, None,
-                self.check_action, self.exec_action, self.exec_interact_action,
-                self.exec_selected_action, self.exec_process_action,
-                self.exec_process_args_action,self.exec_process_interact_action,
-                None, font_action, wrap_action)
+                self.indent_action, self.unindent_action, self.check_action,
+                None, self.exec_action, self.exec_interact_action,
+                self.exec_selected_action, None, self.exec_process_action,
+                self.exec_process_interact_action,self.exec_process_args_action,
+                self.exec_process_debug_action, None, font_action, wrap_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
                 None, self.main.find_action, self.main.replace_action, None,
                 self.check_action, self.exec_action, self.exec_selected_action,
@@ -307,12 +312,14 @@ class Editor(PluginWidget):
         self.file_dependent_actions = (self.save_action, self.save_as_action,
                 self.check_action, self.exec_action, self.exec_interact_action,
                 self.exec_selected_action, self.exec_process_action,
+                self.exec_process_interact_action,self.exec_process_args_action,
+                self.exec_process_debug_action,
                 workdir_action, self.close_action, self.close_all_action,
                 self.comment_action, self.uncomment_action,
                 self.indent_action, self.unindent_action)
         self.tab_actions = (self.save_action, self.save_as_action,
-                self.check_action, self.exec_action, workdir_action,
-                None, self.close_action)
+                self.check_action, self.exec_action, self.exec_process_action,
+                workdir_action, None, self.close_action)
         return (menu_actions, toolbar_actions)        
         
     def closing(self, cancelable=False):
@@ -407,14 +414,14 @@ class Editor(PluginWidget):
                 QMessageBox.information(self, title,
                                         self.tr("There is no error in your program.")) 
     
-    def exec_script_in_another_process(self, ask_for_arguments=False,
-                                       interact=False):
+    def exec_script_safeconsole(self, ask_for_arguments=False,
+                                       interact=False, debug=False):
         """Run current script in another process"""
         if self.save():
             index = self.tabwidget.currentIndex()
             fname = os.path.abspath(self.filenames[index])
-            self.emit(SIGNAL('open_safe_console(QString,bool,bool)'),
-                      fname, ask_for_arguments, interact)
+            self.emit(SIGNAL('open_safe_console(QString,bool,bool,bool)'),
+                      fname, ask_for_arguments, interact, debug)
     
     def exec_script(self, set_focus=False):
         """Run current script"""

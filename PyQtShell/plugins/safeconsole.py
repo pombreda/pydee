@@ -48,7 +48,7 @@ class SafeConsole(PluginWidget):
     """
     Console widget
     """
-    ID = 'shell'
+    ID = 'external_shell'
     location = Qt.RightDockWidgetArea
     def __init__(self, parent):
         PluginWidget.__init__(self, parent)
@@ -79,9 +79,9 @@ class SafeConsole(PluginWidget):
         self.tabwidget.widget(index).close()
         self.tabwidget.removeTab(index)
         
-    def start(self, fname, ask_for_arguments, interact):
+    def start(self, fname, ask_for_arguments, interact, debug):
         """Start new console"""
-        shell = SafeShell(self, fname, ask_for_arguments, interact)
+        shell = SafeShell(self, fname, ask_for_arguments, interact, debug)
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
         self.connect(shell.shell, SIGNAL("go_to_error(QString)"),
@@ -102,7 +102,7 @@ class SafeConsole(PluginWidget):
         
     def get_widget_title(self):
         """Return widget title"""
-        return self.tr('Console')
+        return self.tr('External console')
         
     def set_actions(self):
         """Setup actions"""

@@ -114,6 +114,13 @@ DEFAULTS = [
               'external_editor' : 'SciTE',
               'external_editor/gotoline' : '-goto:',
               }),
+            ('external_shell',
+             {
+              'font/family' : MONOSPACE,
+              'font/size' : MEDIUM,
+              'font/bold' : False,
+              'wrap' : True,
+              }),
             ('calltips',
              {
               'font/family' : MONOSPACE,
