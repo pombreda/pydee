@@ -362,7 +362,7 @@ class SafeShell(QWidget):
         self.shell.reset_buffer()
         
     def send_to_process(self, qstr):
-        qstr.append('\n\n')
+        qstr.append('\n')
         self.process.write(qstr.toUtf8())
         self.process.waitForBytesWritten(-1)
 
