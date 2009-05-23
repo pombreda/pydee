@@ -48,7 +48,8 @@ from PyQtShell.config import get_icon
 
 class SafeShellBaseWidget(QsciTerminal):
     def __init__(self, parent=None, debug=False, profile=False, history=None):
-        QsciTerminal.__init__(self, parent, debug, profile)
+        QsciTerminal.__init__(self, parent, debug, profile,
+                              redirect_stds=False)
         self.new_input_line = True
         self.prompt_index = 0
         # history
