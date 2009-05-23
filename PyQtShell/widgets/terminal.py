@@ -57,7 +57,8 @@ class QsciTerminal(QsciBase):
     """
     Terminal based on QScintilla
     """
-    def __init__(self, parent=None, debug=False, profile=False):
+    def __init__(self, parent=None, debug=False, profile=False,
+                 redirect_stds=True):
         """
         parent : specifies the parent widget
         """
@@ -88,7 +89,8 @@ class QsciTerminal(QsciBase):
         self.stdout = self
         self.stderr = IOHandler(self.write_error)
         self.stdin = self
-        self.redirect_stds()
+        if redirect_stds:
+            self.redirect_stds()
         
         # Mouse selection copy feature
         self.always_copy_selection = False
