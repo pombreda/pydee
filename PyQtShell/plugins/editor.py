@@ -56,8 +56,8 @@ from PyQtShell.plugins import PluginWidget
 
 class CodeEditor(QsciEditor):
     """
-    Simple Script Editor Widget
-    QsciEditor -> *CodeEditor* -> Editor's tabwidget
+    Simple Script Editor Widget:
+    QsciEditor -> *CodeEditor* -> Editor
     """
     def __init__(self, parent, text, language=None):
         super(CodeEditor, self).__init__(parent, language=language)
@@ -70,8 +70,6 @@ class CodeEditor(QsciEditor):
         self.setup_api()
         self.set_text(text)
         self.setModified(False)
-        self.connect( self, SIGNAL('modificationChanged(bool)'),
-                      self.parent().change )
         
     def highlight_line(self, linenb):
         """Highlight line number linenb"""
@@ -101,7 +99,6 @@ class CodeEditor(QsciEditor):
             return self.tr("There's an error in your program:") + "\n" + msg
 
 
-#TODO: Add a 'run' argument list which is associated to each opened script (attribute)
 #TODO: Google-Code feature request: add a class/function browser
 class Editor(PluginWidget):
     """
@@ -552,7 +549,10 @@ class Editor(PluginWidget):
                 ext = osp.splitext(filename)[1]
                 if ext.startswith('.'):
                     ext = ext[1:] # file extension with leading dot
+                
                 editor = CodeEditor(self, txt, language=ext)
+                self.connect(editor, SIGNAL('modificationChanged(bool)'),
+                             self.change)
                 self.editors.append(editor)
                 
                 title = self.get_title(filename)
