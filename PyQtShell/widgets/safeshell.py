@@ -34,163 +34,14 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-                         QMessageBox, QLabel, QCursor, QInputDialog, QLineEdit,
+                         QMessageBox, QLabel, QInputDialog, QLineEdit,
                          QCheckBox)
-from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, Qt, QTimer
-from PyQt4.Qsci import QsciScintilla
+from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer
 
 # Local imports
 from PyQtShell.widgets.terminal import QsciTerminal
-from PyQtShell.widgets.shellhelpers import get_error_match
 from PyQtShell.qthelpers import create_toolbutton
-from PyQtShell.config import get_icon
-
-
-class SafeShellBaseWidget(QsciTerminal):
-    def __init__(self, parent=None, debug=False, profile=False, history=None):
-        QsciTerminal.__init__(self, parent, debug, profile,
-                              redirect_stds=False)
-        self.new_input_line = True
-        self.prompt_index = 0
-        # history
-        self.histidx = None
-        self.hist_wholeline = False
-        if history is None:
-            self.history = ['']
-        else:
-            self.history = history
-            
-    #------ History Management
-    def __get_current_line_to_cursor(self):
-        line, index = self.getCursorPosition()
-        self.setSelection(line, self.prompt_index, line, index)
-        return self.selectedText()
-    
-    def clear_line(self):
-        line, index = self.get_end_pos()
-        self.setSelection(line, self.prompt_index, line, index)
-        self.removeSelectedText()
-        
-    def __browse_history(self, backward):
-        """Browse history"""
-        line, index = self.getCursorPosition()
-        if index < self.lineLength(line) and self.hist_wholeline:
-            self.hist_wholeline = False
-        tocursor = self.__get_current_line_to_cursor()
-        text, self.histidx = self.__find_in_history(tocursor,
-                                                    self.histidx, backward)
-        if text is not None:
-            if self.hist_wholeline:
-                self.clear_line()
-                self.insert_text(text)
-            else:
-                # Removing text from cursor to the end of the line
-                self.setSelection(line, index, line, self.lineLength(line))
-                self.removeSelectedText()
-                # Inserting history text
-                self.insert_text(text)
-                self.setCursorPosition(line, index)
-
-    def __find_in_history(self, tocursor, start_idx, backward):
-        """Find text 'tocursor' in history, from index 'start_idx'"""
-        history = self.history
-        if start_idx is None:
-            start_idx = len(history)
-        # Finding text in history
-        step = -1 if backward else 1
-        idx = start_idx
-        if len(tocursor) == 0 or self.hist_wholeline:
-            idx += step
-            if idx >= len(history):
-                return "", len(history)
-            elif idx < 0:
-                idx = 0
-            self.hist_wholeline = True
-            return history[idx], idx
-        else:
-            for index in xrange(len(history)):
-                idx = (start_idx+step*(index+1)) % len(history)
-                entry = history[idx]
-                if entry.startswith(tocursor):
-                    return entry[len(tocursor):], idx
-            else:
-                return None, start_idx
-        
-    def get_buffer(self):
-        line, index = self.get_end_pos()
-        self.setSelection(line, self.prompt_index, line, index)
-#        print >>STDOUT, "prompt_index, index:", self.prompt_index, index
-        return self.selectedText()
-        
-    def reset_buffer(self):
-        self.new_input_line = True
-    
-    def keyPressEvent(self, event):
-        text = event.text()
-        key = event.key()
-        last_line = self.lines()-1
-        line, _ = self.getCursorPosition()
-
-        if len(text):
-            self.hist_wholeline = False
-            if self.new_input_line:
-                # Move cursor to end
-                self.move_cursor_to_end()
-                _, self.prompt_index = self.getCursorPosition()
-                self.new_input_line = False
-
-        if key == Qt.Key_Return or key == Qt.Key_Enter:
-            buffer = self.get_buffer()
-            self.insert('\n')
-#            print >>STDOUT, "buffer:", repr(buffer)
-            self.emit(SIGNAL("send_to_process(QString)"), buffer)
-            self.histidx = None
-            self.history.append(unicode(buffer).strip())
-            self.new_input_line = True
-            
-        elif key == Qt.Key_Escape:
-            self.clear_line()
-
-        elif key == Qt.Key_Up:
-            if line == last_line:
-                self.__browse_history(backward=True)
-            else:
-                self.SendScintilla(QsciScintilla.SCI_LINEUP)
-
-        elif key == Qt.Key_Down:
-            if line == last_line:
-                self.__browse_history(backward=False)
-            else:
-                self.SendScintilla(QsciScintilla.SCI_LINEDOWN)
-
-        else:
-            QsciScintilla.keyPressEvent(self, event)
-        
-    #------ Mouse events
-    def mousePressEvent(self, event):
-        """
-        Re-implemented to handle the mouse press event.
-        event: the mouse press event (QMouseEvent)
-        """
-        self.setFocus()
-        ctrl = event.modifiers() & Qt.ControlModifier
-        if event.button() == Qt.MidButton:
-            self.paste()
-        elif event.button() == Qt.LeftButton and ctrl:
-            text = unicode(self.text(self.lineAt(event.pos())))
-            self.emit(SIGNAL("go_to_error(QString)"), text)
-        else:
-            QsciScintilla.mousePressEvent(self, event)
-
-    def mouseMoveEvent(self, event):
-        """Show Pointing Hand Cursor on error messages"""
-        if event.modifiers() & Qt.ControlModifier:
-            text = unicode(self.text(self.lineAt(event.pos())))
-            if get_error_match(text):
-                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
-                return
-        QApplication.restoreOverrideCursor()
-        QsciScintilla.mouseMoveEvent(self, event)
+from PyQtShell.config import get_icon, get_conf_path
 
 
 class SafeShell(QWidget):
@@ -200,9 +51,11 @@ class SafeShell(QWidget):
         self.fname = fname
         self.directory = osp.dirname(fname)
         
-        self.shell = SafeShellBaseWidget(parent)
-        self.connect(self.shell, SIGNAL("send_to_process(QString)"),
+        self.shell = QsciTerminal(parent, get_conf_path('.history_extcons.py'))
+        self.connect(self.shell, SIGNAL("execute(QString)"),
                      self.send_to_process)
+        self.connect(self.shell, SIGNAL("keyboard_interrupt()"),
+                     self.keyboard_interrupt)
         
         self.state_label = QLabel()
         self.time_label = QLabel()
@@ -300,7 +153,8 @@ class SafeShell(QWidget):
                           self.arguments)
         if valid:
             self.arguments = unicode(arguments)
-            self.create_process(self.arguments.split(' '))
+            self.create_process(self.arguments.split(' ') if self.arguments \
+                                else None)
         else:
             self.set_running_state(False)
     
@@ -311,17 +165,17 @@ class SafeShell(QWidget):
             p_args.append('-i')
         if self.debug_check.isChecked():
             p_args.extend(['-m', 'pdb'])
-        if self.fname:
+        if self.fname and osp.isfile(self.fname):
             p_args.append(self.fname)
         if args:
             p_args.extend(args)
         self.process = QProcess(self)
         self.process.setWorkingDirectory(self.directory)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
-        self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
-                     self.write_output)
         self.connect(self.process, SIGNAL("readyReadStandardError()"),
                      self.write_error)
+        self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
+                     self.write_output)
         self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
                      self.finished)
         self.connect(self.terminate_button, SIGNAL("clicked()"),
@@ -341,6 +195,8 @@ class SafeShell(QWidget):
         self.set_running_state(False)
         self.show_time(end=True)
         self.emit(SIGNAL('finished()'))
+        # Saving console history:
+        self.shell.save_history()
     
     def write_output(self):
         self.process.setReadChannel(QProcess.StandardOutput)
@@ -349,8 +205,6 @@ class SafeShell(QWidget):
             bytes += self.process.readAllStandardOutput()
         text = QString.fromUtf8(bytes.data())
         self.shell.write(text)
-#        print >>STDOUT, text
-        self.shell.reset_buffer()
         QApplication.processEvents()
     
     def write_error(self):
@@ -359,26 +213,28 @@ class SafeShell(QWidget):
         while self.process.bytesAvailable():
             bytes += self.process.readAllStandardError()
         text = unicode(QString.fromUtf8(bytes.data()))
-        
         lines = text.splitlines()
-        if len(lines) == 1:
-            self.shell.write_error(text)
-        else:
-            for line in lines:
-                self.shell.write_error(line + os.linesep)
-#        print >>STDERR, "***", text, "***"
-        self.shell.reset_buffer()
+        for index, line in enumerate(lines):
+            self.shell.write_error(line)
+            if index < len(lines)-1:
+                self.shell.write_error(os.linesep)
         
     def send_to_process(self, qstr):
-        qstr.append('\n')
+        if not qstr.endsWith('\n'):
+            qstr.append('\n')
         self.process.write(qstr.toUtf8())
         self.process.waitForBytesWritten(-1)
+        
+    def keyboard_interrupt(self):
+        #TODO: How to send directly the interrupt key to the process?
+        self.shell.emit(SIGNAL("execute(QString)"), "raise KeyboardInterrupt")
 
 
 def test():
     app=QApplication(sys.argv)
     from PyQtShell import qthelpers
-    safeshell = SafeShell(None, qthelpers.__file__)
+    safeshell = SafeShell(None, osp.dirname(qthelpers.__file__),
+                          interact=True)
     safeshell.show()
     sys.exit(app.exec_())
 #    safeshell.process.waitForFinished()

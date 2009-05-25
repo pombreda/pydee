@@ -97,7 +97,7 @@ class Console(PluginWidget):
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        self.shell.interpreter.save_history()
+        self.shell.save_history()
         return True
     
     def quit(self):
@@ -227,6 +227,7 @@ class Console(PluginWidget):
                            CONF.get('historylog', 'max_entries'), 10, 10000)
         if valid:
             CONF.set('historylog', 'max_entries', depth)
+            self.shell.max_history_entries = depth
         
     def change_exteditor(self):
         """Change external editor path"""

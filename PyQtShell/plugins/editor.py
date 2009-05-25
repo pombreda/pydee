@@ -25,8 +25,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QFileDialog, QMenu,
-                         QSizePolicy, QMessageBox, QFontDialog, QTabWidget,
+from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QFileDialog,
+                         QSizePolicy, QMessageBox, QFontDialog,
                          QCheckBox, QToolBar, QAction, QComboBox)
 from PyQt4.QtCore import Qt, SIGNAL, QStringList
 
@@ -679,9 +679,9 @@ class HistoryLog(PluginWidget):
         """Return widget title"""
         return self.tr('History log')
         
-    def set_interpreter(self, interpreter):
-        """Set history log's associated interpreter"""
-        self.history = interpreter.rawhistory
+    def set_rawhistory(self, rawhistory):
+        """Set history log's raw history"""
+        self.history = rawhistory
         self.refresh()
         
     def refresh(self):

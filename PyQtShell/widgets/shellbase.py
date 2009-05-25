@@ -44,7 +44,7 @@ STDOUT = sys.stdout
 
 from PyQt4.QtGui import (QCursor, QMessageBox, QToolTip, QClipboard,
                          QKeySequence, QApplication)
-from PyQt4.QtCore import SIGNAL, QString, Qt, QStringList
+from PyQt4.QtCore import SIGNAL, QString, Qt, QStringList, QEventLoop
 
 # Local import
 from PyQtShell.qthelpers import (translate, create_action, get_std_icon,
@@ -53,7 +53,7 @@ from PyQtShell.widgets.shellhelpers import get_error_match
 from PyQtShell.interpreter import Interpreter
 from PyQtShell.dochelpers import getargtxt, getobj
 from PyQtShell.encoding import transcode
-from PyQtShell.config import CONF, get_font, get_icon
+from PyQtShell.config import CONF, get_font, get_icon, get_conf_path
 try:
     from PyQt4.Qsci import QsciScintilla
     from PyQtShell.widgets.terminal import QsciTerminal
@@ -106,22 +106,42 @@ def create_banner(moreinfo, message=''):
 #    - implement '_configure_scintilla', '_apply_style', ...
 
 
+class IOHandler(object):
+    """Handle stream output"""
+    def __init__(self, write):
+        self._write = write
+    def write(self, cmd):
+        self._write(cmd)
+    def flush(self):
+        pass
+
+
 class ShellBaseWidget(QsciTerminal):
     """Shell base widget: link between QsciTerminal and Interpreter"""
     p1 = ">>> "
     p2 = "... "
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None, profile=False):
-        QsciTerminal.__init__(self, parent, debug, profile)
+        QsciTerminal.__init__(self, parent,
+                              get_conf_path('.history.py'),
+                              CONF.get('historylog', 'max_entries'),
+                              debug, profile)
+        
+        # Capture all interactive input/output 
+        self.initial_stdout = sys.stdout
+        self.initial_stderr = sys.stderr
+        self.initial_stdin = sys.stdin
+        self.stdout = self
+        self.stderr = IOHandler(self.write_error)
+        self.stdin = self
+        self.redirect_stds()
         
         # KeyboardInterrupt support
         self.interrupted = False
+        self.connect(self, SIGNAL("keyboard_interrupt()"),
+                     self.keyboard_interrupt) #XXX is it working?
         
         self.docviewer = None
-        
-        # history
-        self.histidx = None
-        self.hist_wholeline = False
         
         # Code completion / calltips
         self.completion_chars = 0
@@ -146,9 +166,6 @@ class ShellBaseWidget(QsciTerminal):
         self.busy = False
         self.eventqueue = []
         
-        # Multiline entry
-        self.multiline_entry = []
-        
         # Execution Status
         self.more = False
 
@@ -166,8 +183,24 @@ class ShellBaseWidget(QsciTerminal):
     def set_calltips(self, state):
         """Set calltips state"""
         self.calltips = state
+                
+                
+    #------ Standard input/output
+    def redirect_stds(self):
+        """Redirects stds"""
+        if not self.debug:
+            sys.stdout = self.stdout
+            sys.stderr = self.stderr
+            sys.stdin  = self.stdin
         
-        
+    def restore_stds(self):
+        """Restore stds"""
+        if not self.debug:
+            sys.stdout = self.initial_stdout
+            sys.stderr = self.initial_stderr
+            sys.stdin = self.initial_stdin
+    
+    
     #------ Interpreter
     def start_interpreter(self, namespace):
         """Start Python interpreter"""
@@ -183,64 +216,16 @@ class ShellBaseWidget(QsciTerminal):
 
         # Initial commands
         for cmd in self.commands:
-            self.run_command(cmd, history=False, multiline=True)
+            self.run_command(cmd, history=False, new_prompt=False)
                 
         # First prompt
-        self.prompt = self.p1
-        self.write(self.prompt, flush=True)
+        self.new_prompt(self.p1)
         self.setUndoRedoEnabled(True) #-enable undo/redo
         self.emit(SIGNAL("refresh()"))
         
         return self.interpreter
     
   
-    #------ History Management
-    def __browse_history(self, backward):
-        """Browse history"""
-        line, index = self.getCursorPosition()
-        if index < self.lineLength(line) and self.hist_wholeline:
-            self.hist_wholeline = False
-        tocursor = self.__get_current_line_to_cursor()
-        text, self.histidx = self.__find_in_history(tocursor,
-                                                    self.histidx, backward)
-        if text is not None:
-            if self.hist_wholeline:
-                self.clear_line()
-                self.insert_text(text)
-            else:
-                # Removing text from cursor to the end of the line
-                self.setSelection(line, index, line, self.lineLength(line))
-                self.removeSelectedText()
-                # Inserting history text
-                self.insert_text(text)
-                self.setCursorPosition(line, index)
-
-    def __find_in_history(self, tocursor, start_idx, backward):
-        """Find text 'tocursor' in history, from index 'start_idx'"""
-        history = self.interpreter.history
-        if start_idx is None:
-            start_idx = len(history)
-        # Finding text in history
-        step = -1 if backward else 1
-        idx = start_idx
-        if len(tocursor) == 0 or self.hist_wholeline:
-            idx += step
-            if idx >= len(history):
-                return "", len(history)
-            elif idx < 0:
-                idx = 0
-            self.hist_wholeline = True
-            return history[idx], idx
-        else:
-            for index in xrange(len(history)):
-                idx = (start_idx+step*(index+1)) % len(history)
-                entry = history[idx]
-                if entry.startswith(tocursor):
-                    return entry[len(tocursor):], idx
-            else:
-                return None, start_idx
-        
-        
     #------ Code Completion / Calltips        
     def __completion_list_selected(self, userlist_id, seltxt):
         """
@@ -273,20 +258,11 @@ class ShellBaseWidget(QsciTerminal):
 
 
     #------ Miscellanous
-    def __get_current_line_to_cursor(self):
-        """
-        Return the current line: from the beginning to cursor position
-        """
-        line, index = self.getCursorPosition()
-        buf = self.__extract_from_text(line)
-        # Removing the end of the line from cursor position:
-        return buf[:index-len(self.prompt)]
-    
     def __get_last_obj(self, last=False):
         """
         Return the last valid object on the current line
         """
-        return getobj(self.__get_current_line_to_cursor(), last=last)
+        return getobj(self.get_current_line_to_cursor(), last=last)
         
     def set_docviewer(self, docviewer):
         """Set DocViewer DockWidget reference"""
@@ -360,12 +336,30 @@ class ShellBaseWidget(QsciTerminal):
     #------ I/O
     def raw_input(self, prompt):
         """Reimplementation of raw_input builtin"""
-        self.write(prompt, flush=True)
-        old_prompt = self.prompt
-        self.prompt = prompt
+        self.new_prompt(prompt)
         inp = self.wait_input()
-        self.prompt = old_prompt
         return inp
+    
+    def readline(self):
+        """For help() support (to be implemented...)"""
+        #TODO: help() support -> won't implement it (because IPython is coming)
+        inp = self.wait_input()
+        return inp
+        
+    def wait_input(self):
+        """Wait for input (raw_input)"""
+        self.input_data = None # If shell is closed, None will be returned
+        self.input_mode = True
+        self.input_loop = QEventLoop()
+        self.input_loop.exec_()
+        self.input_loop = None
+        return self.input_data
+    
+    def end_input(self, cmd):
+        """End of wait_input mode"""
+        self.input_data = cmd
+        self.input_mode = False
+        self.input_loop.exit()
 
     def flush(self, error=False):
         """Reimplement QsciTerminal method"""
@@ -375,36 +369,14 @@ class ShellBaseWidget(QsciTerminal):
             raise KeyboardInterrupt
 
 
-    #------ Clear line, terminal
-    def clear_line(self):
-        """Clear current line"""
-        cline, _cindex = self.getCursorPosition()
-        self.setSelection(cline, len(self.prompt),
-                          cline, self.lineLength(cline))
-        self.removeSelectedText()
-            
+    #------ Clear terminal
     def clear_terminal(self):
         """Clear terminal window and write prompt"""
         self.clear()
-        self.write(self.prompt, flush=True)
+        self.new_prompt(self.p2 if self.more else self.p1)
 
 
-    #------ Copy/paste
-    def copy(self):
-        """Copy text to clipboard... or keyboard interrupt"""
-        if self.hasSelectedText():
-            QsciScintilla.copy(self)
-        else:
-            self.keyboard_interrupt()
-            
-    def __remove_prompts(self, text):
-        """Remove prompts from text"""
-        return text[len(self.prompt):]
-    
-    def __extract_from_text(self, line_nb):
-        """Extract clean text from line number 'line_nb'"""
-        return self.__remove_prompts( unicode(self.text(line_nb)) )
-                
+    #------ Paste
     def paste(self):
         """Reimplemented slot to handle multiline paste action"""
         lines = unicode(QApplication.clipboard().text())
@@ -417,7 +389,6 @@ class ShellBaseWidget(QsciTerminal):
             self.setSelection(cline, len(self.prompt),
                               cline, self.lineLength(cline))
             self.removeSelectedText()
-            lines = self.__remove_prompts(lines)
             self.execute_lines(lines)
             cline2, _ = self.getCursorPosition()
             self.setCursorPosition(cline2,
@@ -457,38 +428,6 @@ class ShellBaseWidget(QsciTerminal):
             
 
     #------ Keyboard events
-    def get_input_buffer(self):
-        """Enter or Return -> get_input_buffer"""
-        line, col = self.get_end_pos()
-        self.setCursorPosition(line, col)
-        buf = self.__extract_from_text(line)
-        self.insert_text('\n', at_end=True)
-        return buf
-    
-    def __delete_selected_text(self):
-        """
-        Private method to delete selected text
-        without deleting prompts
-        """
-        line_from, index_from, line_to, index_to = self.getSelection()
-
-        # If not on last line, then move selection to last line
-        last_line = self.lines()-1
-        if line_from != last_line:
-            line_from = last_line
-            index_from = 0
-            
-        for prompt in [self.p1, self.p2]:
-            if self.text(line_from).startsWith(prompt):
-                if index_from < len(prompt):
-                    index_from = len(prompt)
-        if index_from < 0:
-            index_from = index_to
-            line_from = line_to
-        self.setSelection(line_from, index_from, line_to, index_to)
-        self.SendScintilla(QsciScintilla.SCI_CLEAR)
-        self.setSelection(line_from, index_from, line_from, index_from)
-
     def keyPressEvent(self, event):
         """
         Re-implemented to handle the user input a key at a time.
@@ -523,80 +462,71 @@ class ShellBaseWidget(QsciTerminal):
         line, index = self.getCursorPosition()
         last_line = self.lines()-1
         if len(text):
+            _pline, pindex = self.current_prompt_pos
             if line != last_line:
                 # Moving cursor to the end of the last line
                 self.move_cursor_to_end()
-            elif index < len(self.prompt):
+            elif index < pindex:
                 # Moving cursor after prompt
-                self.setCursorPosition(line, len(self.prompt))
+                self.setCursorPosition(line, pindex)
             
-        if key == Qt.Key_Backspace:
-            if self.hasSelectedText():
-                self.__delete_selected_text()
-            elif self.is_cursor_on_last_line():
-                line, col = self.getCursorPosition()
-                _is_active = self.isListActive()
-                _old_length = self.text(line).length()
-                if self.text(line).startsWith(self.prompt):
-                    if col > len(self.prompt):
-                        self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
-                elif col > 0:
-                    self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
-                if self.isListActive():
-                    self.completion_chars -= 1
-
-        elif key == Qt.Key_Delete:
-            if self.hasSelectedText():
-                self.__delete_selected_text()
-            elif self.is_cursor_on_last_line():
-                self.SendScintilla(QsciScintilla.SCI_CLEAR)
-            
-        elif shift and (key == Qt.Key_Return or key == Qt.Key_Enter):
-            # Multiline entry
-            self.histidx = None
-            self.append_command(self.get_input_buffer())
-            
-        elif key == Qt.Key_Return or key == Qt.Key_Enter:
+        if key == Qt.Key_Return or key == Qt.Key_Enter:
             if self.is_cursor_on_last_line():
                 if self.isListActive():
                     self.SendScintilla(QsciScintilla.SCI_NEWLINE)
                 else:
-                    self.histidx = None
-                    buf = self.get_input_buffer()
+                    self.insert_text('\n', at_end=True)
                     self.busy = True
+                    command = self.input_buffer
                     if self.profile:
                         # Simple profiling test
                         t0 = time()
                         for _ in range(10):
-                            self.execute_command(buf)
+                            self.execute_command(command)
                         self.insert_text(u"\n<Δt>=%dms\n" % (1e2*(time()-t0)))
-                        self.insert_text(self.prompt)
+                        self.new_prompt(self.p1)
                     else:
-                        self.execute_command(buf)
+                        self.execute_command(command)
                     self.busy = False
                     self.__flush_eventqueue()
             # add and run selection
             else:
                 text = self.selectedText()
                 self.insert_text(text, at_end=True)
-                
+            
+        elif key == Qt.Key_Delete:
+            if self.hasSelectedText():
+                self.check_selection()
+                self.removeSelectedText()
+            elif self.is_cursor_on_last_line():
+                self.SendScintilla(QsciScintilla.SCI_CLEAR)
+            
+        elif key == Qt.Key_Backspace:
+            if self.hasSelectedText():
+                self.check_selection()
+                self.removeSelectedText()
+            elif self.current_prompt_pos == (line, index):
+                # Avoid deleting prompt
+                return
+            elif self.is_cursor_on_last_line():
+                self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
+            
         elif key == Qt.Key_Tab:
             if self.isListActive():
                 self.SendScintilla(QsciScintilla.SCI_TAB)
             elif self.is_cursor_on_last_line():
-                buf = self.__extract_from_text(line)
-                lastchar_index = index-len(self.prompt)-1
-                if self.more and not buf[:index-len(self.prompt)].strip():
+                buf = self.get_current_line_to_cursor()
+                empty_line = not buf.strip()
+                if self.more and empty_line:
                     self.SendScintilla(QsciScintilla.SCI_TAB)
-                elif lastchar_index >= 0:
-                    text = self.__get_last_obj()
-                    if buf[lastchar_index] == '.':
-                        self.show_code_completion(text)
-                    elif buf[lastchar_index] in ['"', "'"]:
+                elif not empty_line:
+                    if buf.endswith('.'):
+                        self.show_code_completion(self.__get_last_obj())
+                    elif buf[-1] in ['"', "'"]:
                         self.show_file_completion()
             
         elif key == Qt.Key_Left:
-            if line == last_line and (index == len(self.prompt)):
+            if self.current_prompt_pos == (line, index):
                 # Avoid moving cursor on prompt
                 return
             if shift:
@@ -628,12 +558,7 @@ class ShellBaseWidget(QsciTerminal):
             if self.isListActive():
                 self.SendScintilla(QsciScintilla.SCI_VCHOME)
             elif self.is_cursor_on_last_line():
-                line, col = self.getCursorPosition()
-                if self.text(line).startsWith(self.prompt):
-                    col = len(self.prompt)
-                else:
-                    col = 0
-                self.setCursorPosition(line, col)
+                self.setCursorPosition(*self.current_prompt_pos)
 
         elif (key == Qt.Key_End) or ((key == Qt.Key_Down) and ctrl):
             if self.isListActive():
@@ -648,7 +573,7 @@ class ShellBaseWidget(QsciTerminal):
                self.getpointy() > self.getpointy(prompt=True):
                 self.SendScintilla(QsciScintilla.SCI_LINEUP)
             else:
-                self.__browse_history(backward=True)
+                self.browse_history(backward=True)
                 
         elif key == Qt.Key_Down:
             if line != last_line:
@@ -657,7 +582,7 @@ class ShellBaseWidget(QsciTerminal):
                self.getpointy() < self.getpointy(end=True):
                 self.SendScintilla(QsciScintilla.SCI_LINEDOWN)
             else:
-                self.__browse_history(backward=False)
+                self.browse_history(backward=False)
             
         elif key == Qt.Key_PageUp:
             if self.isListActive() or self.isCallTipActive():
@@ -673,6 +598,9 @@ class ShellBaseWidget(QsciTerminal):
             else:
                 self.clear_line()
                 
+        elif key == Qt.Key_C and ctrl:
+            self.copy()
+                
         elif key == Qt.Key_V and ctrl:
             self.paste()
             
@@ -686,8 +614,9 @@ class ShellBaseWidget(QsciTerminal):
             self.redo()
                 
         elif key == Qt.Key_Question:
-            self.show_docstring(self.__get_last_obj())
-            _, self.calltip_index = self.getCursorPosition()
+            if self.get_current_line_to_cursor():
+                self.show_docstring(self.__get_last_obj())
+                _, self.calltip_index = self.getCursorPosition()
             self.insert_text(text)
             # In case calltip and completion are shown at the same time:
             if self.isListActive():
@@ -695,8 +624,9 @@ class ShellBaseWidget(QsciTerminal):
             
         elif key == Qt.Key_ParenLeft:
             self.cancelList()
-            self.show_docstring(self.__get_last_obj(), call=True)
-            _, self.calltip_index = self.getCursorPosition()
+            if self.get_current_line_to_cursor():
+                self.show_docstring(self.__get_last_obj(), call=True)
+                _, self.calltip_index = self.getCursorPosition()
             self.insert_text(text)
             
         elif key == Qt.Key_Period:
@@ -747,17 +677,10 @@ class ShellBaseWidget(QsciTerminal):
             # Interrupt only if console is busy
             self.interrupted = True
         elif self.more:
-            self.write("\nKeyboardInterrupt\n", flush=True)
+            self.write_error("\nKeyboardInterrupt\n")
             self.more = False
-            self.prompt = self.p1
-            self.write(self.prompt, flush=True)
+            self.new_prompt(self.p1)
             self.interpreter.resetbuffer()
-        
-    def append_command(self, cmd):
-        """Multiline command"""
-        self.write(self.p2, flush=True)
-        if len(cmd)>0:
-            self.multiline_entry.append(cmd)
 
     def execute_command(self, cmd):
         """
@@ -772,22 +695,11 @@ class ShellBaseWidget(QsciTerminal):
             self.clear_terminal()
             return
         
-        # Multiline entry support: very limited feature...
-        # (bug after exiting an indented block, e.g. a for loop)
-        if self.multiline_entry:
-            self.multiline_entry.append(cmd)
-            cmdlist = self.multiline_entry
-        else:
-            cmdlist = [cmd]
-                
-        for index, cmd in enumerate(cmdlist):
-            self.run_command(cmd, multiline=(index!=len(cmdlist)-1))
-        
-        self.multiline_entry = []
-        
+        self.run_command(cmd)
+       
     def execute_lines(self, lines):
         """
-        Private method to execute a set of lines as multiple commands
+        Private method to execute a set of lines as multiple command
         lines: multiple lines of text to be executed as single
             commands (string)
         """
@@ -807,7 +719,7 @@ class ShellBaseWidget(QsciTerminal):
             if fullline:
                 self.execute_command(cmd)
         
-    def run_command(self, cmd, history=True, multiline=False):
+    def run_command(self, cmd, history=True, new_prompt=True):
         """Run command in interpreter"""
         
         # Before running command
@@ -818,8 +730,7 @@ class ShellBaseWidget(QsciTerminal):
             cmd = ''
         else:
             if history:
-                self.interpreter.add_to_history(cmd)
-            self.histidx = None
+                self.add_to_history(cmd)
 
         #FIXME: use regexp instead of startswith for special commands detection
         #       --> will allow user to use "edit" or "run" as object name
@@ -875,9 +786,8 @@ class ShellBaseWidget(QsciTerminal):
             self.more = self.interpreter.push(cmd)
         
         self.emit(SIGNAL("refresh()"))
-        self.prompt = self.p2 if self.more else self.p1
-        if not multiline:
-            self.write(self.prompt, flush=True)
+        if new_prompt:
+            self.new_prompt(self.p2 if self.more else self.p1)
         if not self.more:
             self.interpreter.resetbuffer()
             
