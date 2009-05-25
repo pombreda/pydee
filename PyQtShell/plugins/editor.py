@@ -854,7 +854,10 @@ class DocViewer(PluginWidget):
                     self.help_or_doc.setChecked(True)
                     return
             else:
-                hlp_text = getsource(obj)
+                try:
+                    hlp_text = getsource(obj)
+                except (TypeError, IOError):
+                    hlp_text = self.tr("No source code available.")
         if hlp_text is None:
             hlp_text = self.tr("No documentation available.")
         self.editor.set_text(hlp_text)
