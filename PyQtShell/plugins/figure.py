@@ -29,7 +29,7 @@ import sys
 STDOUT = sys.stdout
 
 from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QDockWidget
-from PyQt4.QtCore import SIGNAL
+from PyQt4.QtCore import Qt
 
 # Local imports
 from PyQtShell.plugins import PluginWidget
@@ -42,6 +42,7 @@ class MatplotlibFigure(PluginWidget):
     """
     ID = 'figure'
     features = QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable
+    location = Qt.LeftDockWidgetArea
     def __init__(self, parent, canvas, num):        
         self.canvas = canvas
         self.num = num

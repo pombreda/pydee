@@ -444,23 +444,19 @@ class MainWindow(QMainWindow):
             # Tabifying
             if self.widgetlist:
                 last_object = self.widgetlist[-1]
-                if (last_object.dockwidget is None) \
-                   or last_object.dockwidget.isWindow():
-                    # last_object is floating
-                    dockwidget.setFloating(True)
-                    size = QSize(*CONF.get('figure', 'size'))
-                    if isinstance(last_object, MatplotlibFigure):
-                        size = last_object.size()
-                    dockwidget.resize(size)
-                else:
-                    # last_object is docked
-                    self.tabifyDockWidget(last_object.dockwidget, dockwidget)
-
-        if isinstance(child, SafeConsole):
-            dockwidget.setVisible(True)
-            for widget in self.widgetlist:
-                if isinstance(widget, Console):
-                    self.tabifyDockWidget(widget.dockwidget, dockwidget)
+                if isinstance(last_object, MatplotlibFigure):
+                    if (last_object.dockwidget is None) \
+                       or last_object.dockwidget.isWindow():
+                        # last_object is floating
+                        dockwidget.setFloating(True)
+                        size = QSize(*CONF.get('figure', 'size'))
+                        if isinstance(last_object, MatplotlibFigure):
+                            size = last_object.size()
+                        dockwidget.resize(size)
+                    else:
+                        # last_object is docked
+                        self.tabifyDockWidget(last_object.dockwidget,
+                                              dockwidget)
                 
         self.widgetlist.append(child)
     
@@ -555,7 +551,7 @@ class MainWindow(QMainWindow):
         elif widget == self.safeconsole:
             if self.safeconsole is not None and \
                self.safeconsole.tabwidget.count():
-                return self.safeconsole.tabwidget.currentWidget().terminal
+                return self.safeconsole.tabwidget.currentWidget().shell
         elif widget in [self.docviewer, self.historylog]:
             return widget.editor
         elif widget == self.editor:
