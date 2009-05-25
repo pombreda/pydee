@@ -20,25 +20,11 @@
 
 """Shell Interpreter"""
 
-import time, atexit, os, code
-import os.path as osp
-
-# Local import
-from PyQtShell import __version__
-import encoding
-from config import CONF, get_conf_path
+import atexit, code
 
 
 class Interpreter(code.InteractiveConsole):
     """Interpreter"""
-    log_path = get_conf_path('.history.py')
-    inithistory = [
-                   '# -*- coding: utf-8 -*-',
-                   '# *** PyQtShell v%s -- History log ***' % __version__,
-                   '',
-                   ]
-    separator = '%s# ---(%s)---' % (os.linesep, time.ctime())
-        
     def __init__(self, namespace=None, exitfunc=None,
                  rawinputfunc=None):
         """
@@ -55,10 +41,6 @@ class Interpreter(code.InteractiveConsole):
         if rawinputfunc is not None:
             self.namespace['raw_input'] = rawinputfunc
         
-        # history
-        self.max_history_entries = CONF.get('historylog', 'max_entries')
-        self.rawhistory, self.history = self.load_history()
-        
     def eval(self, text):
         """
         Evaluate text and return (obj, valid)
@@ -70,36 +52,4 @@ class Interpreter(code.InteractiveConsole):
             return eval(text, self.locals), True
         except:
             return None, False
-        
-    def load_history(self):
-        """Load history from a .py file in user home directory"""
-        if osp.isfile(self.log_path):
-            rawhistory, _ = encoding.readlines(self.log_path)
-            rawhistory = [line.replace('\n','') for line in rawhistory]
-            if rawhistory[1] != self.inithistory[1]:
-                rawhistory = self.inithistory
-        else:
-            rawhistory = self.inithistory
-        history = [line for line in rawhistory if not line.startswith('#')]
-        rawhistory.append(self.separator)
-        return rawhistory, history
-    
-    def save_history(self):
-        """Save history to a .py file in user home directory"""
-        if self.rawhistory[-1] == self.separator:
-            self.rawhistory.remove(self.separator)
-        encoding.writelines(self.rawhistory, self.log_path)
-        
-    def add_to_history(self, command):
-        """Add command to history"""
-        while len(self.history) >= self.max_history_entries:
-            del self.history[0]
-            while self.rawhistory[0].startswith('#'):
-                del self.rawhistory[0]
-            del self.rawhistory[0]
-        cmd = unicode(command)
-        if len(self.history)>0 and self.history[-1] == cmd:
-            return
-        self.history.append( cmd )
-        self.rawhistory.append( cmd )
         

@@ -122,6 +122,13 @@ class QsciBase(QsciScintilla):
         y_pt = self.SendScintilla(QsciScintilla.SCI_POINTYFROMPOSITION, 0, pos)
         return x_pt, y_pt
 
+
+    def clear_selection(self):
+        """Clear current selection"""
+        line, index = self.getCursorPosition()
+        self.setSelection(line, index, line, index)
+
+
     def show_calltip(self, title, text, tipsize=600,
                      font=None, color='#2D62FF'):
         """Show calltip

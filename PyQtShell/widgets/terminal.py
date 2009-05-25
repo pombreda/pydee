@@ -25,11 +25,11 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys
-from time import time
+import sys, os, time
+import os.path as osp
 
-from PyQt4.QtGui import QMenu
-from PyQt4.QtCore import Qt, QString, QEventLoop, QCoreApplication
+from PyQt4.QtGui import QMenu, QApplication, QCursor
+from PyQt4.QtCore import Qt, QString, QCoreApplication, SIGNAL, pyqtProperty
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython
 
 # For debugging purpose:
@@ -37,33 +37,44 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 # Local import
+from PyQtShell import __version__, encoding
 from PyQtShell.config import CONF, get_icon
 from PyQtShell.qthelpers import (translate, keybinding, create_action,
                                  add_actions)
 from PyQtShell.widgets.qscibase import QsciBase
-
-
-class IOHandler(object):
-    """Handle stream output"""
-    def __init__(self, write):
-        self._write = write
-    def write(self, cmd):
-        self._write(cmd)
-    def flush(self):
-        pass
+from PyQtShell.widgets.shellhelpers import get_error_match
 
 
 class QsciTerminal(QsciBase):
     """
     Terminal based on QScintilla
     """
-    def __init__(self, parent=None, debug=False, profile=False,
-                 redirect_stds=True):
+    inithistory = [
+                   '# -*- coding: utf-8 -*-',
+                   '# *** PyQtShell v%s -- History log ***' % __version__,
+                   '',
+                   ]
+    separator = '%s# ---(%s)---' % (os.linesep, time.ctime())
+    
+    def __init__(self, parent, history_filename, max_history_entries=100,
+                 debug=False, profile=False):
         """
         parent : specifies the parent widget
         """
         QsciBase.__init__(self, parent)
         
+        # Prompt position: tuple (line, index)
+        self.current_prompt_pos = None
+        self.new_input_line = True
+        
+        # History
+        self.max_history_entries = max_history_entries
+        self.histidx = None
+        self.hist_wholeline = False
+        assert isinstance(history_filename, (str, unicode))
+        self.history_filename = history_filename
+        self.rawhistory, self.history = self.load_history()
+            
         # Context menu
         self.menu = None
         self.setup_context_menu()
@@ -82,22 +93,13 @@ class QsciTerminal(QsciBase):
         self.input_loop = None
         self.input_mode = False
         
-        # capture all interactive input/output 
-        self.initial_stdout = sys.stdout
-        self.initial_stderr = sys.stderr
-        self.initial_stdin = sys.stdin
-        self.stdout = self
-        self.stderr = IOHandler(self.write_error)
-        self.stdin = self
-        if redirect_stds:
-            self.redirect_stds()
-        
         # Mouse selection copy feature
         self.always_copy_selection = False
 
         # Give focus to widget
         self.setFocus()
-        
+            
+                
     def setup_scintilla(self):
         """Reimplement QsciBase method"""
         QsciBase.setup_scintilla(self)
@@ -128,6 +130,7 @@ class QsciTerminal(QsciBase):
         self.lex.setFont(font, self.traceback_link_style)
         self.setLexer(self.lex)
 
+
     #------ Context menu
     def setup_context_menu(self):
         """Setup shell context menu"""
@@ -154,43 +157,313 @@ class QsciTerminal(QsciBase):
         self.cut_action.setEnabled(state)
         self.menu.popup(event.globalPos())
         event.accept()        
-    
-    #------ Standard input/output
-    def redirect_stds(self):
-        """Redirects stds"""
-        if not self.debug:
-            sys.stdout = self.stdout
-            sys.stderr = self.stderr
-            sys.stdin  = self.stdin
         
-    def restore_stds(self):
-        """Restore stds"""
-        if not self.debug:
-            sys.stdout = self.initial_stdout
-            sys.stderr = self.initial_stderr
-            sys.stdin = self.initial_stdin
-    
-    def readline(self):
-        """For help() support (to be implemented...)"""
-        #TODO: help() support -> won't implement it (because IPython is coming)
-        inp = self.wait_input()
-        return inp
         
-    def wait_input(self):
-        """Wait for input (raw_input)"""
-        self.input_data = None # If shell is closed, None will be returned
-        self.input_mode = True
-        self.input_loop = QEventLoop()
-        self.input_loop.exec_()
-        self.input_loop = None
-        return self.input_data
+    #------ Input buffer
+    def get_current_line_to_cursor(self):
+        line, index = self.getCursorPosition()
+        pline, pindex = self.current_prompt_pos
+        self.setSelection(pline, pindex, line, index)
+        selected_text = unicode(self.selectedText())
+        self.clear_selection()
+        return selected_text
     
-    def end_input(self, cmd):
-        """End of wait_input mode"""
-        self.input_data = cmd
-        self.input_mode = False
-        self.input_loop.exit()
+    def _select_input(self):
+        """Select current line (without selecting console prompt)"""
+        line, index = self.get_end_pos()
+        pline, pindex = self.current_prompt_pos
+        self.setSelection(pline, pindex, line, index)
+            
+    def clear_line(self):
+        """Clear current line (without clearing console prompt)"""
+        self._select_input()
+        self.removeSelectedText()
 
+    # The buffer being edited
+    def _set_input_buffer(self, text):
+        """Set input buffer"""
+        self._select_input()
+        self.replace(text)
+        self.move_cursor_to_end()
+
+    def _get_input_buffer(self):
+        """Return input buffer"""
+        self._select_input()
+        input_buffer = self.selectedText()
+        self.clear_selection()
+        input_buffer = input_buffer.replace(os.linesep, '\n')
+        return unicode(input_buffer)
+
+    input_buffer = pyqtProperty("QString", _get_input_buffer, _set_input_buffer)
+        
+        
+    #------ Prompt
+    def new_prompt(self, prompt):
+        """
+        Print a new prompt and save its (line, index) position
+        """
+        self.write(prompt, flush=True)
+        # now we update our cursor giving end of prompt
+        self.current_prompt_pos = self.getCursorPosition()
+        self.ensureCursorVisible()
+        
+    def check_selection(self):
+        """
+        Check if selected text is r/w,
+        otherwise remove read-only parts of selection
+        """
+        line_from, index_from, line_to, index_to = self.getSelection()
+        pline, pindex = self.current_prompt_pos
+        if line_from < pline or \
+           (line_from == pline and index_from < pindex):
+            self.setSelection(pline, pindex, line_to, index_to)
+        
+        
+    #------ Copy / Keyboard interrupt
+    def copy(self):
+        """Copy text to clipboard... or keyboard interrupt"""
+        if self.hasSelectedText():
+            QsciScintilla.copy(self)
+        else:
+            self.emit(SIGNAL("keyboard_interrupt()"))
+        
+        
+    #------ Basic keypress event handler
+    def keyPressEvent(self, event):
+        """
+        Reimplement Qt Method
+        Basic keypress event handler
+        (reimplemented in ShellBaseWidget to add more sophisticated features)
+        """
+        text = event.text()
+        key = event.key()
+        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
+        last_line = self.lines()-1
+
+        if self.new_input_line:
+            # Move cursor to end
+            self.move_cursor_to_end()
+            self.current_prompt_pos = self.getCursorPosition()
+            self.new_input_line = False
+
+        line, index = self.getCursorPosition()
+
+        if key == Qt.Key_Return or key == Qt.Key_Enter:
+            self.insert_text('\n', at_end=True)
+            command = self.input_buffer
+            self.emit(SIGNAL("execute(QString)"), command)
+            self.add_to_history(command)
+            self.new_input_line = True
+            
+        elif key == Qt.Key_Delete:
+            if self.hasSelectedText():
+                self.check_selection()
+                self.removeSelectedText()
+            elif self.is_cursor_on_last_line():
+                self.SendScintilla(QsciScintilla.SCI_CLEAR)
+            
+        elif key == Qt.Key_Backspace:
+            if self.hasSelectedText():
+                self.check_selection()
+                self.removeSelectedText()
+            elif self.current_prompt_pos == (line, index):
+                # Avoid deleting prompt
+                return
+            elif self.is_cursor_on_last_line():
+                self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
+
+        elif key == Qt.Key_Left:
+            if self.current_prompt_pos == (line, index):
+                # Avoid moving cursor on prompt
+                return
+            if shift:
+                if ctrl:
+                    self.SendScintilla(QsciScintilla.SCI_WORDLEFTEXTEND)
+                else:
+                    self.SendScintilla(QsciScintilla.SCI_CHARLEFTEXTEND)
+            else:
+                if ctrl:
+                    self.SendScintilla(QsciScintilla.SCI_WORDLEFT)
+                else:
+                    self.SendScintilla(QsciScintilla.SCI_CHARLEFT)
+                
+        elif key == Qt.Key_Right:
+            if self.is_cursor_at_end():
+                return
+            if shift:
+                if ctrl:
+                    self.SendScintilla(QsciScintilla.SCI_WORDRIGHTEXTEND)
+                else:
+                    self.SendScintilla(QsciScintilla.SCI_CHARRIGHTEXTEND)
+            else:
+                if ctrl:
+                    self.SendScintilla(QsciScintilla.SCI_WORDRIGHT)
+                else:
+                    self.SendScintilla(QsciScintilla.SCI_CHARRIGHT)
+
+        elif (key == Qt.Key_Home) or ((key == Qt.Key_Up) and ctrl):
+            if self.isListActive():
+                self.SendScintilla(QsciScintilla.SCI_VCHOME)
+            elif self.is_cursor_on_last_line():
+                self.setCursorPosition(*self.current_prompt_pos)
+
+        elif (key == Qt.Key_End) or ((key == Qt.Key_Down) and ctrl):
+            if self.isListActive():
+                self.SendScintilla(QsciScintilla.SCI_LINEEND)
+            elif self.is_cursor_on_last_line():
+                self.SendScintilla(QsciScintilla.SCI_LINEEND)
+
+        elif key == Qt.Key_Up:
+            if line != last_line:
+                self.move_cursor_to_end()
+            if self.isListActive() or \
+               self.getpointy() > self.getpointy(prompt=True):
+                self.SendScintilla(QsciScintilla.SCI_LINEUP)
+            else:
+                self.browse_history(backward=True)
+                
+        elif key == Qt.Key_Down:
+            if line != last_line:
+                self.move_cursor_to_end()
+            if self.isListActive() or \
+               self.getpointy() < self.getpointy(end=True):
+                self.SendScintilla(QsciScintilla.SCI_LINEDOWN)
+            else:
+                self.browse_history(backward=False)
+            
+        elif key == Qt.Key_PageUp:
+            if self.isListActive() or self.isCallTipActive():
+                self.SendScintilla(QsciScintilla.SCI_PAGEUP)
+            
+        elif key == Qt.Key_PageDown:
+            if self.isListActive() or self.isCallTipActive():
+                self.SendScintilla(QsciScintilla.SCI_PAGEDOWN)
+
+        elif key == Qt.Key_Escape:
+            if self.isListActive() or self.isCallTipActive():
+                self.SendScintilla(QsciScintilla.SCI_CANCEL)
+            else:
+                self.clear_line()
+                
+        elif key == Qt.Key_C and ctrl:
+            self.copy()
+                
+        elif key == Qt.Key_V and ctrl:
+            self.paste()
+            
+        elif key == Qt.Key_X and ctrl:
+            self.cut()
+            
+        elif key == Qt.Key_Z and ctrl:
+            self.undo()
+            
+        elif key == Qt.Key_Y and ctrl:
+            self.redo()
+
+        elif ((key == Qt.Key_Plus) and ctrl) \
+             or ((key==Qt.Key_Equal) and shift and ctrl):
+            self.zoomIn()
+
+        elif (key == Qt.Key_Minus) and ctrl:
+            self.zoomOut()
+
+        elif text.length():
+            if self.hasSelectedText():
+                self.check_selection()
+            self.hist_wholeline = False
+            QsciScintilla.keyPressEvent(self, event)
+                
+        else:
+            # Let the parent widget handle the key press event
+            event.ignore()
+        
+        
+    #------ History Management
+    def load_history(self):
+        """Load history from a .py file in user home directory"""
+        if osp.isfile(self.history_filename):
+            rawhistory, _ = encoding.readlines(self.history_filename)
+            rawhistory = [line.replace('\n','') for line in rawhistory]
+            if rawhistory[1] != self.inithistory[1]:
+                rawhistory = self.inithistory
+        else:
+            rawhistory = self.inithistory
+        history = [line for line in rawhistory if not line.startswith('#')]
+        rawhistory.append(self.separator)
+        return rawhistory, history
+    
+    def save_history(self):
+        """Save history to a .py file in user home directory"""
+        if self.rawhistory[-1] == self.separator:
+            self.rawhistory.remove(self.separator)
+        encoding.writelines(self.rawhistory, self.history_filename)
+        
+    def add_to_history(self, command):
+        """Add command to history
+        commmand string must end with '\n'"""
+        command = unicode(command)
+        if not command.endswith('\n') or command == '\n' \
+           or command.startswith('Traceback'):
+            return
+        command = command[:-1]
+        self.histidx = None
+        while len(self.history) >= self.max_history_entries:
+            del self.history[0]
+            while self.rawhistory[0].startswith('#'):
+                del self.rawhistory[0]
+            del self.rawhistory[0]
+        if len(self.history)>0 and self.history[-1] == command:
+            return
+        self.history.append(command)
+        self.rawhistory.append(command)
+        
+    def browse_history(self, backward):
+        """Browse history"""
+        line, index = self.getCursorPosition()
+        if index < self.lineLength(line) and self.hist_wholeline:
+            self.hist_wholeline = False
+        tocursor = self.get_current_line_to_cursor()
+        text, self.histidx = self.__find_in_history(tocursor,
+                                                    self.histidx, backward)
+        if text is not None:
+            if self.hist_wholeline:
+                self.clear_line()
+                self.insert_text(text)
+            else:
+                # Removing text from cursor to the end of the line
+                self.setSelection(line, index, line, self.lineLength(line))
+                self.removeSelectedText()
+                # Inserting history text
+                self.insert_text(text)
+                self.setCursorPosition(line, index)
+
+    def __find_in_history(self, tocursor, start_idx, backward):
+        """Find text 'tocursor' in history, from index 'start_idx'"""
+        if start_idx is None:
+            start_idx = len(self.history)
+        # Finding text in history
+        step = -1 if backward else 1
+        idx = start_idx
+        if len(tocursor) == 0 or self.hist_wholeline:
+            idx += step
+            if idx >= len(self.history):
+                return "", len(self.history)
+            elif idx < 0:
+                idx = 0
+            self.hist_wholeline = True
+            return self.history[idx], idx
+        else:
+            for index in xrange(len(self.history)):
+                idx = (start_idx+step*(index+1)) % len(self.history)
+                entry = self.history[idx]
+                if entry.startswith(tocursor):
+                    return entry[len(tocursor):], idx
+            else:
+                return None, start_idx
+    
+    
+    #------ Simulation standards input/output
     def write_error(self, text):
         """Simulate stderr"""
 #        self.flush()
@@ -204,7 +477,7 @@ class QsciTerminal(QsciBase):
             # This test is useful to discriminate QStrings from decoded str
             text = unicode(text)
         self.__buffer.append(text)
-        ts = time()
+        ts = time.time()
         if flush or ts-self.__timestamp > 0.05:
             self.flush(error=error)
             self.__timestamp = ts
@@ -216,6 +489,8 @@ class QsciTerminal(QsciBase):
         self.insert_text(text, at_end=True, error=error)
         QCoreApplication.processEvents()
         self.repaint()
+        # Clear input buffer:
+        self.new_input_line = True
 
         
     #------ Utilities
@@ -279,6 +554,31 @@ class QsciTerminal(QsciBase):
         if next and self.more:
             return False
         return QsciScintilla.focusNextPrevChild(self, next)
+        
+    def mousePressEvent(self, event):
+        """
+        Re-implemented to handle the mouse press event.
+        event: the mouse press event (QMouseEvent)
+        """
+        self.setFocus()
+        ctrl = event.modifiers() & Qt.ControlModifier
+        if event.button() == Qt.MidButton:
+            self.paste()
+        elif event.button() == Qt.LeftButton and ctrl:
+            text = unicode(self.text(self.lineAt(event.pos())))
+            self.emit(SIGNAL("go_to_error(QString)"), text)
+        else:
+            QsciScintilla.mousePressEvent(self, event)
+
+    def mouseMoveEvent(self, event):
+        """Show Pointing Hand Cursor on error messages"""
+        if event.modifiers() & Qt.ControlModifier:
+            text = unicode(self.text(self.lineAt(event.pos())))
+            if get_error_match(text):
+                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+                return
+        QApplication.restoreOverrideCursor()
+        QsciScintilla.mouseMoveEvent(self, event)
     
     def mouseReleaseEvent(self, event):
         """Reimplemented"""

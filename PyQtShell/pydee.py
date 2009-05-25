@@ -36,7 +36,6 @@ from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
 
 # Local imports
 from PyQtShell import __version__
-from PyQtShell import encoding
 from PyQtShell.plugins.console import Console
 from PyQtShell.plugins.workdir import WorkingDirectory
 from PyQtShell.plugins.editor import Editor, HistoryLog, DocViewer
@@ -157,22 +156,10 @@ class MainWindow(QMainWindow):
             self.connect(self.edit_menu, SIGNAL("aboutToShow()"),
                          self.update_edit_menu)
                     
-            # View menu
-            self.view_menu = QMenu(self.tr("&View"))
-            
-            # Toolbar (...)
-            self.view_menu.addAction(self.toolbar.toggleViewAction())
-
             # Status bar
             status = self.statusBar()
             status.setObjectName("StatusBar")
             status.showMessage(self.tr("Welcome to Pydee!"), 5000)
-            action = create_action(self, self.tr("Status bar"),
-                                   toggled=self.toggle_statusbar)
-            self.view_menu.addAction(action)
-            checked = CONF.get('window', 'statusbar')
-            action.setChecked(checked)
-            self.toggle_statusbar(checked)
             
             # Workspace init
             if CONF.get('workspace', 'enable'):
@@ -194,8 +181,6 @@ class MainWindow(QMainWindow):
         self.addToolBar(self.workdir) # new mainwindow toolbar
         self.connect(self.console.shell, SIGNAL("refresh()"),
                      self.workdir.refresh)
-        if not self.light:
-            self.view_menu.addAction(self.workdir.toggleViewAction())
         
         if not self.light:
             # Console widget (...)
@@ -261,7 +246,7 @@ class MainWindow(QMainWindow):
                 self.set_splash(self.tr("Loading history widget..."))
                 self.historylog = HistoryLog( self )
                 self.add_dockwidget(self.historylog)
-                self.historylog.set_interpreter(self.console.shell.interpreter)
+                self.historylog.set_rawhistory(self.console.shell.rawhistory)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.historylog.refresh)
         
@@ -294,10 +279,19 @@ class MainWindow(QMainWindow):
             self.console.menu_actions += [None, restart_action]
             self.add_to_menubar(self.console)
             
+            # External console menu
+            self.safeconsole = SafeConsole(self)
+            self.connect(self.safeconsole, SIGNAL("edit_goto(QString,int)"),
+                         self.editor.load)
+            self.add_dockwidget(self.safeconsole)
+            self.add_to_menubar(self.safeconsole)
+            
             # Workspace menu
             self.add_to_menubar(self.workspace)
             
             # View menu
+            self.view_menu = self.createPopupMenu()
+            self.view_menu.setTitle(self.tr("&View"))
             self.menuBar().addMenu(self.view_menu)
         
             # ? menu
@@ -438,13 +432,6 @@ class MainWindow(QMainWindow):
         self.already_closed = True
         return True
         
-    def toggle_statusbar(self, checked):
-        """Toggle status bar"""
-        if checked:
-            self.statusBar().show()
-        else:
-            self.statusBar().hide()
-        
     def add_dockwidget(self, child):
         """Add QDockWidget and toggleViewAction"""
         dockwidget, location = child.create_dockwidget()
@@ -468,10 +455,6 @@ class MainWindow(QMainWindow):
                 else:
                     # last_object is docked
                     self.tabifyDockWidget(last_object.dockwidget, dockwidget)
-        else:
-            # Matplotlib figures are not added to view menu
-            # because closing a figure will not hide it but delete it
-            self.view_menu.addAction(dockwidget.toggleViewAction())
 
         if isinstance(child, SafeConsole):
             dockwidget.setVisible(True)
@@ -597,7 +580,8 @@ class MainWindow(QMainWindow):
                 widget = getattr(self, widget_name)
                 if widget is not None:
                     editor = self.get_editor(widget)
-                    editor.always_copy_selection = state
+                    if editor is not None:
+                        editor.always_copy_selection = state
                 
     def restart_interpreter(self):
         """Restart Python interpreter"""
@@ -615,16 +599,10 @@ class MainWindow(QMainWindow):
                 namespace = None
         interpreter = self.console.shell.start_interpreter(namespace)
         self.workspace.set_interpreter(interpreter)
-        self.historylog.set_interpreter(interpreter)
         self.docviewer.set_interpreter(interpreter)
         
     def open_safe_console(self, fname, ask_for_arguments, interact, debug):
         """Open safe console"""
-        if self.safeconsole is None:
-            self.safeconsole = SafeConsole(self)
-            self.connect(self.safeconsole, SIGNAL("edit_goto(QString,int)"),
-                         self.editor.load)
-            self.add_dockwidget(self.safeconsole)
         self.safeconsole.setVisible(True)
         self.safeconsole.start(unicode(fname),
                                ask_for_arguments, interact, debug)
