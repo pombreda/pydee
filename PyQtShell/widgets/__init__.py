@@ -28,8 +28,8 @@ Widgets defined in this module may be used in any other PyQt4-based application
 They are also used in Pydee through the Plugin interface (see PyQtShell.plugins)
 """
 
-from PyQt4.QtGui import QTabWidget, QMenu
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtGui import QTabWidget, QMenu, QMouseEvent
+from PyQt4.QtCore import SIGNAL, Qt, QEvent
 
 # Local imports
 from PyQtShell.qthelpers import add_actions
@@ -51,5 +51,6 @@ class Tabs(QTabWidget):
         """Override Qt method"""
         if event.button() == Qt.MidButton:
             if self.count():
+                #TODO: Really close the clicked tab and not the last one
                 self.emit(SIGNAL("close_tab(int)"), self.currentIndex())
 
