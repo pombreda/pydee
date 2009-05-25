@@ -706,8 +706,7 @@ def get_options():
         filename = os.environ.get('PYTHONSTARTUP')
         msg = 'PYTHONSTARTUP'
     if filename and os.path.isfile(filename):
-        lines, _ = encoding.readlines(filename)
-        commands.extend( lines )
+        commands.append('execfile(r"%s")' % filename)
         messagelist.append(msg+' (%s)' % os.path.basename(filename))
         
     # Options shown in console
