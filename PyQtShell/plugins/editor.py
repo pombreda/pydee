@@ -118,7 +118,7 @@ class Editor(PluginWidget):
         
         # Tab widget with close button
         self.tabwidget = Tabs(self, self.tab_actions)
-        self.connect(self.tabwidget, SIGNAL("close_tab"), self.close)
+        self.connect(self.tabwidget, SIGNAL("close_tab(int)"), self.close)
         self.close_button = create_toolbutton(self.tabwidget,
                                           icon=get_icon("fileclose.png"),
                                           callback=self.close,
@@ -471,11 +471,12 @@ class Editor(PluginWidget):
     
     def close(self, index=None):
         """Close current Python script file"""
-        if index is None and self.tabwidget.count():
-            index = self.tabwidget.currentIndex()
-        else:
-            self.find_widget.set_editor(None)
-            return        
+        if index is None:
+            if self.tabwidget.count():
+                index = self.tabwidget.currentIndex()
+            else:
+                self.find_widget.set_editor(None)
+                return        
         is_ok = self.save_if_changed(cancelable=True)
         if is_ok:
             self.tabwidget.removeTab(index)
