@@ -456,6 +456,7 @@ class ShellBaseWidget(QsciTerminal):
         
     def __process_keyevent(self, past_event, keyevent=None):
         """Process keyboard event"""
+        #TODO: Merge with QsciTerminal's keyPressEvent
         (text, key, ctrl, shift), event = (past_event, keyevent)
         
         # Is cursor on the last line? and after prompt?
