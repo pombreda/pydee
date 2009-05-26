@@ -280,7 +280,8 @@ class MainWindow(QMainWindow):
             self.add_to_menubar(self.console)
             
             # External console menu
-            self.safeconsole = SafeConsole(self)
+            self.safeconsole = SafeConsole(self, self.commands)
+            self.safeconsole.set_docviewer(self.docviewer)
             self.connect(self.safeconsole, SIGNAL("edit_goto(QString,int)"),
                          self.editor.load)
             self.add_dockwidget(self.safeconsole)
