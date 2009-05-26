@@ -18,7 +18,7 @@
 #    along with PyQtShell; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-"""Safe Shell widget: execute Python script in another process"""
+"""External Shell widget: execute Python script in a separate process"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
@@ -39,13 +39,14 @@ from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
 from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer
 
 # Local imports
-from PyQtShell.widgets.terminal import QsciTerminal
+from PyQtShell.widgets.qscishell import QsciShell
 from PyQtShell.qthelpers import create_toolbutton
 from PyQtShell.config import get_icon, get_conf_path
 from PyQtShell.widgets import startup
 
 
-class SafeShell(QWidget):
+class ExternalShell(QWidget):
+    """External Shell widget: execute Python script in a separate process"""
     def __init__(self, parent=None, fname=None, wdir=None,
                  ask_arguments=False, interact=False, debug=False,
                  commands=None):
@@ -54,7 +55,7 @@ class SafeShell(QWidget):
         self.directory = osp.dirname(self.fname) if wdir is None else wdir
         self.commands = commands
         
-        self.shell = QsciTerminal(parent, get_conf_path('.history_extcons.py'))
+        self.shell = QsciShell(parent, get_conf_path('.history_extcons.py'))
         self.connect(self.shell, SIGNAL("execute(QString)"),
                      self.send_to_process)
         self.connect(self.shell, SIGNAL("keyboard_interrupt()"),
@@ -243,7 +244,7 @@ def test():
     app=QApplication(sys.argv)
     import PyQtShell
     from PyQtShell.config import get_font
-    safeshell = SafeShell(wdir=osp.dirname(PyQtShell.__file__), interact=True)
+    safeshell = ExternalShell(wdir=osp.dirname(PyQtShell.__file__), interact=True)
     safeshell.shell.set_font(get_font('external_shell'))
     safeshell.show()
     sys.exit(app.exec_())

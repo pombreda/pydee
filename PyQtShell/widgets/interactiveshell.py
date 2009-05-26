@@ -18,7 +18,7 @@
 #    along with PyQtShell; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-"""Shell base widget: link between QsciTerminal and Interpreter"""
+"""Interactive shell widget : QsciShell + Interpreter"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
@@ -42,21 +42,18 @@ import os.path as osp
 
 STDOUT = sys.stdout
 
-from PyQt4.QtGui import (QCursor, QMessageBox, QToolTip, QClipboard,
-                         QKeySequence, QApplication)
-from PyQt4.QtCore import SIGNAL, QString, Qt, QStringList, QEventLoop
+from PyQt4.QtGui import QMessageBox, QKeySequence, QApplication
+from PyQt4.QtCore import SIGNAL, QString, QEventLoop
 
 # Local import
 from PyQtShell.qthelpers import (translate, create_action, get_std_icon,
-                                 add_actions, keyevent2tuple, restore_keyevent)
-from PyQtShell.widgets.shellhelpers import get_error_match
+                                 add_actions, keyevent2tuple)
 from PyQtShell.interpreter import Interpreter
-from PyQtShell.dochelpers import getargtxt
 from PyQtShell.encoding import transcode
-from PyQtShell.config import CONF, get_font, get_icon, get_conf_path
+from PyQtShell.config import CONF, get_icon, get_conf_path
 try:
     from PyQt4.Qsci import QsciScintilla
-    from PyQtShell.widgets.terminal import QsciTerminal
+    from PyQtShell.widgets.qscishell import QsciShell
 except ImportError, e:
     raise ImportError, str(e) + \
         "\nPyQtShell v0.3.23+ is exclusively based on QScintilla2\n" + \
@@ -90,16 +87,9 @@ def create_banner(moreinfo, message=''):
             moreinfo+'\n' + message + '\n'
 
 
-#TODO: Outside QsciTerminal: replace most of 'insert_text' occurences by 'write'
+#TODO: Outside QsciShell: replace most of 'insert_text' occurences by 'write'
 
 #TODO: Prepare code for IPython integration:
-#    - implement the self.input_buffer property (see qt_console_widget.py)
-#    - remove all references to prompt (there is no need to keep prompt
-#      string in self.prompt) and use prompt position instead (like it's
-#      done in qt_console_widget.py: self.current_prompt_pos -- do not
-#      implement self.current_prompt_line which is dead code from the
-#      porting from wx's console_widget.py)
-#    - implement the 'new_prompt' method like in qt_console_widget.py
 #    - implement the 'pop_completion' method like in qt_console_widget.py
 #      (easy... just rename a few methods here and there)
 #    - implement '_configure_scintilla', '_apply_style', ...
@@ -115,16 +105,15 @@ class IOHandler(object):
         pass
 
 
-class ShellBaseWidget(QsciTerminal):
-    """Shell base widget: link between QsciTerminal and Interpreter"""
+class InteractiveShell(QsciShell):
+    """Shell base widget: link between QsciShell and Interpreter"""
     p1 = ">>> "
     p2 = "... "
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None, profile=False):
-        QsciTerminal.__init__(self, parent,
-                              get_conf_path('.history.py'),
-                              CONF.get('historylog', 'max_entries'),
-                              debug, profile)
+        QsciShell.__init__(self, parent, get_conf_path('.history.py'),
+                           CONF.get('historylog', 'max_entries'),
+                           debug, profile)
         
         # Capture all interactive input/output 
         self.initial_stdout = sys.stdout
@@ -212,22 +201,22 @@ class ShellBaseWidget(QsciTerminal):
 
     #----- Menus, actions, ...
     def setup_context_menu(self):
-        """Reimplement QsciTerminal method"""
-        QsciTerminal.setup_context_menu(self)
+        """Reimplement QsciShell method"""
+        QsciShell.setup_context_menu(self)
         clear_line_action = create_action(self,
                            self.tr("Clear line"),
                            QKeySequence("Escape"),
                            icon=get_icon('eraser.png'),
-                           tip=translate("ShellBaseWidget", "Clear line"),
+                           tip=translate("InteractiveShell", "Clear line"),
                            triggered=self.clear_line)
         clear_action = create_action(self,
-                           translate("ShellBaseWidget", "Clear shell"),
+                           translate("InteractiveShell", "Clear shell"),
                            icon=get_icon('clear.png'),
-                           tip=translate("ShellBaseWidget",
+                           tip=translate("InteractiveShell",
                                    "Clear shell contents ('cls' command)"),
                            triggered=self.clear_terminal)
         self.help_action = create_action(self,
-                           translate("ShellBaseWidget", "Help..."),
+                           translate("InteractiveShell", "Help..."),
                            shortcut="F1",
                            icon=get_std_icon('DialogHelpButton'),
                            triggered=self.help)
@@ -237,7 +226,7 @@ class ShellBaseWidget(QsciTerminal):
     def help(self):
         """Help on PyQtShell console"""
         QMessageBox.about(self,
-            translate("ShellBaseWidget", "Help"),
+            translate("InteractiveShell", "Help"),
             self.tr("""<b>%1</b>
             <p><i>%2</i><br>    edit foobar.py
             <p><i>%3</i><br>    xedit foobar.py
@@ -247,14 +236,14 @@ class ShellBaseWidget(QsciTerminal):
             <p><i>%7</i><br>    object?
             <p><i>%8</i><br>    result = oedit(object)
             """) \
-            .arg(translate("ShellBaseWidget", 'Shell special commands:')) \
-            .arg(translate("ShellBaseWidget", 'Internal editor:')) \
-            .arg(translate("ShellBaseWidget", 'External editor:')) \
-            .arg(translate("ShellBaseWidget", 'Run script:')) \
-            .arg(translate("ShellBaseWidget", 'Remove references:')) \
-            .arg(translate("ShellBaseWidget", 'System commands:')) \
-            .arg(translate("ShellBaseWidget", 'Python help:')) \
-            .arg(translate("ShellBaseWidget", 'GUI-based editor:')) )
+            .arg(translate("InteractiveShell", 'Shell special commands:')) \
+            .arg(translate("InteractiveShell", 'Internal editor:')) \
+            .arg(translate("InteractiveShell", 'External editor:')) \
+            .arg(translate("InteractiveShell", 'Run script:')) \
+            .arg(translate("InteractiveShell", 'Remove references:')) \
+            .arg(translate("InteractiveShell", 'System commands:')) \
+            .arg(translate("InteractiveShell", 'Python help:')) \
+            .arg(translate("InteractiveShell", 'GUI-based editor:')) )
                 
                 
     #------ External editing
@@ -303,8 +292,8 @@ class ShellBaseWidget(QsciTerminal):
         self.input_loop.exit()
 
     def flush(self, error=False):
-        """Reimplement QsciTerminal method"""
-        QsciTerminal.flush(self, error)
+        """Reimplement QsciShell method"""
+        QsciShell.flush(self, error)
         if self.interrupted:
             self.interrupted = False
             raise KeyboardInterrupt

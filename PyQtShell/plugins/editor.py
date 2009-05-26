@@ -43,7 +43,7 @@ from PyQtShell.qthelpers import (create_action, add_actions, mimedata2url,
                                  get_filetype_icon, create_toolbutton)
 from PyQtShell.dochelpers import getdoc, getsource
 try:
-    from PyQtShell.widgets.editorbase import QsciEditor
+    from PyQtShell.widgets.qscieditor import QsciEditor
 except ImportError, e:
     raise ImportError, str(e) + \
         "\nPyQtShell v0.3.23+ is exclusively based on QScintilla2\n" + \

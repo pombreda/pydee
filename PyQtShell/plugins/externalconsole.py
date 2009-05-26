@@ -18,7 +18,7 @@
 #    along with PyQtShell; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-"""Console widget"""
+"""External Console widget"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
@@ -38,13 +38,13 @@ STDOUT = sys.stdout
 from PyQtShell.config import CONF, get_font, get_icon, set_font
 from PyQtShell.qthelpers import create_toolbutton, create_action
 from PyQtShell.widgets import Tabs
-from PyQtShell.widgets.safeshell import SafeShell
+from PyQtShell.widgets.externalshell import ExternalShell
 from PyQtShell.widgets.shellhelpers import get_error_match
 from PyQtShell.widgets.findreplace import FindReplace
 from PyQtShell.plugins import PluginWidget
 
 
-class SafeConsole(PluginWidget):
+class ExternalConsole(PluginWidget):
     """
     Console widget
     """
@@ -89,7 +89,7 @@ class SafeConsole(PluginWidget):
         
     def start(self, fname, wdir, ask_for_arguments, interact, debug):
         """Start new console"""
-        shell = SafeShell(self, fname, wdir,
+        shell = ExternalShell(self, fname, wdir,
                           ask_for_arguments, interact, debug, self.commands)
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )

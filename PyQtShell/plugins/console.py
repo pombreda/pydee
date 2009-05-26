@@ -43,7 +43,7 @@ try:
     from PyQtShell.environ import WinUserEnvDialog
 except ImportError:
     WinUserEnvDialog = None
-from PyQtShell.widgets.shellbase import ShellBaseWidget
+from PyQtShell.widgets.interactiveshell import InteractiveShell
 from PyQtShell.widgets.shellhelpers import get_error_match
 from PyQtShell.widgets.findreplace import FindReplace
 from PyQtShell.plugins import PluginWidget
@@ -58,7 +58,7 @@ class Console(PluginWidget):
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None, profile=False):
         # Shell
-        self.shell = ShellBaseWidget(parent, namespace, commands,
+        self.shell = InteractiveShell(parent, namespace, commands,
                                      message, debug, exitfunc, profile)
         self.connect(self.shell, SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
@@ -209,7 +209,7 @@ class Console(PluginWidget):
             
     def edit_script(self, filename=None, goto=None):
         """Edit script"""
-        # Called from ShellBaseWidget
+        # Called from InteractiveShell
         if not hasattr(self, 'main') \
            or not hasattr(self.main, 'editor'):
             self.shell.external_editor(filename, goto)
