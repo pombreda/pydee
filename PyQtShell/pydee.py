@@ -41,7 +41,7 @@ from PyQtShell.plugins.workdir import WorkingDirectory
 from PyQtShell.plugins.editor import Editor, HistoryLog, DocViewer
 from PyQtShell.plugins.workspace import Workspace
 from PyQtShell.plugins.explorer import Explorer
-from PyQtShell.plugins.safeconsole import SafeConsole
+from PyQtShell.plugins.externalconsole import ExternalConsole
 from PyQtShell.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate, get_filetype_icon)
 from PyQtShell.config import get_icon, get_image_path, CONF
@@ -280,7 +280,7 @@ class MainWindow(QMainWindow):
             self.add_to_menubar(self.console)
             
             # External console menu
-            self.safeconsole = SafeConsole(self, self.commands)
+            self.safeconsole = ExternalConsole(self, self.commands)
             self.safeconsole.set_docviewer(self.docviewer)
             self.connect(self.safeconsole, SIGNAL("edit_goto(QString,int)"),
                          self.editor.load)

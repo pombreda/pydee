@@ -47,9 +47,9 @@ from PyQtShell.widgets.qscibase import QsciBase
 from PyQtShell.widgets.shellhelpers import get_error_match
 
 
-class QsciTerminal(QsciBase):
+class QsciShell(QsciBase):
     """
-    Terminal based on QScintilla
+    Shell based on QScintilla
     """
     inithistory = [
                    '# -*- coding: utf-8 -*-',
@@ -164,15 +164,15 @@ class QsciTerminal(QsciBase):
         """Setup shell context menu"""
         self.menu = QMenu(self)
         self.cut_action = create_action(self,
-                           translate("ShellBaseWidget", "Cut"),
+                           translate("InteractiveShell", "Cut"),
                            shortcut=keybinding('Cut'),
                            icon=get_icon('editcut.png'), triggered=self.cut)
         self.copy_action = create_action(self,
-                           translate("ShellBaseWidget", "Copy"),
+                           translate("InteractiveShell", "Copy"),
                            shortcut=keybinding('Copy'),
                            icon=get_icon('editcopy.png'), triggered=self.copy)
         paste_action = create_action(self,
-                           translate("ShellBaseWidget", "Paste"),
+                           translate("InteractiveShell", "Paste"),
                            shortcut=keybinding('Paste'),
                            icon=get_icon('editpaste.png'), triggered=self.paste)
         add_actions(self.menu, (self.cut_action, self.copy_action,
@@ -267,7 +267,7 @@ class QsciTerminal(QsciBase):
         """
         Reimplement Qt Method
         Basic keypress event handler
-        (reimplemented in ShellBaseWidget to add more sophisticated features)
+        (reimplemented in InteractiveShell to add more sophisticated features)
         """
         if self.new_input_line:
             # Move cursor to end
