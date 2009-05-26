@@ -273,18 +273,23 @@ def get_family(families):
         print "Warning: None of the following fonts is installed: %r" % families
         return QFont()
     
+FONT_CACHE = {}
 def get_font(section, option=None):
     """Get console font properties depending on OS and user options"""
-    if option is None:
-        option = 'font'
-    else:
-        option += '/font'
-    family = get_family( CONF.get(section, option+"/family") )
-    weight = QFont.Normal
-    if CONF.get(section, option+'/bold'):
-        weight = QFont.Bold
-    size = CONF.get(section, option+'/size')
-    return QFont(family, size, weight)
+    font = FONT_CACHE.get((section, option))
+    if font is None:
+        if option is None:
+            option = 'font'
+        else:
+            option += '/font'
+        family = get_family( CONF.get(section, option+"/family") )
+        weight = QFont.Normal
+        if CONF.get(section, option+'/bold'):
+            weight = QFont.Bold
+        size = CONF.get(section, option+'/size')
+        font = QFont(family, size, weight)
+        FONT_CACHE[(section, option)] = font
+    return font
 
 def set_font(font, section, option=None):
     """Set font"""
@@ -295,3 +300,5 @@ def set_font(font, section, option=None):
     CONF.set(section, option+'/family', unicode(font.family()))
     CONF.set(section, option+'/size', float(font.pointSize()))
     CONF.set(section, option+'/bold', int(font.bold()))
+    FONT_CACHE[(section, option)] = font
+    
