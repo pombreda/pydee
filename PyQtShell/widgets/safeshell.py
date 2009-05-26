@@ -42,14 +42,17 @@ from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer
 from PyQtShell.widgets.terminal import QsciTerminal
 from PyQtShell.qthelpers import create_toolbutton
 from PyQtShell.config import get_icon, get_conf_path
+from PyQtShell.widgets import startup
 
 
 class SafeShell(QWidget):
-    def __init__(self, parent, fname,
-                 ask_arguments=False, interact=False, debug=False):
+    def __init__(self, parent=None, fname=None, wdir=None,
+                 ask_arguments=False, interact=False, debug=False,
+                 commands=None):
         QWidget.__init__(self, parent)
-        self.fname = fname
-        self.directory = osp.dirname(fname)
+        self.fname = startup.__file__ if fname is None else fname
+        self.directory = osp.dirname(self.fname) if wdir is None else wdir
+        self.commands = commands
         
         self.shell = QsciTerminal(parent, get_conf_path('.history_extcons.py'))
         self.connect(self.shell, SIGNAL("execute(QString)"),
@@ -147,16 +150,19 @@ class SafeShell(QWidget):
             self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
     
     def run(self):
-        arguments, valid = QInputDialog.getText(self, self.tr('Arguments'),
-                          self.tr('Command line arguments:'),
-                          QLineEdit.Normal,
-                          self.arguments)
-        if valid:
-            self.arguments = unicode(arguments)
-            self.create_process(self.arguments.split(' ') if self.arguments \
-                                else None)
+        if self.fname != startup.__file__:
+            self.create_process()
         else:
-            self.set_running_state(False)
+            arguments, valid = QInputDialog.getText(self, self.tr('Arguments'),
+                              self.tr('Command line arguments:'),
+                              QLineEdit.Normal,
+                              self.arguments)
+            if valid:
+                self.arguments = unicode(arguments)
+                self.create_process(self.arguments.split(' ') if self.arguments \
+                                    else None)
+            else:
+                self.set_running_state(False)
     
     def create_process(self, args=None):
         self.shell.clear()
@@ -165,13 +171,16 @@ class SafeShell(QWidget):
             p_args.append('-i')
         if self.debug_check.isChecked():
             p_args.extend(['-m', 'pdb'])
-        if self.fname and osp.isfile(self.fname):
-            p_args.append(self.fname)
+        p_args.append(self.fname)
         if args:
             p_args.extend(args)
         self.process = QProcess(self)
         self.process.setWorkingDirectory(self.directory)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
+        if self.commands:
+            env = self.process.systemEnvironment()
+            env.append('PYTHONINITCOMMANDS=%s' % ';'.join(self.commands))
+            self.process.setEnvironment(env)
         self.connect(self.process, SIGNAL("readyReadStandardError()"),
                      self.write_error)
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
@@ -232,9 +241,10 @@ class SafeShell(QWidget):
 
 def test():
     app=QApplication(sys.argv)
-    from PyQtShell import qthelpers
-    safeshell = SafeShell(None, osp.dirname(qthelpers.__file__),
-                          interact=True)
+    import PyQtShell
+    from PyQtShell.config import get_font
+    safeshell = SafeShell(wdir=osp.dirname(PyQtShell.__file__), interact=True)
+    safeshell.shell.set_font(get_font('external_shell'))
     safeshell.show()
     sys.exit(app.exec_())
 #    safeshell.process.waitForFinished()

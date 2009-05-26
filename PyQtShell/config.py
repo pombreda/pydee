@@ -119,6 +119,11 @@ DEFAULTS = [
               'font/size' : MEDIUM,
               'font/bold' : False,
               'wrap' : True,
+              'autocompletion' : True,
+              'autocompletion/case-sensitivity' : True,
+              'autocompletion/threshold' : -1,
+              'autocompletion/select-single' : True,
+              'autocompletion/from-document' : False,
               }),
             ('calltips',
              {

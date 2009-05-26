@@ -50,9 +50,11 @@ class SafeConsole(PluginWidget):
     """
     ID = 'external_shell'
     location = Qt.RightDockWidgetArea
-    def __init__(self, parent):
+    def __init__(self, parent, commands=None):
+        self.commands = commands
         self.tabwidget = None
         self.menu_actions = None
+        self.dockviewer = None
         PluginWidget.__init__(self, parent)
         
         layout = QVBoxLayout()
@@ -81,20 +83,27 @@ class SafeConsole(PluginWidget):
         self.tabwidget.widget(index).close()
         self.tabwidget.removeTab(index)
         
-    def start(self, fname, ask_for_arguments, interact, debug):
+    def set_docviewer(self, docviewer):
+        """Bind docviewer instance to this console"""
+        self.docviewer = docviewer
+        
+    def start(self, fname, wdir, ask_for_arguments, interact, debug):
         """Start new console"""
-        shell = SafeShell(self, fname, ask_for_arguments, interact, debug)
+        shell = SafeShell(self, fname, wdir,
+                          ask_for_arguments, interact, debug, self.commands)
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
+        shell.shell.set_docviewer(self.docviewer)
         self.connect(shell.shell, SIGNAL("go_to_error(QString)"),
                      lambda qstr: self.go_to_error(unicode(qstr)))
         self.find_widget.set_editor(shell.shell)
-        index = self.tabwidget.addTab(shell, osp.basename(fname))
+        name = "Python" if fname is None else osp.basename(fname)
+        index = self.tabwidget.addTab(shell, name)
         self.connect(shell, SIGNAL("finished()"),
                      lambda i=index: self.tabwidget.setTabIcon(i,
                                                   get_icon('terminated.png')))
-        self.tabwidget.setToolTip(fname)
-        icon = get_icon('execute.png') if osp.isfile(fname) \
+        self.tabwidget.setToolTip(fname if wdir is None else wdir)
+        icon = get_icon('execute.png') if fname is not None \
                else get_icon('python.png')
         self.tabwidget.setTabIcon(index, icon)
         self.tabwidget.setCurrentIndex(index)
@@ -132,7 +141,7 @@ class SafeConsole(PluginWidget):
         
     def open_interpreter(self):
         """Open interpreter"""
-        self.start(os.getcwdu(), False, True, False)
+        self.start(None, os.getcwdu(), False, True, False)
         
     def run_script(self):
         """Run a Python script"""
@@ -142,7 +151,7 @@ class SafeConsole(PluginWidget):
                       self.tr("Python scripts")+" (*.py ; *.pyw)")
         self.main.console.shell.redirect_stds()
         if filename:
-            self.start(unicode(filename), False, False, False)
+            self.start(unicode(filename), None, False, False, False)
         
     def change_font(self):
         """Change console font"""
