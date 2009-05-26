@@ -680,29 +680,11 @@ class ShellBaseWidget(QsciTerminal):
             self.new_prompt(self.p1)
             self.interpreter.resetbuffer()
 
-    def execute_command(self, cmd):
-        """
-        Execute a command.
-        cmd: one-line command only, without '\n' at the end!
-        """            
-        if self.input_mode:
-            self.end_input(cmd)
-            return
-        # cls command
-        if cmd == 'cls':
-            self.clear_terminal()
-            return
-        
-        self.run_command(cmd)
-       
     def execute_lines(self, lines):
         """
-        Private method to execute a set of lines as multiple command
-        lines: multiple lines of text to be executed as single
-            commands (string)
+        Execute a set of lines as multiple command
+        lines: multiple lines of text to be executed as single commands
         """
-        if isinstance(lines, list):
-            lines = "\n".join(lines)
         for line in lines.splitlines(True):
             if line.endswith("\r\n"):
                 fullline = True
@@ -712,11 +694,25 @@ class ShellBaseWidget(QsciTerminal):
                 cmd = line[:-1]
             else:
                 fullline = False
-            
-            self.insert_text(line, at_end=True)
+            self.write(line, flush=True)
             if fullline:
-                self.execute_command(cmd)
+                self.execute_command(cmd+"\n")
         
+    def execute_command(self, cmd):
+        """
+        Execute a command
+        cmd: one-line command only, with '\n' at the end!
+        """
+        if self.input_mode:
+            self.end_input(cmd)
+            return
+        # cls command
+        if cmd == 'cls':
+            self.clear_terminal()
+            return
+        assert cmd.endswith('\n')
+        self.run_command(cmd[:-1])
+       
     def run_command(self, cmd, history=True, new_prompt=True):
         """Run command in interpreter"""
         
