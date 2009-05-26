@@ -279,6 +279,9 @@ class MainWindow(QMainWindow):
             self.console.menu_actions += [None, restart_action]
             self.add_to_menubar(self.console)
             
+            # Workspace menu
+            self.add_to_menubar(self.workspace)
+            
             # External console menu
             self.extconsole = ExternalConsole(self, self.commands)
             self.extconsole.set_docviewer(self.docviewer)
@@ -286,9 +289,6 @@ class MainWindow(QMainWindow):
                          self.editor.load)
             self.add_dockwidget(self.extconsole)
             self.add_to_menubar(self.extconsole)
-            
-            # Workspace menu
-            self.add_to_menubar(self.workspace)
             
             # View menu
             self.view_menu = self.createPopupMenu()
