@@ -248,27 +248,27 @@ class Editor(PluginWidget):
                     " and set focus to shell"),
             triggered=self.exec_selected_text)
         self.exec_process_action = create_action(self,
-            self.tr("Run in e&xternal console"), "F5", 'execute_safe.png',
+            self.tr("Run in e&xternal console"), "F5", 'execute_external.png',
             self.tr("Run current script in external console"
                     "\n(external console is executed in a separate process)"),
-            triggered=lambda: self.exec_script_safeconsole())
+            triggered=lambda: self.exec_script_extconsole())
         self.exec_process_interact_action = create_action(self,
             self.tr("Run and interact"), "Shift+F5",
             tip=self.tr("Run current script in external console and interact "
                         "\nwith Python interpreter when program has finished"
                         "\n(external console is executed in a separate process)"),
-            triggered=lambda: self.exec_script_safeconsole(interact=True))
+            triggered=lambda: self.exec_script_extconsole(interact=True))
         self.exec_process_args_action = create_action(self,
             self.tr("Run with arguments"), "Ctrl+F5",
             tip=self.tr("Run current script in external console specifying "
                         "command line arguments"
                         "\n(external console is executed in a separate process)"),
-            triggered=lambda: self.exec_script_safeconsole(ask_for_arguments=True))
+            triggered=lambda: self.exec_script_extconsole(ask_for_arguments=True))
         self.exec_process_debug_action = create_action(self,
             self.tr("Debug"), "Ctrl+Shift+F5",
             tip=self.tr("Debug current script in external console"
                         "\n(external console is executed in a separate process)"),
-            triggered=lambda: self.exec_script_safeconsole(ask_for_arguments=True, debug=True))
+            triggered=lambda: self.exec_script_extconsole(ask_for_arguments=True, debug=True))
         self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+K",
             'comment.png', self.tr("Comment current line or selection"),
             triggered = self.comment)
@@ -411,14 +411,15 @@ class Editor(PluginWidget):
                 QMessageBox.information(self, title,
                                         self.tr("There is no error in your program.")) 
     
-    def exec_script_safeconsole(self, ask_for_arguments=False,
-                                       interact=False, debug=False):
+    def exec_script_extconsole(self, ask_for_arguments=False,
+                               interact=False, debug=False):
         """Run current script in another process"""
         if self.save():
             index = self.tabwidget.currentIndex()
             fname = os.path.abspath(self.filenames[index])
-            self.emit(SIGNAL('open_safe_console(QString,bool,bool,bool)'),
-                      fname, ask_for_arguments, interact, debug)
+            wdir = os.path.dirname(fname)
+            self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool)'),
+                      fname, wdir, ask_for_arguments, interact, debug)
     
     def exec_script(self, set_focus=False):
         """Run current script"""
