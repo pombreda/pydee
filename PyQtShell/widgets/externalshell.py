@@ -244,11 +244,11 @@ def test():
     app=QApplication(sys.argv)
     import PyQtShell
     from PyQtShell.config import get_font
-    safeshell = ExternalShell(wdir=osp.dirname(PyQtShell.__file__), interact=True)
-    safeshell.shell.set_font(get_font('external_shell'))
-    safeshell.show()
+    shell = ExternalShell(wdir=osp.dirname(PyQtShell.__file__), interact=True)
+    shell.shell.set_font(get_font('external_shell'))
+    shell.show()
     sys.exit(app.exec_())
-#    safeshell.process.waitForFinished()
+#    shell.process.waitForFinished()
 
 if __name__ == "__main__":
     test()

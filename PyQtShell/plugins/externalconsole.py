@@ -89,8 +89,8 @@ class ExternalConsole(PluginWidget):
         
     def start(self, fname, wdir, ask_for_arguments, interact, debug):
         """Start new console"""
-        shell = ExternalShell(self, fname, wdir,
-                          ask_for_arguments, interact, debug, self.commands)
+        shell = ExternalShell(self, fname, wdir, ask_for_arguments,
+                              interact, debug, self.commands)
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
         shell.shell.set_docviewer(self.docviewer)

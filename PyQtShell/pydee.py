@@ -46,7 +46,7 @@ from PyQtShell.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate, get_filetype_icon)
 from PyQtShell.config import get_icon, get_image_path, CONF
 
-WIDGET_LIST = ['console', 'editor', 'docviewer', 'historylog', 'safeconsole']
+WIDGET_LIST = ['console', 'editor', 'docviewer', 'historylog', 'extconsole']
 
 class MainWindow(QMainWindow):
     """Console QDialog"""
@@ -71,7 +71,7 @@ class MainWindow(QMainWindow):
         self.explorer = None
         self.docviewer = None
         self.historylog = None
-        self.safeconsole = None
+        self.extconsole = None
         
         # Set Window title and icon
         title = "Pydee"
@@ -195,8 +195,8 @@ class MainWindow(QMainWindow):
             self.connect(self.editor, SIGNAL("open_dir(QString)"),
                          self.workdir.chdir)
             self.connect(self.editor,
-                         SIGNAL("open_safe_console(QString,bool,bool,bool)"),
-                         self.open_safe_console)
+                         SIGNAL("open_external_console(QString,QString,bool,bool,bool)"),
+                         self.open_external_console)
             self.add_dockwidget(self.editor)
             self.add_to_menubar(self.editor, self.tr("&Source"))
             self.add_to_toolbar(self.editor)
@@ -280,12 +280,12 @@ class MainWindow(QMainWindow):
             self.add_to_menubar(self.console)
             
             # External console menu
-            self.safeconsole = ExternalConsole(self, self.commands)
-            self.safeconsole.set_docviewer(self.docviewer)
-            self.connect(self.safeconsole, SIGNAL("edit_goto(QString,int)"),
+            self.extconsole = ExternalConsole(self, self.commands)
+            self.extconsole.set_docviewer(self.docviewer)
+            self.connect(self.extconsole, SIGNAL("edit_goto(QString,int)"),
                          self.editor.load)
-            self.add_dockwidget(self.safeconsole)
-            self.add_to_menubar(self.safeconsole)
+            self.add_dockwidget(self.extconsole)
+            self.add_to_menubar(self.extconsole)
             
             # Workspace menu
             self.add_to_menubar(self.workspace)
@@ -549,10 +549,10 @@ class MainWindow(QMainWindow):
         """Return editor for given widget"""
         if widget == self.console:
             return self.console.shell
-        elif widget == self.safeconsole:
-            if self.safeconsole is not None and \
-               self.safeconsole.tabwidget.count():
-                return self.safeconsole.tabwidget.currentWidget().shell
+        elif widget == self.extconsole:
+            if self.extconsole is not None and \
+               self.extconsole.tabwidget.count():
+                return self.extconsole.tabwidget.currentWidget().shell
         elif widget in [self.docviewer, self.historylog]:
             return widget.editor
         elif widget == self.editor:
@@ -598,11 +598,12 @@ class MainWindow(QMainWindow):
         self.workspace.set_interpreter(interpreter)
         self.docviewer.set_interpreter(interpreter)
         
-    def open_safe_console(self, fname, ask_for_arguments, interact, debug):
-        """Open safe console"""
-        self.safeconsole.setVisible(True)
-        self.safeconsole.start(unicode(fname),
-                               ask_for_arguments, interact, debug)
+    def open_external_console(self, fname, wdir,
+                              ask_for_arguments, interact, debug):
+        """Open external console"""
+        self.extconsole.setVisible(True)
+        self.extconsole.start(unicode(fname), wdir,
+                              ask_for_arguments, interact, debug)
 
         
 def get_options():
