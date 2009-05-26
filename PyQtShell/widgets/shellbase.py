@@ -82,7 +82,6 @@ def guess_filename(filename):
             return fname
     return filename
 
-
 def create_banner(moreinfo, message=''):
     """Create shell banner"""
     if message:
@@ -385,10 +384,8 @@ class ShellBaseWidget(QsciTerminal):
             self.removeSelectedText() # Remove selection, eventually
             cline, cindex = self.getCursorPosition()
             linetext = unicode(self.text(cline))
-            lines = linetext[:cindex] + lines + linetext[cindex:]
-            self.setSelection(cline, len(self.prompt),
-                              cline, self.lineLength(cline))
-            self.removeSelectedText()
+            lines = self.get_current_line_to_cursor()+lines+linetext[cindex:]
+            self.clear_line()
             self.execute_lines(lines)
             cline2, _ = self.getCursorPosition()
             self.setCursorPosition(cline2,
