@@ -119,6 +119,7 @@ DEFAULTS = [
               'font/size' : MEDIUM,
               'font/bold' : False,
               'wrap' : True,
+              'single_tab' : True,
               'autocompletion' : True,
               'autocompletion/case-sensitivity' : True,
               'autocompletion/threshold' : -1,

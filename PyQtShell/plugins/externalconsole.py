@@ -25,8 +25,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QVBoxLayout, QFileDialog, QFontDialog
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtGui import QVBoxLayout, QFileDialog, QFontDialog, QMessageBox
+from PyQt4.QtCore import Qt, SIGNAL, QProcess
 
 import sys, os
 import os.path as osp
@@ -55,6 +55,7 @@ class ExternalConsole(PluginWidget):
         self.tabwidget = None
         self.menu_actions = None
         self.dockviewer = None
+        self.shelldict = {}
         PluginWidget.__init__(self, parent)
         
         layout = QVBoxLayout()
@@ -82,6 +83,9 @@ class ExternalConsole(PluginWidget):
             index = self.tabwidget.currentIndex()
         self.tabwidget.widget(index).close()
         self.tabwidget.removeTab(index)
+        for key in self.shelldict.keys():
+            if self.shelldict[key] == index:
+                self.shelldict.pop(key)
         
     def set_docviewer(self, docviewer):
         """Bind docviewer instance to this console"""
@@ -95,14 +99,35 @@ class ExternalConsole(PluginWidget):
         shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
         shell.shell.set_docviewer(self.docviewer)
         self.connect(shell.shell, SIGNAL("go_to_error(QString)"),
-                     lambda qstr: self.go_to_error(unicode(qstr)))
-        self.find_widget.set_editor(shell.shell)
+                     self.go_to_error)
         name = "Python" if fname is None else osp.basename(fname)
-        index = self.tabwidget.addTab(shell, name)
+        
+        index = self.shelldict.get(fname)
+        if index is None or not CONF.get(self.ID, 'single_tab'):
+            index = self.tabwidget.addTab(shell, name)
+        else:
+            old_shell = self.tabwidget.widget(index)
+            if old_shell.process.state() == QProcess.Running:
+                answer = QMessageBox.question(self, self.get_widget_title(),
+                    self.tr("%1 is already running in a separate process.\n"
+                            "Do you want to kill the process before starting "
+                            "a new one?").arg(osp.basename(fname)),
+                    QMessageBox.Yes | QMessageBox.Cancel)
+                if answer == QMessageBox.Yes:
+                    old_shell.process.kill()
+                    old_shell.process.waitForFinished()
+                else:
+                    return
+            self.close(index)
+            self.tabwidget.insertTab(index, shell, name)
+
+        self.shelldict[fname] = index
+                
         self.connect(shell, SIGNAL("finished()"),
                      lambda i=index: self.tabwidget.setTabIcon(i,
                                                   get_icon('terminated.png')))
-        self.tabwidget.setToolTip(fname if wdir is None else wdir)
+        self.find_widget.set_editor(shell.shell)
+        self.tabwidget.setTabToolTip(index, fname if wdir is None else wdir)
         icon = get_icon('execute.png') if fname is not None \
                else get_icon('python.png')
         self.tabwidget.setTabIcon(index, icon)
@@ -135,8 +160,12 @@ class ExternalConsole(PluginWidget):
                             self.tr("Wrap lines"),
                             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
+        singletab_action = create_action(self,
+                            self.tr("One tab per script"),
+                            toggled=self.toggle_singletab)
+        singletab_action.setChecked( CONF.get(self.ID, 'single_tab') )
         self.menu_actions = [interpreter_action, run_action,
-                             font_action, wrap_action]
+                             font_action, wrap_action, singletab_action]
         return (self.menu_actions, None)
         
     def open_interpreter(self):
@@ -170,6 +199,10 @@ class ExternalConsole(PluginWidget):
             self.tabwidget.widget(index).shell.set_wrap_mode(checked)
         CONF.set(self.ID, 'wrap', checked)
         
+    def toggle_singletab(self, checked):
+        """Toggle single tab mode"""
+        CONF.set(self.ID, 'single_tab', checked)
+        
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
@@ -179,7 +212,7 @@ class ExternalConsole(PluginWidget):
     
     def go_to_error(self, text):
         """Go to error if relevant"""
-        match = get_error_match(text)
+        match = get_error_match(unicode(text))
         if match:
             fname, lnb = match.groups()
             self.emit(SIGNAL("edit_goto(QString,int)"),
