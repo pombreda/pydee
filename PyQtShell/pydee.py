@@ -256,7 +256,7 @@ class MainWindow(QMainWindow):
                 self.docviewer = DocViewer( self )
                 self.docviewer.set_interpreter(self.console.shell.interpreter)
                 self.add_dockwidget(self.docviewer)
-                self.console.shell.set_docviewer(self.docviewer)
+                self.console.set_docviewer(self.docviewer)
         
         if not self.light:
             # File menu

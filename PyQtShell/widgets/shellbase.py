@@ -48,10 +48,10 @@ from PyQt4.QtCore import SIGNAL, QString, Qt, QStringList, QEventLoop
 
 # Local import
 from PyQtShell.qthelpers import (translate, create_action, get_std_icon,
-                                 add_actions)
+                                 add_actions, keyevent2tuple, restore_keyevent)
 from PyQtShell.widgets.shellhelpers import get_error_match
 from PyQtShell.interpreter import Interpreter
-from PyQtShell.dochelpers import getargtxt, getobj
+from PyQtShell.dochelpers import getargtxt
 from PyQtShell.encoding import transcode
 from PyQtShell.config import CONF, get_font, get_icon, get_conf_path
 try:
@@ -138,13 +138,9 @@ class ShellBaseWidget(QsciTerminal):
         # KeyboardInterrupt support
         self.interrupted = False
         self.connect(self, SIGNAL("keyboard_interrupt()"),
-                     self.keyboard_interrupt) #XXX is it working?
-        
-        self.docviewer = None
+                     self.keyboard_interrupt)
         
         # Code completion / calltips
-        self.completion_chars = 0
-        self.calltip_index = None
         self.setAutoCompletionThreshold( \
             CONF.get('shell', 'autocompletion/threshold') )
         self.setAutoCompletionCaseSensitivity( \
@@ -155,11 +151,6 @@ class ShellBaseWidget(QsciTerminal):
             self.setAutoCompletionSource(QsciScintilla.AcsDocument)
         else:
             self.setAutoCompletionSource(QsciScintilla.AcsNone)
-        self.connect(self, SIGNAL('userListActivated(int, const QString)'),
-                     self.__completion_list_selected)
-        
-        # Call-tips
-        self.calltips = True
         
         # keyboard events management
         self.busy = False
@@ -177,11 +168,6 @@ class ShellBaseWidget(QsciTerminal):
         
         # Clear status bar
         self.emit(SIGNAL("status(QString)"), QString())
-        
-        
-    def set_calltips(self, state):
-        """Set calltips state"""
-        self.calltips = state
                 
                 
     #------ Standard input/output
@@ -205,7 +191,6 @@ class ShellBaseWidget(QsciTerminal):
         """Start Python interpreter"""
         self.clear()
         
-        #TODO: multithreaded Interpreter (if option.thread)
         self.interpreter = Interpreter(namespace, self.exitfunc, self.raw_input)
 
         # interpreter banner
@@ -223,49 +208,6 @@ class ShellBaseWidget(QsciTerminal):
         self.emit(SIGNAL("refresh()"))
         
         return self.interpreter
-    
-  
-    #------ Code Completion / Calltips        
-    def __completion_list_selected(self, userlist_id, seltxt):
-        """
-        Private slot to handle the selection from the completion list
-        userlist_id: ID of the user list (should be 1) (integer)
-        seltxt: selected text (QString)
-        """
-        if userlist_id == 1:
-            cline, cindex = self.getCursorPosition()
-            self.setSelection(cline, cindex-self.completion_chars+1,
-                              cline, cindex)
-            self.removeSelectedText()
-            seltxt = unicode(seltxt)
-            self.insert_text(seltxt)
-            self.completion_chars = 0
-
-    def show_completion_list(self, completions, text):
-        """Private method to display the possible completions"""
-        if len(completions) == 0:
-            return
-        if len(completions) > 1:
-            self.showUserList(1, QStringList(sorted(completions)))
-            self.completion_chars = 1
-        else:
-            txt = completions[0]
-            if text != "":
-                txt = txt.replace(text, "")
-            self.insert_text(txt)
-            self.completion_chars = 0
-
-
-    #------ Miscellanous
-    def __get_last_obj(self, last=False):
-        """
-        Return the last valid object on the current line
-        """
-        return getobj(self.get_current_line_to_cursor(), last=last)
-        
-    def set_docviewer(self, docviewer):
-        """Set DocViewer DockWidget reference"""
-        self.docviewer = docviewer
 
 
     #----- Menus, actions, ...
@@ -395,279 +337,42 @@ class ShellBaseWidget(QsciTerminal):
             QsciScintilla.paste(self)
 
 
-    #------ Mouse events
-    def mousePressEvent(self, event):
-        """
-        Re-implemented to handle the mouse press event.
-        event: the mouse press event (QMouseEvent)
-        """
-        self.setFocus()
-        ctrl = event.modifiers() & Qt.ControlModifier
-        if event.button() == Qt.MidButton:
-            # Middle-button -> paste
-            lines = unicode(QApplication.clipboard().text(QClipboard.Selection))
-            self.execute_lines(lines)
-        elif event.button() == Qt.LeftButton and ctrl:
-            text = unicode(self.text(self.lineAt(event.pos())))
-            self.parent().go_to_error(text)
-        else:
-            QsciScintilla.mousePressEvent(self, event)
-
-    def mouseMoveEvent(self, event):
-        """Show Pointing Hand Cursor on error messages"""
-        if event.modifiers() & Qt.ControlModifier:
-            text = unicode(self.text(self.lineAt(event.pos())))
-            if get_error_match(text):
-                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
-                return
-        QApplication.restoreOverrideCursor()
-        QsciScintilla.mouseMoveEvent(self, event)
-            
-
     #------ Keyboard events
+    def on_enter(self, command):
+        """on_enter"""
+        self.busy = True
+        if self.profile:
+            # Simple profiling test
+            t0 = time()
+            for _ in range(10):
+                self.execute_command(command)
+            self.insert_text(u"\n<Δt>=%dms\n" % (1e2*(time()-t0)))
+            self.new_prompt(self.p1)
+        else:
+            self.execute_command(command)
+        self.busy = False
+        self.__flush_eventqueue()
+
     def keyPressEvent(self, event):
         """
         Re-implemented to handle the user input a key at a time.
         event: key event (QKeyEvent)
         """
-        text = event.text()
-        key = event.key()
-        ctrl = event.modifiers() & Qt.ControlModifier
-        shift = event.modifiers() & Qt.ShiftModifier
-        current_event = (text, key, ctrl, shift)
-        
         if self.busy and (not self.input_mode):
             # Ignoring all events except KeyboardInterrupt (see above)
             # Keep however these events in self.eventqueue
-            self.eventqueue.append(current_event)
+            self.eventqueue.append(keyevent2tuple(event))
             event.accept()
         else:
             self.__flush_eventqueue() # Shouldn't be necessary
-            self.__process_keyevent(current_event, event)
+            self.process_keyevent(event)
         
     def __flush_eventqueue(self):
         """Flush keyboard event queue"""
         while self.eventqueue:
             past_event = self.eventqueue.pop(0)
-            self.__process_keyevent(past_event)
+            self.process_keyevent(past_event)
         
-    def __process_keyevent(self, past_event, keyevent=None):
-        """Process keyboard event"""
-        #TODO: Merge with QsciTerminal's keyPressEvent
-        (text, key, ctrl, shift), event = (past_event, keyevent)
-        
-        # Is cursor on the last line? and after prompt?
-        line, index = self.getCursorPosition()
-        last_line = self.lines()-1
-        if len(text):
-            _pline, pindex = self.current_prompt_pos
-            if line != last_line:
-                # Moving cursor to the end of the last line
-                self.move_cursor_to_end()
-            elif index < pindex:
-                # Moving cursor after prompt
-                self.setCursorPosition(line, pindex)
-            
-        if key == Qt.Key_Return or key == Qt.Key_Enter:
-            if self.is_cursor_on_last_line():
-                if self.isListActive():
-                    self.SendScintilla(QsciScintilla.SCI_NEWLINE)
-                else:
-                    self.insert_text('\n', at_end=True)
-                    self.busy = True
-                    command = self.input_buffer
-                    if self.profile:
-                        # Simple profiling test
-                        t0 = time()
-                        for _ in range(10):
-                            self.execute_command(command)
-                        self.insert_text(u"\n<Δt>=%dms\n" % (1e2*(time()-t0)))
-                        self.new_prompt(self.p1)
-                    else:
-                        self.execute_command(command)
-                    self.busy = False
-                    self.__flush_eventqueue()
-            # add and run selection
-            else:
-                text = self.selectedText()
-                self.insert_text(text, at_end=True)
-            
-        elif key == Qt.Key_Delete:
-            if self.hasSelectedText():
-                self.check_selection()
-                self.removeSelectedText()
-            elif self.is_cursor_on_last_line():
-                self.SendScintilla(QsciScintilla.SCI_CLEAR)
-            
-        elif key == Qt.Key_Backspace:
-            if self.hasSelectedText():
-                self.check_selection()
-                self.removeSelectedText()
-            elif self.current_prompt_pos == (line, index):
-                # Avoid deleting prompt
-                return
-            elif self.is_cursor_on_last_line():
-                self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
-            
-        elif key == Qt.Key_Tab:
-            if self.isListActive():
-                self.SendScintilla(QsciScintilla.SCI_TAB)
-            elif self.is_cursor_on_last_line():
-                buf = self.get_current_line_to_cursor()
-                empty_line = not buf.strip()
-                if self.more and empty_line:
-                    self.SendScintilla(QsciScintilla.SCI_TAB)
-                elif not empty_line:
-                    if buf.endswith('.'):
-                        self.show_code_completion(self.__get_last_obj())
-                    elif buf[-1] in ['"', "'"]:
-                        self.show_file_completion()
-            
-        elif key == Qt.Key_Left:
-            if self.current_prompt_pos == (line, index):
-                # Avoid moving cursor on prompt
-                return
-            if shift:
-                if ctrl:
-                    self.SendScintilla(QsciScintilla.SCI_WORDLEFTEXTEND)
-                else:
-                    self.SendScintilla(QsciScintilla.SCI_CHARLEFTEXTEND)
-            else:
-                if ctrl:
-                    self.SendScintilla(QsciScintilla.SCI_WORDLEFT)
-                else:
-                    self.SendScintilla(QsciScintilla.SCI_CHARLEFT)
-                
-        elif key == Qt.Key_Right:
-            if self.is_cursor_at_end():
-                return
-            if shift:
-                if ctrl:
-                    self.SendScintilla(QsciScintilla.SCI_WORDRIGHTEXTEND)
-                else:
-                    self.SendScintilla(QsciScintilla.SCI_CHARRIGHTEXTEND)
-            else:
-                if ctrl:
-                    self.SendScintilla(QsciScintilla.SCI_WORDRIGHT)
-                else:
-                    self.SendScintilla(QsciScintilla.SCI_CHARRIGHT)
-
-        elif (key == Qt.Key_Home) or ((key == Qt.Key_Up) and ctrl):
-            if self.isListActive():
-                self.SendScintilla(QsciScintilla.SCI_VCHOME)
-            elif self.is_cursor_on_last_line():
-                self.setCursorPosition(*self.current_prompt_pos)
-
-        elif (key == Qt.Key_End) or ((key == Qt.Key_Down) and ctrl):
-            if self.isListActive():
-                self.SendScintilla(QsciScintilla.SCI_LINEEND)
-            elif self.is_cursor_on_last_line():
-                self.SendScintilla(QsciScintilla.SCI_LINEEND)
-
-        elif key == Qt.Key_Up:
-            if line != last_line:
-                self.move_cursor_to_end()
-            if self.isListActive() or \
-               self.getpointy() > self.getpointy(prompt=True):
-                self.SendScintilla(QsciScintilla.SCI_LINEUP)
-            else:
-                self.browse_history(backward=True)
-                
-        elif key == Qt.Key_Down:
-            if line != last_line:
-                self.move_cursor_to_end()
-            if self.isListActive() or \
-               self.getpointy() < self.getpointy(end=True):
-                self.SendScintilla(QsciScintilla.SCI_LINEDOWN)
-            else:
-                self.browse_history(backward=False)
-            
-        elif key == Qt.Key_PageUp:
-            if self.isListActive() or self.isCallTipActive():
-                self.SendScintilla(QsciScintilla.SCI_PAGEUP)
-            
-        elif key == Qt.Key_PageDown:
-            if self.isListActive() or self.isCallTipActive():
-                self.SendScintilla(QsciScintilla.SCI_PAGEDOWN)
-
-        elif key == Qt.Key_Escape:
-            if self.isListActive() or self.isCallTipActive():
-                self.SendScintilla(QsciScintilla.SCI_CANCEL)
-            else:
-                self.clear_line()
-                
-        elif key == Qt.Key_C and ctrl:
-            self.copy()
-                
-        elif key == Qt.Key_V and ctrl:
-            self.paste()
-            
-        elif key == Qt.Key_X and ctrl:
-            self.cut()
-            
-        elif key == Qt.Key_Z and ctrl:
-            self.undo()
-            
-        elif key == Qt.Key_Y and ctrl:
-            self.redo()
-                
-        elif key == Qt.Key_Question:
-            if self.get_current_line_to_cursor():
-                self.show_docstring(self.__get_last_obj())
-                _, self.calltip_index = self.getCursorPosition()
-            self.insert_text(text)
-            # In case calltip and completion are shown at the same time:
-            if self.isListActive():
-                self.completion_chars += 1
-            
-        elif key == Qt.Key_ParenLeft:
-            self.cancelList()
-            if self.get_current_line_to_cursor():
-                self.show_docstring(self.__get_last_obj(), call=True)
-                _, self.calltip_index = self.getCursorPosition()
-            self.insert_text(text)
-            
-        elif key == Qt.Key_Period:
-            # Enable auto-completion only if last token isn't a float
-            self.insert_text(text)
-            last_obj = self.__get_last_obj()
-            if last_obj and not last_obj[-1].isdigit():
-                self.show_code_completion(last_obj)
-
-        elif ((key == Qt.Key_Plus) and ctrl) \
-             or ((key==Qt.Key_Equal) and shift and ctrl):
-            self.zoomIn()
-
-        elif (key == Qt.Key_Minus) and ctrl:
-            self.zoomOut()
-
-        elif text.length():
-            self.hist_wholeline = False
-            if keyevent is None:
-                self.insert_text(text)
-            else:
-                QsciScintilla.keyPressEvent(self, event)
-            if self.isListActive():
-                self.completion_chars += 1
-                
-        elif keyevent:
-            # Let the parent widget handle the key press event
-            keyevent.ignore()
-
-        
-        if QToolTip.isVisible():
-            # Hide calltip when necessary (this is handled here because
-            # QScintilla does not support user-defined calltips)
-            _, index = self.getCursorPosition() # need the new index
-            try:
-                if (self.text(line)[self.calltip_index] not in ['?','(']) or \
-                   index < self.calltip_index or \
-                   key in (Qt.Key_ParenRight, Qt.Key_Period, Qt.Key_Tab):
-                    QToolTip.hideText()
-            except IndexError:
-                QToolTip.hideText()
-            
-            
     #------ Command execution
     def keyboard_interrupt(self):
         """Simulate keyboard interrupt"""
@@ -791,52 +496,6 @@ class ShellBaseWidget(QsciTerminal):
     
     
     #------ Code completion / Calltips
-    def show_code_completion(self, text):
-        """
-        Display a completion list based on the last token
-        """
-        obj, valid = self.interpreter.eval(text)
-        if valid:
-            self.show_completion_list(dir(obj), 'dir(%s)' % text) 
-
-    def show_file_completion(self):
-        """
-        Display a completion list for files and directories
-        """
-        cwd = os.getcwdu()
-        self.show_completion_list(os.listdir(cwd), cwd)
-        
-    def show_docstring(self, text, call=False):
-        """Show docstring or arguments"""
-        if not self.calltips:
-            return
-        obj, valid = self.interpreter.eval(text)
-        if valid:
-            tipsize = CONF.get('calltips', 'size')
-            font = get_font('calltips')
-            done = False
-            if (self.docviewer is not None) and \
-               (self.docviewer.dockwidget.isVisible()):
-                # DocViewer widget exists and is visible
-                self.docviewer.refresh(text)
-                if call:
-                    # Display argument list if this is function call
-                    if callable(obj):
-                        arglist = getargtxt(obj)
-                        if arglist:
-                            done = True
-                            self.show_calltip(self.tr("Arguments"),
-                                              arglist, tipsize, font,
-                                              color='#129625')
-                    else:
-                        done = True
-                        self.show_calltip(self.tr("Warning"),
-                                          self.tr("Object `%1` is not callable"
-                                                  " (i.e. not a function, "
-                                                  "a method or a class "
-                                                  "constructor)").arg(text),
-                                          font=font, color='#FF0000')
-            if not done:
-                self.show_calltip(self.tr("Documentation"),
-                                  obj.__doc__, tipsize, font)
-
+    def eval(self, text):
+        """Is text a valid object?"""
+        return self.interpreter.eval(text)

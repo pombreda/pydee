@@ -28,8 +28,9 @@
 import sys, os, time
 import os.path as osp
 
-from PyQt4.QtGui import QMenu, QApplication, QCursor
-from PyQt4.QtCore import Qt, QString, QCoreApplication, SIGNAL, pyqtProperty
+from PyQt4.QtGui import QMenu, QApplication, QCursor, QToolTip
+from PyQt4.QtCore import (Qt, QString, QCoreApplication, SIGNAL, pyqtProperty,
+                          QStringList)
 from PyQt4.Qsci import QsciScintilla, QsciLexerPython
 
 # For debugging purpose:
@@ -38,9 +39,10 @@ STDERR = sys.stderr
 
 # Local import
 from PyQtShell import __version__, encoding
-from PyQtShell.config import CONF, get_icon
+from PyQtShell.config import CONF, get_icon, get_font
+from PyQtShell.dochelpers import getobj, getargtxt
 from PyQtShell.qthelpers import (translate, keybinding, create_action,
-                                 add_actions)
+                                 add_actions, restore_keyevent)
 from PyQtShell.widgets.qscibase import QsciBase
 from PyQtShell.widgets.shellhelpers import get_error_match
 
@@ -67,6 +69,8 @@ class QsciTerminal(QsciBase):
         self.current_prompt_pos = None
         self.new_input_line = True
         
+        self.docviewer = None
+        
         # History
         self.max_history_entries = max_history_entries
         self.histidx = None
@@ -74,6 +78,25 @@ class QsciTerminal(QsciBase):
         assert isinstance(history_filename, (str, unicode))
         self.history_filename = history_filename
         self.rawhistory, self.history = self.load_history()
+        
+        # Code completion / calltips
+        self.completion_chars = 0
+        self.calltip_index = None
+        self.setAutoCompletionThreshold( \
+            CONF.get('external_shell', 'autocompletion/threshold') )
+        self.setAutoCompletionCaseSensitivity( \
+            CONF.get('external_shell', 'autocompletion/case-sensitivity') )
+        self.setAutoCompletionShowSingle( \
+            CONF.get('external_shell', 'autocompletion/select-single') )
+        if CONF.get('external_shell', 'autocompletion/from-document'):
+            self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+        else:
+            self.setAutoCompletionSource(QsciScintilla.AcsNone)
+        self.connect(self, SIGNAL('userListActivated(int, const QString)'),
+                     self.completion_list_selected)
+        
+        # Call-tips
+        self.calltips = True
             
         # Context menu
         self.menu = None
@@ -98,6 +121,11 @@ class QsciTerminal(QsciBase):
 
         # Give focus to widget
         self.setFocus()
+        
+        
+    def set_calltips(self, state):
+        """Set calltips state"""
+        self.calltips = state
             
                 
     def setup_scintilla(self):
@@ -229,32 +257,59 @@ class QsciTerminal(QsciBase):
         
         
     #------ Basic keypress event handler
+    def on_enter(self, command):
+        """on_enter"""
+        self.emit(SIGNAL("execute(QString)"), command)
+        self.add_to_history(command)
+        self.new_input_line = True
+        
     def keyPressEvent(self, event):
         """
         Reimplement Qt Method
         Basic keypress event handler
         (reimplemented in ShellBaseWidget to add more sophisticated features)
         """
-        text = event.text()
-        key = event.key()
-        ctrl = event.modifiers() & Qt.ControlModifier
-        shift = event.modifiers() & Qt.ShiftModifier
-        last_line = self.lines()-1
-
         if self.new_input_line:
             # Move cursor to end
             self.move_cursor_to_end()
             self.current_prompt_pos = self.getCursorPosition()
             self.new_input_line = False
+            
+        self.process_keyevent(event)
+        
+    def process_keyevent(self, event):
+        """Process keypress event"""
+        event, text, key, ctrl, shift = restore_keyevent(event)
+        
+        last_line = self.lines()-1
+        
+        # Is cursor on the last line? and after prompt?
+        if len(text):
+            if self.hasSelectedText():
+                self.check_selection()
+            line, index = self.getCursorPosition()
+            _pline, pindex = self.current_prompt_pos
+            if line != last_line:
+                # Moving cursor to the end of the last line
+                self.move_cursor_to_end()
+            elif index < pindex:
+                # Moving cursor after prompt
+                self.setCursorPosition(line, pindex)
 
         line, index = self.getCursorPosition()
 
         if key == Qt.Key_Return or key == Qt.Key_Enter:
-            self.insert_text('\n', at_end=True)
-            command = self.input_buffer
-            self.emit(SIGNAL("execute(QString)"), command)
-            self.add_to_history(command)
-            self.new_input_line = True
+            if self.is_cursor_on_last_line():
+                if self.isListActive():
+                    self.SendScintilla(QsciScintilla.SCI_NEWLINE)
+                else:
+                    self.insert_text('\n', at_end=True)
+                    command = self.input_buffer
+                    self.on_enter(command)
+            # add and run selection
+            else:
+                text = self.selectedText()
+                self.insert_text(text, at_end=True)
             
         elif key == Qt.Key_Delete:
             if self.hasSelectedText():
@@ -272,6 +327,19 @@ class QsciTerminal(QsciBase):
                 return
             elif self.is_cursor_on_last_line():
                 self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
+            
+        elif key == Qt.Key_Tab:
+            if self.isListActive():
+                self.SendScintilla(QsciScintilla.SCI_TAB)
+            elif self.is_cursor_on_last_line():
+                buf = self.get_current_line_to_cursor()
+                empty_line = not buf.strip()
+                if empty_line:
+                    self.SendScintilla(QsciScintilla.SCI_TAB)
+                elif buf.endswith('.'):
+                    self.show_code_completion(self.get_last_obj())
+                elif buf[-1] in ['"', "'"]:
+                    self.show_file_completion()
 
         elif key == Qt.Key_Left:
             if self.current_prompt_pos == (line, index):
@@ -360,6 +428,29 @@ class QsciTerminal(QsciBase):
             
         elif key == Qt.Key_Y and ctrl:
             self.redo()
+                
+        elif key == Qt.Key_Question:
+            if self.get_current_line_to_cursor():
+                self.show_docstring(self.get_last_obj())
+                _, self.calltip_index = self.getCursorPosition()
+            self.insert_text(text)
+            # In case calltip and completion are shown at the same time:
+            if self.isListActive():
+                self.completion_chars += 1
+            
+        elif key == Qt.Key_ParenLeft:
+            self.cancelList()
+            if self.get_current_line_to_cursor():
+                self.show_docstring(self.get_last_obj(), call=True)
+                _, self.calltip_index = self.getCursorPosition()
+            self.insert_text(text)
+            
+        elif key == Qt.Key_Period:
+            # Enable auto-completion only if last token isn't a float
+            self.insert_text(text)
+            last_obj = self.get_last_obj()
+            if last_obj and not last_obj[-1].isdigit():
+                self.show_code_completion(last_obj)
 
         elif ((key == Qt.Key_Plus) and ctrl) \
              or ((key==Qt.Key_Equal) and shift and ctrl):
@@ -369,14 +460,27 @@ class QsciTerminal(QsciBase):
             self.zoomOut()
 
         elif text.length():
-            if self.hasSelectedText():
-                self.check_selection()
             self.hist_wholeline = False
             QsciScintilla.keyPressEvent(self, event)
+            if self.isListActive():
+                self.completion_chars += 1
                 
         else:
             # Let the parent widget handle the key press event
             event.ignore()
+
+        
+        if QToolTip.isVisible():
+            # Hide calltip when necessary (this is handled here because
+            # QScintilla does not support user-defined calltips)
+            _, index = self.getCursorPosition() # need the new index
+            try:
+                if (self.text(line)[self.calltip_index] not in ['?','(']) or \
+                   index < self.calltip_index or \
+                   key in (Qt.Key_ParenRight, Qt.Key_Period, Qt.Key_Tab):
+                    QToolTip.hideText()
+            except (IndexError, TypeError):
+                QToolTip.hideText()
         
         
     #------ History Management
@@ -400,13 +504,12 @@ class QsciTerminal(QsciBase):
         encoding.writelines(self.rawhistory, self.history_filename)
         
     def add_to_history(self, command):
-        """Add command to history
-        commmand string must end with '\n'"""
+        """Add command to history"""
         command = unicode(command)
-        if not command.endswith('\n') or command == '\n' \
-           or command.startswith('Traceback'):
+        if command in ['', '\n'] or command.startswith('Traceback'):
             return
-        command = command[:-1]
+        if command.endswith('\n'):
+            command = command[:-1]
         self.histidx = None
         while len(self.history) >= self.max_history_entries:
             del self.history[0]
@@ -491,8 +594,110 @@ class QsciTerminal(QsciBase):
         self.repaint()
         # Clear input buffer:
         self.new_input_line = True
+    
+  
+    #------ Code Completion / Calltips        
+    def completion_list_selected(self, userlist_id, seltxt):
+        """
+        Private slot to handle the selection from the completion list
+        userlist_id: ID of the user list (should be 1) (integer)
+        seltxt: selected text (QString)
+        """
+        if userlist_id == 1:
+            cline, cindex = self.getCursorPosition()
+            self.setSelection(cline, cindex-self.completion_chars+1,
+                              cline, cindex)
+            self.removeSelectedText()
+            seltxt = unicode(seltxt)
+            self.insert_text(seltxt)
+            self.completion_chars = 0
 
+    def show_completion_list(self, completions, text):
+        """Private method to display the possible completions"""
+        if len(completions) == 0:
+            return
+        if len(completions) > 1:
+            self.showUserList(1, QStringList(sorted(completions)))
+            self.completion_chars = 1
+        else:
+            txt = completions[0]
+            if text != "":
+                txt = txt.replace(text, "")
+            self.insert_text(txt)
+            self.completion_chars = 0
+            
+    def eval(self, text):
+        """Is text a valid object?"""
+        try:
+            return eval(text), True
+        except:
+            try:
+                return __import__(text), True
+            except:
+                return None, False
+
+    def show_code_completion(self, text):
+        """
+        Display a completion list based on the last token
+        """
+        obj, valid = self.eval(text)
+        if valid:
+            self.show_completion_list(dir(obj), 'dir(%s)' % text) 
+
+    def show_file_completion(self):
+        """
+        Display a completion list for files and directories
+        """
+        cwd = os.getcwdu()
+        self.show_completion_list(os.listdir(cwd), cwd)
+    
+    def show_docstring(self, text, call=False):
+        """Show docstring or arguments"""
+        if not self.calltips:
+            return
+        obj, valid = self.eval(text)
+        if valid:
+            tipsize = CONF.get('calltips', 'size')
+            font = get_font('calltips')
+            done = False
+            if (self.docviewer is not None) and \
+               (self.docviewer.dockwidget.isVisible()):
+                # DocViewer widget exists and is visible
+                self.docviewer.refresh(text)
+                if call:
+                    # Display argument list if this is function call
+                    if callable(obj):
+                        arglist = getargtxt(obj)
+                        if arglist:
+                            done = True
+                            self.show_calltip(self.tr("Arguments"),
+                                              arglist, tipsize, font,
+                                              color='#129625')
+                    else:
+                        done = True
+                        self.show_calltip(self.tr("Warning"),
+                                          self.tr("Object `%1` is not callable"
+                                                  " (i.e. not a function, "
+                                                  "a method or a class "
+                                                  "constructor)").arg(text),
+                                          font=font, color='#FF0000')
+            if not done:
+                self.show_calltip(self.tr("Documentation"),
+                                  obj.__doc__, tipsize, font)
         
+        
+    #------ Miscellanous
+    def get_last_obj(self, last=False):
+        """
+        Return the last valid object on the current line
+        """
+        return getobj(self.get_current_line_to_cursor(), last=last)
+        
+    def set_docviewer(self, docviewer):
+        """Set DocViewer DockWidget reference"""
+        self.docviewer = docviewer
+
+
     #------ Utilities
     def getpointy(self, cursor=True, end=False, prompt=False):
         """Return point y of cursor, end or prompt"""
@@ -546,12 +751,8 @@ class QsciTerminal(QsciBase):
     def focusNextPrevChild(self, next):
         """
         Reimplemented to stop Tab moving to the next window
-        While the user is entering a multi-line command, the movement to
-        the next window by the Tab key being pressed is suppressed.
-        next: next window
-        @return flag indicating the movement
         """
-        if next and self.more:
+        if next:
             return False
         return QsciScintilla.focusNextPrevChild(self, next)
         

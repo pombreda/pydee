@@ -24,7 +24,7 @@ import os.path as osp
 
 from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                          QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
-                         QKeySequence, QToolButton)
+                         QKeySequence, QToolButton, QKeyEvent)
 from PyQt4.QtCore import SIGNAL, QVariant, QObject, Qt
 
 # Local import
@@ -55,6 +55,27 @@ def mimedata2url(source):
         paths = [unicode(url.toString()) for url in source.urls()]
         return [path[8:] for path in paths if path.startswith(r"file://") \
                 and (path.endswith(".py") or path.endswith(".pyw"))]
+
+def keyevent2tuple(event):
+    """Convert QKeyEvent instance into a tuple"""
+    return (event.type(), event.key(), event.modifiers(), event.text(),
+            event.isAutoRepeat(), event.count())
+    
+def tuple2keyevent(past_event):
+    """Convert tuple into a QKeyEvent instance"""
+    return QKeyEvent(*past_event)
+
+def restore_keyevent(event):
+    if isinstance(event, tuple):
+        _, key, modifiers, text, _, _ = event
+        event = tuple2keyevent(event)
+    else:
+        text = event.text()
+        modifiers = event.modifiers()
+        key = event.key()
+    ctrl = modifiers & Qt.ControlModifier
+    shift = modifiers & Qt.ShiftModifier
+    return event, text, key, ctrl, shift
 
 def create_toolbutton(parent, icon=None, text=None, callback=None, tip=None):
     """Create a QToolButton"""
@@ -109,6 +130,7 @@ def add_actions(target, actions):
         else:
             target.addAction(action)
         previous_action = action
+
 
 def get_std_icon(name, size=None):
     """Get standard platform icon

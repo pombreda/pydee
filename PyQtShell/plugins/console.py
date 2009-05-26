@@ -60,6 +60,8 @@ class Console(PluginWidget):
         # Shell
         self.shell = ShellBaseWidget(parent, namespace, commands,
                                      message, debug, exitfunc, profile)
+        self.connect(self.shell, SIGNAL("go_to_error(QString)"),
+                     self.go_to_error)
         
         PluginWidget.__init__(self, parent)
         
@@ -83,6 +85,10 @@ class Console(PluginWidget):
             
         # Accepting drops
         self.setAcceptDrops(True)
+        
+    def set_docviewer(self, docviewer):
+        """Bind docviewer instance to this console"""
+        self.shell.docviewer = docviewer
         
     def change_cursor(self, state):
         """Change widget cursor"""
@@ -196,7 +202,7 @@ class Console(PluginWidget):
             
     def go_to_error(self, text):
         """Go to error if relevant"""
-        match = get_error_match(text)
+        match = get_error_match(unicode(text))
         if match:
             fname, lnb = match.groups()
             self.edit_script(fname, int(lnb))
