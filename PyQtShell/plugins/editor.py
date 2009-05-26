@@ -461,9 +461,8 @@ class Editor(PluginWidget):
                 self.save()
             if self.editors[index].isModified():
                 answer = QMessageBox.question(self, self.get_widget_title(),
-                    osp.basename(filename)+' '+ \
-                    self.tr(" has been modified.\nDo you want to save changes?"),
-                    buttons)
+                    self.tr("%1 has been modified.\nDo you want to save "
+                            "changes?").arg(osp.basename(filename)), buttons)
                 if answer == QMessageBox.Yes:
                     self.save()
                 elif answer == QMessageBox.Cancel:

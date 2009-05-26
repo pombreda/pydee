@@ -460,10 +460,10 @@
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="464"/>
+        <location filename="plugins/editor.py" line="465"/>
         <source> has been modified.
 Do you want to save changes?</source>
-        <translation>a été modifié. Souhaitez-vous sauvegarder ces changements ?</translation>
+        <translation type="obsolete">a été modifié. Souhaitez-vous sauvegarder ces changements ?</translation>
     </message>
     <message>
         <location filename="plugins/editor.py" line="368"/>
@@ -745,6 +745,13 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Déboguer le script en cours d&apos;édition dans la console externe
 (la console externe est exécutée dans un processus séparé)</translation>
     </message>
+    <message>
+        <location filename="plugins/editor.py" line="465"/>
+        <source>%1 has been modified.
+Do you want to save changes?</source>
+        <translation>%1 a été modifié.
+Souhaitez-vous sauvegarder ces changements ?</translation>
+    </message>
 </context>
 <context>
     <name>Explorer</name>
@@ -847,7 +854,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
 <context>
     <name>ExternalConsole</name>
     <message>
-        <location filename="plugins/externalconsole.py" line="67"/>
+        <location filename="plugins/externalconsole.py" line="68"/>
         <source>Close current console</source>
         <translation>Fermer la console</translation>
     </message>
@@ -857,59 +864,78 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation type="obsolete">Console</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="120"/>
+        <location filename="plugins/externalconsole.py" line="145"/>
         <source>External console</source>
         <translation>Console externe</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="123"/>
+        <location filename="plugins/externalconsole.py" line="148"/>
         <source>Open &amp;interpreter</source>
         <translation>Ouvrir un &amp;interpréteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="124"/>
+        <location filename="plugins/externalconsole.py" line="149"/>
         <source>Open a Python interpreter</source>
         <translation>Ouvrir un interpréteur Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="127"/>
+        <location filename="plugins/externalconsole.py" line="152"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="128"/>
+        <location filename="plugins/externalconsole.py" line="153"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="131"/>
+        <location filename="plugins/externalconsole.py" line="156"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="132"/>
+        <location filename="plugins/externalconsole.py" line="157"/>
         <source>Set shell font style</source>
         <translation>Changer la police d&apos;écriture de la console</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="135"/>
+        <location filename="plugins/externalconsole.py" line="160"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="150"/>
+        <location filename="plugins/externalconsole.py" line="179"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="151"/>
+        <location filename="plugins/externalconsole.py" line="180"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="159"/>
+        <location filename="plugins/externalconsole.py" line="188"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="115"/>
+        <source> is already running in a separate process.
+Do you want to kill the process before starting a new one?</source>
+        <translation type="obsolete"> est déjà en cours d&apos;exécution dans un processus séparé.
+Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="164"/>
+        <source>One tab per script</source>
+        <translation>Un onglet par script</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="114"/>
+        <source>%1 is already running in a separate process.
+Do you want to kill the process before starting a new one?</source>
+        <translation>%1 est déjà en cours d&apos;exécution dans un processus séparé.
+Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translation>
     </message>
 </context>
 <context>

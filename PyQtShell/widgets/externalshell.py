@@ -151,7 +151,7 @@ class ExternalShell(QWidget):
             self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
     
     def run(self):
-        if self.fname != startup.__file__:
+        if self.fname == startup.__file__:
             self.create_process()
         else:
             arguments, valid = QInputDialog.getText(self, self.tr('Arguments'),
