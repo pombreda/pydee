@@ -56,6 +56,8 @@ class QsciEditor(QsciBase):
               ('properties', 'session', 'ini', 'inf', 'reg', 'url',
                'cfg', 'cnf', 'aut', 'iss'): QsciLexerProperties,
               }
+    TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'h')
+    
     def __init__(self, parent=None, margin=True, language=None):
         QsciBase.__init__(self, parent)
         
@@ -65,6 +67,9 @@ class QsciEditor(QsciBase):
                 if language.lower() in key:
                     self.setLexer( self.LEXERS[key](self) )
                     break
+                
+        # Tab always indents (event when cursor is not at the begin of line)
+        self.tab_indents = language in self.TAB_ALWAYS_INDENTS
             
         # Mouse selection copy feature
         self.always_copy_selection = False
@@ -264,17 +269,21 @@ class QsciEditor(QsciBase):
             self.endUndoAction()
         else:
             # Remove prefix from current line
-            line, _index = self.getCursorPosition()
+            line, index = self.getCursorPosition()
             if not self.text(line).startsWith(prefix):
                 return
             self.beginUndoAction()
             self.setSelection(line, 0, line, len(prefix))
             self.removeSelectedText()
+            self.setCursorPosition(line, index-len(prefix))
             self.endUndoAction()
     
     def indent(self):
         """Indent current line or selection"""
-        self.SendScintilla(QsciScintilla.SCI_TAB)
+        if self.hasSelectedText() or self.tab_indents:
+            self.add_prefix( " "*4 )
+        else:
+            self.SendScintilla(QsciScintilla.SCI_TAB)
     
     def unindent(self):
         """Unindent current line or selection"""
