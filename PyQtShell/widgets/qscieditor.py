@@ -296,6 +296,60 @@ class QsciEditor(QsciBase):
     def uncomment(self):
         """Uncomment current line or selection"""
         self.remove_prefix( '#' )
+    
+    def blockcomment(self):
+        """Block comment current line or selection"""
+        comline = '#' + '='*79 + os.linesep
+        if self.hasSelectedText():
+            line_from, _index_from, line_to, _index_to = self.getSelection()
+            lines = range(line_from, line_to+1)
+        else:
+            line, _index = self.getCursorPosition()
+            lines = [line]
+        self.beginUndoAction()
+        self.insertAt( comline, lines[-1]+1, 0 )
+        self.insertAt( comline, lines[0], 0 )
+        for l in lines:
+            self.insertAt( '# ', l+1, 0 )
+        self.endUndoAction()
+        self.setCursorPosition(lines[-1]+2, 80)
+
+    def __is_comment_bar(self, line):
+        comline = '#' + '='*79 + os.linesep
+        self.setSelection(line, 0, line+1, 0)
+        return unicode(self.selectedText()) == comline            
+    
+    def unblockcomment(self):
+        """Un-block comment current line or selection"""
+        line, index = self.getCursorPosition()
+        self.setSelection(line, 0, line, 1)
+        if unicode(self.selectedText()) != '#':
+            self.setCursorPosition(line, index)
+            return
+        # Finding first comment bar
+        line1 = line-1
+        while line1 >= 0 and not self.__is_comment_bar(line1):
+            line1 -= 1
+        if not self.__is_comment_bar(line1):
+            self.setCursorPosition(line, index)
+            return
+        # Finding second comment bar
+        line2 = line+1
+        while line2 < self.lines() and not self.__is_comment_bar(line2):
+            line2 += 1
+        if not self.__is_comment_bar(line2) or line2 > self.lines()-2:
+            self.setCursorPosition(line, index)
+            return
+        lines = range(line1+1, line2)
+        self.beginUndoAction()
+        self.setSelection(line2, 0, line2+1, 0)
+        self.removeSelectedText()
+        for l in lines:
+            self.setSelection(l, 0, l, 2)
+            self.removeSelectedText()
+        self.setSelection(line1, 0, line1+1, 0)
+        self.removeSelectedText()
+        self.endUndoAction()
             
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
