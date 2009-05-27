@@ -47,13 +47,16 @@ from PyQtShell.widgets import startup
 
 class ExternalShell(QWidget):
     """External Shell widget: execute Python script in a separate process"""
-    def __init__(self, parent=None, fname=None, wdir=None,
-                 ask_arguments=False, interact=False, debug=False,
-                 commands=None):
+    def __init__(self, parent=None, fname=None, wdir=None, commands=None,
+                 interact=False, debug=False):
         QWidget.__init__(self, parent)
+        self.interpreter = fname is None
         self.fname = startup.__file__ if fname is None else fname
-        self.directory = osp.dirname(self.fname) if wdir is None else wdir
+        if wdir is None:
+            wdir = osp.dirname(osp.abspath(self.fname))
+        self.wdir = wdir if osp.isdir(wdir) else None
         self.commands = commands
+        self.arguments = ""
         
         self.shell = QsciShell(parent, get_conf_path('.history_extcons.py'))
         self.connect(self.shell, SIGNAL("execute(QString)"),
@@ -67,7 +70,7 @@ class ExternalShell(QWidget):
         self.run_button = create_toolbutton(self, get_icon('execute.png'),
                               self.tr("Run"),
                               tip=self.tr("Run again this program"),
-                              callback=self.run)
+                              callback=self.start)
         self.terminate_button = create_toolbutton(self,
               get_icon('terminate.png'), self.tr("Terminate"),
               tip=self.tr("Attempts to terminate the process.\n"
@@ -83,6 +86,10 @@ class ExternalShell(QWidget):
         self.interact_check.setChecked(interact)
         self.debug_check = QCheckBox(self.tr("Debug"), self)
         self.debug_check.setChecked(debug)
+        if self.interpreter:
+            self.interact_check.hide()
+            self.debug_check.hide()
+            self.terminate_button.hide()
         
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.state_label)
@@ -102,19 +109,13 @@ class ExternalShell(QWidget):
         self.resize(640, 480)
         if parent is None:
             self.setWindowIcon(get_icon('python.png'))
-        self.setWindowTitle(self.tr("Console"))
+            self.setWindowTitle(self.tr("Console"))
 
         self.t0 = None
         self.timer = QTimer(self)
 
-        self.arguments = ""
         self.process = None
         
-        if ask_arguments:
-            self.run()
-        else:
-            self.create_process()
-
     def show_time(self, end=False):
         elapsed_time = time()-self.t0
         if elapsed_time > 24*3600: # More than a day...!
@@ -130,7 +131,8 @@ class ExternalShell(QWidget):
         self.time_label.setText(text)
         
     def closeEvent(self, event):
-        self.process.kill()
+        if self.process is not None:
+            self.process.kill()
         self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
     
     def set_running_state(self, state=True):
@@ -150,47 +152,58 @@ class ExternalShell(QWidget):
             self.state_label.setText(self.tr('Terminated.'))
             self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
     
-    def run(self):
-        if self.fname == startup.__file__:
-            self.create_process()
-        else:
-            arguments, valid = QInputDialog.getText(self, self.tr('Arguments'),
-                              self.tr('Command line arguments:'),
-                              QLineEdit.Normal,
-                              self.arguments)
-            if valid:
-                self.arguments = unicode(arguments)
-                self.create_process(self.arguments.split(' ') if self.arguments \
-                                    else None)
-            else:
-                self.set_running_state(False)
+    def start(self, ask_for_arguments=False):
+        """Start shell"""
+        if ask_for_arguments and not self.get_arguments():
+            self.set_running_state(False)
+            return
+        self.create_process()
+
+    def get_arguments(self):
+        arguments, valid = QInputDialog.getText(self, self.tr('Arguments'),
+                          self.tr('Command line arguments:'),
+                          QLineEdit.Normal, self.arguments)
+        if valid:
+            self.arguments = unicode(arguments)
+        return valid
     
-    def create_process(self, args=None):
+    def create_process(self):
         self.shell.clear()
+        # Arguments
         p_args = ['-u']
         if self.interact_check.isChecked():
             p_args.append('-i')
         if self.debug_check.isChecked():
             p_args.extend(['-m', 'pdb'])
         p_args.append(self.fname)
-        if args:
-            p_args.extend(args)
+        if self.arguments:
+            p_args.extend( self.arguments.split(' ') )
+            
         self.process = QProcess(self)
-        self.process.setWorkingDirectory(self.directory)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
-        if self.commands:
+        
+        # Working directory
+        if self.wdir is not None:
+            self.process.setWorkingDirectory(self.wdir)
+            
+        if self.commands and self.interpreter:
+            # Python init commands (interpreter only)
             env = self.process.systemEnvironment()
             env.append('PYTHONINITCOMMANDS=%s' % ';'.join(self.commands))
             self.process.setEnvironment(env)
+            
         self.connect(self.process, SIGNAL("readyReadStandardError()"),
                      self.write_error)
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
                      self.write_output)
         self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
                      self.finished)
+        
         self.connect(self.terminate_button, SIGNAL("clicked()"),
                      self.process.terminate)
-        self.connect(self.kill_button, SIGNAL("clicked()"), self.process.kill)
+        self.connect(self.kill_button, SIGNAL("clicked()"),
+                     self.process.kill)
+        
         self.process.start(sys.executable, p_args)
         running = self.process.waitForStarted()
         self.set_running_state(running)
@@ -199,6 +212,7 @@ class ExternalShell(QWidget):
                                  "interpreter failed to start"))
         else:
             self.shell.setFocus()
+            self.emit(SIGNAL('started()'))
         return self.process
     
     def finished(self, exit_code, exit_status):
@@ -242,13 +256,13 @@ class ExternalShell(QWidget):
 
 def test():
     app=QApplication(sys.argv)
-    import PyQtShell
     from PyQtShell.config import get_font
+    import PyQtShell
     shell = ExternalShell(wdir=osp.dirname(PyQtShell.__file__), interact=True)
+    shell.start(False)
     shell.shell.set_font(get_font('external_shell'))
     shell.show()
     sys.exit(app.exec_())
-#    shell.process.waitForFinished()
 
 if __name__ == "__main__":
     test()

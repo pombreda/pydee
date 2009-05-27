@@ -26,7 +26,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QVBoxLayout, QFileDialog, QFontDialog, QMessageBox
-from PyQt4.QtCore import Qt, SIGNAL, QProcess
+from PyQt4.QtCore import Qt, SIGNAL, QProcess, QString
 
 import sys, os
 import os.path as osp
@@ -60,6 +60,8 @@ class ExternalConsole(PluginWidget):
         
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
+        self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
+                     self.refresh)
         self.connect(self.tabwidget, SIGNAL("close_tab(int)"),
                      self.tabwidget.removeTab)
         self.close_button = create_toolbutton(self.tabwidget,
@@ -93,19 +95,12 @@ class ExternalConsole(PluginWidget):
         
     def start(self, fname, wdir, ask_for_arguments, interact, debug):
         """Start new console"""
-        shell = ExternalShell(self, fname, wdir, ask_for_arguments,
-                              interact, debug, self.commands)
-        shell.shell.set_font( get_font(self.ID) )
-        shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
-        shell.shell.set_docviewer(self.docviewer)
-        self.connect(shell.shell, SIGNAL("go_to_error(QString)"),
-                     self.go_to_error)
-        name = "Python" if fname is None else osp.basename(fname)
-        
+        # Note: fname is None <=> Python interpreter
+        fname = unicode(fname) if isinstance(fname, QString) else fname
+        wdir = unicode(wdir) if isinstance(wdir, QString) else wdir
         index = self.shelldict.get(fname)
-        if index is None or not CONF.get(self.ID, 'single_tab'):
-            index = self.tabwidget.addTab(shell, name)
-        else:
+        if index is not None and CONF.get(self.ID, 'single_tab') \
+           and fname is not None:
             old_shell = self.tabwidget.widget(index)
             if old_shell.process.state() == QProcess.Running:
                 answer = QMessageBox.question(self, self.get_widget_title(),
@@ -119,23 +114,36 @@ class ExternalConsole(PluginWidget):
                 else:
                     return
             self.close(index)
-            self.tabwidget.insertTab(index, shell, name)
 
-        self.shelldict[fname] = index
+        # Creating a new external shell
+        shell = ExternalShell(self, fname, wdir, self.commands, interact, debug)        
+        shell.shell.set_font( get_font(self.ID) )
+        shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
+        shell.shell.set_docviewer(self.docviewer)
+        self.connect(shell.shell, SIGNAL("go_to_error(QString)"),
+                     self.go_to_error)
+        name = "Python" if fname is None else osp.basename(fname)
+        if index is None:
+            index = self.tabwidget.addTab(shell, name)
+        else:
+            self.tabwidget.insertTab(index, shell, name)
+        if fname is not None:
+            self.shelldict[fname] = index
                 
+        self.connect(shell, SIGNAL("started()"),
+                     lambda i=index: self.tabwidget.setTabIcon(i,
+                                                  get_icon('execute.png')))
         self.connect(shell, SIGNAL("finished()"),
                      lambda i=index: self.tabwidget.setTabIcon(i,
                                                   get_icon('terminated.png')))
         self.find_widget.set_editor(shell.shell)
         self.tabwidget.setTabToolTip(index, fname if wdir is None else wdir)
-        icon = get_icon('execute.png') if fname is not None \
-               else get_icon('python.png')
-        self.tabwidget.setTabIcon(index, icon)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget:
             self.dockwidget.setVisible(True)
         
-        # Give focus to console
+        # Start process and give focus to console
+        shell.start(ask_for_arguments)
         shell.shell.setFocus()
         
     def get_widget_title(self):
@@ -208,7 +216,12 @@ class ExternalConsole(PluginWidget):
         return True
     
     def refresh(self):
-        pass
+        """Refresh tabwidget"""
+        if self.tabwidget.count():
+            editor = self.tabwidget.currentWidget().shell
+        else:
+            editor = None
+        self.find_widget.set_editor(editor)
     
     def go_to_error(self, text):
         """Go to error if relevant"""
