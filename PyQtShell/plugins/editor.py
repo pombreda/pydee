@@ -256,31 +256,45 @@ class Editor(PluginWidget):
             self.tr("Run and interact"), "Shift+F5",
             tip=self.tr("Run current script in external console and interact "
                         "\nwith Python interpreter when program has finished"
-                        "\n(external console is executed in a separate process)"),
+                        "\n(external console is executed in a "
+                        "separate process)"),
             triggered=lambda: self.exec_script_extconsole(interact=True))
         self.exec_process_args_action = create_action(self,
             self.tr("Run with arguments"), "Ctrl+F5",
             tip=self.tr("Run current script in external console specifying "
                         "command line arguments"
-                        "\n(external console is executed in a separate process)"),
-            triggered=lambda: self.exec_script_extconsole(ask_for_arguments=True))
+                        "\n(external console is executed in a "
+                        "separate process)"),
+            triggered=lambda: self.exec_script_extconsole( \
+                                           ask_for_arguments=True))
         self.exec_process_debug_action = create_action(self,
             self.tr("Debug"), "Ctrl+Shift+F5",
             tip=self.tr("Debug current script in external console"
-                        "\n(external console is executed in a separate process)"),
-            triggered=lambda: self.exec_script_extconsole(ask_for_arguments=True, debug=True))
-        self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+K",
+                        "\n(external console is executed in a "
+                        "separate process)"),
+            triggered=lambda: self.exec_script_extconsole( \
+                                           ask_for_arguments=True, debug=True))
+        self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+3",
             'comment.png', self.tr("Comment current line or selection"),
             triggered = self.comment)
         self.uncomment_action = create_action(self, self.tr("Uncomment"),
-            "Shift+Ctrl+K",
+            "Ctrl+2",
             'uncomment.png', self.tr("Uncomment current line or selection"),
             triggered = self.uncomment)
-        self.indent_action = create_action(self, self.tr("Indent"), "Ctrl+Tab",
+        self.blockcomment_action = create_action(self,
+            self.tr("Add block comment"), "Ctrl+4",
+            tip = self.tr("Add block comment around current line or selection"),
+            triggered = self.blockcomment)
+        self.unblockcomment_action = create_action(self,
+            self.tr("Remove block comment"), "Ctrl+5",
+            tip = self.tr("Remove comment block around "
+                          "current line or selection"),
+            triggered = self.unblockcomment)
+        self.indent_action = create_action(self, self.tr("Indent"), "Tab",
             'indent.png', self.tr("Indent current line or selection"),
             triggered = self.indent)
         self.unindent_action = create_action(self, self.tr("Unindent"),
-            "Shift+Ctrl+Tab",
+            "Shift+Tab",
             'unindent.png', self.tr("Unindent current line or selection"),
             triggered = self.unindent)
         font_action = create_action(self, self.tr("&Font..."), None,
@@ -293,6 +307,7 @@ class Editor(PluginWidget):
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
         menu_actions = (self.comment_action, self.uncomment_action,
+                self.blockcomment_action, self.unblockcomment_action,
                 self.indent_action, self.unindent_action, self.check_action,
                 None, self.exec_action, self.exec_interact_action,
                 self.exec_selected_action, None, self.exec_process_action,
@@ -344,6 +359,16 @@ class Editor(PluginWidget):
         """Uncomment current line or selection"""
         if self.tabwidget.count():
             self.editors[ self.tabwidget.currentIndex() ].uncomment()
+    
+    def blockcomment(self):
+        """Block comment current line or selection"""
+        if self.tabwidget.count():
+            self.editors[ self.tabwidget.currentIndex() ].blockcomment()
+
+    def unblockcomment(self):
+        """Un-block comment current line or selection"""
+        if self.tabwidget.count():
+            self.editors[ self.tabwidget.currentIndex() ].unblockcomment()
         
     def set_workdir(self):
         """Set working directory as current script directory"""
