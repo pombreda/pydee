@@ -328,33 +328,28 @@ class Editor(PluginWidget):
     def indent(self):
         """Indent current line or selection"""
         if self.tabwidget.count():
-            index = self.tabwidget.currentIndex()
-            self.editors[index].indent()
+            self.editors[ self.tabwidget.currentIndex() ].indent()
 
     def unindent(self):
         """Unindent current line or selection"""
         if self.tabwidget.count():
-            index = self.tabwidget.currentIndex()
-            self.editors[index].unindent()
+            self.editors[ self.tabwidget.currentIndex() ].unindent()
     
     def comment(self):
         """Comment current line or selection"""
         if self.tabwidget.count():
-            index = self.tabwidget.currentIndex()
-            self.editors[index].comment()
+            self.editors[ self.tabwidget.currentIndex() ].comment()
 
     def uncomment(self):
         """Uncomment current line or selection"""
         if self.tabwidget.count():
-            index = self.tabwidget.currentIndex()
-            self.editors[index].uncomment()
+            self.editors[ self.tabwidget.currentIndex() ].uncomment()
         
     def set_workdir(self):
         """Set working directory as current script directory"""
-        index = self.tabwidget.currentIndex()
-        if index:
-            filename = self.filenames[index]
-            directory = os.path.dirname(os.path.abspath(filename))
+        if self.tabwidget.count():
+            filename = self.filenames[ self.tabwidget.currentIndex() ]
+            directory = osp.dirname(osp.abspath(filename))
             self.emit(SIGNAL("open_dir(QString)"), directory)
         
     def load_temp_file(self):
@@ -416,8 +411,8 @@ class Editor(PluginWidget):
         """Run current script in another process"""
         if self.save():
             index = self.tabwidget.currentIndex()
-            fname = os.path.abspath(self.filenames[index])
-            wdir = os.path.dirname(fname)
+            fname = osp.abspath(self.filenames[index])
+            wdir = osp.dirname(fname)
             self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool)'),
                       fname, wdir, ask_for_arguments, interact, debug)
     
@@ -518,7 +513,7 @@ class Editor(PluginWidget):
             self.main.console.shell.redirect_stds()
             filenames = list(filenames)
             if len(filenames):
-#                directory = os.path.dirname(unicode(filenames[-1]))
+#                directory = osp.dirname(unicode(filenames[-1]))
 #                self.emit(SIGNAL("open_dir(QString)"), directory)
                 filenames = [osp.normpath(unicode(fname)) for fname in filenames]
             else:
@@ -583,7 +578,7 @@ class Editor(PluginWidget):
             if filename:
                 filename = unicode(filename)
                 self.filenames[index] = filename
-#                directory = os.path.dirname(filename)
+#                directory = osp.dirname(filename)
 #                self.emit(SIGNAL("open_dir(QString)"), directory)
             else:
                 return False
