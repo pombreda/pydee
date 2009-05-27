@@ -524,9 +524,9 @@ class Editor(PluginWidget):
             self.dockwidget.setFocus()
         
         if not isinstance(filenames, (list, QStringList)):
-            filenames = [unicode(filenames)]
+            filenames = [osp.abspath(unicode(filenames))]
         else:
-            filenames = [unicode(fname) for fname in list(filenames)]
+            filenames = [osp.abspath(unicode(fname)) for fname in list(filenames)]
             
         for filename in filenames:
             # -- Do not open an already opened file
