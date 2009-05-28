@@ -25,7 +25,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys
+import sys, re
 from PyQt4.QtGui import QFont, QToolTip
 from PyQt4.QtCore import QPoint
 from PyQt4.Qsci import QsciScintilla
@@ -121,6 +121,16 @@ class QsciBase(QsciScintilla):
         x_pt = self.SendScintilla(QsciScintilla.SCI_POINTXFROMPOSITION, 0, pos)
         y_pt = self.SendScintilla(QsciScintilla.SCI_POINTYFROMPOSITION, 0, pos)
         return x_pt, y_pt
+
+    
+    def is_a_word(self, text):
+        """Is 'text' a word? (according to current lexer)"""
+        re_iter = re.finditer('[^%s]' % self.wordCharacters(), text)
+        try:
+            re_iter.next()
+            return False
+        except StopIteration:
+            return True
 
 
     def clear_selection(self):
