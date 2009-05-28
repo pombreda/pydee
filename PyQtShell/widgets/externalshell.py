@@ -59,7 +59,12 @@ class ExternalShell(QWidget):
         self.commands = commands
         self.arguments = ""
         
-        self.shell = QsciShell(parent, get_conf_path('.history_extcons.py'))
+        history_filename = '.history_extcons'
+        if python:
+            history_filename += '.py'
+        elif os.name == 'nt':
+            history_filename += '.bat'
+        self.shell = QsciShell(parent, get_conf_path(history_filename))
         self.connect(self.shell, SIGNAL("execute(QString)"),
                      self.send_to_process)
         self.connect(self.shell, SIGNAL("keyboard_interrupt()"),
@@ -205,7 +210,10 @@ class ExternalShell(QWidget):
             self.process.setEnvironment(env)
         else:
             # Shell arguments
-            p_args = []
+            if os.name == 'nt':
+                p_args = ['/Q']
+            else:
+                p_args = ['-i']
             
         if self.arguments:
             p_args.extend( self.arguments.split(' ') )
@@ -229,6 +237,16 @@ class ExternalShell(QWidget):
             self.process.setProcessChannelMode(QProcess.MergedChannels)
             if os.name == 'nt':
                 self.process.start('cmd.exe', p_args)
+            else:
+                shell = os.environ.get('SHELL')
+                if shell is None:
+                    QMessageBox.critical(self, self.tr("Error"),
+                                         self.tr("No shell has been "
+                                                 "configured"))
+                    self.set_running_state(False)
+                    return
+                else:
+                    self.process.start(shell, p_args)
             
         running = self.process.waitForStarted()
         self.set_running_state(running)
@@ -269,6 +287,10 @@ class ExternalShell(QWidget):
                 self.shell.write_error(os.linesep)
         
     def send_to_process(self, qstr):
+        if not self.python and qstr[:-1] in ["clear", "cls", "CLS"]:
+            self.shell.clear()
+            self.send_to_process(QString(os.linesep))
+            return
         if not qstr.endsWith('\n'):
             qstr.append('\n')
         self.process.write(qstr.toLocal8Bit())

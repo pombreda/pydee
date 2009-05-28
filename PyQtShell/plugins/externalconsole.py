@@ -166,13 +166,14 @@ class ExternalConsole(PluginWidget):
                             self.tr("Open &interpreter"), None,
                             'python.png', self.tr("Open a Python interpreter"),
                             triggered=self.open_interpreter)
-        console_action = None
         if os.name == 'nt':
-            console_action = create_action(self,
-                                self.tr("Open &command prompt"), None,
-                                'cmdprompt.png',
-                                self.tr("Open a Windows command prompt"),
-                                triggered=self.open_console)
+            text = self.tr("Open &command prompt")
+            tip = self.tr("Open a Windows command prompt")
+        else:
+            text = self.tr("Open &command shell")
+            tip = self.tr("Open a shell window inside Pydee")
+        console_action = create_action(self, text, None, 'cmdprompt.png', tip,
+                            triggered=self.open_console)
         run_action = create_action(self,
                             self.tr("&Run..."), None,
                             'run.png', self.tr("Run a Python script"),
