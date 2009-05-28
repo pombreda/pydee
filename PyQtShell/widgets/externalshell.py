@@ -36,7 +36,7 @@ STDERR = sys.stderr
 from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                          QMessageBox, QLabel, QInputDialog, QLineEdit,
                          QCheckBox)
-from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer
+from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer, Qt
 
 # Local imports
 from PyQtShell.widgets.qscishell import QsciShell
@@ -45,6 +45,7 @@ from PyQtShell.config import get_icon, get_conf_path
 from PyQtShell.widgets import startup
 
 
+#FIXME: encoding issue (typing 'print u"à"' will fail, at least on Windows)
 class ExternalShell(QWidget):
     """External Shell widget: execute Python script in a separate process"""
     def __init__(self, parent=None, fname=None, wdir=None, commands=None,
@@ -192,6 +193,18 @@ class ExternalShell(QWidget):
             env.append('PYTHONINITCOMMANDS=%s' % ';'.join(self.commands))
             self.process.setEnvironment(env)
             
+        # Fix encoding
+        env = self.process.systemEnvironment()
+        import PyQtShell.widgets
+        scpath = osp.dirname(osp.abspath(PyQtShell.widgets.__file__))
+        pypath = "PYTHONPATH"
+        if os.environ.get(pypath) is not None:
+            env.replaceInStrings(pypath+'=', pypath+'='+scpath+';',
+                                 Qt.CaseSensitive)
+        else:
+            env.append(pypath+'='+scpath)
+        self.process.setEnvironment(env)
+            
         self.connect(self.process, SIGNAL("readyReadStandardError()"),
                      self.write_error)
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
@@ -227,7 +240,7 @@ class ExternalShell(QWidget):
         bytes = QByteArray()
         while self.process.bytesAvailable():
             bytes += self.process.readAllStandardOutput()
-        text = QString.fromUtf8(bytes.data())
+        text = QString.fromLocal8Bit(bytes.data())
         self.shell.write(text)
         QApplication.processEvents()
     
@@ -236,7 +249,7 @@ class ExternalShell(QWidget):
         bytes = QByteArray()
         while self.process.bytesAvailable():
             bytes += self.process.readAllStandardError()
-        text = unicode(QString.fromUtf8(bytes.data()))
+        text = unicode(QString.fromLocal8Bit(bytes.data()))
         lines = text.splitlines()
         for index, line in enumerate(lines):
             self.shell.write_error(line)
@@ -246,7 +259,7 @@ class ExternalShell(QWidget):
     def send_to_process(self, qstr):
         if not qstr.endsWith('\n'):
             qstr.append('\n')
-        self.process.write(qstr.toUtf8())
+        self.process.write(qstr.toLocal8Bit())
         self.process.waitForBytesWritten(-1)
         
     def keyboard_interrupt(self):
