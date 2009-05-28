@@ -138,7 +138,7 @@ class Editor(PluginWidget):
         if self.dockwidget:
             self.dockwidget.setWindowTitle(title)
             
-        self.find_widget.set_editor(editor)
+        self.find_widget.set_editor(editor, refresh=False)
         self.change()
 
     def visibility_changed(self, enable):
