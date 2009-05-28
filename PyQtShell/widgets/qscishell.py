@@ -136,6 +136,10 @@ class QsciShell(QsciBase):
         if CONF.get('shell', 'wrapflag'):
             self.setWrapVisualFlags(QsciScintilla.WrapFlagByBorder)
         
+        # Caret
+        self.setCaretForegroundColor(Qt.darkGray)
+        self.setCaretWidth(2)
+        
         # Suppressing Scintilla margins
         self.remove_margins()
         
@@ -721,11 +725,10 @@ class QsciShell(QsciBase):
             return
         if at_end:
             # Insert text at the end of the command line
-            line, col = self.get_end_pos()
-            self.setCursorPosition(line, col)
+            self.move_cursor_to_end()
             self.SendScintilla(QsciScintilla.SCI_STARTSTYLING,
                                self.text().length(), 0xFF)
-            self.insert(text)
+            self.append(text)
             if error:
                 if text.startswith('  File'):
                     self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
@@ -736,10 +739,7 @@ class QsciShell(QsciBase):
             else:
                 self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
                                    len(text), self.lex.Default)
-            self.prline, self.prcol = self.get_end_pos()
-            self.setCursorPosition(self.prline, self.prcol)
-            self.ensureCursorVisible()
-            self.ensureLineVisible(self.prline)
+            self.move_cursor_to_end()
         else:
             # Insert text at current cursor position
             line, col = self.getCursorPosition()
