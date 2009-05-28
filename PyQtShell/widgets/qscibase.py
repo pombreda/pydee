@@ -91,7 +91,7 @@ class QsciBase(QsciScintilla):
     def get_end_pos(self):
         """Return (line, index) position of the last character"""
         line = self.lines() - 1
-        return (line, self.lineLength(line))
+        return (line, self.text(line).length())
 
     def move_cursor_to_start(self):
         """Move cursor to start of text"""
