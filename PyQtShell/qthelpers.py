@@ -100,7 +100,8 @@ def toggle_actions(actions, enable):
                 action.setEnabled(enable)
 
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
-                  toggled=None, triggered=None, data=None):
+                  toggled=None, triggered=None, data=None,
+                  window_context=True):
     """Create a QAction"""
     action = QAction(text, parent)
     if triggered is not None:
@@ -119,6 +120,13 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         action.setStatusTip(tip)
     if data is not None:
         action.setData(QVariant(data))
+    if window_context:
+        action.setShortcutContext(Qt.WindowShortcut)
+    else:
+        #TODO: Hard-code all shortcuts and choose window_context=False
+        # (this will avoid calling shortcuts from another dockwidget
+        #  since the context thing doesn't work quite well with these)
+        action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
     return action
 
 def add_actions(target, actions):

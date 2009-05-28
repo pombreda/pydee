@@ -25,7 +25,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, os
+import sys, os, re
 from PyQt4.QtGui import QMouseEvent, QColor, QMenu
 from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
@@ -85,6 +85,9 @@ class QsciEditor(QsciBase):
         # Context menu
         self.setup_context_menu()
         
+#===============================================================================
+#    QScintilla
+#===============================================================================
     def setup_scintilla(self):
         """Reimplement QsciBase method"""
         QsciBase.setup_scintilla(self)
@@ -118,47 +121,6 @@ class QsciEditor(QsciBase):
         if fcol and bcol:
             self.setFoldMarginColors(QColor(fcol), QColor(bcol))
         
-    def setup_context_menu(self):
-        """Setup context menu"""
-        self.undo_action = create_action(self,
-                           translate("SimpleEditor", "Undo"),
-                           shortcut=keybinding('Undo'),
-                           icon=get_icon('undo.png'), triggered=self.undo)
-        self.redo_action = create_action(self,
-                           translate("SimpleEditor", "Redo"),
-                           shortcut=keybinding('Redo'),
-                           icon=get_icon('redo.png'), triggered=self.redo)
-        self.cut_action = create_action(self,
-                           translate("SimpleEditor", "Cut"),
-                           shortcut=keybinding('Cut'),
-                           icon=get_icon('editcut.png'), triggered=self.cut)
-        self.copy_action = create_action(self,
-                           translate("SimpleEditor", "Copy"),
-                           shortcut=keybinding('Copy'),
-                           icon=get_icon('editcopy.png'), triggered=self.copy)
-        paste_action = create_action(self,
-                           translate("SimpleEditor", "Paste"),
-                           shortcut=keybinding('Paste'),
-                           icon=get_icon('editpaste.png'), triggered=self.paste)
-        self.delete_action = create_action(self,
-                           translate("SimpleEditor", "Delete"),
-                           shortcut=keybinding('Delete'),
-                           icon=get_icon('editdelete.png'),
-                           triggered=self.removeSelectedText)
-        selectall_action = create_action(self,
-                           translate("SimpleEditor", "Select all"),
-                           shortcut=keybinding('SelectAll'),
-                           icon=get_icon('selectall.png'),
-                           triggered=self.selectAll)
-        self.menu = QMenu(self)
-        add_actions(self.menu, (self.undo_action, self.redo_action, None,
-                                self.cut_action, self.copy_action,
-                                paste_action, self.delete_action,
-                                None, selectall_action))        
-        # Read-only context-menu
-        self.readonly_menu = QMenu(self)
-        add_actions(self.readonly_menu, (self.copy_action, None, selectall_action))        
-        
     def setup_api(self):
         """Load and prepare API"""
         if self.lexer() is None:
@@ -181,7 +143,7 @@ class QsciEditor(QsciBase):
                 self.connect(self.api, SIGNAL("apiPreparationFinished()"),
                              self.api.savePrepared)
         return is_api_ready
-
+        
     def lines_changed(self):
         """Update margin"""
         self.setup_margin( get_font('editor', 'margin') )
@@ -220,7 +182,46 @@ class QsciEditor(QsciBase):
         line, col = self.getCursorPosition()
         self.insertAt(text, line, col)
         self.setCursorPosition(line, col + len(unicode(text)))
-    
+        
+#===============================================================================
+#    High-level editor features
+#===============================================================================
+    def setup_editor(self, text, font=None, wrap=True):
+        """Setup Editor"""
+        if font is not None:
+            self.set_font(font)
+        self.set_wrap_mode(wrap)
+        self.setup_api()
+        self.set_text(text)
+        self.setModified(False)
+        
+    def highlight_line(self, linenb):
+        """Highlight line number linenb"""
+        line = unicode(self.get_text()).splitlines()[linenb-1]
+        self.find_text(line)
+
+    def check_syntax(self, filename):
+        """Check module syntax"""
+        f = open(filename, 'r')
+        source = f.read()
+        f.close()
+        if '\r' in source:
+            source = re.sub(r"\r\n", "\n", source)
+            source = re.sub(r"\r", "\n", source)
+        if source and source[-1] != '\n':
+            source = source + '\n'
+        try:
+            # If successful, return the compiled code
+            if compile(source, filename, "exec"):
+                return None
+        except (SyntaxError, OverflowError), err:
+            try:
+                msg, (_errorfilename, lineno, _offset, _line) = err
+                self.highlight_line(lineno)
+            except:
+                msg = "*** " + str(err)
+            return self.tr("There's an error in your program:") + "\n" + msg
+        
     def add_prefix(self, prefix):
         """Add prefix to current line or selected line(s)"""
         if self.hasSelectedText():
@@ -350,12 +351,57 @@ class QsciEditor(QsciBase):
         self.setSelection(line1, 0, line1+1, 0)
         self.removeSelectedText()
         self.endUndoAction()
+    
+#===============================================================================
+#    Qt Event handlers
+#===============================================================================
+    def setup_context_menu(self):
+        """Setup context menu"""
+        self.undo_action = create_action(self,
+                           translate("SimpleEditor", "Undo"),
+                           shortcut=keybinding('Undo'),
+                           icon=get_icon('undo.png'), triggered=self.undo)
+        self.redo_action = create_action(self,
+                           translate("SimpleEditor", "Redo"),
+                           shortcut=keybinding('Redo'),
+                           icon=get_icon('redo.png'), triggered=self.redo)
+        self.cut_action = create_action(self,
+                           translate("SimpleEditor", "Cut"),
+                           shortcut=keybinding('Cut'),
+                           icon=get_icon('editcut.png'), triggered=self.cut)
+        self.copy_action = create_action(self,
+                           translate("SimpleEditor", "Copy"),
+                           shortcut=keybinding('Copy'),
+                           icon=get_icon('editcopy.png'), triggered=self.copy)
+        paste_action = create_action(self,
+                           translate("SimpleEditor", "Paste"),
+                           shortcut=keybinding('Paste'),
+                           icon=get_icon('editpaste.png'), triggered=self.paste)
+        self.delete_action = create_action(self,
+                           translate("SimpleEditor", "Delete"),
+                           shortcut=keybinding('Delete'),
+                           icon=get_icon('editdelete.png'),
+                           triggered=self.removeSelectedText)
+        selectall_action = create_action(self,
+                           translate("SimpleEditor", "Select all"),
+                           shortcut=keybinding('SelectAll'),
+                           icon=get_icon('selectall.png'),
+                           triggered=self.selectAll)
+        self.menu = QMenu(self)
+        add_actions(self.menu, (self.undo_action, self.redo_action, None,
+                                self.cut_action, self.copy_action,
+                                paste_action, self.delete_action,
+                                None, selectall_action))        
+        # Read-only context-menu
+        self.readonly_menu = QMenu(self)
+        add_actions(self.readonly_menu, (self.copy_action, None, selectall_action))        
             
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         key = event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
+        # Zoom in/out
         if ((key == Qt.Key_Plus) and ctrl) \
              or ((key==Qt.Key_Equal) and shift and ctrl):
             self.zoomIn()
@@ -363,6 +409,26 @@ class QsciEditor(QsciBase):
         elif (key == Qt.Key_Minus) and ctrl:
             self.zoomOut()
             event.accept()
+        # Indent/unindent
+        elif key == Qt.Key_Backtab:
+            self.unindent()
+            event.accept()
+        elif (key == Qt.Key_Tab):
+            self.indent()
+            event.accept()
+#TODO: find other shortcuts...
+#        elif (key == Qt.Key_3) and ctrl:
+#            self.comment()
+#            event.accept()
+#        elif (key == Qt.Key_2) and ctrl:
+#            self.uncomment()
+#            event.accept()
+#        elif (key == Qt.Key_4) and ctrl:
+#            self.blockcomment()
+#            event.accept()
+#        elif (key == Qt.Key_5) and ctrl:
+#            self.unblockcomment()
+#            event.accept()
         else:
             QsciScintilla.keyPressEvent(self, event)
             
