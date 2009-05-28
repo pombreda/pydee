@@ -57,6 +57,7 @@ class QsciEditor(QsciBase):
                'cfg', 'cnf', 'aut', 'iss'): QsciLexerProperties,
               }
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'h')
+    OCCURENCE_INDICATOR = QsciScintilla.INDIC_CONTAINER
     
     def __init__(self, parent=None, margin=True, language=None):
         QsciBase.__init__(self, parent)
@@ -74,8 +75,21 @@ class QsciEditor(QsciBase):
         # Mouse selection copy feature
         self.always_copy_selection = False
                 
+        # Mark occurences of the selected word
+        self.connect(self, SIGNAL('cursorPositionChanged(int, int)'),
+                     self.__cursor_position_changed)
+        self.__find_start = None
+        self.__find_end = None
+        self.__find_flags = None
+        self.SendScintilla(QsciScintilla.SCI_INDICSETSTYLE,
+                           self.OCCURENCE_INDICATOR,
+                           QsciScintilla.INDIC_BOX)
+        self.SendScintilla(QsciScintilla.SCI_INDICSETFORE,
+                           self.OCCURENCE_INDICATOR,
+                           0x4400FF)
+                
         if margin:
-            self.connect( self, SIGNAL('linesChanged()'), self.lines_changed )
+            self.connect( self, SIGNAL('linesChanged()'), self.__lines_changed )
         else:
             self.setup_margin(None)
             
@@ -144,9 +158,68 @@ class QsciEditor(QsciBase):
                              self.api.savePrepared)
         return is_api_ready
         
-    def lines_changed(self):
+    def __lines_changed(self):
         """Update margin"""
         self.setup_margin( get_font('editor', 'margin') )
+        
+    def __find_first(self, text):
+        """Find first occurence"""
+        self.__find_flags = QsciScintilla.SCFIND_MATCHCASE | \
+                            QsciScintilla.SCFIND_WHOLEWORD | \
+                            QsciScintilla.SCFIND_WORDSTART
+        self.__find_start = 0
+        line = self.lines()-1
+        self.__find_end = self.position_from_lineindex(line,
+                                                       self.text(line).length())
+        return self.__find_next(text)
+    
+    def __find_next(self, text):
+        """Find next occurence"""
+        if self.__find_start == self.__find_end:
+            return False
+        
+        self.SendScintilla(QsciScintilla.SCI_SETTARGETSTART,
+                           self.__find_start)
+        self.SendScintilla(QsciScintilla.SCI_SETTARGETEND,
+                           self.__find_end)
+        self.SendScintilla(QsciScintilla.SCI_SETSEARCHFLAGS,
+                           self.__find_flags)
+        pos = self.SendScintilla(QsciScintilla.SCI_SEARCHINTARGET, 
+                                 len(text), text)
+        
+        if pos == -1:
+            return False
+        self.__find_start = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
+        return True
+        
+    def __get_found_occurence(self):
+        """Return found occurence"""
+        spos = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
+        epos = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
+        return (spos, epos - spos)
+        
+    def __cursor_position_changed(self):
+        """Cursor position has changed:
+        marking occurences of the currently selected word"""
+        self.SendScintilla(QsciScintilla.SCI_SETINDICATORCURRENT,
+                           self.OCCURENCE_INDICATOR)
+        self.SendScintilla(QsciScintilla.SCI_INDICATORCLEARRANGE,
+                           0, self.length())
+        
+        if not self.hasSelectedText():
+            return
+
+        text = self.selectedText()
+        if not self.is_a_word(text):
+            return
+        
+        ok = self.__find_first(text)
+        while ok:
+            spos = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
+            epos = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
+            self.SendScintilla(QsciScintilla.SCI_INDICATORFILLRANGE,
+                               spos, epos-spos)
+            ok = self.__find_next(text)
 
     def setup_margin(self, font, width=None):
         """Set margin font and width"""
