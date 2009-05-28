@@ -45,12 +45,12 @@ from PyQtShell.config import get_icon, get_conf_path
 from PyQtShell.widgets import startup
 
 
-#FIXME: encoding issue (typing 'print u"à"' will fail, at least on Windows)
 class ExternalShell(QWidget):
     """External Shell widget: execute Python script in a separate process"""
     def __init__(self, parent=None, fname=None, wdir=None, commands=None,
-                 interact=False, debug=False):
+                 interact=False, debug=False, python=True):
         QWidget.__init__(self, parent)
+        self.python = python
         self.interpreter = fname is None
         self.fname = startup.__file__ if fname is None else fname
         if wdir is None:
@@ -87,7 +87,7 @@ class ExternalShell(QWidget):
         self.interact_check.setChecked(interact)
         self.debug_check = QCheckBox(self.tr("Debug"), self)
         self.debug_check.setChecked(debug)
-        if self.interpreter:
+        if self.interpreter or not self.python:
             self.interact_check.hide()
             self.debug_check.hide()
             self.terminate_button.hide()
@@ -170,41 +170,46 @@ class ExternalShell(QWidget):
     
     def create_process(self):
         self.shell.clear()
-        # Arguments
-        p_args = ['-u']
-        if self.interact_check.isChecked():
-            p_args.append('-i')
-        if self.debug_check.isChecked():
-            p_args.extend(['-m', 'pdb'])
-        p_args.append(self.fname)
-        if self.arguments:
-            p_args.extend( self.arguments.split(' ') )
             
         self.process = QProcess(self)
-        self.process.setProcessChannelMode(QProcess.SeparateChannels)
         
         # Working directory
         if self.wdir is not None:
             self.process.setWorkingDirectory(self.wdir)
             
-        if self.commands and self.interpreter:
-            # Python init commands (interpreter only)
+        if self.python:
+            # Python arguments
+            p_args = ['-u']
+            if self.interact_check.isChecked():
+                p_args.append('-i')
+            if self.debug_check.isChecked():
+                p_args.extend(['-m', 'pdb'])
+            p_args.append(self.fname)
+            
+            if self.commands and self.interpreter:
+                # Python init commands (interpreter only)
+                env = self.process.systemEnvironment()
+                env.append('PYTHONINITCOMMANDS=%s' % ';'.join(self.commands))
+                self.process.setEnvironment(env)
+                
+            # Fix encoding
             env = self.process.systemEnvironment()
-            env.append('PYTHONINITCOMMANDS=%s' % ';'.join(self.commands))
+            import PyQtShell.widgets
+            scpath = osp.dirname(osp.abspath(PyQtShell.widgets.__file__))
+            pypath = "PYTHONPATH"
+            if os.environ.get(pypath) is not None:
+                env.replaceInStrings(pypath+'=', pypath+'='+scpath+';',
+                                     Qt.CaseSensitive)
+            else:
+                env.append(pypath+'='+scpath)
             self.process.setEnvironment(env)
-            
-        # Fix encoding
-        env = self.process.systemEnvironment()
-        import PyQtShell.widgets
-        scpath = osp.dirname(osp.abspath(PyQtShell.widgets.__file__))
-        pypath = "PYTHONPATH"
-        if os.environ.get(pypath) is not None:
-            env.replaceInStrings(pypath+'=', pypath+'='+scpath+';',
-                                 Qt.CaseSensitive)
         else:
-            env.append(pypath+'='+scpath)
-        self.process.setEnvironment(env)
+            # Shell arguments
+            p_args = []
             
+        if self.arguments:
+            p_args.extend( self.arguments.split(' ') )
+                        
         self.connect(self.process, SIGNAL("readyReadStandardError()"),
                      self.write_error)
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
@@ -217,12 +222,19 @@ class ExternalShell(QWidget):
         self.connect(self.kill_button, SIGNAL("clicked()"),
                      self.process.kill)
         
-        self.process.start(sys.executable, p_args)
+        if self.python:
+            self.process.setProcessChannelMode(QProcess.SeparateChannels)
+            self.process.start(sys.executable, p_args)
+        else:
+            self.process.setProcessChannelMode(QProcess.MergedChannels)
+            if os.name == 'nt':
+                self.process.start('cmd.exe', p_args)
+            
         running = self.process.waitForStarted()
         self.set_running_state(running)
         if not running:
-            QMessageBox.critical(self, self.tr("Error"), self.tr("Python "
-                                 "interpreter failed to start"))
+            QMessageBox.critical(self, self.tr("Error"),
+                                 self.tr("Process failed to start"))
         else:
             self.shell.setFocus()
             self.emit(SIGNAL('started()'))
@@ -271,7 +283,8 @@ def test():
     app=QApplication(sys.argv)
     from PyQtShell.config import get_font
     import PyQtShell
-    shell = ExternalShell(wdir=osp.dirname(PyQtShell.__file__), interact=True)
+#    shell = ExternalShell(wdir=osp.dirname(PyQtShell.__file__), interact=True)
+    shell = ExternalShell(wdir=osp.dirname(PyQtShell.__file__), python=False)
     shell.start(False)
     shell.shell.set_font(get_font('external_shell'))
     shell.show()

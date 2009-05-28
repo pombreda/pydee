@@ -93,7 +93,8 @@ class ExternalConsole(PluginWidget):
         """Bind docviewer instance to this console"""
         self.docviewer = docviewer
         
-    def start(self, fname, wdir, ask_for_arguments, interact, debug):
+    def start(self, fname, wdir, ask_for_arguments, interact, debug,
+              python=True):
         """Start new console"""
         # Note: fname is None <=> Python interpreter
         fname = unicode(fname) if isinstance(fname, QString) else fname
@@ -116,13 +117,23 @@ class ExternalConsole(PluginWidget):
             self.close(index)
 
         # Creating a new external shell
-        shell = ExternalShell(self, fname, wdir, self.commands, interact, debug)        
+        shell = ExternalShell(self, fname, wdir, self.commands, interact, debug,
+                              python)        
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
         shell.shell.set_docviewer(self.docviewer)
         self.connect(shell.shell, SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
-        name = "Python" if fname is None else osp.basename(fname)
+        if python:
+            if fname is None:
+                name = "Python"
+                icon = get_icon('python.png')
+            else:
+                name = osp.basename(fname)
+                icon = get_icon('execute.png')
+        else:
+            name = "Command Window"
+            icon = get_icon('cmdprompt.png')
         if index is None:
             index = self.tabwidget.addTab(shell, name)
         else:
@@ -131,8 +142,7 @@ class ExternalConsole(PluginWidget):
             self.shelldict[fname] = index
                 
         self.connect(shell, SIGNAL("started()"),
-                     lambda i=index: self.tabwidget.setTabIcon(i,
-                                                  get_icon('execute.png')))
+                     lambda i=index: self.tabwidget.setTabIcon(i, icon))
         self.connect(shell, SIGNAL("finished()"),
                      lambda i=index: self.tabwidget.setTabIcon(i,
                                                   get_icon('terminated.png')))
@@ -156,6 +166,13 @@ class ExternalConsole(PluginWidget):
                             self.tr("Open &interpreter"), None,
                             'python.png', self.tr("Open a Python interpreter"),
                             triggered=self.open_interpreter)
+        console_action = None
+        if os.name == 'nt':
+            console_action = create_action(self,
+                                self.tr("Open &command prompt"), None,
+                                'cmdprompt.png',
+                                self.tr("Open a Windows command prompt"),
+                                triggered=self.open_console)
         run_action = create_action(self,
                             self.tr("&Run..."), None,
                             'run.png', self.tr("Run a Python script"),
@@ -174,11 +191,17 @@ class ExternalConsole(PluginWidget):
         singletab_action.setChecked( CONF.get(self.ID, 'single_tab') )
         self.menu_actions = [interpreter_action, run_action,
                              font_action, wrap_action, singletab_action]
+        if console_action:
+            self.menu_actions.insert(1, console_action)
         return (self.menu_actions, None)
         
     def open_interpreter(self):
         """Open interpreter"""
         self.start(None, os.getcwdu(), False, True, False)
+        
+    def open_console(self):
+        """Open interpreter"""
+        self.start(None, os.getcwdu(), False, True, False, python=False)
         
     def run_script(self):
         """Run a Python script"""
