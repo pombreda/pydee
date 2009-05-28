@@ -90,10 +90,10 @@ DEFAULTS = [
               }),
             ('scintilla',
              {
-              'margins/backgroundcolor' : '#DADADA',
-              'margins/foregroundcolor' : 'white',
-              'foldmarginpattern/backgroundcolor' : '#ECECFF',
-              'foldmarginpattern/foregroundcolor' : '#ECECFF',
+              'margins/backgroundcolor' : 'white',
+              'margins/foregroundcolor' : 'darkGray',
+              'foldmarginpattern/backgroundcolor' : '#EEEEEE',
+              'foldmarginpattern/foregroundcolor' : '#EEEEEE',
               }),
             ('shell',
              {
@@ -139,7 +139,7 @@ DEFAULTS = [
               'font/size' : MEDIUM,
               'font/bold' : False,
               'margin/font/family' : MONOSPACE,
-              'margin/font/size' : SMALL,
+              'margin/font/size' : MEDIUM,
               'margin/font/bold' : False,
               'wrap' : False,
               'wrapflag' : True,
