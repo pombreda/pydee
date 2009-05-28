@@ -136,6 +136,8 @@ class FindReplace(QWidget):
         
     def refresh(self):
         """Refresh widget"""
+        if self.isHidden():
+            return
         state = self.editor is not None
         for widget in self.widgets:
             widget.setEnabled(state)

@@ -54,6 +54,8 @@ from PyQtShell.widgets.findreplace import FindReplace
 from PyQtShell.plugins import PluginWidget
 
 
+#TODO: Implement multiple editor windows
+#      (editor tab -> context menu -> "Open in a new window")
 #TODO: Google-Code feature request: add a class/function browser
 class Editor(PluginWidget):
     """
