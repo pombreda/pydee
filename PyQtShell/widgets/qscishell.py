@@ -524,7 +524,7 @@ class QsciShell(QsciBase):
     def browse_history(self, backward):
         """Browse history"""
         line, index = self.getCursorPosition()
-        if index < self.lineLength(line) and self.hist_wholeline:
+        if index < self.text(line).length() and self.hist_wholeline:
             self.hist_wholeline = False
         tocursor = self.get_current_line_to_cursor()
         text, self.histidx = self.__find_in_history(tocursor,
