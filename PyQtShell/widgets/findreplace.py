@@ -144,10 +144,11 @@ class FindReplace(QWidget):
         if state:
             self.find()
             
-    def set_editor(self, editor):
+    def set_editor(self, editor, refresh=True):
         """Set parent editor"""
         self.editor = editor
-        self.refresh()
+        if refresh:
+            self.refresh()
         
     def find_next(self):
         """Find next occurence"""
