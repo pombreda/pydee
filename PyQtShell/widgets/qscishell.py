@@ -298,7 +298,7 @@ class QsciShell(QsciBase):
 
         line, index = self.getCursorPosition()
 
-        if key == Qt.Key_Return or key == Qt.Key_Enter:
+        if key in (Qt.Key_Return, Qt.Key_Enter):
             if self.is_cursor_on_last_line():
                 if self.isListActive():
                     self.SendScintilla(QsciScintilla.SCI_NEWLINE)

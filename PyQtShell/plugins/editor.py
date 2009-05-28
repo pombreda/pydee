@@ -54,51 +54,6 @@ from PyQtShell.widgets.findreplace import FindReplace
 from PyQtShell.plugins import PluginWidget
 
 
-class CodeEditor(QsciEditor):
-    """
-    Simple Script Editor Widget:
-    QsciEditor -> *CodeEditor* -> Editor
-    """
-    def __init__(self, parent, text, language=None):
-        super(CodeEditor, self).__init__(parent, language=language)
-        self.setup_editor(text)
-        
-    def setup_editor(self, text):
-        """Setup Editor"""
-        self.set_font( get_font('editor') )
-        self.set_wrap_mode( CONF.get('editor', 'wrap') )
-        self.setup_api()
-        self.set_text(text)
-        self.setModified(False)
-        
-    def highlight_line(self, linenb):
-        """Highlight line number linenb"""
-        line = unicode(self.get_text()).splitlines()[linenb-1]
-        self.find_text(line)
-
-    def check_syntax(self, filename):
-        """Check module syntax"""
-        f = open(filename, 'r')
-        source = f.read()
-        f.close()
-        if '\r' in source:
-            source = re.sub(r"\r\n", "\n", source)
-            source = re.sub(r"\r", "\n", source)
-        if source and source[-1] != '\n':
-            source = source + '\n'
-        try:
-            # If successful, return the compiled code
-            if compile(source, filename, "exec"):
-                return None
-        except (SyntaxError, OverflowError), err:
-            try:
-                msg, (_errorfilename, lineno, _offset, _line) = err
-                self.highlight_line(lineno)
-            except:
-                msg = "*** " + str(err)
-            return self.tr("There's an error in your program:") + "\n" + msg
-
-
 #TODO: Google-Code feature request: add a class/function browser
 class Editor(PluginWidget):
     """
@@ -274,29 +229,37 @@ class Editor(PluginWidget):
                         "separate process)"),
             triggered=lambda: self.exec_script_extconsole( \
                                            ask_for_arguments=True, debug=True))
+        
         self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+3",
             'comment.png', self.tr("Comment current line or selection"),
-            triggered = self.comment)
+            triggered=self.comment)
         self.uncomment_action = create_action(self, self.tr("Uncomment"),
             "Ctrl+2",
             'uncomment.png', self.tr("Uncomment current line or selection"),
-            triggered = self.uncomment)
+            triggered=self.uncomment)
         self.blockcomment_action = create_action(self,
             self.tr("Add block comment"), "Ctrl+4",
             tip = self.tr("Add block comment around current line or selection"),
-            triggered = self.blockcomment)
+            triggered=self.blockcomment)
         self.unblockcomment_action = create_action(self,
             self.tr("Remove block comment"), "Ctrl+5",
             tip = self.tr("Remove comment block around "
                           "current line or selection"),
-            triggered = self.unblockcomment)
+            triggered=self.unblockcomment)
+                
+        # ----------------------------------------------------------------------
+        # The following action shortcuts are hard-coded in QsciEditor
+        # keyPressEvent handler (the shortcut is here only to inform user):
+        # (window_context=False -> disable shortcut for other widgets)
         self.indent_action = create_action(self, self.tr("Indent"), "Tab",
             'indent.png', self.tr("Indent current line or selection"),
-            triggered = self.indent)
+            window_context=False)
         self.unindent_action = create_action(self, self.tr("Unindent"),
             "Shift+Tab",
             'unindent.png', self.tr("Unindent current line or selection"),
-            triggered = self.unindent)
+            window_context=False)
+        # ----------------------------------------------------------------------
+        
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set editor font style"),
             triggered=self.change_font)
@@ -327,6 +290,7 @@ class Editor(PluginWidget):
                 self.exec_process_interact_action,self.exec_process_args_action,
                 self.exec_process_debug_action,
                 workdir_action, self.close_action, self.close_all_action,
+                self.blockcomment_action, self.unblockcomment_action,
                 self.comment_action, self.uncomment_action,
                 self.indent_action, self.unindent_action)
         self.tab_actions = (self.save_action, self.save_as_action,
@@ -571,7 +535,9 @@ class Editor(PluginWidget):
                 if ext.startswith('.'):
                     ext = ext[1:] # file extension with leading dot
                 
-                editor = CodeEditor(self, txt, language=ext)
+                editor = QsciEditor(self, language=ext)
+                editor.setup_editor(txt, font=get_font('editor'),
+                                    wrap=CONF.get('editor', 'wrap'))
                 self.connect(editor, SIGNAL('modificationChanged(bool)'),
                              self.change)
                 self.editors.append(editor)
