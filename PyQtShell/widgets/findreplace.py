@@ -113,6 +113,8 @@ class FindReplace(QWidget):
                 self.edit.setText(text)
                 self.edit.selectAll()
                 self.refresh()
+            else:
+                self.edit.selectAll()
         
     def hide(self):
         """Overrides Qt Method"""
