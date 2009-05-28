@@ -84,6 +84,7 @@ class MainWindow(QMainWindow):
         self.splash = QSplashScreen(QPixmap(get_image_path('splash.png'),
                                             'png'))
         self.splash.show()
+        self.set_splash(self.tr("Initializing..."))
         
         # List of satellite widgets (registered in add_dockwidget):
         self.widgetlist = []
