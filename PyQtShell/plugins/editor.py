@@ -30,7 +30,7 @@ from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QFileDialog,
                          QCheckBox, QToolBar, QAction, QComboBox)
 from PyQt4.QtCore import Qt, SIGNAL, QStringList
 
-import os, sys, re
+import os, sys
 import os.path as osp
 
 # For debugging purpose:
