@@ -308,7 +308,6 @@ class Workspace(DictEditorTableView, PluginMixin):
                                 namespace[name][index] = data
                             else:
                                 namespace[name].insert(index, data)
-                            os.remove(fname)
             if self.namespace is None:
                 self.namespace = namespace
             else:
