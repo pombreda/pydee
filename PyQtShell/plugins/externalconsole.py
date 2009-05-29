@@ -154,6 +154,7 @@ class ExternalConsole(PluginWidget):
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget:
             self.dockwidget.setVisible(True)
+            self.dockwidget.raise_()
         
         # Start process and give focus to console
         shell.start(ask_for_arguments)

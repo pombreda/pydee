@@ -194,6 +194,9 @@ class Console(PluginWidget):
         command = "execfile(r'%s')" % filename
         if set_focus:
             self.shell.setFocus()
+            if self.dockwidget:
+                self.dockwidget.setVisible(True)
+                self.dockwidget.raise_()
         if silent:
             self.shell.write(command+'\n')
             self.shell.run_command(command)

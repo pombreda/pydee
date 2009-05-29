@@ -443,7 +443,6 @@ class MainWindow(QMainWindow):
         # Matplotlib figures
         from PyQtShell.plugins.figure import MatplotlibFigure
         if isinstance(child, MatplotlibFigure):
-            dockwidget.setVisible(True)
             # Tabifying
             if self.widgetlist:
                 last_object = self.widgetlist[-1]
@@ -460,6 +459,8 @@ class MainWindow(QMainWindow):
                         # last_object is docked
                         self.tabifyDockWidget(last_object.dockwidget,
                                               dockwidget)
+            dockwidget.setVisible(True)
+            dockwidget.raise_()
                 
         self.widgetlist.append(child)
     
@@ -604,6 +605,7 @@ class MainWindow(QMainWindow):
                               ask_for_arguments, interact, debug):
         """Open external console"""
         self.extconsole.setVisible(True)
+        self.extconsole.raise_()
         self.extconsole.start(unicode(fname), wdir,
                               ask_for_arguments, interact, debug)
 
