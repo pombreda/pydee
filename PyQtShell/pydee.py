@@ -114,7 +114,8 @@ class MainWindow(QMainWindow):
                                      shortcut=keybinding(text),
                                      icon=get_icon(icon_name),
                                      triggered=self.global_callback,
-                                     data=text.lower())
+                                     data=text.lower(),
+                                     window_context=False)
             self.undo_action = create_edit_action("Undo",'undo.png')
             self.redo_action = create_edit_action("Redo", 'redo.png')
             self.copy_action = create_edit_action("Copy", 'editcopy.png')
@@ -124,7 +125,7 @@ class MainWindow(QMainWindow):
                                        translate("SimpleEditor", "Delete"),
                                        icon=get_icon('editdelete.png'),
                                        triggered=self.global_callback,
-                                       data="removeSelectedText")
+                                       data="delete")
             self.alwayscopyselection_action = create_action(self,
                            translate("SimpleEditor", "Always copy selection"),
                            toggled=self.toggle_alwayscopyselection,

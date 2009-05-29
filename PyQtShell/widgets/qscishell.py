@@ -258,6 +258,18 @@ class QsciShell(QsciBase):
             QsciScintilla.copy(self)
         else:
             self.emit(SIGNAL("keyboard_interrupt()"))
+
+    def cut(self):
+        """Cut text"""
+        self.check_selection()
+        if self.hasSelectedText():
+            QsciScintilla.cut(self)
+
+    def delete(self):
+        """Remove selected text"""
+        self.check_selection()
+        if self.hasSelectedText():
+            QsciScintilla.removeSelectedText(self)
         
         
     #------ Basic keypress event handler
@@ -287,6 +299,14 @@ class QsciShell(QsciBase):
         
         last_line = self.lines()-1
         
+        # Copy must be done first to be able to copy read-only text parts
+        # (otherwise, right below, we would remove selection
+        #  if not on current line)                        
+        if key == Qt.Key_C and ctrl:
+            self.copy()
+            event.accept()
+            return
+        
         # Is cursor on the last line? and after prompt?
         if len(text):
             if self.hasSelectedText():
@@ -314,6 +334,7 @@ class QsciShell(QsciBase):
             else:
                 text = self.selectedText()
                 self.insert_text(text, at_end=True)
+            event.accept()
             
         elif key == Qt.Key_Delete:
             if self.hasSelectedText():
@@ -321,8 +342,10 @@ class QsciShell(QsciBase):
                 self.removeSelectedText()
             elif self.is_cursor_on_last_line():
                 self.SendScintilla(QsciScintilla.SCI_CLEAR)
+            event.accept()
             
         elif key == Qt.Key_Backspace:
+            event.accept()
             if self.hasSelectedText():
                 self.check_selection()
                 self.removeSelectedText()
@@ -344,8 +367,10 @@ class QsciShell(QsciBase):
                     self.show_code_completion(self.get_last_obj())
                 elif buf[-1] in ['"', "'"]:
                     self.show_file_completion()
+            event.accept()
 
         elif key == Qt.Key_Left:
+            event.accept()
             if self.current_prompt_pos == (line, index):
                 # Avoid moving cursor on prompt
                 return
@@ -361,6 +386,7 @@ class QsciShell(QsciBase):
                     self.SendScintilla(QsciScintilla.SCI_CHARLEFT)
                 
         elif key == Qt.Key_Right:
+            event.accept()
             if self.is_cursor_at_end():
                 return
             if shift:
@@ -379,12 +405,14 @@ class QsciShell(QsciBase):
                 self.SendScintilla(QsciScintilla.SCI_VCHOME)
             elif self.is_cursor_on_last_line():
                 self.setCursorPosition(*self.current_prompt_pos)
+            event.accept()
 
         elif (key == Qt.Key_End) or ((key == Qt.Key_Down) and ctrl):
             if self.isListActive():
                 self.SendScintilla(QsciScintilla.SCI_LINEEND)
             elif self.is_cursor_on_last_line():
                 self.SendScintilla(QsciScintilla.SCI_LINEEND)
+            event.accept()
 
         elif key == Qt.Key_Up:
             if line != last_line:
@@ -394,6 +422,7 @@ class QsciShell(QsciBase):
                 self.SendScintilla(QsciScintilla.SCI_LINEUP)
             else:
                 self.browse_history(backward=True)
+            event.accept()
                 
         elif key == Qt.Key_Down:
             if line != last_line:
@@ -403,35 +432,40 @@ class QsciShell(QsciBase):
                 self.SendScintilla(QsciScintilla.SCI_LINEDOWN)
             else:
                 self.browse_history(backward=False)
+            event.accept()
             
         elif key == Qt.Key_PageUp:
             if self.isListActive() or self.isCallTipActive():
                 self.SendScintilla(QsciScintilla.SCI_PAGEUP)
+            event.accept()
             
         elif key == Qt.Key_PageDown:
             if self.isListActive() or self.isCallTipActive():
                 self.SendScintilla(QsciScintilla.SCI_PAGEDOWN)
+            event.accept()
 
         elif key == Qt.Key_Escape:
             if self.isListActive() or self.isCallTipActive():
                 self.SendScintilla(QsciScintilla.SCI_CANCEL)
             else:
                 self.clear_line()
-                
-        elif key == Qt.Key_C and ctrl:
-            self.copy()
+            event.accept()
                 
         elif key == Qt.Key_V and ctrl:
             self.paste()
+            event.accept()
             
         elif key == Qt.Key_X and ctrl:
             self.cut()
+            event.accept()
             
         elif key == Qt.Key_Z and ctrl:
             self.undo()
+            event.accept()
             
         elif key == Qt.Key_Y and ctrl:
             self.redo()
+            event.accept()
                 
         elif key == Qt.Key_Question:
             if self.get_current_line_to_cursor():
@@ -441,6 +475,7 @@ class QsciShell(QsciBase):
             # In case calltip and completion are shown at the same time:
             if self.isListActive():
                 self.completion_chars += 1
+            event.accept()
             
         elif key == Qt.Key_ParenLeft:
             self.cancelList()
@@ -448,6 +483,7 @@ class QsciShell(QsciBase):
                 self.show_docstring(self.get_last_obj(), call=True)
                 _, self.calltip_index = self.getCursorPosition()
             self.insert_text(text)
+            event.accept()
             
         elif key == Qt.Key_Period:
             # Enable auto-completion only if last token isn't a float
@@ -455,19 +491,23 @@ class QsciShell(QsciBase):
             last_obj = self.get_last_obj()
             if last_obj and not last_obj[-1].isdigit():
                 self.show_code_completion(last_obj)
+            event.accept()
 
         elif ((key == Qt.Key_Plus) and ctrl) \
              or ((key==Qt.Key_Equal) and shift and ctrl):
             self.zoomIn()
+            event.accept()
 
         elif (key == Qt.Key_Minus) and ctrl:
             self.zoomOut()
+            event.accept()
 
         elif text.length():
             self.hist_wholeline = False
             QsciScintilla.keyPressEvent(self, event)
             if self.isListActive():
                 self.completion_chars += 1
+            event.accept()
                 
         else:
             # Let the parent widget handle the key press event
