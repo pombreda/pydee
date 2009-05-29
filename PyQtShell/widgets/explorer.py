@@ -271,7 +271,7 @@ class ExplorerListWidget(QListWidget):
         """Reimplement Qt Method - handle drag event"""
         item = self.currentItem()
         mimeData = QMimeData()
-        mimeData.setText('r"'+unicode(item.text())+'"')
+        mimeData.setText(unicode(item.text()))
         drag = QDrag(self)
         drag.setMimeData(mimeData)
         drag.exec_()
