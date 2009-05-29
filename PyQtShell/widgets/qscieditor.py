@@ -234,6 +234,11 @@ class QsciEditor(QsciBase):
                 width = log(self.lines(), 10) + 2
             self.setMarginWidth(1, QString('0'*int(width)))
 
+    def delete(self):
+        """Remove selected text"""
+        # Used by global callbacks in Pydee -> delete_action
+        QsciScintilla.removeSelectedText(self)
+
     def set_font(self, font):
         """Set shell font"""
         if self.lexer() is None:
