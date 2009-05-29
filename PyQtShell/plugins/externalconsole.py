@@ -36,7 +36,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from PyQtShell.config import CONF, get_font, get_icon, set_font
-from PyQtShell.qthelpers import create_toolbutton, create_action
+from PyQtShell.qthelpers import create_toolbutton, create_action, mimedata2url
 from PyQtShell.widgets import Tabs
 from PyQtShell.widgets.externalshell import ExternalShell
 from PyQtShell.widgets.shellhelpers import get_error_match
@@ -77,6 +77,9 @@ class ExternalConsole(PluginWidget):
         layout.addWidget(self.find_widget)
         
         self.setLayout(layout)
+            
+        # Accepting drops
+        self.setAcceptDrops(True)
 
     def close(self, index=-1):
         if not self.tabwidget.count():
@@ -93,8 +96,8 @@ class ExternalConsole(PluginWidget):
         """Bind docviewer instance to this console"""
         self.docviewer = docviewer
         
-    def start(self, fname, wdir, ask_for_arguments, interact, debug,
-              python=True):
+    def start(self, fname, wdir=None, ask_for_arguments=False,
+              interact=False, debug=False, python=True):
         """Start new console"""
         # Note: fname is None <=> Python interpreter
         fname = unicode(fname) if isinstance(fname, QString) else fname
@@ -254,3 +257,32 @@ class ExternalConsole(PluginWidget):
             fname, lnb = match.groups()
             self.emit(SIGNAL("edit_goto(QString,int)"),
                       osp.abspath(fname), int(lnb))
+            
+            
+    #----Drag and drop
+    def __is_python_script(self, qstr):
+        """Is it a valid Python script?"""
+        fname = unicode(qstr)
+        return osp.isfile(fname) and \
+               ( fname.endswith('.py') or fname.endswith('.pyw') )
+        
+    def dragEnterEvent(self, event):
+        """Reimplement Qt method
+        Inform Qt about the types of data that the widget accepts"""
+        source = event.mimeData()
+        if source.hasUrls() or \
+           ( source.hasText() and self.__is_python_script(source.text()) ):
+            event.acceptProposedAction()            
+            
+    def dropEvent(self, event):
+        """Reimplement Qt method
+        Unpack dropped data and handle it"""
+        source = event.mimeData()
+        if source.hasText():
+            self.start(source.text())
+        elif source.hasUrls():
+            files = mimedata2url(source)
+            for fname in files:
+                if self.__is_python_script(fname):
+                    self.start(fname)
+        event.acceptProposedAction()
