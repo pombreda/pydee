@@ -39,6 +39,13 @@ from PyQtShell.widgets.explorer import ExplorerWidget
 from PyQtShell.plugins import PluginMixin
 
 
+#TODO: Add "Find in files" feature
+#      -> two more buttons on the toolbar (editable combo boxes):
+#           1. one to enter the search pattern
+#           2. one to choose the file pattern (--> look at the module 'glob')
+#      -> show results in an another tab (allowing multiple results):
+#           hyperlinks in a QTextBrowser?
+
 class Explorer(ExplorerWidget, PluginMixin):
     """File and Directories Explorer DockWidget"""
     ID = 'explorer'

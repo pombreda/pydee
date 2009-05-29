@@ -513,6 +513,7 @@ class Editor(PluginWidget):
         if self.dockwidget:
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
+            self.dockwidget.raise_()
         
         if not isinstance(filenames, (list, QStringList)):
             filenames = [osp.abspath(unicode(filenames))]
@@ -726,6 +727,7 @@ class DocViewer(PluginWidget):
         
         # locked = disable link with Console
         self.locked = False
+        self._last_text = None
 
         # Read-only editor
         self.editor = QsciEditor(self, margin=False, language='py')
@@ -815,8 +817,9 @@ class DocViewer(PluginWidget):
         
     def refresh(self, text=None, force=False):
         """Refresh widget"""
-        if self.locked and not force:
+        if (self.locked and not force):
             return
+        
         if text is None:
             text = self.combo.currentText()
         else:
@@ -826,8 +829,13 @@ class DocViewer(PluginWidget):
                 index = self.combo.findText(text)
             self.combo.insertItem(0, text)
             self.combo.setCurrentIndex(0)
+            
         self.set_help(text)
         self.save_dvhistory()
+        if self.dockwidget and self.dockwidget.isVisible():
+            if text != self._last_text:
+                self.dockwidget.raise_()
+        self._last_text = text
         
     def set_help(self, obj_text):
         """Show help"""
