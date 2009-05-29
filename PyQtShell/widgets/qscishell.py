@@ -118,6 +118,9 @@ class QsciShell(QsciBase):
         
         # Mouse selection copy feature
         self.always_copy_selection = False
+        
+        # Mouse cursor
+        self.__cursor_changed = False
 
         # Give focus to widget
         self.setFocus()
@@ -761,6 +764,10 @@ class QsciShell(QsciBase):
         Insert text at the current cursor position
         or at the end of the command line
         """
+        #TODO: improve the error text styling
+        # -> remove these ugly startswith (replace by a regexp -> see get_error_match)
+        # -> replace the traceback_link_style by an underline QScintilla indicator
+        #    (it should be possible to detect the indicator on mouse hover)
         if error and text.startswith('  File "<'):
             return
         if at_end:
@@ -815,10 +822,13 @@ class QsciShell(QsciBase):
         """Show Pointing Hand Cursor on error messages"""
         if event.modifiers() & Qt.ControlModifier:
             text = unicode(self.text(self.lineAt(event.pos())))
-            if get_error_match(text):
+            if get_error_match(text) and not self.__cursor_changed:
                 QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+                self.__cursor_changed = True
                 return
-        QApplication.restoreOverrideCursor()
+        if self.__cursor_changed:
+            QApplication.restoreOverrideCursor()
+            self.__cursor_changed = False
         QsciScintilla.mouseMoveEvent(self, event)
     
     def mouseReleaseEvent(self, event):
