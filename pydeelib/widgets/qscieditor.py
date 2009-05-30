@@ -165,8 +165,7 @@ class QsciEditor(QsciBase):
     def __find_first(self, text):
         """Find first occurence"""
         self.__find_flags = QsciScintilla.SCFIND_MATCHCASE | \
-                            QsciScintilla.SCFIND_WHOLEWORD | \
-                            QsciScintilla.SCFIND_WORDSTART
+                            QsciScintilla.SCFIND_WHOLEWORD
         self.__find_start = 0
         line = self.lines()-1
         self.__find_end = self.position_from_lineindex(line,
