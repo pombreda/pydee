@@ -275,7 +275,7 @@ class ExternalShell(QWidget):
         bytes = QByteArray()
         while self.process.bytesAvailable():
             bytes += self.process.readAllStandardOutput()
-        if self.python:
+        if self.python or os.name != 'nt':
             text = QString.fromLocal8Bit(bytes.data())
         else:
             text = transcode( str( bytes.data() ) )
@@ -287,7 +287,7 @@ class ExternalShell(QWidget):
         bytes = QByteArray()
         while self.process.bytesAvailable():
             bytes += self.process.readAllStandardError()
-        if self.python:
+        if self.python or os.name != 'nt':
             text = unicode(QString.fromLocal8Bit(bytes.data()))
         else:
             text = transcode( str( bytes.data() ) )
