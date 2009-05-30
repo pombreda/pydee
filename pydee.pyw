@@ -1,3 +1,3 @@
 #!/usr/bin/env python
-from PyQtShell import pydee
+from pydeelib import pydee
 pydee.main()

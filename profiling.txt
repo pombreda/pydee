@@ -9,7 +9,7 @@ observed lack of performance.
 
 No option (or --numpy, or --scipy): 50-60ms
 
-When Explorer widget is disabled (.PyQtShell.ini): 30ms 
+When Explorer widget is disabled (.pydee.ini): 30ms 
 
 --all or --pylab  :
 

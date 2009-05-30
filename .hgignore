@@ -3,7 +3,7 @@
 \.orig$
 ^build/
 ^dist/
-^PyQtShell.egg-info/
+^pydee.egg-info/
 \pypi.txt
 \makepyqt.pyw
 \classbrowser.py
