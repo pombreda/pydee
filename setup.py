@@ -40,9 +40,10 @@ package_data={name: ['*.qm', 'python.api', 'images/*.png',
                      'images/explorer/*.png', 'images/file/*.png',
                      'images/filetypes/*.png', 'images/workspace/*.png',
                      ]}
-scripts = ['pydee.pyw']
 import os
-if os.name == 'posix':
+if os.name == 'nt':
+    scripts = ['pydee.pyw']
+else:
     scripts = ['pydee']
 description = 'Pydee development environment and its PyQt4-based IDE tools: interactive Python shell, Python code editor, workspace (dict/list/string/array editor), doc viewer, history log, environment variables editor, ...'
 long_description = 'pydeelib is intended to be an extension to PyQt4 providing a simple development environment named "Pydee" - a powerful alternative to IDLE (see screenshots: %s) based on independent widgets interacting with each other: workspace (globals explorer with dict/list editor and numpy arrays editor), docstring viewer (calltip), history log, multiline code editor (support drag and drop, autocompletion, syntax coloring, ...), environment variables editor (including a Windows-specific editor to change current user environement variables) and working directory browser.' % google_url
@@ -62,6 +63,7 @@ try:
         },
         )
 except ImportError:
+    from distutils.core import setup
     addl_args = {}
 
 setup(
