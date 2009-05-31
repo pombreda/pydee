@@ -100,13 +100,17 @@ class QsciBase(QsciScintilla):
         cline, cindex = self.getCursorPosition()
         return (cline, cindex) == self.get_end_pos()
 
-    def get_cursor_coordinates(self):
-        """Return cursor x, y point coordinates"""
-        line, index = self.getCursorPosition()
+    def get_coordinates_from_lineindex(self, line, index):
+        """Return cursor x, y point coordinates for line, index position"""
         pos = self.position_from_lineindex(line, index)
         x_pt = self.SendScintilla(QsciScintilla.SCI_POINTXFROMPOSITION, 0, pos)
         y_pt = self.SendScintilla(QsciScintilla.SCI_POINTYFROMPOSITION, 0, pos)
         return x_pt, y_pt
+
+    def get_cursor_coordinates(self):
+        """Return cursor x, y point coordinates"""
+        line, index = self.getCursorPosition()
+        return self.get_coordinates_from_lineindex(line, index)
 
     
     def is_a_word(self, text):

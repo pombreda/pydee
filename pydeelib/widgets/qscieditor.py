@@ -12,8 +12,10 @@
 # pylint: disable-msg=R0201
 
 import sys, os, re
-from PyQt4.QtGui import QMouseEvent, QColor, QMenu
-from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent
+from math import log
+
+from PyQt4.QtGui import QMouseEvent, QColor, QMenu, QPixmap, QToolTip
+from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QPoint
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
                         QsciLexerProperties, QsciLexerBatch)
@@ -22,12 +24,48 @@ from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
 STDOUT = sys.stdout
 
 # Local import
-from pydeelib.config import CONF, get_font, get_icon
+from pydeelib.config import CONF, get_font, get_icon, get_image_path
 from pydeelib.qthelpers import (add_actions, create_action, keybinding,
                                  translate)
 from pydeelib.widgets.qscibase import QsciBase
 
 
+#===============================================================================
+# Pyflakes code analysis
+#===============================================================================
+import compiler
+from pydeelib.pyflakes import checker
+
+def check(filename):
+    try:
+        tree = compiler.parse(file(filename, 'U').read() + '\n')
+    except (SyntaxError, IndentationError), e:
+        message = e.args[0]
+        value = sys.exc_info()[1]
+        try:
+            (lineno, _offset, _text) = value[1][1:]
+        except IndexError:
+            # Could not compile script
+            return
+        return [ (message, lineno, True) ]
+    else:
+        results = []
+        w = checker.Checker(tree, filename)
+        w.messages.sort(lambda a, b: cmp(a.lineno, b.lineno))
+        for warning in w.messages:
+            results.append( (warning.message % warning.message_args,
+                             warning.lineno, False) )
+        return results
+
+if __name__ == '__main__':
+    check_results = check(os.path.abspath("../pydee.py"))
+    for message, line, error in check_results:
+        print "Message: %s -- Line: %s -- Error? %s" % (message, line, error)
+
+
+#===============================================================================
+# QsciEditor widget
+#===============================================================================
 class QsciEditor(QsciBase):
     """
     QScintilla Base Editor Widget
@@ -45,7 +83,8 @@ class QsciEditor(QsciBase):
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'h')
     OCCURENCE_INDICATOR = QsciScintilla.INDIC_CONTAINER
     
-    def __init__(self, parent=None, margin=True, language=None):
+    def __init__(self, parent=None, linenumbers=True, language=None,
+                 code_analysis=False, code_folding=False):
         QsciBase.__init__(self, parent)
         
         # Lexer
@@ -61,7 +100,7 @@ class QsciEditor(QsciBase):
         # Mouse selection copy feature
         self.always_copy_selection = False
                 
-        # Mark occurences of the selected word
+        # Indicate occurences of the selected word
         self.connect(self, SIGNAL('cursorPositionChanged(int, int)'),
                      self.__cursor_position_changed)
         self.__find_start = None
@@ -73,11 +112,19 @@ class QsciEditor(QsciBase):
         self.SendScintilla(QsciScintilla.SCI_INDICSETFORE,
                            self.OCCURENCE_INDICATOR,
                            0x4400FF)
-                
-        if margin:
+
+        # Mark errors, warnings, ...
+        self.markers = []
+        self.marker_lines = {}
+        self.error = self.markerDefine(QPixmap(get_image_path('error.png'),
+                                               'png'))
+        self.warning = self.markerDefine(QPixmap(get_image_path('warning.png'),
+                                                 'png'))
+
+        self.margin_font = get_font('editor', 'margin')
+        if linenumbers:
             self.connect( self, SIGNAL('linesChanged()'), self.__lines_changed )
-        else:
-            self.setup_margin(None)
+        self.setup_margins(linenumbers, code_analysis, code_folding)
             
         # Scintilla Python API
         self.api = None
@@ -99,7 +146,6 @@ class QsciEditor(QsciBase):
         # Indentation
         self.setIndentationGuides(True)
         self.setIndentationGuidesForegroundColor(Qt.lightGray)
-        self.setFolding(QsciScintilla.BoxedFoldStyle)
         
         # 80-columns edge
         self.setEdgeColumn(80)
@@ -108,7 +154,34 @@ class QsciEditor(QsciBase):
         # Auto-completion
         self.setAutoCompletionThreshold(-1)
         self.setAutoCompletionSource(QsciScintilla.AcsAll)
-                
+
+    def setup_margins(self, linenumbers=True,
+                      code_analysis=False, code_folding=False):
+        """Set margin font and width"""
+        for i_margin in range(5):
+            # Reset margin settings
+            self.setMarginWidth(i_margin, 0)
+            self.setMarginLineNumbers(i_margin, False)
+            self.setMarginMarkerMask(i_margin, 0)
+            self.setMarginSensitivity(i_margin, False)
+        if linenumbers:
+            # 1: Line numbers margin
+            self.setMarginLineNumbers(1, True)
+            self.setMarginsFont(self.margin_font)
+            self.update_line_numbers_margin()
+            if code_analysis:
+                # 2: Errors/warnings margin
+                mask = (1 << self.error) | (1 << self.warning)
+                self.setMarginSensitivity(0, True)
+                self.setMarginMarkerMask(0, mask)
+                self.setMarginWidth(0, 14)
+                self.connect(self,
+                     SIGNAL('marginClicked(int,int,Qt::KeyboardModifiers)'),
+                     self.__margin_clicked)
+        if code_folding:
+            # 0: Folding margin
+            self.setMarginWidth(2, 14)
+            self.setFolding(QsciScintilla.BoxedFoldStyle)                
         # Colors
         fcol = CONF.get('scintilla', 'margins/foregroundcolor')
         bcol = CONF.get('scintilla', 'margins/backgroundcolor')
@@ -143,10 +216,6 @@ class QsciEditor(QsciBase):
                 self.connect(self.api, SIGNAL("apiPreparationFinished()"),
                              self.api.savePrepared)
         return is_api_ready
-        
-    def __lines_changed(self):
-        """Update margin"""
-        self.setup_margin( get_font('editor', 'margin') )
         
     def __find_first(self, text):
         """Find first occurence"""
@@ -184,8 +253,10 @@ class QsciEditor(QsciBase):
         return (spos, epos - spos)
         
     def __cursor_position_changed(self):
-        """Cursor position has changed:
-        marking occurences of the currently selected word"""
+        """
+        Cursor position has changed:
+        marking occurences of the currently selected word
+        """
         self.SendScintilla(QsciScintilla.SCI_SETINDICATORCURRENT,
                            self.OCCURENCE_INDICATOR)
         self.SendScintilla(QsciScintilla.SCI_INDICATORCLEARRANGE,
@@ -205,19 +276,15 @@ class QsciEditor(QsciBase):
             self.SendScintilla(QsciScintilla.SCI_INDICATORFILLRANGE,
                                spos, epos-spos)
             ok = self.__find_next(text)
-
-    def setup_margin(self, font, width=None):
-        """Set margin font and width"""
-        if font is None:
-            self.setMarginLineNumbers(1, False)
-            self.setMarginWidth(1, 0)
-        else:
-            self.setMarginLineNumbers(1, True)
-            self.setMarginsFont(font)
-            if width is None:
-                from math import log
-                width = log(self.lines(), 10) + 2
-            self.setMarginWidth(1, QString('0'*int(width)))
+        
+    def __lines_changed(self):
+        """Update margin"""
+        self.update_line_numbers_margin()
+        
+    def update_line_numbers_margin(self):
+        """Update margin width"""
+        width = log(self.lines(), 10) + 2
+        self.setMarginWidth(1, QString('0'*int(width)))
 
     def delete(self):
         """Remove selected text"""
@@ -263,27 +330,35 @@ class QsciEditor(QsciBase):
         line = unicode(self.get_text()).splitlines()[linenb-1]
         self.find_text(line)
 
-    def check_syntax(self, filename):
-        """Check module syntax"""
-        f = open(filename, 'r')
-        source = f.read()
-        f.close()
-        if '\r' in source:
-            source = re.sub(r"\r\n", "\n", source)
-            source = re.sub(r"\r", "\n", source)
-        if source and source[-1] != '\n':
-            source = source + '\n'
-        try:
-            # If successful, return the compiled code
-            if compile(source, filename, "exec"):
-                return None
-        except (SyntaxError, OverflowError), err:
-            try:
-                msg, (_errorfilename, lineno, _offset, _line) = err
-                self.highlight_line(lineno)
-            except:
-                msg = "*** " + str(err)
-            return self.tr("There's an error in your program:") + "\n" + msg
+    def cleanup_code_analysis(self):
+        """Remove all code analysis markers"""
+        for marker in self.markers:
+            self.markerDeleteHandle(marker)
+        self.markers = []
+        
+    #TODO: implement next/previous warning actions/buttons
+    def do_code_analysis(self, filename):
+        """Analyze filename code with pyflakes"""
+        self.cleanup_code_analysis()
+        check_results = check(filename)
+        if check_results is None:
+            # Not able to compile module
+            return
+        for message, line0, error in check_results:
+            line1 = line0 - 1
+            marker = self.markerAdd(line1, 0 if error else 1)
+            self.markers.append(marker)
+            if line1 not in self.marker_lines:
+                self.marker_lines[line1] = []
+            self.marker_lines[line1].append( (message, error) )
+        
+    def __margin_clicked(self, margin, line, modifier):
+        """Margin was clicked, that's for sure!"""
+        if margin == 0 and line in self.marker_lines:
+            for message, error in self.marker_lines[line]:
+                x, y = self.get_coordinates_from_lineindex(line, 0)
+                QToolTip.showText(self.mapToGlobal(QPoint(x, y)),
+                                  message, self)
         
     def add_prefix(self, prefix):
         """Add prefix to current line or selected line(s)"""
