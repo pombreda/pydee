@@ -126,7 +126,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         #TODO: Hard-code all shortcuts and choose window_context=False
         # (this will avoid calling shortcuts from another dockwidget
         #  since the context thing doesn't work quite well with these)
-        action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        action.setShortcutContext(Qt.WidgetShortcut)
     return action
 
 def add_actions(target, actions):
