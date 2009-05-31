@@ -1,34 +1,40 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-#    Copyright © 2009 Pierre Raybaut
-#
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation; either version 2 of the License, or
-#    (at your option) any later version.
-#    
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#    
-#    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
 """
 formlayout
 ==========
 
 Module creating PyQt4 form dialogs/layouts to edit various type of parameters
 
-Copyright © 2009 Pierre Raybaut
-This software is licensed under the terms of the GNU General Public
-License version 2 as published by the Free Software Foundation.
+
+formlayout License Agreement (MIT License)
+------------------------------------------
+
+Copyright (c) 2009 Pierre Raybaut
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
+__license__ = __doc__
 
 DEBUG = False
 
@@ -38,10 +44,10 @@ STDERR = sys.stderr
 try:
     from PyQt4.QtGui import QFormLayout
 except ImportError:
-    raise ImportError, "Warning: PyQt4 version is outdated (formlayout requires >v4.3)"
+    raise ImportError, "Warning: formlayout requires PyQt4 >v4.3"
 
-from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox,
-                         QIcon, QDialogButtonBox, QHBoxLayout, QVBoxLayout,
+from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox, QIcon,
+                         QStyle, QDialogButtonBox, QHBoxLayout, QVBoxLayout,
                          QDialog, QColor, QPushButton, QCheckBox, QColorDialog,
                          QPixmap, QTabWidget, QApplication, QStackedWidget)
 from PyQt4.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
@@ -55,9 +61,7 @@ if QApplication.startingUp():
 
 class ColorButton(QPushButton):
     """
-    Derived from ColorButton(QToolButton):
-    Copyright (C) 2007 David Boddie <david@boddie.org.uk>
-    Licensed under GNU GPL v2
+    Color choosing push button
     """
     __pyqtSignals__ = ("colorChanged(QColor)",)
     
@@ -300,8 +304,9 @@ class FormDialog(QDialog):
         self.setLayout(layout)
         
         self.setWindowTitle(title)
-        if isinstance(icon, QIcon):
-            self.setWindowIcon(icon)
+        if not isinstance(icon, QIcon):
+            icon = QWidget().style().standardIcon(QStyle.SP_MessageBoxQuestion)
+        self.setWindowIcon(icon)
         
     def accept(self):
         self.data = self.formwidget.get()
