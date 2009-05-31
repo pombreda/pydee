@@ -78,7 +78,7 @@ class Editor(PluginWidget):
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
         
-        self.recent_files = CONF.get('editor', 'recent_files', [])
+        self.recent_files = CONF.get(self.ID, 'recent_files', [])
         self.filenames = []
         self.encodings = []
         self.editors = []
@@ -175,9 +175,6 @@ class Editor(PluginWidget):
             "Ctrl+Maj+W", 'filecloseall.png',
             self.tr("Close all opened scripts"),
             triggered = self.close_all)
-        self.check_action = create_action(self, self.tr("&Check syntax"), "F8",
-            'check.png', self.tr("Check current script for syntax errors"),
-            triggered=self.check_script)
         self.exec_action = create_action(self,
             self.tr("&Run in interactive console"), "F9", 'execute.png',
             self.tr("Run current script in interactive console"),
@@ -254,6 +251,12 @@ class Editor(PluginWidget):
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set editor font style"),
             triggered=self.change_font)
+        analyze_action = create_action(self, self.tr("Code analysis"),
+            toggled=self.toggle_code_analysis)
+        analyze_action.setChecked( CONF.get(self.ID, 'code_analysis') )
+        fold_action = create_action(self, self.tr("Code folding"),
+            toggled=self.toggle_code_folding)
+        fold_action.setChecked( CONF.get(self.ID, 'code_folding') )
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
@@ -262,21 +265,22 @@ class Editor(PluginWidget):
             triggered=self.set_workdir)
         menu_actions = (self.comment_action, self.uncomment_action,
                 self.blockcomment_action, self.unblockcomment_action,
-                self.indent_action, self.unindent_action, self.check_action,
+                self.indent_action, self.unindent_action,
                 None, self.exec_action, self.exec_interact_action,
                 self.exec_selected_action, None, self.exec_process_action,
                 self.exec_process_interact_action,self.exec_process_args_action,
-                self.exec_process_debug_action, None, font_action, wrap_action)
+                self.exec_process_debug_action,
+                None, font_action, wrap_action, fold_action, analyze_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
                 None, self.main.find_action, self.main.replace_action, None,
-                self.check_action, self.exec_action, self.exec_selected_action,
+                self.exec_action, self.exec_selected_action,
                 self.exec_process_action]
         self.dock_toolbar_actions = toolbar_actions + \
                 [self.exec_interact_action, self.comment_action,
                  self.uncomment_action, self.indent_action,
                  self.unindent_action]
         self.file_dependent_actions = (self.save_action, self.save_as_action,
-                self.check_action, self.exec_action, self.exec_interact_action,
+                self.exec_action, self.exec_interact_action,
                 self.exec_selected_action, self.exec_process_action,
                 self.exec_process_interact_action,self.exec_process_args_action,
                 self.exec_process_debug_action,
@@ -285,7 +289,7 @@ class Editor(PluginWidget):
                 self.comment_action, self.uncomment_action,
                 self.indent_action, self.unindent_action)
         self.tab_actions = (self.save_action, self.save_as_action,
-                self.check_action, self.exec_action, self.exec_process_action,
+                self.exec_action, self.exec_process_action,
                 workdir_action, None, self.close_action)
         return (menu_actions, toolbar_actions)        
         
@@ -374,17 +378,10 @@ class Editor(PluginWidget):
             encoding.write(unicode(text), fname, 'utf-8')
             self.load(fname)
     
-    def check_script(self):
-        """Check current script for syntax errors"""
-        if self.save():
-            index = self.tabwidget.currentIndex()
-            errors = self.editors[index].check_syntax(self.filenames[index])
-            title = self.tr("Check syntax")
-            if errors:
-                QMessageBox.critical(self, title, errors)
-            else:
-                QMessageBox.information(self, title,
-                                        self.tr("There is no error in your program.")) 
+    def analyze_script(self):
+        """Analyze current script with pyflakes"""
+        index = self.tabwidget.currentIndex()
+        self.editors[index].do_code_analysis(self.filenames[index])
     
     def exec_script_extconsole(self, ask_for_arguments=False,
                                interact=False, debug=False):
@@ -527,9 +524,12 @@ class Editor(PluginWidget):
                 if ext.startswith('.'):
                     ext = ext[1:] # file extension with leading dot
                 
-                editor = QsciEditor(self, language=ext)
+                editor = QsciEditor(self, language=ext,
+                            linenumbers=True,
+                            code_analysis=CONF.get(self.ID, 'code_analysis'),
+                            code_folding=CONF.get(self.ID, 'code_folding'))
                 editor.setup_editor(txt, font=get_font('editor'),
-                                    wrap=CONF.get('editor', 'wrap'))
+                                    wrap=CONF.get(self.ID, 'wrap'))
                 self.connect(editor, SIGNAL('modificationChanged(bool)'),
                              self.change)
                 self.editors.append(editor)
@@ -543,6 +543,8 @@ class Editor(PluginWidget):
                
                 self.change()
                 self.tabwidget.setCurrentIndex(index)
+                if CONF.get(self.ID, 'code_analysis'):
+                    self.analyze_script()
                 editor.setFocus()
                 self.add_recent_file(filename)
             
@@ -580,6 +582,8 @@ class Editor(PluginWidget):
                                                        self.encodings[index])
                 self.editors[index].setModified(False)
                 self.change()
+                if CONF.get(self.ID, 'code_analysis'):
+                    self.analyze_script()
                 return True
             except IOError, error:
                 QMessageBox.critical(self, self.tr("Save"),
@@ -603,6 +607,26 @@ class Editor(PluginWidget):
             for index in range(0, self.tabwidget.count()):
                 self.editors[index].set_wrap_mode(checked)
             CONF.set(self.ID, 'wrap', checked)
+            
+    def toggle_code_folding(self, checked):
+        """Toggle code folding"""
+        if hasattr(self, 'tabwidget'):
+            for index in range(0, self.tabwidget.count()):
+                self.editors[index].setup_margins(linenumbers=True,
+                          code_folding=checked,
+                          code_analysis=CONF.get(self.ID, 'code_analysis'))
+            CONF.set(self.ID, 'code_folding', checked)
+            
+    def toggle_code_analysis(self, checked):
+        """Toggle code analysis"""
+        if hasattr(self, 'tabwidget'):
+            for index in range(0, self.tabwidget.count()):
+                self.editors[index].setup_margins(linenumbers=True,
+                          code_analysis=checked,
+                          code_folding=CONF.get(self.ID, 'code_folding'))
+            CONF.set(self.ID, 'code_analysis', checked)
+            if checked:
+                self.analyze_script()
     
     def dragEnterEvent(self, event):
         """Reimplement Qt method
@@ -636,7 +660,8 @@ class HistoryLog(PluginWidget):
         PluginWidget.__init__(self, parent)
 
         # Read-only editor
-        self.editor = QsciEditor(self, margin=False, language='py')
+        self.editor = QsciEditor(self, linenumbers=False, language='py',
+                                 code_folding=True)
         self.editor.setReadOnly(True)
         self.editor.set_font( get_font(self.ID) )
         self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )
@@ -719,7 +744,8 @@ class DocViewer(PluginWidget):
         self._last_text = None
 
         # Read-only editor
-        self.editor = QsciEditor(self, margin=False, language='py')
+        self.editor = QsciEditor(self, linenumbers=False, language='py',
+                                 code_folding=True)
         self.editor.setReadOnly(True)
         self.editor.set_font( get_font(self.ID) )
         self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )
