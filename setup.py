@@ -34,12 +34,12 @@ from pydeelib import __version__ as version
 google_url = 'http://%s.googlecode.com' % name
 download_url = '%s/files/%s-%s-py2.5.egg' % (google_url, name, version)
 packages = [libname, '%s.widgets' % libname, '%s.plugins' % libname]
-package_data={name: ['*.qm', 'python.api', 'images/*.png',
-                     'images/console/*.png', 'images/docviewer/*.png',
-                     'images/edit/*.png', 'images/editor/*.png',
-                     'images/explorer/*.png', 'images/file/*.png',
-                     'images/filetypes/*.png', 'images/workspace/*.png',
-                     ]}
+package_data={libname: ['*.qm', 'python.api', 'images/*.png',
+                        'images/console/*.png', 'images/docviewer/*.png',
+                        'images/edit/*.png', 'images/editor/*.png',
+                        'images/explorer/*.png', 'images/file/*.png',
+                        'images/filetypes/*.png', 'images/workspace/*.png',
+                        ]}
 import os
 if os.name == 'nt':
     scripts = ['pydee.pyw']
