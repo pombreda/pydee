@@ -1,31 +1,14 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#    Copyright © 2009 Pierre Raybaut
-#
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation; either version 2 of the License, or
-#    (at your option) any later version.
-#    
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#    
-#    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+# Copyright © 2009 Pierre Raybaut
+# Licensed under the terms of the MIT License
+# (see pydeelib/__init__.py for details)
 
 """
 Pydee
 =====
 
 Interactive Python shell and related widgets based on PyQt4
-
-Copyright © 2009 Pierre Raybaut
-This software is licensed under the terms of the GNU General Public
-License version 2 as published by the Free Software Foundation.
 """
 
 name = 'pydee'
@@ -75,7 +58,7 @@ setup(
       author = "Pierre Raybaut",
       author_email = 'contact@pythonxy.com',
       url = 'http://code.google.com/p/%s/' % name,
-      license = 'GPLv2',
+      license = 'MIT',
       keywords = keywords,
       platforms = ['any'],
       packages = packages,
@@ -83,7 +66,7 @@ setup(
       requires=["PyQt4 (>4.3)"],
       scripts = scripts,
       classifiers = classifiers + [
-        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: OS Independent',
