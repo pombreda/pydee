@@ -108,7 +108,7 @@ class Console(PluginWidget):
         run_action = create_action(self,
                             self.tr("&Run..."), self.tr("Ctrl+R"),
                             'run.png', self.tr("Run a Python script"),
-                            triggered=self.run_script)
+                            triggered=lambda: self.run_script(set_focus=True))
         environ_action = create_action(self,
                             self.tr("Environment variables..."),
                             icon = 'environ.png',

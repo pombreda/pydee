@@ -582,6 +582,7 @@ class MainWindow(QMainWindow):
         interpreter = self.console.shell.start_interpreter(namespace)
         self.workspace.set_interpreter(interpreter)
         self.docviewer.set_interpreter(interpreter)
+        self.console.dockwidget.raise_()
         
     def open_external_console(self, fname, wdir,
                               ask_for_arguments, interact, debug):
