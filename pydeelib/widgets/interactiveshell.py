@@ -29,7 +29,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 from PyQt4.QtGui import QMessageBox, QKeySequence, QApplication
-from PyQt4.QtCore import SIGNAL, QString, QEventLoop
+from PyQt4.QtCore import SIGNAL, QString, QEventLoop, Qt
 
 # Local import
 from pydeelib.qthelpers import (translate, create_action, get_std_icon,
@@ -333,6 +333,12 @@ class InteractiveShell(QsciShell):
         Re-implemented to handle the user input a key at a time.
         event: key event (QKeyEvent)
         """
+        # To enable keyboard interrupt when busy:
+        if event.key() == Qt.Key_C and event.modifiers() & Qt.ControlModifier:
+            self.copy()
+            event.accept()
+            return
+        
         if self.busy and (not self.input_mode):
             # Ignoring all events except KeyboardInterrupt (see above)
             # Keep however these events in self.eventqueue
