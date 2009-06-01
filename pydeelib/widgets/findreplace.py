@@ -11,8 +11,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QKeySequence,
-                         QLabel, QWidget, QLineEdit, QShortcut)
+from PyQt4.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel, QWidget,
+                         QLineEdit)
 from PyQt4.QtCore import SIGNAL, Qt
 
 import sys
@@ -30,8 +30,9 @@ class FindReplace(QWidget):
     """
     STYLE = {False: "background-color:rgb(255, 175, 90);",
              True: ""}
-    def __init__(self, parent):
+    def __init__(self, parent, enable_replace=False):
         QWidget.__init__(self, parent)
+        self.enable_replace = enable_replace
         self.editor = None
         self.setLayout(QGridLayout())
         
@@ -85,10 +86,29 @@ class FindReplace(QWidget):
         
         self.edit.setTabOrder(self.edit, self.replace_edit)
         
-        # Escape shortcut
-        QShortcut(QKeySequence("Escape"), self, self.hide)
-                
-        self.refresh()
+    def keyPressEvent(self, event):
+        """Reimplemented to handle key events"""
+        ctrl = event.modifiers() & Qt.ControlModifier
+        if event.key() == Qt.Key_Escape:
+            self.hide()
+            event.accept()
+            return
+        elif event.key() == Qt.Key_F and ctrl:
+            # Toggle find widgets
+            if self.isVisible():
+                self.hide()
+            else:
+                self.show()
+        elif event.key() == Qt.Key_H and ctrl and self.enable_replace:
+            # Toggle replace widgets
+            if self.replace_widgets[0].isVisible():
+                self.hide_replace()
+                self.edit.setFocus()
+            else:
+                self.show_replace()
+                self.replace_edit.setFocus()
+        else:
+            event.ignore()
         
     def show(self):
         """Overrides Qt Method"""
