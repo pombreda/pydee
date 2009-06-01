@@ -63,6 +63,8 @@ class Editor(PluginWidget):
         
         # Tab widget with close button
         self.tabwidget = Tabs(self, self.tab_actions)
+        self.connect(self.tabwidget, SIGNAL('switch_data(int,int)'),
+                     self.switch_data)
         self.connect(self.tabwidget, SIGNAL("close_tab(int)"), self.close)
         self.close_button = create_toolbutton(self.tabwidget,
                                           icon=get_icon("fileclose.png"),
@@ -127,7 +129,6 @@ class Editor(PluginWidget):
             self.dockwidget.setWindowTitle(title)
             
         self.find_widget.set_editor(editor, refresh=False)
-        self.change()
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
@@ -507,6 +508,19 @@ class Editor(PluginWidget):
             return osp.basename(filename)
         else:
             return unicode(self.tr("Temporary file"))
+        
+    def switch_data(self, index1, index2):
+        """
+        Switching tabs
+        In fact tabs have already been switched by the tabwidget
+        but we have to switch the self.editors/fnames elements too
+        """
+        self.editors[index2], self.editors[index1] = \
+            self.editors[index1], self.editors[index2]
+        self.filenames[index2], self.filenames[index1] = \
+            self.filenames[index1], self.filenames[index2]
+        self.encodings[index2], self.encodings[index1] = \
+            self.encodings[index1], self.encodings[index2]
         
     def load(self, filenames=None, goto=None):
         """Load a text file"""
