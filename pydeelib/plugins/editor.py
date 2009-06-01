@@ -151,7 +151,15 @@ class Editor(PluginWidget):
         elif title.endswith('*'):
             title = title[:-1]
         self.tabwidget.setTabText(index, title)
+        # Toggle save/save all actions state
         self.save_action.setEnabled(state)
+        if self.tabwidget.count() > 1:
+            state = False
+            for ind in range(self.tabwidget.count()):
+                if self.editors[ind].isModified():
+                    state = True
+                    break
+        self.save_all_action.setEnabled(state)
 
     def set_actions(self):
         """Setup actions"""
@@ -159,21 +167,23 @@ class Editor(PluginWidget):
             'filenew.png', self.tr("Create a new Python script"),
             triggered = self.new)
         self.open_action = create_action(self, self.tr("Open..."), "Ctrl+O",
-            'fileopen.png', self.tr("Open a Python script"),
+            'fileopen.png', self.tr("Open text file"),
             triggered = self.load)
-        #TODO: add save_all action
         self.save_action = create_action(self, self.tr("Save"), "Ctrl+S",
-            'filesave.png', self.tr("Save current script"),
+            'filesave.png', self.tr("Save current file"),
             triggered = self.save)
+        self.save_all_action = create_action(self, self.tr("Save all"),
+            "Ctrl+Shift+S", 'save_all.png', self.tr("Save all opened files"),
+            triggered = self.save_all)
         self.save_as_action = create_action(self, self.tr("Save as..."), None,
-            'filesaveas.png', self.tr("Save current script as..."),
+            'filesaveas.png', self.tr("Save current file as..."),
             triggered = self.save_as)
         self.close_action = create_action(self, self.tr("Close"), "Ctrl+W",
-            'fileclose.png', self.tr("Close current script"),
+            'fileclose.png', self.tr("Close current file"),
             triggered = self.close)
         self.close_all_action = create_action(self, self.tr("Close all"),
             "Ctrl+Maj+W", 'filecloseall.png',
-            self.tr("Close all opened scripts"),
+            self.tr("Close all opened files"),
             triggered = self.close_all)
         self.exec_action = create_action(self,
             self.tr("&Run in interactive console"), "F9", 'execute.png',
@@ -263,7 +273,15 @@ class Editor(PluginWidget):
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
-        menu_actions = (self.comment_action, self.uncomment_action,
+        self.file_menu_actions = [self.new_action,
+                                  self.open_action,
+                                  self.save_action,
+                                  self.save_all_action,
+                                  self.save_as_action, None,
+                                  self.close_action,
+                                  self.close_all_action, None,
+                                  ]
+        source_menu_actions = (self.comment_action, self.uncomment_action,
                 self.blockcomment_action, self.unblockcomment_action,
                 self.indent_action, self.unindent_action,
                 None, self.exec_action, self.exec_interact_action,
@@ -272,7 +290,8 @@ class Editor(PluginWidget):
                 self.exec_process_debug_action,
                 None, font_action, wrap_action, fold_action, analyze_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
-                None, self.main.find_action, self.main.replace_action, None,
+                self.save_all_action, None,
+                self.main.find_action, self.main.replace_action, None,
                 self.exec_action, self.exec_selected_action,
                 self.exec_process_action]
         self.dock_toolbar_actions = toolbar_actions + \
@@ -280,10 +299,10 @@ class Editor(PluginWidget):
                  self.uncomment_action, self.indent_action,
                  self.unindent_action]
         self.file_dependent_actions = (self.save_action, self.save_as_action,
-                self.exec_action, self.exec_interact_action,
-                self.exec_selected_action, self.exec_process_action,
-                self.exec_process_interact_action,self.exec_process_args_action,
-                self.exec_process_debug_action,
+                self.save_all_action, self.exec_action,
+                self.exec_interact_action, self.exec_selected_action,
+                self.exec_process_action, self.exec_process_interact_action,
+                self.exec_process_args_action, self.exec_process_debug_action,
                 workdir_action, self.close_action, self.close_all_action,
                 self.blockcomment_action, self.unblockcomment_action,
                 self.comment_action, self.uncomment_action,
@@ -291,7 +310,7 @@ class Editor(PluginWidget):
         self.tab_actions = (self.save_action, self.save_as_action,
                 self.exec_action, self.exec_process_action,
                 workdir_action, None, self.close_action)
-        return (menu_actions, toolbar_actions)        
+        return (source_menu_actions, toolbar_actions)        
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -425,30 +444,50 @@ class Editor(PluginWidget):
         """Ask user to save file if modified"""
         buttons = QMessageBox.Yes | QMessageBox.No
         if cancelable:
-            buttons = buttons | QMessageBox.Cancel
-        for index in range(0, self.tabwidget.count()):
+            buttons |= QMessageBox.Cancel
+        unsaved_nb = 0
+        for index in range(self.tabwidget.count()):
+            if self.editors[index].isModified():
+                unsaved_nb += 1
+        if not unsaved_nb:
+            # No file to save
+            return True
+        if unsaved_nb > 1:
+            buttons |= QMessageBox.YesAll | QMessageBox.NoAll
+        yes_all = False
+        no_all = False
+        for index in range(self.tabwidget.count()):
             self.tabwidget.setCurrentIndex(index)
             filename = self.filenames[index]
-            if filename == self.file_path:
-                self.save()
-            if self.editors[index].isModified():
+            if filename == self.file_path or yes_all:
+                if not self.save():
+                    return False
+            elif self.editors[index].isModified():
                 answer = QMessageBox.question(self, self.get_widget_title(),
-                    self.tr("%1 has been modified.\nDo you want to save "
+                    self.tr("<b>%1</b> has been modified."
+                            "<br>Do you want to save "
                             "changes?").arg(osp.basename(filename)), buttons)
                 if answer == QMessageBox.Yes:
-                    self.save()
+                    if not self.save():
+                        return False
+                elif answer == QMessageBox.YesAll:
+                    if not self.save():
+                        return False
+                    yes_all = True
+                elif answer == QMessageBox.NoAll:
+                    return True
                 elif answer == QMessageBox.Cancel:
                     return False
         return True
     
     def close(self, index=None):
-        """Close current Python script file"""
+        """Close current file"""
         if index is None:
             if self.tabwidget.count():
                 index = self.tabwidget.currentIndex()
             else:
                 self.find_widget.set_editor(None)
-                return        
+                return
         is_ok = self.save_if_changed(cancelable=True)
         if is_ok:
             self.tabwidget.removeTab(index)
@@ -471,7 +510,7 @@ class Editor(PluginWidget):
             return unicode(self.tr("Temporary file"))
         
     def load(self, filenames=None, goto=None):
-        """Load a Python script file"""
+        """Load a text file"""
         if not filenames:
             # Recent files action
             action = self.sender()
@@ -552,7 +591,7 @@ class Editor(PluginWidget):
                 editor.highlight_line(goto)
 
     def save_as(self):
-        """Save the currently edited Python script file"""
+        """Save *as* the currently edited file"""
         if self.tabwidget.count():
             index = self.tabwidget.currentIndex()
             self.main.console.shell.restore_stds()
@@ -569,28 +608,37 @@ class Editor(PluginWidget):
                 return False
             self.save()
     
-    def save(self):
-        """Save the currently edited Python script file"""
-        if self.tabwidget.count():
+    def save(self, index=None):
+        """Save file"""
+        if index is None:
+            # Save the currently edited file
+            if not self.tabwidget.count():
+                return
             index = self.tabwidget.currentIndex()
-            if not self.editors[index].isModified():
-                return True
-            txt = unicode(self.editors[index].get_text())
-            try:
-                self.encodings[index] = encoding.write(txt,
-                                                       self.filenames[index],
-                                                       self.encodings[index])
-                self.editors[index].setModified(False)
-                self.change()
-                if CONF.get(self.ID, 'code_analysis'):
-                    self.analyze_script()
-                return True
-            except IOError, error:
-                QMessageBox.critical(self, self.tr("Save"),
-                self.tr("<b>Unable to save script '%1'</b>"
-                        "<br><br>Error message:<br>%2") \
-                .arg(osp.basename(self.filenames[index])).arg(str(error)))
-                return False
+            
+        if not self.editors[index].isModified():
+            return True
+        txt = unicode(self.editors[index].get_text())
+        try:
+            self.encodings[index] = encoding.write(txt,
+                                                   self.filenames[index],
+                                                   self.encodings[index])
+            self.editors[index].setModified(False)
+            self.change()
+            if CONF.get(self.ID, 'code_analysis'):
+                self.analyze_script()
+            return True
+        except IOError, error:
+            QMessageBox.critical(self, self.tr("Save"),
+            self.tr("<b>Unable to save script '%1'</b>"
+                    "<br><br>Error message:<br>%2") \
+            .arg(osp.basename(self.filenames[index])).arg(str(error)))
+            return False
+        
+    def save_all(self):
+        """Save all opened files"""
+        for index in self.tabwidget.count():
+            self.save(index)
         
     def change_font(self):
         """Change editor font"""
