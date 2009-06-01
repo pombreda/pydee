@@ -95,7 +95,7 @@ DEFAULTS = [
               'traceback_link_style/bold' : True,
               'traceback_link_style/italic' : False,
               'traceback_link_style/underline' : True,
-              'prompt_style/foregroundcolor' : 0x00CC00,
+              'prompt_style/foregroundcolor' : 0x00AA00,
               'prompt_style/backgroundcolor' : 0xFFFFFF,
               'prompt_style/bold' : True,
               'prompt_style/italic' : False,
@@ -231,7 +231,7 @@ DEFAULTS = [
             ]
 
 DEV = not __file__.startswith(sys.prefix)
-DEV = False
+#DEV = False
 CONF = UserConfig('pydee', DEFAULTS, version='0.4.7', load=(not DEV))
 
 def get_conf_path(filename):
