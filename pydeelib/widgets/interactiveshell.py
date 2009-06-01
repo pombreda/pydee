@@ -171,7 +171,7 @@ class InteractiveShell(QsciShell):
         # interpreter banner
         banner = create_banner(self.tr('Type "copyright", "credits" or "license" for more information.'), self.message)
         self.setUndoRedoEnabled(False) #-disable undo/redo for a time being
-        self.write(banner, flush=True)
+        self.write(banner, prompt=True)
 
         # Initial commands
         for cmd in self.commands:
