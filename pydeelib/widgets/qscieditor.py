@@ -355,10 +355,10 @@ class QsciEditor(QsciBase):
     def __margin_clicked(self, margin, line, modifier):
         """Margin was clicked, that's for sure!"""
         if margin == 0 and line in self.marker_lines:
-            for message, error in self.marker_lines[line]:
-                x, y = self.get_coordinates_from_lineindex(line, 0)
-                QToolTip.showText(self.mapToGlobal(QPoint(x, y)),
-                                  message, self)
+            tip = os.linesep.join( [ message for message, _error \
+                                     in self.marker_lines[line] ] )
+            x, y = self.get_coordinates_from_lineindex(line, 0)
+            QToolTip.showText(self.mapToGlobal(QPoint(x, y)), tip, self)
         
     def add_prefix(self, prefix):
         """Add prefix to current line or selected line(s)"""
