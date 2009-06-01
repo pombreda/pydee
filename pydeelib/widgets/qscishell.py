@@ -818,28 +818,40 @@ class QsciShell(QsciBase):
         Re-implemented to handle the mouse press event.
         event: the mouse press event (QMouseEvent)
         """
-        self.setFocus()
-        ctrl = event.modifiers() & Qt.ControlModifier
         if event.button() == Qt.MidButton:
+            self.setFocus()
             self.paste()
-        elif event.button() == Qt.LeftButton and ctrl:
-            text = unicode(self.text(self.lineAt(event.pos())))
-            self.emit(SIGNAL("go_to_error(QString)"), text)
+            event.accept()
         else:
             QsciScintilla.mousePressEvent(self, event)
 
+    def mouseReleaseEvent(self, event):
+        """Go to error"""
+        QsciScintilla.mouseReleaseEvent(self, event)            
+        text = unicode(self.text(self.lineAt(event.pos())))
+        if get_error_match(text) and not self.hasSelectedText():
+            self.emit(SIGNAL("go_to_error(QString)"), text)
+
     def mouseMoveEvent(self, event):
         """Show Pointing Hand Cursor on error messages"""
-        if event.modifiers() & Qt.ControlModifier:
-            text = unicode(self.text(self.lineAt(event.pos())))
-            if get_error_match(text) and not self.__cursor_changed:
+        text = unicode(self.text(self.lineAt(event.pos())))
+        if get_error_match(text):
+            if not self.__cursor_changed:
                 QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
                 self.__cursor_changed = True
-                return
+            event.accept()
+            return
         if self.__cursor_changed:
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
         QsciScintilla.mouseMoveEvent(self, event)
+        
+    def leaveEvent(self, event):
+        """If cursor has not been restored yet, do it now"""
+        if self.__cursor_changed:
+            QApplication.restoreOverrideCursor()
+            self.__cursor_changed = False
+        QsciScintilla.leaveEvent(self, event)
 
     
     #------ Drag and drop
