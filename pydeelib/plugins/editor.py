@@ -571,6 +571,8 @@ class Editor(PluginWidget):
                                     wrap=CONF.get(self.ID, 'wrap'))
                 self.connect(editor, SIGNAL('modificationChanged(bool)'),
                              self.change)
+                self.connect(editor, SIGNAL("focus_changed()"),
+                             lambda: self.emit(SIGNAL("focus_changed()")))
                 self.editors.append(editor)
                 
                 title = self.get_title(filename)
@@ -710,6 +712,8 @@ class HistoryLog(PluginWidget):
         # Read-only editor
         self.editor = QsciEditor(self, linenumbers=False, language='py',
                                  code_folding=True)
+        self.connect(self.editor, SIGNAL("focus_changed()"),
+                     lambda: self.emit(SIGNAL("focus_changed()")))
         self.editor.setReadOnly(True)
         self.editor.set_font( get_font(self.ID) )
         self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )
@@ -794,6 +798,8 @@ class DocViewer(PluginWidget):
         # Read-only editor
         self.editor = QsciEditor(self, linenumbers=False, language='py',
                                  code_folding=True)
+        self.connect(self.editor, SIGNAL("focus_changed()"),
+                     lambda: self.emit(SIGNAL("focus_changed()")))
         self.editor.setReadOnly(True)
         self.editor.set_font( get_font(self.ID) )
         self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )

@@ -13,7 +13,7 @@
 
 import sys, re
 from PyQt4.QtGui import QFont, QToolTip
-from PyQt4.QtCore import QPoint
+from PyQt4.QtCore import QPoint, SIGNAL
 from PyQt4.Qsci import QsciScintilla
 
 # For debugging purpose:
@@ -26,7 +26,7 @@ class QsciBase(QsciScintilla):
     """
     def __init__(self, parent=None):
         QsciScintilla.__init__(self, parent)
-        self.setup_scintilla()        
+        self.setup_scintilla()
         
     def setup_scintilla(self):
         """Configure Scintilla"""
@@ -151,3 +151,15 @@ class QsciBase(QsciScintilla):
         # Showing tooltip at cursor position:
         cx, cy = self.get_cursor_coordinates()
         QToolTip.showText(self.mapToGlobal(QPoint(cx, cy)), tiptext)
+
+
+    #----Focus
+    def focusInEvent(self, event):
+        """Reimplemented to handle focus"""
+        self.emit(SIGNAL("focus_changed()"))
+        QsciScintilla.focusInEvent(self, event)
+        
+    def focusOutEvent(self, event):
+        """Reimplemented to handle focus"""
+        self.emit(SIGNAL("focus_changed()"))
+        QsciScintilla.focusOutEvent(self, event)

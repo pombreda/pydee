@@ -12,6 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QFileDialog, QMessageBox
+from PyQt4.QtCore import SIGNAL
 
 import os, sys, cPickle
 import os.path as osp
@@ -419,3 +420,14 @@ class Workspace(DictEditorTableView, PluginMixin):
         """Toggle exclude unsupported datatypes"""
         CONF.set(self.ID, 'exclude_unsupported_datatypes', checked)
         self.refresh()
+
+    #----Focus
+    def focusInEvent(self, event):
+        """Reimplemented to handle focus"""
+        self.emit(SIGNAL("focus_changed()"))
+        DictEditorTableView.focusInEvent(self, event)
+        
+    def focusOutEvent(self, event):
+        """Reimplemented to handle focus"""
+        self.emit(SIGNAL("focus_changed()"))
+        DictEditorTableView.focusOutEvent(self, event)

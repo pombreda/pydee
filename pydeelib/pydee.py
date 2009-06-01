@@ -150,6 +150,8 @@ class MainWindow(QMainWindow):
             if CONF.get('workspace', 'enable'):
                 self.set_splash(self.tr("Loading workspace..."))
                 self.workspace = Workspace(self)
+                self.connect(self.workspace, SIGNAL('focus_changed()'),
+                             self.plugin_focus_changed)
                 namespace = self.workspace.namespace
                 
         # Console widget: window's central widget
@@ -159,6 +161,8 @@ class MainWindow(QMainWindow):
             self.setCentralWidget(self.console)
             self.widgetlist.append(self.console)
         else:
+            self.connect(self.console, SIGNAL('focus_changed()'),
+                         self.plugin_focus_changed)
             self.add_dockwidget(self.console)
         
         # Working directory changer widget
@@ -175,6 +179,8 @@ class MainWindow(QMainWindow):
             # Editor widget
             self.set_splash(self.tr("Loading editor widget..."))
             self.editor = Editor( self )
+            self.connect(self.editor, SIGNAL('focus_changed()'),
+                         self.plugin_focus_changed)
             self.connect(self.console, SIGNAL("edit_goto(QString,int)"),
                          self.editor.load)            
             self.connect(self.editor, SIGNAL("open_dir(QString)"),
@@ -230,6 +236,8 @@ class MainWindow(QMainWindow):
             if CONF.get('historylog', 'enable'):
                 self.set_splash(self.tr("Loading history widget..."))
                 self.historylog = HistoryLog( self )
+                self.connect(self.historylog, SIGNAL('focus_changed()'),
+                             self.plugin_focus_changed)
                 self.add_dockwidget(self.historylog)
                 self.historylog.set_rawhistory(self.console.shell.rawhistory)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
@@ -239,6 +247,8 @@ class MainWindow(QMainWindow):
             if CONF.get('docviewer', 'enable'):
                 self.set_splash(self.tr("Loading docviewer widget..."))
                 self.docviewer = DocViewer( self )
+                self.connect(self.docviewer, SIGNAL('focus_changed()'),
+                             self.plugin_focus_changed)
                 self.docviewer.set_interpreter(self.console.shell.interpreter)
                 self.add_dockwidget(self.docviewer)
                 self.console.set_docviewer(self.docviewer)
@@ -315,6 +325,10 @@ class MainWindow(QMainWindow):
         # Give focus to shell widget
         self.console.shell.setFocus()
         
+    def plugin_focus_changed(self):
+        """Focus has changed from one plugin to another"""
+        self.update_edit_menu()
+        
     def update_file_menu(self):
         """Update file menu to show recent files"""
         self.file_menu.clear()
@@ -338,8 +352,6 @@ class MainWindow(QMainWindow):
         
     def update_edit_menu(self):
         """Update edit menu"""
-        #TODO: Use the widget edit actions instead of reimplementing here
-        #      the same checking as before showing widget's context menu
         if self.menuBar().hasFocus():
             return
         
