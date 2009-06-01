@@ -111,11 +111,6 @@ class MainWindow(QMainWindow):
                                        icon=get_icon('editdelete.png'),
                                        triggered=self.global_callback,
                                        data="delete")
-            self.alwayscopyselection_action = create_action(self,
-                           translate("SimpleEditor", "Always copy selection"),
-                           toggled=self.toggle_alwayscopyselection,
-                           tip=translate("SimpleEditor", "Always copy selected "
-                                         "text (with mouse) to clipboard"))
             self.selectall_action = create_action(self,
                                        translate("SimpleEditor", "Select all"),
                                        shortcut=keybinding('SelectAll'),
@@ -125,10 +120,8 @@ class MainWindow(QMainWindow):
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                       None, self.cut_action, self.copy_action,
                                       self.paste_action, self.delete_action,
-                                      self.alwayscopyselection_action, None,
-                                      self.selectall_action, None,
-                                      self.find_action, self.replace_action,
-                                      ]
+                                      None, self.selectall_action, None,
+                                      self.find_action, self.replace_action]
 
         namespace = None
         if not self.light:
@@ -298,10 +291,6 @@ class MainWindow(QMainWindow):
         self.move( QPoint(posx, posy) )
         
         if not self.light:
-            # Always copy selection feature
-            state = CONF.get('global', 'copy_selection', False)
-            self.alwayscopyselection_action.setChecked(state)
-            self.toggle_alwayscopyselection(state)
             # Window layout
             hexstate = CONF.get(section, 'state')
             self.restoreState( QByteArray().fromHex(hexstate) )
@@ -520,77 +509,51 @@ class MainWindow(QMainWindow):
     def send_to_statusbar(self, message):
         """Show a message in the status bar"""
         self.statusBar().showMessage(message)
-        
-    def which_has_focus(self, widget_list=WIDGET_LIST,
-                        default_widget = 'editor'):
-        """Which widget has focus?"""
-        def children_has_focus(widget, iter=0):
-            iter += 1
-            for child in widget.children():
-                if hasattr(child, "hasFocus"):
-                    if child.hasFocus():
-                        return True
-                if children_has_focus(child, iter):
-                    return True
-            return False
-        for widget_name in widget_list:
-            widget = getattr(self, widget_name)
-            if widget is None:
-                continue
-            callback = getattr( widget, "hasFocus" )
-            has_focus = callback() or children_has_focus(widget)
-            if has_focus:
-                return getattr(self, widget_name)
+    
+    def get_current_editor_plugin(self):
+        """Return editor plugin which has focus:
+        console, extconsole, editor, docviewer or historylog"""
+        widget = QApplication.focusWidget()
+        from pydeelib.widgets.qscishell import QsciShell
+        from pydeelib.widgets.qscibase import QsciBase
+        if not isinstance(widget, QsciBase):
+            return
+        if widget is self.console.shell:
+            plugin = self.console
+        elif widget is self.historylog.editor:
+            plugin = self.historylog
+        elif widget is self.docviewer.editor:
+            plugin = self.docviewer
+        elif isinstance(widget, QsciShell):
+            plugin = self.extconsole
+        else:
+            plugin = self.editor
+        return plugin
     
     def find(self):
         """Global find callback"""
         #FIXME: findreplace widget is disabled when showing in editor plugin
-        widget = self.which_has_focus()
-        if widget:
-            widget.find_widget.show()
-            widget.find_widget.edit.setFocus()
-            return widget
+        plugin = self.get_current_editor_plugin()
+        plugin.find_widget.show()
+        plugin.find_widget.edit.setFocus()
         
     def replace(self):
         """Global replace callback"""
-        widget = self.find()
-        if widget:
-            widget.find_widget.show_replace()
+        self.find()
+        plugin = self.get_current_editor_plugin()
+        plugin.find_widget.show_replace()
     
-    def get_editor(self, widget):
-        """Return editor for given widget"""
-        if widget == self.console:
-            return self.console.shell
-        elif widget == self.extconsole:
-            if self.extconsole is not None and \
-               self.extconsole.tabwidget.count():
-                return self.extconsole.tabwidget.currentWidget().shell
-        elif widget in [self.docviewer, self.historylog]:
-            return widget.editor
-        elif widget == self.editor:
-            if self.editor.tabwidget.count():
-                return self.editor.editors[self.editor.tabwidget.currentIndex()]
-
     def global_callback(self):
         """Global callback"""
-        widget = self.which_has_focus()
+        widget = QApplication.focusWidget()
         action = self.sender()
         callback = unicode(action.data().toString())
-        if widget:
-            getattr( self.get_editor(widget), callback )()
-        elif self.workspace.hasFocus():
+        from pydeelib.widgets.qscibase import QsciBase
+        if isinstance(widget, QsciBase):
+            getattr(widget, callback)()
+        elif isinstance(widget, Workspace):
             if hasattr(self.workspace, callback):
                 getattr(self.workspace, callback)()
-            
-    def toggle_alwayscopyselection(self, state):
-        """Toggle always copy selection feature"""
-        for widget_name in WIDGET_LIST:
-            if hasattr(self, widget_name):
-                widget = getattr(self, widget_name)
-                if widget is not None:
-                    editor = self.get_editor(widget)
-                    if editor is not None:
-                        editor.always_copy_selection = state
                 
     def restart_interpreter(self):
         """Restart Python interpreter"""

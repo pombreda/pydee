@@ -102,9 +102,6 @@ class QsciShell(QsciBase):
         self.input_loop = None
         self.input_mode = False
         
-        # Mouse selection copy feature
-        self.always_copy_selection = False
-        
         # Mouse cursor
         self.__cursor_changed = False
 
@@ -816,12 +813,6 @@ class QsciShell(QsciBase):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
         QsciScintilla.mouseMoveEvent(self, event)
-    
-    def mouseReleaseEvent(self, event):
-        """Reimplemented"""
-        if self.hasSelectedText() and self.always_copy_selection:
-            self.copy()
-        QsciScintilla.mouseReleaseEvent(self, event)
 
     
     #------ Drag and drop
