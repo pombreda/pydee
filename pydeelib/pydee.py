@@ -532,16 +532,17 @@ class MainWindow(QMainWindow):
     
     def find(self):
         """Global find callback"""
-        #FIXME: findreplace widget is disabled when showing in editor plugin
         plugin = self.get_current_editor_plugin()
-        plugin.find_widget.show()
-        plugin.find_widget.edit.setFocus()
-        return plugin
+        if plugin is not None:
+            plugin.find_widget.show()
+            plugin.find_widget.edit.setFocus()
+            return plugin
         
     def replace(self):
         """Global replace callback"""
         plugin = self.find()
-        plugin.find_widget.show_replace()
+        if plugin is not None:
+            plugin.find_widget.show_replace()
     
     def global_callback(self):
         """Global callback"""
