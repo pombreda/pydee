@@ -110,7 +110,7 @@ class Console(PluginWidget):
         run_action = create_action(self,
                             self.tr("&Run..."), self.tr("Ctrl+R"),
                             'run.png', self.tr("Run a Python script"),
-                            triggered=lambda: self.run_script(set_focus=True))
+                            triggered=self.run_script)
         environ_action = create_action(self,
                             self.tr("Environment variables..."),
                             icon = 'environ.png',
@@ -182,9 +182,9 @@ class Console(PluginWidget):
         command = "execfile(r'%s')" % filename
         if set_focus:
             self.shell.setFocus()
-            if self.dockwidget:
-                self.dockwidget.setVisible(True)
-                self.dockwidget.raise_()
+        if self.dockwidget:
+            self.dockwidget.setVisible(True)
+            self.dockwidget.raise_()
         if silent:
             self.shell.write(command+'\n')
             self.shell.run_command(command)
