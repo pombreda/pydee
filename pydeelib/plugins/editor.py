@@ -455,7 +455,6 @@ class Editor(PluginWidget):
         if unsaved_nb > 1:
             buttons |= QMessageBox.YesAll | QMessageBox.NoAll
         yes_all = False
-        no_all = False
         for index in range(self.tabwidget.count()):
             self.tabwidget.setCurrentIndex(index)
             filename = self.filenames[index]
@@ -700,7 +699,7 @@ class Editor(PluginWidget):
         event.acceptProposedAction()
 
 
-#TODO: add a combo box to select a date from the shown history
+#TODO: [low-priority] add a combo box to select a date from the shown history
 class HistoryLog(PluginWidget):
     """
     History log widget

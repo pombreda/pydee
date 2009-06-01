@@ -11,7 +11,7 @@ Dictionary Editor Widget and Dialog based on PyQt4
 #TODO: Unselect an item when clicked for the second time, or unselect it when
 #      clicked in the empty space below the last item
 
-#TODO: Copy/paste data --> Excel spreadsheet
+#TODO: [low-priority] Copy/paste data --> Excel spreadsheet
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
 #      at the same time

@@ -277,9 +277,9 @@ class InteractiveShell(QsciShell):
         self.input_mode = False
         self.input_loop.exit()
 
-    def flush(self, error=False):
+    def flush(self, error=False, prompt=False):
         """Reimplement QsciShell method"""
-        QsciShell.flush(self, error)
+        QsciShell.flush(self, error=error, prompt=prompt)
         if self.interrupted:
             self.interrupted = False
             raise KeyboardInterrupt
