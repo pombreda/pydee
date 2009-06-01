@@ -113,6 +113,8 @@ class ExternalConsole(PluginWidget):
         shell.shell.set_docviewer(self.docviewer)
         self.connect(shell.shell, SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
+        self.connect(shell.shell, SIGNAL("focus_changed()"),
+                     lambda: self.emit(SIGNAL("focus_changed()")))
         if python:
             if fname is None:
                 name = "Python"

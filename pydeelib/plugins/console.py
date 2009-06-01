@@ -48,6 +48,8 @@ class Console(PluginWidget):
                                      message, debug, exitfunc, profile)
         self.connect(self.shell, SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
+        self.connect(self.shell, SIGNAL("focus_changed()"),
+                     lambda: self.emit(SIGNAL("focus_changed()")))
         
         PluginWidget.__init__(self, parent)
         
