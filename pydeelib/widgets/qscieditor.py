@@ -97,9 +97,6 @@ class QsciEditor(QsciBase):
         # Tab always indents (event when cursor is not at the begin of line)
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
             
-        # Mouse selection copy feature
-        self.always_copy_selection = False
-                
         # Indicate occurences of the selected word
         self.connect(self, SIGNAL('cursorPositionChanged(int, int)'),
                      self.__cursor_position_changed)
@@ -584,12 +581,6 @@ class QsciEditor(QsciBase):
         else:
             QsciScintilla.mousePressEvent(self, event)
             
-    def mouseReleaseEvent(self, event):
-        """Reimplement Qt method"""
-        if self.hasSelectedText() and self.always_copy_selection:
-            self.copy()
-        QsciScintilla.mouseReleaseEvent(self, event)
-        
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
         state = self.hasSelectedText()
