@@ -32,7 +32,7 @@ from pydeelib.config import get_icon, get_conf_path
 from pydeelib.widgets import startup
 
 
-#TODO: Split ExternalShell into three classes:
+#TODO: [low-priority] Split ExternalShell into three classes:
 #        1. shell base class
 #        2. python shell class (inherits base class)
 #        3. terminal shell class (inherits base class)
@@ -105,7 +105,10 @@ class ExternalShell(QWidget):
         self.setLayout(vlayout)
         self.resize(640, 480)
         if parent is None:
-            self.setWindowIcon(get_icon('python.png'))
+            if self.python:
+                self.setWindowIcon(get_icon('python.png'))
+            else:
+                self.setWindowIcon(get_icon('cmdprompt.png'))
             self.setWindowTitle(self.tr("Console"))
 
         self.t0 = None
@@ -277,11 +280,11 @@ class ExternalShell(QWidget):
             text = unicode(QString.fromLocal8Bit(bytes.data()))
         else:
             text = transcode(str(bytes.data()), 'cp850')
-        lines = text.splitlines()
+        lines = text.splitlines(True)
         for index, line in enumerate(lines):
             self.shell.write_error(line)
-            if index < len(lines)-1:
-                self.shell.write_error(os.linesep)
+#            if index < len(lines)-1:
+#                self.shell.write_error('\n')
         
     def send_to_process(self, qstr):
         if not self.python and qstr[:-1] in ["clear", "cls", "CLS"]:
@@ -305,8 +308,8 @@ def test():
     app=QApplication(sys.argv)
     from pydeelib.config import get_font
     import pydeelib
-#    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), interact=True)
-    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), python=False)
+    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), interact=True)
+#    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), python=False)
     shell.start(False)
     shell.shell.set_font(get_font('external_shell'))
     shell.show()
