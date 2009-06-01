@@ -140,8 +140,6 @@ class MainWindow(QMainWindow):
             # Edit menu
             self.edit_menu = self.menuBar().addMenu(self.tr("&Edit"))
             add_actions(self.edit_menu, self.edit_menu_actions)
-            self.connect(self.edit_menu, SIGNAL("aboutToShow()"),
-                         self.update_edit_menu)
                     
             # Status bar
             status = self.statusBar()
@@ -308,6 +306,12 @@ class MainWindow(QMainWindow):
             if isinstance(child, QMenu) and child != help_menu:
                 child.setTearOffEnabled(True)
         
+        # Menu about to show
+        for child in self.menuBar().children():
+            if isinstance(child, QMenu):
+                self.connect(child, SIGNAL("aboutToShow()"),
+                             self.update_edit_menu)
+        
         # Give focus to shell widget
         self.console.shell.setFocus()
         
@@ -334,10 +338,12 @@ class MainWindow(QMainWindow):
         
     def update_edit_menu(self):
         """Update edit menu"""
-        #FIXME: Update the edit actions by another mean
-        #       -> currently, when clicking on a plugin, these actions aren't
-        #          updated (the problem is: they are also in app toolbar!)
-        widget = self.which_has_focus()        
+        #TODO: Use the widget edit actions instead of reimplementing here
+        #      the same checking as before showing widget's context menu
+        if self.menuBar().hasFocus():
+            return
+        
+        widget = self.which_has_focus()
         not_readonly = widget in [self.editor, self.console]
         
         # Editor has focus and there is no file opened in it
