@@ -17,7 +17,7 @@ import os.path as osp
 from PyQt4.QtGui import QMenu, QApplication, QCursor, QToolTip
 from PyQt4.QtCore import (Qt, QString, QCoreApplication, SIGNAL, pyqtProperty,
                           QStringList)
-from PyQt4.Qsci import QsciScintilla, QsciLexerPython
+from PyQt4.Qsci import QsciScintilla
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -130,12 +130,10 @@ class QsciShell(QsciBase):
         self.remove_margins()
         
         # Lexer
-        self.lex = QsciLexerPython(self)
-        self.error_style = self.lex.Decorator
-        self.traceback_link_style = self.lex.CommentBlock
-        self.lex.setColor(Qt.black, self.lex.Default)
-        self.lex.setColor(Qt.red, self.error_style)
-        self.lex.setColor(Qt.blue, self.traceback_link_style)
+        self.default_style = 0
+        self.prompt_style = 1
+        self.error_style = 2
+        self.traceback_link_style = 3
 
     def setUndoRedoEnabled(self, state):
         """Fake Qt method (QTextEdit)"""
@@ -143,10 +141,26 @@ class QsciShell(QsciBase):
 
     def set_font(self, font):
         """Set shell font"""
-        self.lex.setFont(font)
-        font.setUnderline(True)
-        self.lex.setFont(font, self.traceback_link_style)
-        self.setLexer(self.lex)
+        family = str(font.family())
+        size = font.pointSize()
+        for style in [self.default_style, self.error_style,
+                      self.prompt_style, self.traceback_link_style]:
+            self.SendScintilla(QsciScintilla.SCI_STYLESETFONT, style, family)
+            self.SendScintilla(QsciScintilla.SCI_STYLESETSIZE, style, size)
+        getstyleconf = lambda name, prop: CONF.get('scintilla', name+'/'+prop)
+        for stylestr in ['default_style', 'error_style',
+                         'prompt_style', 'traceback_link_style']:
+            style = getattr(self, stylestr)
+            self.SendScintilla(QsciScintilla.SCI_STYLESETFORE,
+                               style, getstyleconf(stylestr, 'foregroundcolor'))
+            self.SendScintilla(QsciScintilla.SCI_STYLESETBACK,
+                               style, getstyleconf(stylestr, 'backgroundcolor'))
+            self.SendScintilla(QsciScintilla.SCI_STYLESETBOLD,
+                               style, getstyleconf(stylestr, 'bold'))
+            self.SendScintilla(QsciScintilla.SCI_STYLESETITALIC,
+                               style, getstyleconf(stylestr, 'italic'))
+            self.SendScintilla(QsciScintilla.SCI_STYLESETUNDERLINE,
+                               style, getstyleconf(stylestr, 'underline'))
 
 
     #------ Context menu
@@ -220,7 +234,7 @@ class QsciShell(QsciBase):
         """
         Print a new prompt and save its (line, index) position
         """
-        self.write(prompt, flush=True)
+        self.write(prompt, prompt=True)
         # now we update our cursor giving end of prompt
         self.current_prompt_pos = self.getCursorPosition()
         self.ensureCursorVisible()
@@ -599,27 +613,29 @@ class QsciShell(QsciBase):
     #------ Simulation standards input/output
     def write_error(self, text):
         """Simulate stderr"""
-#        self.flush()
+        self.flush()
         self.write(text, flush=True, error=True)
         if self.debug:
             STDERR.write(text)
 
-    def write(self, text, flush=False, error=False):
+    def write(self, text, flush=False, error=False, prompt=False):
         """Simulate stdout and stderr"""
+        if prompt:
+            self.flush()
         if isinstance(text, QString):
             # This test is useful to discriminate QStrings from decoded str
             text = unicode(text)
         self.__buffer.append(text)
         ts = time.time()
-        if flush or ts-self.__timestamp > 0.05:
-            self.flush(error=error)
+        if flush or ts-self.__timestamp > 0.05 or prompt:
+            self.flush(error=error, prompt=prompt)
             self.__timestamp = ts
 
-    def flush(self, error=False):
+    def flush(self, error=False, prompt=False):
         """Flush buffer, write text to console"""
         text = "".join(self.__buffer)
         self.__buffer = []
-        self.insert_text(text, at_end=True, error=error)
+        self.insert_text(text, at_end=True, error=error, prompt=prompt)
         QCoreApplication.processEvents()
         self.repaint()
         # Clear input buffer:
@@ -742,33 +758,44 @@ class QsciShell(QsciBase):
 
 
     #------ Text Insertion
-    def insert_text(self, text, at_end=False, error=False):
+    def insert_text(self, text, at_end=False, error=False, prompt=False):
         """
         Insert text at the current cursor position
         or at the end of the command line
         """
-        #TODO: improve the error text styling
-        # -> remove these ugly startswith (replace by a regexp -> see get_error_match)
-        # -> replace the traceback_link_style by an underline QScintilla indicator
-        #    (it should be possible to detect the indicator on mouse hover)
         if error and text.startswith('  File "<'):
+            # Avoid printing 'File <console> [...]' which is related to the
+            # code.InteractiveConsole Python interpreter emulation
             return
         if at_end:
             # Insert text at the end of the command line
             self.move_cursor_to_end()
             self.SendScintilla(QsciScintilla.SCI_STARTSTYLING,
                                self.text().length(), 0xFF)
-            self.append(text)
             if error:
                 if text.startswith('  File'):
+                    # Show error links in blue underlined text
+                    self.append('  ')
                     self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
-                                       len(text), self.traceback_link_style)
+                                       2, self.default_style)
+                    self.append(text[2:])
+                    self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
+                                       len(text)-2, self.traceback_link_style)
                 else:
+                    # Show error messages in red
+                    self.append(text)
                     self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
                                        len(text), self.error_style)
-            else:
+            elif prompt:
+                # Show prompt in green
+                self.append(text)
                 self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
-                                   len(text), self.lex.Default)
+                                   len(text), self.prompt_style)
+            else:
+                # Show other outputs in black
+                self.append(text)
+                self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
+                                   len(text), self.default_style)
             self.move_cursor_to_end()
         else:
             # Insert text at current cursor position

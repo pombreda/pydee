@@ -414,7 +414,7 @@ class QsciEditor(QsciBase):
             self.setCursorPosition(line, index-len(prefix))
             self.endUndoAction()
     
-    #TODO: Implement an intelligent indent/unindent
+    #TODO: [low-priority] Implement an intelligent indent/unindent
     # (a "repair indent" like in Emacs)
     def indent(self):
         """Indent current line or selection"""

@@ -36,6 +36,6 @@ class Tabs(QTabWidget):
         """Override Qt method"""
         if event.button() == Qt.MidButton:
             if self.count():
-                #TODO: Really close the clicked tab and not the last one
+                #TODO: [low-priority] Really close the clicked tab and not the last one
                 self.emit(SIGNAL("close_tab(int)"), self.currentIndex())
 
