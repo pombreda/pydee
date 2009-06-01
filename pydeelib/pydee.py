@@ -343,36 +343,50 @@ class MainWindow(QMainWindow):
         if self.menuBar().hasFocus():
             return
         
-        widget = self.which_has_focus()
-        not_readonly = widget in [self.editor, self.console]
+        widget = QApplication.focusWidget()
+        
+        # Disabling all actions to begin with
+        for child in self.edit_menu.actions():
+            child.setEnabled(False)        
+        
+        from pydeelib.widgets.qscieditor import QsciEditor
+        from pydeelib.widgets.qscishell import QsciShell        
+        if isinstance(widget, QsciShell):
+            console = True
+        elif isinstance(widget, QsciEditor):
+            console = False
+        elif isinstance(widget, Workspace):
+            self.paste_action.setEnabled(True)
+            return
+        else:
+            return
+        
+        #!!! Below this line, widget is expected to be a QsciScintilla instance
+        not_readonly = not widget.isReadOnly()
         
         # Editor has focus and there is no file opened in it
-        no_file = (widget == self.editor) and not self.editor.tabwidget.count()
-        for child in self.edit_menu.actions():
-            child.setEnabled(not no_file)
-        if no_file:
+        if not console and not_readonly and not self.editor.tabwidget.count():
             return
+        
+        # Select all, find
+        self.selectall_action.setEnabled(True)
+        self.find_action.setEnabled(True)
+        
+        # Replace, undo, redo
+        readwrite_editor = not_readonly and not console
+        self.replace_action.setEnabled(readwrite_editor)
+        self.replace_action.setEnabled(readwrite_editor)
+        self.undo_action.setEnabled( readwrite_editor \
+                                     and widget.isUndoAvailable() )
+        self.redo_action.setEnabled( readwrite_editor \
+                                     and widget.isRedoAvailable() )
 
-        self.replace_action.setEnabled(not_readonly and widget != self.console)
-        editor = self.get_editor(widget)
-        
-        undoredo = (editor is not None) and not_readonly \
-                              and widget != self.console
-        self.undo_action.setEnabled( undoredo and editor.isUndoAvailable() )
-        self.redo_action.setEnabled( undoredo and editor.isRedoAvailable() )
-        
-        has_selection = (editor is not None) and editor.hasSelectedText()
+        # Copy, cut, paste, delete
+        has_selection = widget.hasSelectedText()
         self.copy_action.setEnabled(has_selection)
         self.cut_action.setEnabled(has_selection and not_readonly)
-        self.paste_action.setEnabled(not_readonly)    
+        self.paste_action.setEnabled(not_readonly)
         self.delete_action.setEnabled(has_selection and not_readonly)
-        
-        # Disable the following actions for non-editor-based widgets
-        if widget is None:
-            self.selectall_action.setEnabled(False)
-            self.find_action.setEnabled(False)
-            if self.workspace.hasFocus():
-                self.paste_action.setEnabled(True)
         
     def set_splash(self, message):
         """Set splash message"""
@@ -518,6 +532,7 @@ class MainWindow(QMainWindow):
     
     def find(self):
         """Global find callback"""
+        #FIXME: findreplace widget is disabled when showing in editor plugin
         widget = self.which_has_focus()
         if widget:
             widget.find_widget.show()
