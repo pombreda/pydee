@@ -73,7 +73,7 @@ class Editor(PluginWidget):
                      self.refresh)
         layout.addWidget(self.tabwidget)
         
-        self.find_widget = FindReplace(self)
+        self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
         layout.addWidget(self.find_widget)
         self.setLayout(layout)

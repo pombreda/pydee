@@ -351,7 +351,7 @@ class MainWindow(QMainWindow):
             child.setEnabled(False)        
         
         from pydeelib.widgets.qscieditor import QsciEditor
-        from pydeelib.widgets.qscishell import QsciShell        
+        from pydeelib.widgets.qscishell import QsciShell
         if isinstance(widget, QsciShell):
             console = True
         elif isinstance(widget, QsciEditor):
@@ -536,11 +536,11 @@ class MainWindow(QMainWindow):
         plugin = self.get_current_editor_plugin()
         plugin.find_widget.show()
         plugin.find_widget.edit.setFocus()
+        return plugin
         
     def replace(self):
         """Global replace callback"""
-        self.find()
-        plugin = self.get_current_editor_plugin()
+        plugin = self.find()
         plugin.find_widget.show_replace()
     
     def global_callback(self):
