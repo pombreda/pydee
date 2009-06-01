@@ -246,16 +246,6 @@ class MainWindow(QMainWindow):
                 self.console.set_docviewer(self.docviewer)
         
         if not self.light:
-            # File menu
-            self.file_menu_actions = [self.editor.new_action,
-                                      self.editor.open_action,
-                                      self.editor.save_action,
-                                      self.editor.save_as_action, None,
-                                      self.editor.close_action,
-                                      self.editor.close_all_action, None,
-                                      self.console.quit_action,
-                                      ]
-
             # Console menu
             self.console.menu_actions = self.console.menu_actions[:-2]
             restart_action = create_action(self,
@@ -324,7 +314,7 @@ class MainWindow(QMainWindow):
     def update_file_menu(self):
         """Update file menu to show recent files"""
         self.file_menu.clear()
-        add_actions(self.file_menu, self.file_menu_actions[:-1])
+        add_actions(self.file_menu, self.editor.file_menu_actions)
         recent_files = []
         for fname in self.editor.recent_files:
             if (fname not in self.editor.filenames) and os.path.isfile(fname):
@@ -340,7 +330,7 @@ class MainWindow(QMainWindow):
                 action.setData(QVariant(fname))
                 self.file_menu.addAction(action)
         self.file_menu.addSeparator()
-        self.file_menu.addAction(self.file_menu_actions[-1])
+        self.file_menu.addAction(self.console.quit_action)
         
     def update_edit_menu(self):
         """Update edit menu"""
