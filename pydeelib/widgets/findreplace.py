@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see pydeelib/__init__.py for details)
 
-"""Customized combobox widgets"""
+"""Find/Replace widget"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903

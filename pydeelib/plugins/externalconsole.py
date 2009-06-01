@@ -23,7 +23,7 @@ STDOUT = sys.stdout
 # Local imports
 from pydeelib.config import CONF, get_font, get_icon, set_font
 from pydeelib.qthelpers import create_toolbutton, create_action, mimedata2url
-from pydeelib.widgets import Tabs
+from pydeelib.widgets.tabs import Tabs
 from pydeelib.widgets.externalshell import ExternalShell
 from pydeelib.widgets.shellhelpers import get_error_match
 from pydeelib.widgets.findreplace import FindReplace

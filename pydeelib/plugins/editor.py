@@ -34,7 +34,7 @@ except ImportError, e:
     raise ImportError, str(e) + \
         "\nPydee v0.3.23+ is exclusively based on QScintilla2\n" + \
         "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
-from pydeelib.widgets import Tabs
+from pydeelib.widgets.tabs import Tabs
 from pydeelib.widgets.comboboxes import EditableComboBox
 from pydeelib.widgets.findreplace import FindReplace
 from pydeelib.plugins import PluginWidget
