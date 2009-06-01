@@ -264,7 +264,7 @@ class ExternalShell(QWidget):
         if self.python or os.name != 'nt':
             text = QString.fromLocal8Bit(bytes.data())
         else:
-            text = transcode( str( bytes.data() ) )
+            text = transcode(str(bytes.data()), 'cp850')
         self.shell.write(text)
         QApplication.processEvents()
     
@@ -276,7 +276,7 @@ class ExternalShell(QWidget):
         if self.python or os.name != 'nt':
             text = unicode(QString.fromLocal8Bit(bytes.data()))
         else:
-            text = transcode( str( bytes.data() ) )
+            text = transcode(str(bytes.data()), 'cp850')
         lines = text.splitlines()
         for index, line in enumerate(lines):
             self.shell.write_error(line)
@@ -290,8 +290,10 @@ class ExternalShell(QWidget):
             return
         if not qstr.endsWith('\n'):
             qstr.append('\n')
-        #TODO: fix encoding for Terminal
-        self.process.write(qstr.toLocal8Bit())
+        if self.python or os.name != 'nt':
+            self.process.write(qstr.toLocal8Bit())
+        else:
+            self.process.write(str(qstr).decode('utf-8').encode('cp850'))
         self.process.waitForBytesWritten(-1)
         
     def keyboard_interrupt(self):
