@@ -1,0 +1,15 @@
+\.pyc$
+\.settings$
+\.orig$
+^build/
+^dist/
+^pydee.egg-info/
+\pypi.txt
+\makepyqt.pyw
+\classbrowser.py
+\Thumbs.db
+\matlab_sn$
+\clone.
+syntax: glob
+Capture-Standard Platform Icons.png
+glob:qtbase.py
