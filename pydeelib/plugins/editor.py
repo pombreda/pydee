@@ -43,8 +43,6 @@ from pydeelib.plugins import PluginWidget
 #TODO: Implement multiple editor windows
 #      (editor tab -> context menu -> "Open in a new window")
 #TODO: Google-Code feature request: add a class/function browser
-
-#TODO: Move the Editor toolbar from mainwindow toolbar to above the tabwidget
 class Editor(PluginWidget):
     """
     Multi-file Editor widget
