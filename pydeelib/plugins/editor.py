@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QFileDialog,
-                         QSizePolicy, QMessageBox, QFontDialog,
+                         QSizePolicy, QMessageBox, QFontDialog, QSplitter,
                          QCheckBox, QToolBar, QAction, QComboBox)
 from PyQt4.QtCore import Qt, SIGNAL, QStringList
 
@@ -37,12 +37,14 @@ except ImportError, e:
 from pydeelib.widgets.tabs import Tabs
 from pydeelib.widgets.comboboxes import EditableComboBox
 from pydeelib.widgets.findreplace import FindReplace
+from pydeelib.widgets.classbrowser import ClassBrowser
 from pydeelib.plugins import PluginWidget
 
 
 #TODO: Implement multiple editor windows
 #      (editor tab -> context menu -> "Open in a new window")
-#TODO: Google-Code feature request: add a class/function browser
+#TODO: Add an option to enable/disable class browser
+#TODO: Run the class browser update in a separate thread
 class Editor(PluginWidget):
     """
     Multi-file Editor widget
@@ -71,7 +73,17 @@ class Editor(PluginWidget):
         self.tabwidget.setCornerWidget(self.close_button)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh)
-        layout.addWidget(self.tabwidget)
+        
+        # Class browser
+        self.classbrowser = ClassBrowser(self)
+        self.connect(self.classbrowser, SIGNAL('go_to_line(int)'),
+                     self.go_to_line)
+        
+        splitter = QSplitter(self)
+        splitter.addWidget(self.tabwidget)
+        splitter.addWidget(self.classbrowser)
+        splitter.setSizes([3, 1])
+        layout.addWidget(splitter)
         
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
@@ -82,7 +94,7 @@ class Editor(PluginWidget):
         self.filenames = []
         self.encodings = []
         self.editors = []
-        self.processlist = []
+        self.classes = []
         
         filenames = CONF.get(self.ID, 'filenames', [])
         if filenames:
@@ -121,6 +133,7 @@ class Editor(PluginWidget):
             index = self.tabwidget.currentIndex()
             editor = self.editors[index]
             title += " - "+osp.basename(self.filenames[index])
+            self.classbrowser.set_data(self.classes[index])
         else:
             editor = None
         if self.dockwidget:
@@ -317,6 +330,17 @@ class Editor(PluginWidget):
         CONF.set(self.ID, 'recent_files', self.recent_files)
         return self.save_if_changed(cancelable)
     
+    def update_classbrowser(self):
+        """Update class browser data"""
+        index = self.tabwidget.currentIndex()
+        self.classbrowser.setup(self.filenames[index])
+        data = self.classbrowser.get_data()
+        self.classes[index] = data
+    
+    def go_to_line(self, lineno):
+        """Go to line lineno and highlight it"""
+        self.editors[ self.tabwidget.currentIndex() ].highlight_line(lineno)
+    
     def indent(self):
         """Indent current line or selection"""
         if self.tabwidget.count():
@@ -492,6 +516,7 @@ class Editor(PluginWidget):
             self.filenames.pop(index)
             self.encodings.pop(index)
             self.editors.pop(index)
+            self.classes.pop(index)
             self.refresh()
         return is_ok
             
@@ -519,6 +544,8 @@ class Editor(PluginWidget):
             self.filenames[index1], self.filenames[index2]
         self.encodings[index2], self.encodings[index1] = \
             self.encodings[index1], self.encodings[index2]
+        self.classes[index2], self.classes[index1] = \
+            self.classes[index1], self.classes[index2]
         
     def load(self, filenames=None, goto=None):
         """Load a text file"""
@@ -585,6 +612,9 @@ class Editor(PluginWidget):
                 self.connect(editor, SIGNAL("focus_changed()"),
                              lambda: self.emit(SIGNAL("focus_changed()")))
                 self.editors.append(editor)
+
+                self.classbrowser.setup(filename)
+                self.classes.append( self.classbrowser.get_data() )
                 
                 title = self.get_title(filename)
                 index = self.tabwidget.addTab(editor, title)
@@ -597,6 +627,7 @@ class Editor(PluginWidget):
                 self.tabwidget.setCurrentIndex(index)
                 if CONF.get(self.ID, 'code_analysis'):
                     self.analyze_script()
+                
                 editor.setFocus()
                 self.add_recent_file(filename)
             
@@ -640,6 +671,7 @@ class Editor(PluginWidget):
             self.change()
             if CONF.get(self.ID, 'code_analysis'):
                 self.analyze_script()
+            self.update_classbrowser()
             return True
         except IOError, error:
             QMessageBox.critical(self, self.tr("Save"),
