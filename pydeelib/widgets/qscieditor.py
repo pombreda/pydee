@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, os, re
+import sys, os
 from math import log
 
 from PyQt4.QtGui import QMouseEvent, QColor, QMenu, QPixmap, QToolTip
