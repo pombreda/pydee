@@ -16,7 +16,7 @@ libname = 'pydeelib'
 from pydeelib import __version__ as version
 google_url = 'http://%s.googlecode.com' % name
 download_url = '%s/files/%s-%s-py2.5.egg' % (google_url, name, version)
-packages = [libname, '%s.widgets' % libname, '%s.plugins' % libname]
+packages = [libname+p for p in ['', '.widgets', '.plugins', '.pyflakes']]
 package_data={libname: ['*.qm', 'python.api', 'images/*.png',
                         'images/console/*.png', 'images/docviewer/*.png',
                         'images/edit/*.png', 'images/editor/*.png',
