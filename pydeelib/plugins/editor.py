@@ -41,11 +41,12 @@ from pydeelib.widgets.classbrowser import ClassBrowser
 from pydeelib.plugins import PluginWidget
 
 
+def is_python_script(fname):
+    return osp.splitext(fname)[1][1:] in ('py', 'pyw')
+
+
 #TODO: Implement multiple editor windows
 #      (editor tab -> context menu -> "Open in a new window")
-#TODO: Add an option to enable/disable class browser
-#TODO: Run the class browser update in a separate thread
-#FIXME: Code analysis / class browser: only Python scripts!
 class Editor(PluginWidget):
     """
     Multi-file Editor widget
@@ -277,6 +278,10 @@ class Editor(PluginWidget):
         analyze_action = create_action(self, self.tr("Code analysis"),
             toggled=self.toggle_code_analysis)
         analyze_action.setChecked( CONF.get(self.ID, 'code_analysis') )
+        classbrowser_action = create_action(self,
+            self.tr("Classes and functions"),
+            toggled=self.toggle_classbrowser)
+        classbrowser_action.setChecked( CONF.get(self.ID, 'class_browser') )
         fold_action = create_action(self, self.tr("Code folding"),
             toggled=self.toggle_code_folding)
         fold_action.setChecked( CONF.get(self.ID, 'code_folding') )
@@ -301,7 +306,8 @@ class Editor(PluginWidget):
                 self.exec_selected_action, None, self.exec_process_action,
                 self.exec_process_interact_action,self.exec_process_args_action,
                 self.exec_process_debug_action,
-                None, font_action, wrap_action, fold_action, analyze_action)
+                None, font_action, wrap_action, fold_action, analyze_action,
+                classbrowser_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
                 self.save_all_action, None,
                 self.main.find_action, self.main.replace_action, None,
@@ -331,12 +337,14 @@ class Editor(PluginWidget):
         CONF.set(self.ID, 'recent_files', self.recent_files)
         return self.save_if_changed(cancelable)
     
-    def update_classbrowser(self):
+    def update_classbrowser(self, index=None):
         """Update class browser data"""
-        index = self.tabwidget.currentIndex()
-        self.classbrowser.setup(self.filenames[index])
-        data = self.classbrowser.get_data()
-        self.classes[index] = data
+        if index is None:
+            index = self.tabwidget.currentIndex()
+        fname = self.filenames[index]
+        if CONF.get(self.ID, 'class_browser') and is_python_script(fname):
+            self.classbrowser.setup(fname)
+            self.classes[index] = self.classbrowser.get_data()
     
     def go_to_line(self, lineno):
         """Go to line lineno and highlight it"""
@@ -421,10 +429,13 @@ class Editor(PluginWidget):
             encoding.write(unicode(text), fname, 'utf-8')
             self.load(fname)
     
-    def analyze_script(self):
+    def analyze_script(self, index=None):
         """Analyze current script with pyflakes"""
-        index = self.tabwidget.currentIndex()
-        self.editors[index].do_code_analysis(self.filenames[index])
+        if index is None:
+            index = self.tabwidget.currentIndex()
+        fname = self.filenames[index]
+        if CONF.get(self.ID, 'code_analysis') and is_python_script(fname):
+            self.editors[index].do_code_analysis(fname)
     
     def exec_script_extconsole(self, ask_for_arguments=False,
                                interact=False, debug=False):
@@ -614,8 +625,7 @@ class Editor(PluginWidget):
                              lambda: self.emit(SIGNAL("focus_changed()")))
                 self.editors.append(editor)
 
-                self.classbrowser.setup(filename)
-                self.classes.append( self.classbrowser.get_data() )
+                self.classes.append(None)
                 
                 title = self.get_title(filename)
                 index = self.tabwidget.addTab(editor, title)
@@ -625,9 +635,10 @@ class Editor(PluginWidget):
                 self.find_widget.set_editor(editor)
                
                 self.change()
+                self.analyze_script(index)
+                self.update_classbrowser(index)
+                
                 self.tabwidget.setCurrentIndex(index)
-                if CONF.get(self.ID, 'code_analysis'):
-                    self.analyze_script()
                 
                 editor.setFocus()
                 self.add_recent_file(filename)
@@ -670,9 +681,8 @@ class Editor(PluginWidget):
                                                    self.encodings[index])
             self.editors[index].setModified(False)
             self.change()
-            if CONF.get(self.ID, 'code_analysis'):
-                self.analyze_script()
-            self.update_classbrowser()
+            self.analyze_script(index)
+            self.update_classbrowser(index)
             return True
         except IOError, error:
             QMessageBox.critical(self, self.tr("Save"),
@@ -714,13 +724,23 @@ class Editor(PluginWidget):
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""
         if hasattr(self, 'tabwidget'):
+            CONF.set(self.ID, 'code_analysis', checked)
             for index in range(0, self.tabwidget.count()):
                 self.editors[index].setup_margins(linenumbers=True,
                           code_analysis=checked,
                           code_folding=CONF.get(self.ID, 'code_folding'))
-            CONF.set(self.ID, 'code_analysis', checked)
+                self.analyze_script(index)
+                
+    def toggle_classbrowser(self, checked):
+        """Toggle class browser"""
+        if hasattr(self, 'tabwidget'):
+            CONF.set(self.ID, 'class_browser', checked)
             if checked:
-                self.analyze_script()
+                self.classbrowser.show()
+                for index in range(0, self.tabwidget.count()):
+                    self.update_classbrowser(index)
+            else:
+                self.classbrowser.hide()
     
     def dragEnterEvent(self, event):
         """Reimplement Qt method

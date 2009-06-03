@@ -33,10 +33,47 @@ from pydeelib.config import get_icon, get_image_path, CONF
 
 WIDGET_LIST = ['console', 'editor', 'docviewer', 'historylog', 'extconsole']
 
+#TODO: Try to fix this stylesheet for QMainWindow
+STYLESHEET="""
+QSplitter::handle {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+QSplitter::handle:horizontal {
+    width: 1px;
+    border-width: 0px;
+    background-color: lightgray;
+}
+
+QSplitter::handle:vertical {
+    border-top: 2px ridge lightgray;
+    border-bottom: 2px;
+}
+
+QMainWindow::separator:vertical {
+    margin-left: 1px;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    border-left: 2px groove lightgray;
+    border-right: 1px;
+}
+
+QMainWindow::separator:horizontal {
+    margin-top: 1px;
+    margin-left: 5px;
+    margin-right: 5px;
+    border-top: 2px groove lightgray;
+    border-bottom: 2px;
+}
+"""
+
 class MainWindow(QMainWindow):
     """Console QDialog"""
     def __init__(self, commands=None, intitle="", message="", options=None):
         super(MainWindow, self).__init__()
+        
+#        self.setStyleSheet(STYLESHEET)
         
         # Area occupied by a dock widget can be split in either direction
         # to contain more dock widgets:
@@ -78,7 +115,7 @@ class MainWindow(QMainWindow):
         self.already_closed = False
         
         self.window_size = None
-                       
+        
     def setup(self):
         """Setup main window"""
         if not self.light:
