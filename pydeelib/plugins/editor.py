@@ -45,6 +45,7 @@ from pydeelib.plugins import PluginWidget
 #      (editor tab -> context menu -> "Open in a new window")
 #TODO: Add an option to enable/disable class browser
 #TODO: Run the class browser update in a separate thread
+#FIXME: Code analysis / class browser: only Python scripts!
 class Editor(PluginWidget):
     """
     Multi-file Editor widget
