@@ -6,7 +6,6 @@
 ^pydee.egg-info/
 \pypi.txt
 \makepyqt.pyw
-\classbrowser.py
 \Thumbs.db
 \matlab_sn$
 \clone.
