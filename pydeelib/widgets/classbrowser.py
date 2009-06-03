@@ -11,13 +11,14 @@ Class browser widget
 import os.path as osp
 import pyclbr, sys
 
-from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem
-from PyQt4.QtCore import SIGNAL
+from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem, QMenu
+from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
 from pydeelib.config import get_icon
+from pydeelib.qthelpers import add_actions, translate, create_action
 
-
+#TODO: Add "Collapse all" and "Expand all" buttons
 class ClassBrowser(QTreeWidget):
     def __init__(self, parent):
         QTreeWidget.__init__(self, parent)
@@ -26,22 +27,44 @@ class ClassBrowser(QTreeWidget):
         self.lines = None
         self.setItemsExpandable(True)
         self.setColumnCount(1)
-        self.setHeaderLabels([self.tr("Class browser")])
+        self.setHeaderLabels([translate("ClassBrowser", "Class and function browser")])
         self.connect(self, SIGNAL('itemActivated(QTreeWidgetItem*,int)'),
                      self.activated)
+        # Setup context menu
+        self.menu = QMenu(self)
+        self.common_actions = self.setup_common_actions()
+                     
+    def setup_common_actions(self):
+        """Setup context menu common actions"""
+        collapse_act = create_action(self,
+                    text=self.tr('Collapse all'),
+                    icon=get_icon('collapse.png'),
+                    triggered=self.collapseAll)
+        expand_act = create_action(self,
+                    text=self.tr('Expand all'),
+                    icon=get_icon('expand.png'),
+                    triggered=self.expandAll)
+        return [collapse_act, expand_act]
+                     
+    def update_menu(self):
+        self.menu.clear()
+        actions = []
+        # Right here: add other actions if necessary (in the future)
+        if actions:
+            actions.append(None)
+        actions += self.common_actions
+        add_actions(self.menu, actions)
+                     
+    def contextMenuEvent(self, event):
+        """Override Qt method"""
+        self.update_menu()
+        self.menu.popup(event.globalPos())
         
     def setup(self, fname):
         """Setup class browser"""
         assert osp.isfile(fname)
         self.fname = osp.abspath(fname)
         self.refresh()
-
-    def refresh(self):
-        self.clear()
-        self.class_names = self.list_classes()
-        self.populate_classes(self.class_names)
-        self.resizeColumnToContents(0)
-        self.expandAll()
 
     def get_data(self):
         return (self.fname, self.classes, self.lines, self.class_names)
@@ -50,6 +73,13 @@ class ClassBrowser(QTreeWidget):
         self.fname, self.classes, self.lines, self.class_names = data
         self.clear()
         self.populate_classes(self.class_names)
+        self.expandAll()
+
+    def refresh(self):
+        self.clear()
+        self.class_names = self.list_classes()
+        self.populate_classes(self.class_names)
+        self.resizeColumnToContents(0)
         self.expandAll()
 
     def activated(self, item):
@@ -121,7 +151,7 @@ class ClassBrowser(QTreeWidget):
                 item.setIcon(0, get_icon('private1.png'))
             else:
                 item.setIcon(0, get_icon('method.png'))
-            
+
 
 if __name__ == '__main__':
     from PyQt4.QtGui import QApplication

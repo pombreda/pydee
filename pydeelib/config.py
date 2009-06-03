@@ -231,7 +231,7 @@ DEFAULTS = [
             ]
 
 DEV = not __file__.startswith(sys.prefix)
-#DEV = False
+DEV = False
 CONF = UserConfig('pydee', DEFAULTS, version='0.4.7', load=(not DEV))
 
 def get_conf_path(filename):
