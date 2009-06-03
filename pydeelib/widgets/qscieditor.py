@@ -29,6 +29,7 @@ from pydeelib.qthelpers import (add_actions, create_action, keybinding,
                                  translate)
 from pydeelib.widgets.qscibase import QsciBase
 
+#FIXME: Tab bug when pressed at the beginning of a line
 
 #===============================================================================
 # Pyflakes code analysis
@@ -358,10 +359,10 @@ class QsciEditor(QsciBase):
             QToolTip.showText(self.mapToGlobal(QPoint(x, y)), tip, self)
         
     def add_prefix(self, prefix):
-        """Add prefix to current line or selected line(s)"""
+        """Add prefix to current line or selected line(s)"""        
         if self.hasSelectedText():
             # Add prefix to selected line(s)
-            line_from, _, line_to, index_to = self.getSelection()
+            line_from, index_from, line_to, index_to = self.getSelection()
             if index_to == 0:
                 end_line = line_to - 1
             else:
@@ -371,15 +372,18 @@ class QsciEditor(QsciBase):
                 self.insertAt(prefix, line, 0)
             self.setSelection(line_from, 0, end_line+1, 0)
             self.endUndoAction()
+            self.setSelection(line_from, index_from+len(prefix),
+                              line_to, index_to+len(prefix))
         else:
             # Add prefix to current line
-            line, _index = self.getCursorPosition()
+            line, index = self.getCursorPosition()
             self.beginUndoAction()
             self.insertAt(prefix, line, 0)
             self.endUndoAction()
+            self.setCursorPosition(line, index+len(prefix))
     
     def remove_prefix(self, prefix):
-        """Remove prefix from current line or selected line(s)"""
+        """Remove prefix from current line or selected line(s)"""        
         if self.hasSelectedText():
             # Remove prefix from selected line(s)
             line_from, index_from, line_to, index_to = self.getSelection()
@@ -394,13 +398,9 @@ class QsciEditor(QsciBase):
                 self.setSelection(line, 0, line, len(prefix))
                 self.removeSelectedText()
                 if line == line_from:
-                    index_from -= len(prefix)
-                    if index_from < 0:
-                        index_from = 0
+                    index_from = max([0, index_from-len(prefix)])
                 if line == line_to:
-                    index_to -= len(prefix)
-                    if index_to < 0:
-                        index_to = 0
+                    index_to = max([0, index_to-len(prefix)])
             self.setSelection(line_from, index_from, line_to, index_to)
             self.endUndoAction()
         else:
@@ -413,6 +413,7 @@ class QsciEditor(QsciBase):
             self.removeSelectedText()
             self.setCursorPosition(line, index-len(prefix))
             self.endUndoAction()
+            self.setCursorPosition(line, max([0, index-len(prefix)]))
     
     #TODO: [low-priority] Implement an intelligent indent/unindent
     # (a "repair indent" like in Emacs)
