@@ -150,6 +150,7 @@ DEFAULTS = [
               'wrap' : False,
               'wrapflag' : True,
               'code_analysis' : True,
+              'class_browser' : True,
               'code_folding' : True,
               'api' : osp.join(APP_PATH, 'python.api'),
               'valid_filetypes': ['', '.py', '.pyw', '.txt', '.patch',

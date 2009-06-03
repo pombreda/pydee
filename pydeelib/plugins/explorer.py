@@ -32,6 +32,9 @@ from pydeelib.plugins import PluginMixin
 #      -> show results in an another tab (allowing multiple results):
 #           hyperlinks in a QTextBrowser?
 
+#TODO: Add an option to force Pydee to open file in Editor
+#      even if it's not a supported file type
+
 class Explorer(ExplorerWidget, PluginMixin):
     """File and Directories Explorer DockWidget"""
     ID = 'explorer'

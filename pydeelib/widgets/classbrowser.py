@@ -27,7 +27,8 @@ class ClassBrowser(QTreeWidget):
         self.lines = None
         self.setItemsExpandable(True)
         self.setColumnCount(1)
-        self.setHeaderLabels([translate("ClassBrowser", "Class and function browser")])
+        self.setHeaderLabels([translate("ClassBrowser",
+                                        "Classes and functions")])
         self.connect(self, SIGNAL('itemActivated(QTreeWidgetItem*,int)'),
                      self.activated)
         # Setup context menu
@@ -70,10 +71,11 @@ class ClassBrowser(QTreeWidget):
         return (self.fname, self.classes, self.lines, self.class_names)
 
     def set_data(self, data):
-        self.fname, self.classes, self.lines, self.class_names = data
         self.clear()
-        self.populate_classes(self.class_names)
-        self.expandAll()
+        if data is not None:
+            self.fname, self.classes, self.lines, self.class_names = data
+            self.populate_classes(self.class_names)
+            self.expandAll()
 
     def refresh(self):
         self.clear()
