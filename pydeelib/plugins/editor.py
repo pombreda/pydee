@@ -55,8 +55,6 @@ def is_python_script(fname):
 #      Include search pattern + Exclude search pattern
 
 #FIXME: Class browser performance: update data instead of starting from scratch each time
-
-#FIXME: Class browser bug: when closing the last opened script, class browser stays as it is
 class Editor(PluginWidget):
     """
     Multi-file Editor widget
@@ -538,11 +536,12 @@ class Editor(PluginWidget):
                 return
         is_ok = self.save_if_changed(cancelable=True, index=index)
         if is_ok:
-            self.tabwidget.removeTab(index)
             self.filenames.pop(index)
             self.encodings.pop(index)
             self.editors.pop(index)
             self.classes.pop(index)
+            self.classbrowser.clear() # Clearing class browser contents
+            self.tabwidget.removeTab(index)
             self.refresh()
         return is_ok
             
