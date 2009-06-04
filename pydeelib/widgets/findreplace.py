@@ -34,11 +34,14 @@ class FindReplace(QWidget):
         QWidget.__init__(self, parent)
         self.enable_replace = enable_replace
         self.editor = None
-        self.setLayout(QGridLayout())
+        
+        glayout = QGridLayout()
+        glayout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(glayout)
         
         self.close_button = create_toolbutton(self, callback=self.hide,
                                       icon=get_std_icon("DialogCloseButton"))
-        self.layout().addWidget(self.close_button, 0, 0)
+        glayout.addWidget(self.close_button, 0, 0)
         
         # Find layout
         self.edit = QLineEdit()
@@ -57,12 +60,12 @@ class FindReplace(QWidget):
         self.words_check = QCheckBox(self.tr("Whole words"))
         self.connect(self.words_check, SIGNAL("stateChanged(int)"), self.find)
 
-        layout = QHBoxLayout()
+        hlayout = QHBoxLayout()
         self.widgets = [self.close_button, self.edit, self.previous_button,
                         self.next_button, self.case_check, self.words_check]
         for widget in self.widgets[1:]:
-            layout.addWidget(widget)
-        self.layout().addLayout(layout, 0, 1)
+            hlayout.addWidget(widget)
+        glayout.addLayout(hlayout, 0, 1)
 
         # Replace layout
         replace_with = QLabel(self.tr("Replace with:"))
@@ -79,7 +82,7 @@ class FindReplace(QWidget):
                    self.replace_button, self.all_check]
         for widget in widgets:
             self.replace_layout.addWidget(widget)
-        self.layout().addLayout(self.replace_layout, 1, 1)
+        glayout.addLayout(self.replace_layout, 1, 1)
         self.widgets.extend(widgets)
         self.replace_widgets = widgets
         self.hide_replace()
