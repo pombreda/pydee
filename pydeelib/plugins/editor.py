@@ -56,8 +56,6 @@ def is_python_script(fname):
 
 #FIXME: Class browser performance: update data instead of starting from scratch each time
 
-#FIXME: FindReplace widget takes the half dockwidget!
-
 #FIXME: Class browser bug: when closing the last opened script, class browser stays as it is
 class Editor(PluginWidget):
     """
