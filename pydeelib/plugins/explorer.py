@@ -25,16 +25,6 @@ from pydeelib.widgets.explorer import ExplorerWidget
 from pydeelib.plugins import PluginMixin
 
 
-#TODO: Add "Find in files" feature
-#      -> two more buttons on the toolbar (editable combo boxes):
-#           1. one to enter the search pattern
-#           2. one to choose the file pattern (--> look at the module 'glob')
-#      -> show results in an another tab (allowing multiple results):
-#           hyperlinks in a QTextBrowser?
-
-#TODO: Add an option to force Pydee to open file in Editor
-#      even if it's not a supported file type
-
 class Explorer(ExplorerWidget, PluginMixin):
     """File and Directories Explorer DockWidget"""
     ID = 'explorer'

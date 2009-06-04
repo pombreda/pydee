@@ -674,13 +674,13 @@ class Editor(PluginWidget):
             if filename:
                 filename = unicode(filename)
                 self.filenames[index] = filename
-#                directory = osp.dirname(filename)
-#                self.emit(SIGNAL("open_dir(QString)"), directory)
             else:
                 return False
-            self.save()
+            self.save(force=True)
+            # Refresh the explorer widget if it exists:
+            self.emit(SIGNAL("refresh_explorer()"))
     
-    def save(self, index=None):
+    def save(self, index=None, force=False):
         """Save file"""
         if index is None:
             # Save the currently edited file
@@ -688,7 +688,7 @@ class Editor(PluginWidget):
                 return
             index = self.tabwidget.currentIndex()
             
-        if not self.editors[index].isModified():
+        if not self.editors[index].isModified() and not force:
             return True
         txt = unicode(self.editors[index].get_text())
         try:
