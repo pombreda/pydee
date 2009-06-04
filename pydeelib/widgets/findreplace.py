@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel, QWidget,
-                         QLineEdit)
+                         QLineEdit, QSizePolicy)
 from PyQt4.QtCore import SIGNAL, Qt
 
 import sys
@@ -85,6 +85,8 @@ class FindReplace(QWidget):
         self.hide_replace()
         
         self.edit.setTabOrder(self.edit, self.replace_edit)
+        
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         
     def keyPressEvent(self, event):
         """Reimplemented to handle key events"""
