@@ -11,9 +11,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, re
+import sys
 from PyQt4.QtGui import QFont, QToolTip
-from PyQt4.QtCore import QPoint, SIGNAL
+from PyQt4.QtCore import QPoint, SIGNAL, QString, QRegExp
 from PyQt4.Qsci import QsciScintilla
 
 # For debugging purpose:
@@ -115,12 +115,8 @@ class QsciBase(QsciScintilla):
     
     def is_a_word(self, text):
         """Is 'text' a word? (according to current lexer)"""
-        re_iter = re.finditer('[^%s]' % self.wordCharacters(), text)
-        try:
-            re_iter.next()
-            return False
-        except StopIteration:
-            return True
+        regexp = QRegExp( QString('[^%1]').arg(self.wordCharacters()) )
+        return not regexp.exactMatch(text)
 
 
     def clear_selection(self):
