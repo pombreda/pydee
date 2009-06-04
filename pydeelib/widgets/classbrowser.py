@@ -61,32 +61,26 @@ class ClassBrowser(QTreeWidget):
         self.update_menu()
         self.menu.popup(event.globalPos())
         
-    def setup(self, fname):
+    def set_filename(self, fname):
         """Setup class browser"""
         assert osp.isfile(fname)
         self.fname = osp.abspath(fname)
-        self.refresh()
 
-    def get_data(self):
-        return (self.fname, self.classes, self.lines, self.class_names)
-
-    def set_data(self, data):
+    def refresh(self, data=None, update=True):
+        """Refresh class browser"""
         self.clear()
-        if data is not None:
+        if data is None or update:
+            from tokenize import TokenError
+            try:
+                self.class_names = self.list_classes()
+            except TokenError:
+                return
+        else:
             self.fname, self.classes, self.lines, self.class_names = data
-            self.populate_classes(self.class_names)
-            self.expandAll()
-
-    def refresh(self):
-        from tokenize import TokenError
-        try:
-            self.class_names = self.list_classes()
-        except TokenError:
-            return
-        self.clear()
         self.populate_classes(self.class_names)
         self.resizeColumnToContents(0)
         self.expandAll()
+        return (self.fname, self.classes, self.lines, self.class_names)
 
     def activated(self, item):
         """Double-click or click event"""
@@ -164,7 +158,8 @@ if __name__ == '__main__':
     app = QApplication([])
     
     widget = ClassBrowser(None)
-    widget.setup("dicteditor.py")
+    widget.set_filename("dicteditor.py")
+    widget.refresh()
     widget.show()
     
     sys.exit(app.exec_())

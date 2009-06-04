@@ -143,7 +143,7 @@ class Editor(PluginWidget):
             index = self.tabwidget.currentIndex()
             editor = self.editors[index]
             title += " - "+osp.basename(self.filenames[index])
-            self.classbrowser.set_data(self.classes[index])
+            self.classbrowser.refresh(self.classes[index], update=False)
         else:
             editor = None
         if self.dockwidget:
@@ -351,8 +351,7 @@ class Editor(PluginWidget):
             index = self.tabwidget.currentIndex()
         fname = self.filenames[index]
         if CONF.get(self.ID, 'class_browser') and is_python_script(fname):
-            self.classbrowser.setup(fname)
-            self.classes[index] = self.classbrowser.get_data()
+            self.classes[index] = self.classbrowser.refresh(self.classes[index])
     
     def go_to_line(self, lineno):
         """Go to line lineno and highlight it"""
@@ -639,6 +638,7 @@ class Editor(PluginWidget):
                 self.editors.append(editor)
 
                 self.classes.append(None)
+                self.classbrowser.set_filename(filename)
                 
                 title = self.get_title(filename)
                 index = self.tabwidget.addTab(editor, title)
