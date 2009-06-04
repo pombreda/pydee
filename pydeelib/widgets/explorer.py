@@ -133,8 +133,12 @@ class ExplorerListWidget(QListWidget):
                                         translate('Explorer', "Edit"),
                                         icon="edit.png",
                                         triggered=self.clicked)
+            delete_action = create_action(self,
+                                          translate('Explorer', "Delete..."),
+                                          icon="delete.png",
+                                          triggered=self.delete)
             rename_action = create_action(self,
-                                          translate('Explorer', "Rename"),
+                                          translate('Explorer', "Rename..."),
                                           icon="rename.png",
                                           triggered=self.rename)
             browse_action = create_action(self,
@@ -150,7 +154,7 @@ class ExplorerListWidget(QListWidget):
                 actions.append(browse_action if is_dir else edit_action)
             else:
                 actions.append(open_action)
-            actions.append(rename_action)
+            actions += [delete_action, rename_action]
             if is_dir and os.name == 'nt':
                 # Actions specific to Windows directories
                 actions.append( create_action(self,
@@ -307,12 +311,34 @@ class ExplorerListWidget(QListWidget):
         """Run Python script"""
         self.parent().emit(SIGNAL("run(QString)"), self.get_filename())
             
+    def delete(self):
+        """Delete selected item"""
+        fname = self.get_filename()
+        if fname:
+            answer = QMessageBox.warning(self,
+                translate("Explorer", "Delete"),
+                translate("Explorer", "Do you really want to delete <b>%1</b>?") \
+                .arg(osp.basename(fname)), QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.No:
+                return
+            try:
+                os.remove(fname)
+            except IOError, error:
+                QMessageBox.critical(self,
+                    translate('Explorer', "Delete"),
+                    translate('Explorer',
+                              "<b>Unable to delete selected file</b>"
+                              "<br><br>Error message:<br>%1") \
+                    .arg(str(error)))
+            finally:
+                self.refresh()
+            
     def rename(self):
         """Rename selected item"""
         fname = self.get_filename()
         if fname:
             path, valid = QInputDialog.getText(self,
-                                          translate('Explorer', 'Rename item'),
+                                          translate('Explorer', 'Rename'),
                                           translate('Explorer', 'New name:'),
                                           QLineEdit.Normal, fname)
             if valid and path != fname:
@@ -320,9 +346,9 @@ class ExplorerListWidget(QListWidget):
                     os.rename(fname, path)
                 except IOError, error:
                     QMessageBox.critical(self,
-                        translate('Explorer', "Rename item"),
+                        translate('Explorer', "Rename"),
                         translate('Explorer',
-                                  "<b>Unable to rename selected item</b>"
+                                  "<b>Unable to rename selected file</b>"
                                   "<br><br>Error message:<br>%1") \
                         .arg(str(error)))
                 finally:
