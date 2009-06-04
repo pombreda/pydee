@@ -47,6 +47,18 @@ def is_python_script(fname):
 
 #TODO: Implement multiple editor windows
 #      (editor tab -> context menu -> "Open in a new window")
+
+#TODO: Add "Find in files" feature
+#      -> directly in FindReplace widget: option to switch to "find in files"
+#      4 options:
+#       a. hg manifest   b. current dir   c. script dir   d. choosable dir (combobox)
+#      Include search pattern + Exclude search pattern
+
+#FIXME: Class browser performance: update data instead of starting from scratch each time
+
+#FIXME: FindReplace widget takes the half dockwidget!
+
+#FIXME: Class browser bug: when closing the last opened script, class browser stays as it is
 class Editor(PluginWidget):
     """
     Multi-file Editor widget
@@ -475,13 +487,17 @@ class Editor(PluginWidget):
         self.main.console.shell.execute_lines(lines)
         self.main.console.shell.setFocus()
 
-    def save_if_changed(self, cancelable=False):
+    def save_if_changed(self, cancelable=False, index=None):
         """Ask user to save file if modified"""
+        if index is None:
+            indexes = range(self.tabwidget.count())
+        else:
+            indexes = [index]
         buttons = QMessageBox.Yes | QMessageBox.No
         if cancelable:
             buttons |= QMessageBox.Cancel
         unsaved_nb = 0
-        for index in range(self.tabwidget.count()):
+        for index in indexes:
             if self.editors[index].isModified():
                 unsaved_nb += 1
         if not unsaved_nb:
@@ -490,7 +506,7 @@ class Editor(PluginWidget):
         if unsaved_nb > 1:
             buttons |= QMessageBox.YesAll | QMessageBox.NoAll
         yes_all = False
-        for index in range(self.tabwidget.count()):
+        for index in indexes:
             self.tabwidget.setCurrentIndex(index)
             filename = self.filenames[index]
             if filename == self.file_path or yes_all:
@@ -522,7 +538,7 @@ class Editor(PluginWidget):
             else:
                 self.find_widget.set_editor(None)
                 return
-        is_ok = self.save_if_changed(cancelable=True)
+        is_ok = self.save_if_changed(cancelable=True, index=index)
         if is_ok:
             self.tabwidget.removeTab(index)
             self.filenames.pop(index)
