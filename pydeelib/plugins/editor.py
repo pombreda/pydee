@@ -54,7 +54,6 @@ def is_python_script(fname):
 #       a. hg manifest   b. current dir   c. script dir   d. choosable dir (combobox)
 #      Include search pattern + Exclude search pattern
 
-#FIXME: Class browser performance: update data instead of starting from scratch each time
 class Editor(PluginWidget):
     """
     Multi-file Editor widget
