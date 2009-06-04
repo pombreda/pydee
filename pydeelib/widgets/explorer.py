@@ -25,8 +25,8 @@ STDOUT = sys.stdout
 
 # Local imports
 from pydeelib.qthelpers import (get_std_icon, translate, add_actions,
-                                 create_action, get_filetype_icon,
-                                 create_toolbutton)
+                                create_action, get_filetype_icon,
+                                create_toolbutton)
 from pydeelib.config import get_icon
 
 

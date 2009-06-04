@@ -11,55 +11,22 @@ Class browser widget
 import os.path as osp
 import pyclbr, sys
 
-from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem, QMenu
+from PyQt4.QtGui import QTreeWidgetItem
 from PyQt4.QtCore import SIGNAL
 
 # Local imports
 from pydeelib.config import get_icon
-from pydeelib.qthelpers import add_actions, translate, create_action
+from pydeelib.qthelpers import translate
+from pydeelib.widgets import OneColumnTree
 
 
-class ClassBrowser(QTreeWidget):
+class ClassBrowser(OneColumnTree):
     def __init__(self, parent):
-        QTreeWidget.__init__(self, parent)
+        OneColumnTree.__init__(self, parent)
+        self.set_title(translate("ClassBrowser", "Classes and functions"))
         self.fname = None
         self.classes = None
         self.lines = None
-        self.setItemsExpandable(True)
-        self.setColumnCount(1)
-        self.setHeaderLabels([translate("ClassBrowser",
-                                        "Classes and functions")])
-        self.connect(self, SIGNAL('itemActivated(QTreeWidgetItem*,int)'),
-                     self.activated)
-        # Setup context menu
-        self.menu = QMenu(self)
-        self.common_actions = self.setup_common_actions()
-                     
-    def setup_common_actions(self):
-        """Setup context menu common actions"""
-        collapse_act = create_action(self,
-                    text=self.tr('Collapse all'),
-                    icon=get_icon('collapse.png'),
-                    triggered=self.collapseAll)
-        expand_act = create_action(self,
-                    text=self.tr('Expand all'),
-                    icon=get_icon('expand.png'),
-                    triggered=self.expandAll)
-        return [collapse_act, expand_act]
-                     
-    def update_menu(self):
-        self.menu.clear()
-        actions = []
-        # Right here: add other actions if necessary (in the future)
-        if actions:
-            actions.append(None)
-        actions += self.common_actions
-        add_actions(self.menu, actions)
-                     
-    def contextMenuEvent(self, event):
-        """Override Qt method"""
-        self.update_menu()
-        self.menu.popup(event.globalPos())
         
     def set_filename(self, fname):
         """Setup class browser"""
