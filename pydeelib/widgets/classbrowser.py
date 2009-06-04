@@ -12,13 +12,13 @@ import os.path as osp
 import pyclbr, sys
 
 from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem, QMenu
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtCore import SIGNAL
 
 # Local imports
 from pydeelib.config import get_icon
 from pydeelib.qthelpers import add_actions, translate, create_action
 
-#TODO: Add "Collapse all" and "Expand all" buttons
+
 class ClassBrowser(QTreeWidget):
     def __init__(self, parent):
         QTreeWidget.__init__(self, parent)
@@ -78,8 +78,12 @@ class ClassBrowser(QTreeWidget):
             self.expandAll()
 
     def refresh(self):
+        from tokenize import TokenError
+        try:
+            self.class_names = self.list_classes()
+        except TokenError:
+            return
         self.clear()
-        self.class_names = self.list_classes()
         self.populate_classes(self.class_names)
         self.resizeColumnToContents(0)
         self.expandAll()
