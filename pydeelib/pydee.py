@@ -261,6 +261,8 @@ class MainWindow(QMainWindow):
                              self.explorer.refresh)
                 self.connect(self.workdir, SIGNAL("chdir()"),
                              self.explorer.refresh)
+                self.connect(self.editor, SIGNAL("refresh_explorer()"),
+                             self.explorer.refresh)
 
             # History log widget
             if CONF.get('historylog', 'enable'):
