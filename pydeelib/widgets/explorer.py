@@ -18,7 +18,6 @@ from PyQt4.QtCore import Qt, SIGNAL, QMimeData
 
 import os, sys
 import os.path as osp
-from sets import Set
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -179,11 +178,11 @@ class ExplorerListWidget(QListWidget):
 
         names = listdir(new_path, self.valid_types,
                         self.show_hidden, self.show_all)
-        new_nameset = Set(names)
+        new_nameset = set(names)
         
         if (new_path != self.path) or clear:
             self.path = new_path
-            self.nameset = Set([])
+            self.nameset = set([])
             self.itemdict = {}
             self.clear()
             self.setWrapping(self.wrap)
