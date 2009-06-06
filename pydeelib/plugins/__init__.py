@@ -64,9 +64,11 @@ class PluginMixin(object):
         """DockWidget visibility has changed
         enable: this parameter is not used because we want to detect if
         DockWiget is visible or not, with 'not toplevel = visible'"""
-        enable = self.dockwidget.isVisible()
-        toggle_actions(self.menu_actions, enable)
-        toggle_actions(self.toolbar_actions, enable)
+        if enable:
+            self.dockwidget.raise_()
+        visible = self.dockwidget.isVisible()
+        toggle_actions(self.menu_actions, visible)
+        toggle_actions(self.toolbar_actions, visible)
         self.refresh() #XXX Is it a good idea?
 
     def option_changed(self, option, value):
