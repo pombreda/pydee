@@ -198,11 +198,11 @@ class ExternalConsole(PluginWidget):
         
     def run_script(self):
         """Run a Python script"""
-        self.main.console.shell.restore_stds()
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename = QFileDialog.getOpenFileName(self,
                       self.tr("Run Python script"), os.getcwdu(),
                       self.tr("Python scripts")+" (*.py ; *.pyw)")
-        self.main.console.shell.redirect_stds()
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
         if filename:
             self.start(unicode(filename), None, False, False, False)
         
