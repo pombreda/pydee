@@ -266,12 +266,12 @@ class Workspace(DictEditorTableView, PluginMixin):
         """Attempt to load namespace"""
         title = self.tr("Open workspace")
         if filename is None:
-            self.main.console.shell.restore_stds()
+            self.emit(SIGNAL('redirect_stdio(bool)'), False)
             basedir = osp.dirname(self.filename)
             filename = QFileDialog.getOpenFileName(self,
                           title, basedir,
                           self.tr("Workspaces")+" (*.ws)")
-            self.main.console.shell.redirect_stds()
+            self.emit(SIGNAL('redirect_stdio(bool)'), True)
             if filename:
                 filename = unicode(filename)
             else:
@@ -329,21 +329,22 @@ class Workspace(DictEditorTableView, PluginMixin):
         """Attempt to close the current workspace and create a new one"""
         if not self.close():
             return
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename = QFileDialog.getSaveFileName(self,
                         self.tr("New workspace"), self.filename,
                         self.tr("Workspaces")+" (*.ws)")
-        self.main.console.shell.redirect_stds()
+        self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
             self.filename = unicode(filename)
         self.save()
     
     def save_as(self):
         """Save current workspace as"""
-        self.main.console.shell.restore_stds()
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename = QFileDialog.getSaveFileName(self,
                       self.tr("Save workspace"), self.filename,
                       self.tr("Workspaces")+" (*.ws)")
-        self.main.console.shell.redirect_stds()
+        self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
             self.filename = unicode(filename)
         else:

@@ -418,10 +418,10 @@ class Editor(PluginWidget):
         while osp.isfile(gen_name(nb)):
             nb += 1
         fname = gen_name(nb)
-        self.main.console.shell.restore_stds()
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
         fname = QFileDialog.getSaveFileName(self, self.tr("New Python script"),
                     fname, self.tr("Python scripts")+" (*.py ; *.pyw)")
-        self.main.console.shell.redirect_stds()
+        self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if not fname.isEmpty():
             fname = unicode(fname)
             default = ['# -*- coding: utf-8 -*-',
@@ -578,7 +578,7 @@ class Editor(PluginWidget):
             if isinstance(action, QAction):
                 filenames = unicode(action.data().toString())
         if not filenames:
-            self.main.console.shell.restore_stds()
+            self.emit(SIGNAL('redirect_stdio(bool)'), False)
             basedir = os.getcwdu()
             if self.filenames:
                 index = self.tabwidget.currentIndex()
@@ -587,7 +587,7 @@ class Editor(PluginWidget):
             filenames = QFileDialog.getOpenFileNames(self,
                           self.tr("Open Python script"), basedir,
                           self.tr("Python scripts")+" (*.py ; *.pyw)")
-            self.main.console.shell.redirect_stds()
+            self.emit(SIGNAL('redirect_stdio(bool)'), True)
             filenames = list(filenames)
             if len(filenames):
 #                directory = osp.dirname(unicode(filenames[-1]))
@@ -662,11 +662,11 @@ class Editor(PluginWidget):
         """Save *as* the currently edited file"""
         if self.tabwidget.count():
             index = self.tabwidget.currentIndex()
-            self.main.console.shell.restore_stds()
+            self.emit(SIGNAL('redirect_stdio(bool)'), False)
             filename = QFileDialog.getSaveFileName(self,
                           self.tr("Save Python script"), self.filenames[index],
                           self.tr("Python scripts")+" (*.py ; *.pyw)")
-            self.main.console.shell.redirect_stds()
+            self.emit(SIGNAL('redirect_stdio(bool)'), True)
             if filename:
                 filename = unicode(filename)
                 self.filenames[index] = filename

@@ -31,7 +31,6 @@ from pydeelib.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate, get_filetype_icon)
 from pydeelib.config import get_icon, get_image_path, CONF
 
-WIDGET_LIST = ['console', 'editor', 'docviewer', 'historylog', 'extconsole']
 
 #TODO: Try to fix this stylesheet for QMainWindow
 STYLESHEET="""
@@ -182,6 +181,8 @@ class MainWindow(QMainWindow):
                 self.workspace = Workspace(self)
                 self.connect(self.workspace, SIGNAL('focus_changed()'),
                              self.plugin_focus_changed)
+                self.connect(self.workspace, SIGNAL('redirect_stdio(bool)'),
+                             self.redirect_interactiveshell_stdio)
                 namespace = self.workspace.namespace
                 
         # Console widget: window's central widget
@@ -198,6 +199,8 @@ class MainWindow(QMainWindow):
         # Working directory changer widget
         self.workdir = WorkingDirectory( self, self.init_workdir )
         self.addToolBar(self.workdir) # new mainwindow toolbar
+        self.connect(self.workdir, SIGNAL('redirect_stdio(bool)'),
+                     self.redirect_interactiveshell_stdio)
         self.connect(self.console.shell, SIGNAL("refresh()"),
                      self.workdir.refresh)
         
@@ -218,6 +221,8 @@ class MainWindow(QMainWindow):
             self.connect(self.editor,
                          SIGNAL("open_external_console(QString,QString,bool,bool,bool)"),
                          self.open_external_console)
+            self.connect(self.editor, SIGNAL('redirect_stdio(bool)'),
+                         self.redirect_interactiveshell_stdio)
             self.add_dockwidget(self.editor)
             self.add_to_menubar(self.editor, self.tr("&Source"))
             self.add_to_toolbar(self.editor)
@@ -304,6 +309,8 @@ class MainWindow(QMainWindow):
             self.extconsole.set_docviewer(self.docviewer)
             self.connect(self.extconsole, SIGNAL("edit_goto(QString,int)"),
                          self.editor.load)
+            self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
+                         self.redirect_interactiveshell_stdio)
             self.add_dockwidget(self.extconsole)
             self.add_to_menubar(self.extconsole)
             
@@ -613,6 +620,12 @@ class MainWindow(QMainWindow):
         self.workspace.set_interpreter(interpreter)
         self.docviewer.set_interpreter(interpreter)
         self.console.dockwidget.raise_()
+        
+    def redirect_interactiveshell_stdio(self, state):
+        if state:
+            self.console.shell.redirect_stds()
+        else:
+            self.console.shell.restore_stds()
         
     def open_external_console(self, fname, wdir,
                               ask_for_arguments, interact, debug):

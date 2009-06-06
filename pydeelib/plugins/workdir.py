@@ -145,12 +145,12 @@ class WorkingDirectory(QToolBar, PluginMixin):
         
     def select_directory(self):
         """Select directory"""
-        self.main.console.shell.restore_stds()
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
         directory = QFileDialog.getExistingDirectory(self.main,
                     self.tr("Select directory"), os.getcwdu())
         if not directory.isEmpty():
             self.chdir(directory)
-        self.main.console.shell.redirect_stds()
+        self.emit(SIGNAL('redirect_stdio(bool)'), True)
         
     def previous_directory(self):
         """Back to previous directory"""
