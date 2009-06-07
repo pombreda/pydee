@@ -29,7 +29,6 @@ from pydeelib.qthelpers import (add_actions, create_action, keybinding,
                                  translate)
 from pydeelib.widgets.qscibase import QsciBase
 
-#FIXME: Tab bug when pressed at the beginning of a line
 
 #===============================================================================
 # Pyflakes code analysis
@@ -416,7 +415,8 @@ class QsciEditor(QsciBase):
             self.setCursorPosition(line, max([0, index-len(prefix)]))
     
     def fix_indent(self, forward=True):
-        """Fix indentation (Python only, no text selection)
+        """
+        Fix indentation (Python only, no text selection)
         forward=True: fix indent only if text is not enough indented
                       (otherwise force indent)
         forward=False: fix indent only if text is too much indented

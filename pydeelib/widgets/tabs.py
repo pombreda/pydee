@@ -87,9 +87,9 @@ class Tabs(QTabWidget):
     def mousePressEvent(self, event):
         """Override Qt method"""
         if event.button() == Qt.MidButton:
-            if self.count():
-                #TODO: [low-priority] Really close the clicked tab and not the last one
-                self.emit(SIGNAL("close_tab(int)"), self.currentIndex())
+            index = self.tabBar().tabAt(event.pos())
+            if index >= 0:
+                self.emit(SIGNAL("close_tab(int)"), index)
                 event.accept()
                 return
         QTabWidget.mousePressEvent(self, event)
