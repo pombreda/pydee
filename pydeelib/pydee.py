@@ -105,8 +105,8 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(get_icon('pydee.png'))
         
         # Showing splash screen
-        self.splash = QSplashScreen(QPixmap(get_image_path('splash.png'),
-                                            'png'))
+        pixmap = QPixmap(get_image_path('splash.png'), 'png')
+        self.splash = QSplashScreen(pixmap)
         self.splash.show()
         self.set_splash(self.tr("Initializing..."))
         
