@@ -88,13 +88,16 @@ class ArrayModel(QAbstractTableModel):
         self.bgcolor_enabled = state > 0
         self.reset()
 
+    def get_value(self, index):
+        i = index.row()
+        j = index.column()
+        return self.changes.get((i, j), self._data[i, j])
+
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
         if not index.isValid():
             return QVariant()
-        i = index.row()
-        j = index.column()
-        value = self.changes.get((i, j), self._data[i, j])
+        value = self.get_value(index)
         if role == Qt.DisplayRole:
             return QVariant( self._format % value )
         elif role == Qt.TextAlignmentRole:
@@ -176,14 +179,20 @@ class ArrayDelegate(QItemDelegate):
 
     def createEditor(self, parent, option, index):
         """Create editor widget"""
-        editor = QLineEdit(parent)
-        editor.setFont(get_font('arrayeditor'))
-        editor.setAlignment(Qt.AlignCenter)
-        if is_number(self.dtype):
-            editor.setValidator( QDoubleValidator(editor) )
-        self.connect(editor, SIGNAL("returnPressed()"),
-                     self.commitAndCloseEditor)
-        return editor
+        model = index.model()
+        if model._data.dtype.name == "bool":
+            value = not model.get_value(index)
+            model.setData(index, QVariant(value))
+            return
+        else:
+            editor = QLineEdit(parent)
+            editor.setFont(get_font('arrayeditor'))
+            editor.setAlignment(Qt.AlignCenter)
+            if is_number(self.dtype):
+                editor.setValidator( QDoubleValidator(editor) )
+            self.connect(editor, SIGNAL("returnPressed()"),
+                         self.commitAndCloseEditor)
+            return editor
 
     def commitAndCloseEditor(self):
         """Commit and close editor"""
