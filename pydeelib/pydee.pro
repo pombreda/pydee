@@ -5,6 +5,7 @@ SOURCES	     += plugins/editor.py
 SOURCES	     += plugins/explorer.py
 SOURCES	     += plugins/externalconsole.py
 SOURCES	     += plugins/figure.py
+SOURCES	     += plugins/findinfiles.py
 SOURCES	     += plugins/workdir.py
 SOURCES	     += plugins/workspace.py
 
@@ -14,6 +15,7 @@ SOURCES      += widgets/comboboxes.py
 SOURCES	     += widgets/dicteditor.py
 SOURCES	     += widgets/explorer.py
 SOURCES	     += widgets/externalshell.py
+SOURCES	     += widgets/findinfiles.py
 SOURCES	     += widgets/findreplace.py
 SOURCES      += widgets/importwizard.py
 SOURCES	     += widgets/interactiveshell.py

@@ -317,7 +317,6 @@ class Editor(PluginWidget):
                 classbrowser_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
                 self.save_all_action, None,
-                self.main.find_action, self.main.replace_action, None,
                 self.exec_action, self.exec_selected_action,
                 self.exec_process_action]
         self.dock_toolbar_actions = toolbar_actions + \
