@@ -111,13 +111,13 @@ def fmatch(name, patlist):
 #            if regexp:
 #                for match in re.finditer(text, line):
 #                    res = results.get(osp.abspath(fname), [])
-#                    res.append((lineno, match.start(), line))
+#                    res.append((lineno+1, match.start(), line))
 #                    results[osp.abspath(fname)] = res
 #                    nb += 1
 #            else:
 #                while found > -1:
 #                    res = results.get(osp.abspath(fname), [])
-#                    res.append((lineno, found, line))
+#                    res.append((lineno+1, found, line))
 #                    results[osp.abspath(fname)] = res
 #                    for text in texts:
 #                        found = line.find(text, found+1)
@@ -214,13 +214,13 @@ class SearchThread(QThread):
                 if self.text_re:
                     for match in re.finditer(text, line):
                         res = self.results.get(osp.abspath(fname), [])
-                        res.append((lineno, match.start(), line))
+                        res.append((lineno+1, match.start(), line))
                         self.results[osp.abspath(fname)] = res
                         self.nb += 1
                 else:
                     while found > -1:
                         res = self.results.get(osp.abspath(fname), [])
-                        res.append((lineno, found, line))
+                        res.append((lineno+1, found, line))
                         self.results[osp.abspath(fname)] = res
                         for text in self.texts:
                             found = line.find(text, found+1)
