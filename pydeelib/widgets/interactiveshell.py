@@ -21,7 +21,7 @@ except ImportError:
 from pydeelib.widgets.objecteditor import oedit
 __builtin__.oedit = oedit
 
-import sys, os
+import sys, os, re
 from time import time
 from subprocess import Popen, PIPE
 import os.path as osp
@@ -48,11 +48,6 @@ except ImportError, e:
 
 def guess_filename(filename):
     """Guess filename"""
-    stw = filename.startswith
-#    if stw('r"') or stw("r'") or stw('u"') or stw("u'"):
-#        filename = filename[1:]
-    if stw('"') or stw("'"):
-        filename = filename[1:-1]
     if osp.isfile(filename):
         return filename
     pathlist = sys.path
@@ -63,6 +58,10 @@ def guess_filename(filename):
         fname = osp.join(path, filename)
         if osp.isfile(fname):
             return fname
+        elif osp.isfile(fname+'.py'):
+            return fname+'.py'
+        elif osp.isfile(fname+'.pyw'):
+            return fname+'.pyw'
     return filename
 
 def create_banner(moreinfo, message=''):
@@ -233,13 +232,13 @@ class InteractiveShell(QsciShell):
                 
                 
     #------ External editing
-    def external_editor(self, filename, goto=None):
+    def external_editor(self, filename, goto=-1):
         """Edit in an external editor
         Recommended: SciTE (e.g. to go to line where an error did occur)"""
         editor_path = CONF.get('shell', 'external_editor')
         goto_option = CONF.get('shell', 'external_editor/gotoline')
         try:
-            if (goto is not None) and goto_option:
+            if goto > 0 and goto_option:
                 Popen(r'%s "%s" %s%d' % (editor_path, filename,
                                          goto_option, goto))
             else:
@@ -412,36 +411,38 @@ class InteractiveShell(QsciShell):
             if history:
                 self.add_to_history(cmd)
 
-        #FIXME: use regexp instead of startswith for special commands detection
-        #       --> will allow user to use "edit" or "run" as object name
-
         # -- Special commands type I
         #    (transformed into commands executed in the interpreter)
         # ? command
+        special_pattern = r"^%s (?:r\')?(?:u\')?\"?\'?([a-zA-Z0-9_\.]+)"
+        run_match = re.match(special_pattern % 'run', cmd)
         if cmd.endswith('?'):
             cmd = 'help(%s)' % cmd[:-1]
         # run command
-        elif cmd.startswith('run '):
-            filename = guess_filename(cmd[4:])
+        elif run_match:
+            filename = guess_filename(run_match.groups()[0])
             cmd = 'execfile(r"%s")' % filename
         # -- End of Special commands type I
             
         # -- Special commands type II
         #    (don't need code execution in interpreter)
+        xedit_match = re.match(special_pattern % 'xedit', cmd)
+        edit_match = re.match(special_pattern % 'edit', cmd)
+        clear_match = re.match(r"^clear ([a-zA-Z0-9_, ]+)", cmd)
         # (external) edit command
-        if cmd.startswith('xedit '):
-            filename = guess_filename(cmd[6:])
+        if xedit_match:
+            filename = guess_filename(xedit_match.groups()[0])
             self.external_editor(filename)
         # local edit command
-        elif cmd.startswith('edit '):
-            filename = guess_filename(cmd[5:])
+        elif edit_match:
+            filename = guess_filename(edit_match.groups()[0])
             if osp.isfile(filename):
                 self.parent().edit_script(filename)
             else:
                 self.write_error("No such file or directory: %s\n" % filename)
         # remove reference (equivalent to MATLAB's clear command)
-        elif cmd.startswith('clear '):
-            varnames = cmd[6:].replace(' ', '').split(',')
+        elif clear_match:
+            varnames = clear_match.groups()[0].replace(' ', '').split(',')
             for varname in varnames:
                 try:
                     self.interpreter.locals.pop(varname)

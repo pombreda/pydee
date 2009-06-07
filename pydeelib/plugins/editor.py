@@ -570,7 +570,7 @@ class Editor(PluginWidget):
         self.classes[index2], self.classes[index1] = \
             self.classes[index1], self.classes[index2]
         
-    def load(self, filenames=None, goto=None):
+    def load(self, filenames=None, goto=0):
         """Load a text file"""
         if not filenames:
             # Recent files action
@@ -655,7 +655,7 @@ class Editor(PluginWidget):
                 editor.setFocus()
                 self.add_recent_file(filename)
             
-            if goto is not None:
+            if goto > 0:
                 editor.highlight_line(goto)
 
     def save_as(self):
