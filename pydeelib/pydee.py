@@ -27,12 +27,14 @@ from pydeelib.plugins.editor import Editor, HistoryLog, DocViewer
 from pydeelib.plugins.workspace import Workspace
 from pydeelib.plugins.explorer import Explorer
 from pydeelib.plugins.externalconsole import ExternalConsole
+from pydeelib.plugins.findinfiles import FindInFiles
 from pydeelib.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate, get_filetype_icon)
 from pydeelib.config import get_icon, get_image_path, CONF
 
 
-#TODO: Try to fix this stylesheet for QMainWindow
+#TODO: Improve the stylesheet below for separator handles to be visible
+#      (in Qt, these handles are by default not visible!)
 STYLESHEET="""
 QSplitter::handle {
     margin-left: 4px;
@@ -93,6 +95,7 @@ class MainWindow(QMainWindow):
         self.docviewer = None
         self.historylog = None
         self.extconsole = None
+        self.findinfiles = None
         
         # Set Window title and icon
         title = "Pydee"
@@ -130,6 +133,11 @@ class MainWindow(QMainWindow):
             self.replace_action = create_action(self, _text, "Ctrl+H",
                                                 'replace.png', _text,
                                                 triggered = self.replace)
+            self.findinfiles_action = create_action(self,
+                                self.tr("&Find in files"),
+                                "Ctrl+Shift+F", 'findf.png',
+                                triggered=self.findinfiles_callback,
+                                tip=self.tr("Search text in multiple files"))        
             def create_edit_action(text, icon_name):
                 return create_action(self, translate("SimpleEditor", text),
                                      shortcut=keybinding(text),
@@ -156,8 +164,8 @@ class MainWindow(QMainWindow):
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                       None, self.cut_action, self.copy_action,
                                       self.paste_action, self.delete_action,
-                                      None, self.selectall_action, None,
-                                      self.find_action, self.replace_action]
+                                      None, self.selectall_action]
+            self.search_menu_actions = [self.find_action, self.replace_action]
 
         namespace = None
         if not self.light:
@@ -169,6 +177,10 @@ class MainWindow(QMainWindow):
             # Edit menu
             self.edit_menu = self.menuBar().addMenu(self.tr("&Edit"))
             add_actions(self.edit_menu, self.edit_menu_actions)
+            
+            # Search menu
+            self.search_menu = self.menuBar().addMenu(self.tr("&Search"))
+            add_actions(self.search_menu, self.search_menu_actions)
                     
             # Status bar
             status = self.statusBar()
@@ -227,6 +239,27 @@ class MainWindow(QMainWindow):
             self.add_to_menubar(self.editor, self.tr("&Source"))
             self.add_to_toolbar(self.editor)
         
+            # Seach actions in toolbar
+            toolbar_search_actions = [self.find_action, self.replace_action]
+        
+            # Find in files
+            if CONF.get('find_in_files', 'enable'):
+                self.findinfiles = FindInFiles(self)
+                self.add_dockwidget(self.findinfiles)
+                self.connect(self.findinfiles, SIGNAL("edit_goto(QString,int)"),
+                             self.editor.load)
+                self.connect(self.findinfiles, SIGNAL('redirect_stdio(bool)'),
+                             self.redirect_interactiveshell_stdio)
+                self.connect(self, SIGNAL('find_files(QString)'),
+                             self.findinfiles.set_search_text)
+                self.search_menu.addSeparator()
+                self.search_menu.addAction(self.findinfiles_action)
+                toolbar_search_actions.append(self.findinfiles_action)
+                
+            self.toolbar.addSeparator()
+            for action in toolbar_search_actions:
+                self.toolbar.addAction(action)
+            
             # Workspace
             if self.workspace is not None:
                 self.set_splash(self.tr("Loading workspace widget..."))
@@ -363,6 +396,7 @@ class MainWindow(QMainWindow):
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
         self.update_edit_menu()
+        self.update_search_menu()
         
     def update_file_menu(self):
         """Update file menu to show recent files"""
@@ -385,44 +419,42 @@ class MainWindow(QMainWindow):
         self.file_menu.addSeparator()
         self.file_menu.addAction(self.console.quit_action)
         
+    def __focus_widget_properties(self):
+        widget = QApplication.focusWidget()
+        from pydeelib.widgets.qscishell import QsciShell
+        from pydeelib.widgets.qscibase import QsciBase
+        scintilla_properties = None
+        if isinstance(widget, QsciBase):
+            console = isinstance(widget, QsciShell)
+            not_readonly = not widget.isReadOnly()
+            readwrite_editor = not_readonly and not console
+            scintilla_properties = (console, not_readonly, readwrite_editor)
+        return widget, scintilla_properties
+        
     def update_edit_menu(self):
         """Update edit menu"""
         if self.menuBar().hasFocus():
             return
-        
-        widget = QApplication.focusWidget()
-        
         # Disabling all actions to begin with
         for child in self.edit_menu.actions():
             child.setEnabled(False)        
         
-        from pydeelib.widgets.qscieditor import QsciEditor
-        from pydeelib.widgets.qscishell import QsciShell
-        if isinstance(widget, QsciShell):
-            console = True
-        elif isinstance(widget, QsciEditor):
-            console = False
-        elif isinstance(widget, Workspace):
+        widget, scintilla_properties = self.__focus_widget_properties()
+        if isinstance(widget, Workspace):
             self.paste_action.setEnabled(True)
             return
-        else:
+        elif scintilla_properties is None: # widget is not an editor/console
             return
-        
         #!!! Below this line, widget is expected to be a QsciScintilla instance
-        not_readonly = not widget.isReadOnly()
+        console, not_readonly, readwrite_editor = scintilla_properties
         
         # Editor has focus and there is no file opened in it
         if not console and not_readonly and not self.editor.tabwidget.count():
             return
         
-        # Select all, find
         self.selectall_action.setEnabled(True)
-        self.find_action.setEnabled(True)
         
-        # Replace, undo, redo
-        readwrite_editor = not_readonly and not console
-        self.replace_action.setEnabled(readwrite_editor)
-        self.replace_action.setEnabled(readwrite_editor)
+        # Undo, redo
         self.undo_action.setEnabled( readwrite_editor \
                                      and widget.isUndoAvailable() )
         self.redo_action.setEnabled( readwrite_editor \
@@ -434,6 +466,23 @@ class MainWindow(QMainWindow):
         self.cut_action.setEnabled(has_selection and not_readonly)
         self.paste_action.setEnabled(not_readonly)
         self.delete_action.setEnabled(has_selection and not_readonly)
+        
+    def update_search_menu(self):
+        """Update search menu"""
+        if self.menuBar().hasFocus():
+            return        
+        # Disabling all actions to begin with
+        for child in [self.find_action, self.replace_action]:
+            child.setEnabled(False)
+        
+        _, scintilla_properties = self.__focus_widget_properties()
+        if scintilla_properties is None: # widget is not an editor/console
+            return
+        #!!! Below this line, widget is expected to be a QsciScintilla instance
+        _, _, readwrite_editor = scintilla_properties
+        self.find_action.setEnabled(True)
+        self.replace_action.setEnabled(readwrite_editor)
+        self.replace_action.setEnabled(readwrite_editor)
         
     def set_splash(self, message):
         """Set splash message"""
@@ -589,6 +638,17 @@ class MainWindow(QMainWindow):
         plugin = self.find()
         if plugin is not None:
             plugin.find_widget.show_replace()
+            
+    def findinfiles_callback(self):
+        """Find in files callback"""
+        widget = QApplication.focusWidget()
+        self.findinfiles.dockwidget.setVisible(True)
+        self.findinfiles.dockwidget.raise_()
+        from pydeelib.widgets.qscibase import QsciBase
+        text = ''
+        if isinstance(widget, QsciBase) and widget.hasSelectedText():
+            text = widget.selectedText()
+        self.emit(SIGNAL('find_files(QString)'), text)
     
     def global_callback(self):
         """Global callback"""
