@@ -415,19 +415,67 @@ class QsciEditor(QsciBase):
             self.endUndoAction()
             self.setCursorPosition(line, max([0, index-len(prefix)]))
     
-    #TODO: [low-priority] Implement an intelligent indent/unindent
-    # (a "repair indent" like in Emacs)
+    def fix_indent(self, forward=True):
+        """Fix indentation (Python only, no text selection)
+        forward=True: fix indent only if text is not enough indented
+                      (otherwise force indent)
+        forward=False: fix indent only if text is too much indented
+                       (otherwise force unindent)
+        """
+        if not isinstance(self.lexer(), QsciLexerPython):
+            return        
+        line, index = self.getCursorPosition()
+        prevtext = unicode(self.text(line-1)).rstrip()
+        indent = self.indentation(line)
+        correct_indent = self.indentation(line-1)
+        if prevtext.endswith(':'):
+            # Indent            
+            correct_indent += 4
+        elif prevtext.endswith('continue') or prevtext.endswith('break'):
+            # Unindent
+            correct_indent -= 4
+        if forward:
+            if indent == correct_indent or indent > correct_indent:
+                # Force indent
+                correct_indent = indent + 4
+        elif indent == correct_indent or indent < correct_indent:
+            # Force unindent
+            correct_indent = indent - 4
+            
+        if correct_indent >= 0:
+            self.beginUndoAction()
+            self.setSelection(line, 0, line, indent)
+            self.removeSelectedText()
+            if index > indent:
+                index -= indent-correct_indent
+            else:
+                index = correct_indent
+            self.insertAt(" "*correct_indent, line, 0)
+            self.setCursorPosition(line, index)
+            self.endUndoAction()
+    
     def indent(self):
         """Indent current line or selection"""
-        if self.hasSelectedText() or self.tab_indents:
+        if self.hasSelectedText():
             self.add_prefix( " "*4 )
+        elif self.tab_indents:
+            if isinstance(self.lexer(), QsciLexerPython):
+                self.fix_indent(forward=True)
+            else:
+                self.add_prefix( " "*4 )
         else:
             self.SendScintilla(QsciScintilla.SCI_TAB)
     
     def unindent(self):
         """Unindent current line or selection"""
-        self.remove_prefix( " "*4 )
-    
+        if self.hasSelectedText():
+            self.remove_prefix( " "*4 )
+        elif self.tab_indents:
+            if isinstance(self.lexer(), QsciLexerPython):
+                self.fix_indent(forward=False)
+            else:
+                self.remove_prefix( " "*4 )
+            
     def comment(self):
         """Comment current line or selection"""
         self.add_prefix( '#' )
