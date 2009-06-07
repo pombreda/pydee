@@ -85,6 +85,7 @@ class Editor(PluginWidget):
         
         # Class browser
         self.classbrowser = ClassBrowser(self)
+        self.classbrowser.setVisible( CONF.get(self.ID, 'class_browser') )
         self.connect(self.classbrowser, SIGNAL('go_to_line(int)'),
                      self.go_to_line)
         
