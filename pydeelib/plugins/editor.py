@@ -144,6 +144,8 @@ class Editor(PluginWidget):
             self.dockwidget.setWindowTitle(title)
             
         self.find_widget.set_editor(editor, refresh=False)
+        
+        self.__refresh_code_analysis_buttons(index)
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
@@ -244,6 +246,15 @@ class Editor(PluginWidget):
             triggered=lambda: self.exec_script_extconsole( \
                                            ask_for_arguments=True, debug=True))
         
+        self.previous_warning_action = create_action(self,
+            self.tr("Previous warning/error"), icon='prev_wng.png',
+            tip=self.tr("Go to previous code analysis warning/error"),
+            triggered=self.go_to_previous_warning)
+        self.next_warning_action = create_action(self,
+            self.tr("Next warning/error"), icon='next_wng.png',
+            tip=self.tr("Go to next code analysis warning/error"),
+            triggered=self.go_to_next_warning)
+        
         self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+3",
             'comment.png', self.tr("Comment current line or selection"),
             triggered=self.comment)
@@ -311,8 +322,9 @@ class Editor(PluginWidget):
                 None, font_action, wrap_action, fold_action, analyze_action,
                 classbrowser_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
-                self.save_all_action, None,
-                self.exec_action, self.exec_selected_action,
+                self.save_all_action,
+                None, self.previous_warning_action, self.next_warning_action,
+                None, self.exec_action, self.exec_selected_action,
                 self.exec_process_action]
         self.dock_toolbar_actions = toolbar_actions + \
                 [self.exec_interact_action, self.comment_action,
@@ -324,6 +336,7 @@ class Editor(PluginWidget):
                 self.exec_process_action, self.exec_process_interact_action,
                 self.exec_process_args_action, self.exec_process_debug_action,
                 workdir_action, self.close_action, self.close_all_action,
+                self.previous_warning_action, self.next_warning_action,
                 self.blockcomment_action, self.unblockcomment_action,
                 self.comment_action, self.uncomment_action,
                 self.indent_action, self.unindent_action)
@@ -436,6 +449,22 @@ class Editor(PluginWidget):
         fname = self.filenames[index]
         if CONF.get(self.ID, 'code_analysis') and is_python_script(fname):
             self.editors[index].do_code_analysis(fname)
+        self.__refresh_code_analysis_buttons(index)
+            
+    def __refresh_code_analysis_buttons(self, index):
+        """Refresh previous/next warning toolbar buttons state"""
+        if index >= 0:
+            state = len(self.editors[index].marker_lines)
+            self.previous_warning_action.setEnabled(state)
+            self.next_warning_action.setEnabled(state)
+    
+    def go_to_next_warning(self):
+        index = self.tabwidget.currentIndex()
+        self.editors[index].go_to_next_warning()
+    
+    def go_to_previous_warning(self):
+        index = self.tabwidget.currentIndex()
+        self.editors[index].go_to_previous_warning()
     
     def exec_script_extconsole(self, ask_for_arguments=False,
                                interact=False, debug=False):
