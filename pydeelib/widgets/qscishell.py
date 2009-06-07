@@ -68,6 +68,8 @@ class QsciShell(QsciBase):
         # Code completion / calltips
         self.completion_chars = 0
         self.calltip_index = None
+        self.calltip_size = CONF.get('calltips', 'size')
+        self.calltip_font = get_font('calltips')
         self.setAutoCompletionThreshold( \
             CONF.get('external_shell', 'autocompletion/threshold') )
         self.setAutoCompletionCaseSensitivity( \
@@ -703,9 +705,8 @@ class QsciShell(QsciBase):
             return
         obj, valid = self.eval(text)
         if valid:
-            tipsize = CONF.get('calltips', 'size')
-            font = get_font('calltips')
             done = False
+            size, font = self.calltip_size, self.calltip_font
             if (self.docviewer is not None) and \
                (self.docviewer.dockwidget.isVisible()):
                 # DocViewer widget exists and is visible
@@ -717,8 +718,7 @@ class QsciShell(QsciBase):
                         if arglist:
                             done = True
                             self.show_calltip(self.tr("Arguments"),
-                                              arglist, tipsize, font,
-                                              color='#129625')
+                                              arglist, size, font, '#129625')
                     else:
                         done = True
                         self.show_calltip(self.tr("Warning"),
@@ -726,10 +726,10 @@ class QsciShell(QsciBase):
                                                   " (i.e. not a function, "
                                                   "a method or a class "
                                                   "constructor)").arg(text),
-                                          font=font, color='#FF0000')
+                                          size, font, color='#FF0000')
             if not done:
                 self.show_calltip(self.tr("Documentation"),
-                                  obj.__doc__, tipsize, font)
+                                  obj.__doc__, size, font)
         
         
     #------ Miscellanous

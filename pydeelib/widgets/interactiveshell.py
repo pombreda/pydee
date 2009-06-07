@@ -257,7 +257,9 @@ class InteractiveShell(QsciShell):
     
     def readline(self):
         """For help() support (to be implemented...)"""
-        #TODO: help() support -> won't implement it (because IPython is coming)
+        #TODO: help() support -> won't implement it
+        # (because IPython is coming
+        #  and because it's supported by external console)
         inp = self.wait_input()
         return inp
         

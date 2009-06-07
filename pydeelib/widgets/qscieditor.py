@@ -122,6 +122,8 @@ class QsciEditor(QsciBase):
         if linenumbers:
             self.connect( self, SIGNAL('linesChanged()'), self.__lines_changed )
         self.setup_margins(linenumbers, code_analysis, code_folding)
+        self.calltip_size = CONF.get('calltips', 'size')
+        self.calltip_font = get_font('calltips')
             
         # Scintilla Python API
         self.api = None
@@ -348,14 +350,24 @@ class QsciEditor(QsciBase):
             if line1 not in self.marker_lines:
                 self.marker_lines[line1] = []
             self.marker_lines[line1].append( (message, error) )
-        
+
+    def __show_code_analysis_results(self, line):
+        """Show warning/error messages"""
+        if line in self.marker_lines:
+            size, font = self.calltip_size, self.calltip_font
+            msglist = [ msg for msg, _error in self.marker_lines[line] ]
+            self.show_calltip(self.tr("Code analysis"), msglist,
+                              size, font, color='#129625', at_line=line)
+    
     def __margin_clicked(self, margin, line, modifier):
         """Margin was clicked, that's for sure!"""
-        if margin == 0 and line in self.marker_lines:
-            tip = os.linesep.join( [ message for message, _error \
-                                     in self.marker_lines[line] ] )
-            x, y = self.get_coordinates_from_lineindex(line, 0)
-            QToolTip.showText(self.mapToGlobal(QPoint(x, y)), tip, self)
+        if margin == 0:
+            self.__show_code_analysis_results(line)
+
+    def mouseMoveEvent(self, event):
+        line = self.lineAt(event.pos())
+        self.__show_code_analysis_results(line)
+        QsciScintilla.mouseMoveEvent(self, event)
         
     def add_prefix(self, prefix):
         """Add prefix to current line or selected line(s)"""        

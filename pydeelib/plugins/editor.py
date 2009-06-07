@@ -48,12 +48,6 @@ def is_python_script(fname):
 #TODO: Implement multiple editor windows
 #      (editor tab -> context menu -> "Open in a new window")
 
-#TODO: Add "Find in files" feature
-#      -> directly in FindReplace widget: option to switch to "find in files"
-#      4 options:
-#       a. hg manifest   b. current dir   c. script dir   d. choosable dir (combobox)
-#      Include search pattern + Exclude search pattern
-
 class Editor(PluginWidget):
     """
     Multi-file Editor widget
