@@ -324,18 +324,19 @@ class QsciEditor(QsciBase):
         self.set_text(text)
         self.setModified(False)
         
-    def highlight_line(self, linenb):
-        """Highlight line number linenb"""
-        line = unicode(self.get_text()).splitlines()[linenb-1]
-        self.find_text(line)
+    def highlight_line(self, line):
+        """Highlight line number *line*"""
+        text = unicode(self.text(line-1)).strip()
+        self.setSelection(line-1, 0, line-1, len(text))
+        self.ensureLineVisible(line-1)
 
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
         for marker in self.markers:
             self.markerDeleteHandle(marker)
         self.markers = []
+        self.marker_lines = {}
         
-    #TODO: implement next/previous warning actions/buttons
     def do_code_analysis(self, filename):
         """Analyze filename code with pyflakes"""
         self.cleanup_code_analysis()
@@ -350,6 +351,32 @@ class QsciEditor(QsciBase):
             if line1 not in self.marker_lines:
                 self.marker_lines[line1] = []
             self.marker_lines[line1].append( (message, error) )
+
+    def __highlight_warning(self, line):
+        self.highlight_line(line+1)
+        self.__show_code_analysis_results(line)
+
+    def go_to_next_warning(self):
+        """Go to next code analysis warning message"""
+        cline, _ = self.getCursorPosition()
+        lines = sorted(self.marker_lines.keys())
+        for line in lines:
+            if line > cline:
+                self.__highlight_warning(line)
+                return
+        else:
+            self.__highlight_warning(lines[0])
+
+    def go_to_previous_warning(self):
+        """Go to previous code analysis warning message"""
+        cline, _ = self.getCursorPosition()
+        lines = sorted(self.marker_lines.keys(), reverse=True)
+        for line in lines:
+            if line < cline:
+                self.__highlight_warning(line)
+                return
+        else:
+            self.__highlight_warning(lines[0])
 
     def __show_code_analysis_results(self, line):
         """Show warning/error messages"""
