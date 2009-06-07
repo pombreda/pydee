@@ -198,7 +198,7 @@ class Console(PluginWidget):
             fname, lnb = match.groups()
             self.edit_script(fname, int(lnb))
             
-    def edit_script(self, filename=None, goto=None):
+    def edit_script(self, filename=None, goto=-1):
         """Edit script"""
         # Called from InteractiveShell
         if not hasattr(self, 'main') \
