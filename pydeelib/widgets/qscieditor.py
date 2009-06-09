@@ -312,6 +312,26 @@ class QsciEditor(QsciBase):
         self.insertAt(text, line, col)
         self.setCursorPosition(line, col + len(unicode(text)))
         
+    def fold_header(self, line):
+        """Is it a fold header line?"""
+        lvl = self.SendScintilla(QsciScintilla.SCI_GETFOLDLEVEL, line)
+        return lvl & QsciScintilla.SC_FOLDLEVELHEADERFLAG
+    
+    def fold_expanded(self, line):
+        """Is fold expanded?"""
+        return self.SendScintilla(QsciScintilla.SCI_GETFOLDEXPANDED, line)
+        
+    def get_folded_lines(self):
+        """Return the list of folded line numbers"""
+        return [line for line in xrange(self.lines()) \
+                if self.fold_header(line) and not self.fold_expanded(line) ]
+        
+    def unfold_all(self):
+        """Unfold all folded lines"""
+        for line in self.get_folded_lines():
+            self.foldLine(line)
+        
+        
 #===============================================================================
 #    High-level editor features
 #===============================================================================
