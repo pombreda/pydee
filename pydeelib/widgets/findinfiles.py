@@ -384,8 +384,11 @@ class FindOptions(QWidget):
                     translate('FindInFiles', "Select directory"),
                     self.dir_combo.currentText())
         if not directory.isEmpty():
-            self.dir_combo.setEditText(unicode(osp.abspath(directory)))
+            self.set_directory(directory)
         self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
+        
+    def set_directory(self, directory):
+        self.dir_combo.setEditText(unicode(osp.abspath(directory)))        
         
     def keyPressEvent(self, event):
         """Reimplemented to handle key events"""
@@ -422,7 +425,8 @@ class ResultsBrowser(OneColumnTree):
             self.parent().emit(SIGNAL("edit_goto(QString,int)"),
                                filename, lineno)
         
-    def set_results(self, results, nb):
+    def set_results(self, search_text, results, nb):
+        self.search_text = search_text
         self.results = results
         self.nb = nb
         self.refresh()
@@ -434,9 +438,17 @@ class ResultsBrowser(OneColumnTree):
             self.root_item.setExpanded(True)
         
     def refresh(self):
-        self.set_title(translate('FindInFiles',
-                                 "Results: %1 matches in %2 files") \
-                                 .arg(self.nb).arg(len(self.results)))
+        nb_files = len(self.results)
+        title = "'%s' - " % self.search_text
+        if nb_files == 0:
+            text = translate('FindInFiles', 'String not found')
+        else:
+            text_matches = translate('FindInFiles', 'matches in')
+            text_files = translate('FindInFiles', 'file')
+            if nb_files > 1:
+                text_files += 's'
+            text = "%d %s %d %s" % (self.nb, text_matches, nb_files, text_files)
+        self.set_title(title+text)
         self.clear()
         self.data = {}
         # Root path
@@ -558,7 +570,8 @@ class FindInFilesWidget(QWidget):
         found = self.search_thread.get_results()
         if found is not None:
             results, nb = found
-            self.result_browser.set_results(results, nb)
+            search_text = unicode( self.find_options.search_text.currentText() )
+            self.result_browser.set_results(search_text, results, nb)
             self.result_browser.show()
             
             

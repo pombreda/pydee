@@ -253,6 +253,8 @@ class MainWindow(QMainWindow):
                              self.redirect_interactiveshell_stdio)
                 self.connect(self, SIGNAL('find_files(QString)'),
                              self.findinfiles.set_search_text)
+                self.connect(self.workdir, SIGNAL("chdir()"),
+                             self.findinfiles.refreshdir)
                 self.search_menu.addSeparator()
                 self.search_menu.addAction(self.findinfiles_action)
                 toolbar_search_actions.append(self.findinfiles_action)

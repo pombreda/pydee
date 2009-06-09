@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys
+import sys, os
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -47,6 +47,10 @@ class FindInFiles(FindInFilesWidget, PluginMixin):
     def refresh(self):
         """Refresh widget"""
         pass
+    
+    def refreshdir(self):
+        """Refresh search directory"""
+        self.find_options.set_directory(os.getcwdu())
         
     def get_widget_title(self):
         """Return widget title"""
