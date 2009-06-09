@@ -398,7 +398,13 @@ class ExplorerWidget(QWidget):
                     icon=get_icon('up.png'),
                     callback=lambda: self.emit(SIGNAL("open_parent_dir()")))
         self.toolbar_widgets.append(parent_button)
-        
+                
+        refresh_button = create_toolbutton(self,
+                    text=translate('Explorer', "Refresh"),
+                    icon=get_icon('reload.png'),
+                    callback=lambda: self.listwidget.refresh(clear=True))
+        self.toolbar_widgets.append(refresh_button)
+
         options_button = create_toolbutton(self,
                     text=translate('Explorer', "Options"),
                     icon=get_icon('tooloptions.png'))
