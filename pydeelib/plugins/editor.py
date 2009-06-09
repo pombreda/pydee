@@ -728,7 +728,7 @@ class Editor(PluginWidget):
         
     def save_all(self):
         """Save all opened files"""
-        for index in self.tabwidget.count():
+        for index in range(self.tabwidget.count()):
             self.save(index)
         
     def change_font(self):
@@ -736,21 +736,21 @@ class Editor(PluginWidget):
         font, valid = QFontDialog.getFont(get_font(self.ID),
                           self, self.tr("Select a new font"))
         if valid:
-            for index in range(0, self.tabwidget.count()):
+            for index in range(self.tabwidget.count()):
                 self.editors[index].set_font(font)
             set_font(font, self.ID)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         if hasattr(self, 'tabwidget'):
-            for index in range(0, self.tabwidget.count()):
+            for index in range(self.tabwidget.count()):
                 self.editors[index].set_wrap_mode(checked)
             CONF.set(self.ID, 'wrap', checked)
             
     def toggle_code_folding(self, checked):
         """Toggle code folding"""
         if hasattr(self, 'tabwidget'):
-            for index in range(0, self.tabwidget.count()):
+            for index in range(self.tabwidget.count()):
                 self.editors[index].setup_margins(linenumbers=True,
                           code_folding=checked,
                           code_analysis=CONF.get(self.ID, 'code_analysis'))
@@ -760,7 +760,7 @@ class Editor(PluginWidget):
         """Toggle code analysis"""
         if hasattr(self, 'tabwidget'):
             CONF.set(self.ID, 'code_analysis', checked)
-            for index in range(0, self.tabwidget.count()):
+            for index in range(self.tabwidget.count()):
                 self.editors[index].setup_margins(linenumbers=True,
                           code_analysis=checked,
                           code_folding=CONF.get(self.ID, 'code_folding'))
@@ -772,7 +772,7 @@ class Editor(PluginWidget):
             CONF.set(self.ID, 'class_browser', checked)
             if checked:
                 self.classbrowser.show()
-                for index in range(0, self.tabwidget.count()):
+                for index in range(self.tabwidget.count()):
                     self.update_classbrowser(index)
             else:
                 self.classbrowser.hide()
