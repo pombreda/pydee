@@ -750,10 +750,12 @@ class Editor(PluginWidget):
     def toggle_code_folding(self, checked):
         """Toggle code folding"""
         if hasattr(self, 'tabwidget'):
-            for index in range(self.tabwidget.count()):
-                self.editors[index].setup_margins(linenumbers=True,
+            for editor in self.editors:
+                editor.setup_margins(linenumbers=True,
                           code_folding=checked,
                           code_analysis=CONF.get(self.ID, 'code_analysis'))
+                if not checked:
+                    editor.unfold_all()
             CONF.set(self.ID, 'code_folding', checked)
             
     def toggle_code_analysis(self, checked):
