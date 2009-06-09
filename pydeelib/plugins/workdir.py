@@ -70,7 +70,8 @@ class WorkingDirectory(QToolBar, PluginMixin):
                      self.next_action.setEnabled)
         
         # Path combo box
-        self.pathedit = PathComboBox(self)
+        adjust = CONF.get('shell', 'working_dir_adjusttocontents', False)
+        self.pathedit = PathComboBox(self, adjust_to_contents=adjust)
         self.connect(self.pathedit, SIGNAL("open_dir(QString)"), self.chdir)
         self.pathedit.setMaxCount(CONF.get('shell', 'working_dir_history'))
         wdhistory = self.load_wdhistory( workdir )

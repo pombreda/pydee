@@ -325,7 +325,6 @@ class FindOptions(QWidget):
                                     "Search recursively in this directory"))
         self.connect(self.hg_manifest, SIGNAL('toggled(bool)'),
                      self.dir_combo.setDisabled)
-        self.dir_combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         browse = create_toolbutton(self, get_std_icon('DirOpenIcon'),
                                    tip=translate('FindInFiles',
                                                  'Browse a search directory'),

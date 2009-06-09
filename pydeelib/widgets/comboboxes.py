@@ -71,11 +71,12 @@ class PathComboBox(EditableComboBox):
     """
     QComboBox handling path locations
     """
-    def __init__(self, parent):
+    def __init__(self, parent, adjust_to_contents=False):
         super(PathComboBox, self).__init__(parent)
-        if CONF.get('shell', 'working_dir_adjusttocontents', False):
+        if adjust_to_contents:
             self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         else:
+            self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: self.tr("Press enter to validate this path"),
                      False: self.tr('This path is incorrect.\n'
