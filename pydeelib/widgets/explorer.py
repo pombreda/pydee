@@ -360,7 +360,7 @@ class ExplorerWidget(QWidget):
     """Explorer widget"""
     def __init__(self, parent=None, path=None, valid_types=('', '.py', '.pyw'),
                  show_hidden=False, show_all=False, wrap=True,
-                 show_toolbar=True):
+                 show_toolbar=True, show_icontext=True):
         QWidget.__init__(self, parent)
         
         self.listwidget = ExplorerListWidget(parent=self, path=path,
@@ -374,7 +374,11 @@ class ExplorerWidget(QWidget):
         toolbar_action = create_action(self,
                                        translate('Explorer', "Show toolbar"),
                                        toggled=self.toggle_toolbar)
-        self.listwidget.common_actions.append(toolbar_action)
+        icontext_action = create_action(self,
+                                       translate('Explorer',
+                                                 "Show icons and text"),
+                                       toggled=self.toggle_icontext)
+        self.listwidget.common_actions += [toolbar_action, icontext_action]
         
         # Setup toolbar
         self.toolbar_widgets = []
@@ -418,7 +422,9 @@ class ExplorerWidget(QWidget):
             hlayout.addWidget(widget)
             
         toolbar_action.setChecked(show_toolbar)
-        self.toggle_toolbar(show_toolbar)        
+        self.toggle_toolbar(show_toolbar)   
+        icontext_action.setChecked(show_icontext)
+        self.toggle_icontext(show_icontext)     
         
         vlayout = QVBoxLayout()
         vlayout.addLayout(hlayout)
@@ -430,6 +436,15 @@ class ExplorerWidget(QWidget):
         self.emit(SIGNAL('option_changed'), 'show_toolbar', state)
         for widget in self.toolbar_widgets:
             widget.setVisible(state)
+            
+    def toggle_icontext(self, state):
+        """Toggle icon text"""
+        self.emit(SIGNAL('option_changed'), 'show_icontext', state)
+        for widget in self.toolbar_widgets:
+            if state:
+                widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+            else:
+                widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
 
 

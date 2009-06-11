@@ -8,6 +8,20 @@
 Pydee
 """
 
+#FIXME: Pydee's plugin loose focus when switching back from another application
+#TODO: New wonderful idea: make a treewidget with sys.path entries to navigate
+# in path and add/remove directories from path
+# (handle the PYTHONPATH paths separately? -> store all pydee projects as
+#  path..., to be able to open them outside pydee!!)
+# -> see IDLE/path browser
+# -> special icon for package folders
+# -> same options as explorer for file extension filters
+#TODO: Explorer: add regexp options to define included/excluded files (formlayout)
+#TODO: Add font option in Docviewer/Historylog context menu
+#TODO: External console: add history length option
+#      (or move the interactive console option?)
+#TODO: FindInFile: add "Search in PYTHONPATH"?
+
 import sys, os, platform
 
 # For debugging purpose only
