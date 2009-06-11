@@ -182,7 +182,7 @@ class ExternalConsole(PluginWidget):
                             self.tr("One tab per script"),
                             toggled=self.toggle_singletab)
         singletab_action.setChecked( CONF.get(self.ID, 'single_tab') )
-        self.menu_actions = [interpreter_action, run_action,
+        self.menu_actions = [interpreter_action, run_action, None,
                              font_action, wrap_action, singletab_action]
         if console_action:
             self.menu_actions.insert(1, console_action)

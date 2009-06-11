@@ -228,6 +228,7 @@ DEFAULTS = [
               'show_hidden': True,
               'show_all': True,
               'show_toolbar': True,
+              'show_icontext': True,
               }),
             ('find_in_files',
              {
