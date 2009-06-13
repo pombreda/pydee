@@ -1247,89 +1247,109 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>ImportWizard</name>
     <message>
-        <location filename="widgets/importwizard.py" line="53"/>
+        <location filename="widgets/importwizard.py" line="101"/>
         <source>Import as</source>
         <translation>Importer en tant que</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="55"/>
+        <location filename="widgets/importwizard.py" line="103"/>
         <source>data</source>
         <translation>données</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="210"/>
+        <location filename="widgets/importwizard.py" line="416"/>
         <source>text</source>
         <translation>texte</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="69"/>
+        <location filename="widgets/importwizard.py" line="121"/>
         <source>Transpose</source>
         <translation>Transposer</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="75"/>
+        <location filename="widgets/importwizard.py" line="131"/>
         <source>Column separator:</source>
         <translation>Séparateur de colonne :</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="77"/>
+        <location filename="widgets/importwizard.py" line="135"/>
         <source>Tab</source>
         <translation>Tab</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="80"/>
+        <location filename="widgets/importwizard.py" line="156"/>
         <source>other</source>
         <translation>autre</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="193"/>
+        <location filename="widgets/importwizard.py" line="399"/>
         <source>Import wizard</source>
         <translation>Assistant d&apos;importation</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="199"/>
+        <location filename="widgets/importwizard.py" line="405"/>
         <source>Raw text</source>
         <translation>Text brut</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="202"/>
+        <location filename="widgets/importwizard.py" line="408"/>
         <source>variable_name</source>
         <translation>nom_de_variable</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="213"/>
+        <location filename="widgets/importwizard.py" line="419"/>
         <source>table</source>
         <translation>tableau</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="214"/>
+        <location filename="widgets/importwizard.py" line="420"/>
         <source>Preview</source>
         <translation>Aperçu</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="222"/>
+        <location filename="widgets/importwizard.py" line="428"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="230"/>
+        <location filename="widgets/importwizard.py" line="436"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="236"/>
+        <location filename="widgets/importwizard.py" line="442"/>
         <source>Previous</source>
         <translation>Précédent</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="241"/>
+        <location filename="widgets/importwizard.py" line="447"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="245"/>
+        <location filename="widgets/importwizard.py" line="451"/>
         <source>Done</source>
         <translation>Terminer</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="107"/>
+        <source>code</source>
+        <translation>code</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="149"/>
+        <source>Row separator:</source>
+        <translation>Séparateur de ligne :</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="153"/>
+        <source>EOL</source>
+        <translation>EOL</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="369"/>
+        <source>Array</source>
+        <translation>Tableau</translation>
     </message>
 </context>
 <context>
