@@ -15,11 +15,15 @@ Pydee
 # -> see IDLE/path browser
 # -> special icon for package folders
 # -> same options as explorer for file extension filters
+
+#TODO: Add a PYTHONPATH configuration plugin
+
 #TODO: Explorer: add regexp options to define included/excluded files (formlayout)
+
 #TODO: Add font option in Docviewer/Historylog context menu
+
 #TODO: External console: add history length option
 #      (or move the interactive console option?)
-#TODO: FindInFile: add "Search in PYTHONPATH"?
 
 import sys, os, platform
 

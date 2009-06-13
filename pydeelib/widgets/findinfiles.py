@@ -132,10 +132,14 @@ class SearchThread(QThread):
         QThread.__init__(self, parent)
         self.mutex = QMutex()
         self.stopped = False
+        self.results = None
+        self.nb = None
+        self.error_flag = None
         
-    def initialize(self, path, hg_manifest,
+    def initialize(self, path, python_path, hg_manifest,
                    include, exclude, texts, text_re):
         self.rootpath = path
+        self.python_path = python_path
         self.hg_manifest = hg_manifest
         self.include = [include]
         self.exclude = [exclude]
@@ -147,6 +151,8 @@ class SearchThread(QThread):
     def run(self):
         if self.hg_manifest:
             ok = self.find_files_in_hg_manifest()
+        elif self.python_path:
+            ok = self.find_files_in_python_path()
         else:
             ok = self.find_files_in_path()
         if ok:
@@ -157,6 +163,26 @@ class SearchThread(QThread):
     def stop(self):
         with QMutexLocker(self.mutex):
             self.stopped = True
+
+    def find_files_in_python_path(self):
+        self.filenames = []
+        directories = [path for path in sys.path \
+                       if not path.startswith(sys.prefix)]
+        for path in directories:
+            if not path:
+                path = os.getcwdu()
+            with QMutexLocker(self.mutex):
+                if self.stopped:
+                    return False
+            dirname = osp.dirname(path)
+            if fmatch(dirname+os.sep, self.exclude):
+                continue
+            filename = osp.dirname(path)
+            if fmatch(filename, self.exclude):
+                continue
+            if fmatch(filename, self.include):
+                self.filenames.append(path)
+        return True
 
     def find_files_in_hg_manifest(self):
         p = Popen("hg manifest", stdout=PIPE)
@@ -197,40 +223,44 @@ class SearchThread(QThread):
     def find_string_in_files(self):
         self.results = {}
         self.nb = 0
+        self.error_flag = False
         for fname in self.filenames:
             with QMutexLocker(self.mutex):
                 if self.stopped:
                     return
-            for lineno, line in enumerate(file(fname)):
-                for text in self.texts:
-                    if self.text_re:
-                        found = re.search(text, line)
-                        if found is not None:
-                            break
-                    else:
-                        found = line.find(text)
-                        if found > -1:
-                            break
-                if self.text_re:
-                    for match in re.finditer(text, line):
-                        res = self.results.get(osp.abspath(fname), [])
-                        res.append((lineno+1, match.start(), line))
-                        self.results[osp.abspath(fname)] = res
-                        self.nb += 1
-                else:
-                    while found > -1:
-                        res = self.results.get(osp.abspath(fname), [])
-                        res.append((lineno+1, found, line))
-                        self.results[osp.abspath(fname)] = res
-                        for text in self.texts:
-                            found = line.find(text, found+1)
-                            if found>-1:
+            try:
+                for lineno, line in enumerate(file(fname)):
+                    for text in self.texts:
+                        if self.text_re:
+                            found = re.search(text, line)
+                            if found is not None:
                                 break
-                        self.nb += 1
+                        else:
+                            found = line.find(text)
+                            if found > -1:
+                                break
+                    if self.text_re:
+                        for match in re.finditer(text, line):
+                            res = self.results.get(osp.abspath(fname), [])
+                            res.append((lineno+1, match.start(), line))
+                            self.results[osp.abspath(fname)] = res
+                            self.nb += 1
+                    else:
+                        while found > -1:
+                            res = self.results.get(osp.abspath(fname), [])
+                            res.append((lineno+1, found, line))
+                            self.results[osp.abspath(fname)] = res
+                            for text in self.texts:
+                                found = line.find(text, found+1)
+                                if found>-1:
+                                    break
+                            self.nb += 1
+            except IOError, msg:
+                self.error_flag = msg
         self.completed = True
     
     def get_results(self):
-        return self.results, self.nb
+        return self.results, self.nb, self.error_flag
         
 
 class FindOptions(QWidget):
@@ -310,6 +340,11 @@ class FindOptions(QWidget):
         # Layout 3
         hlayout3 = QHBoxLayout()
         searchin_label = QLabel(translate('FindInFiles', "Search in:"))
+        self.python_path = QRadioButton(translate('FindInFiles',
+                                        "PYTHONPATH"), self)
+        self.python_path.setToolTip(translate('FindInFiles',
+                          "Search in all directories listed in sys.path which"
+                          " are outside the Python installation directory"))        
         self.hg_manifest = QRadioButton(translate('FindInFiles',
                                                   "Hg repository"), self)
         self.hg_manifest.setEnabled(hg_repository)
@@ -323,14 +358,16 @@ class FindOptions(QWidget):
         self.dir_combo.addItem(os.getcwdu())
         self.dir_combo.setToolTip(translate('FindInFiles',
                                     "Search recursively in this directory"))
+        self.connect(self.python_path, SIGNAL('toggled(bool)'),
+                     self.dir_combo.setDisabled)
         self.connect(self.hg_manifest, SIGNAL('toggled(bool)'),
                      self.dir_combo.setDisabled)
         browse = create_toolbutton(self, get_std_icon('DirOpenIcon'),
                                    tip=translate('FindInFiles',
                                                  'Browse a search directory'),
                                    callback=self.select_directory)
-        for widget in [searchin_label, self.hg_manifest, self.custom_dir,
-                       self.dir_combo, browse]:
+        for widget in [searchin_label, self.python_path, self.hg_manifest,
+                       self.custom_dir, self.dir_combo, browse]:
             hlayout3.addWidget(widget)
             
         vlayout = QVBoxLayout()
@@ -365,6 +402,7 @@ class FindOptions(QWidget):
         include_re = self.include_regexp.isChecked()
         exclude = unicode(self.exclude_pattern.currentText())
         exclude_re = self.exclude_regexp.isChecked()
+        python_path = self.python_path.isChecked()
         hg_manifest = self.hg_manifest.isChecked()
         path = osp.abspath(self.dir_combo.currentText())
         
@@ -374,7 +412,7 @@ class FindOptions(QWidget):
         if not exclude_re:
             exclude = fnmatch.translate(exclude)
             
-        return path, hg_manifest, include, exclude, texts, text_re
+        return path, python_path, hg_manifest, include, exclude, texts, text_re
         
     def select_directory(self):
         """Select directory"""
@@ -413,6 +451,7 @@ class ResultsBrowser(OneColumnTree):
         OneColumnTree.__init__(self, parent)
         self.results = None
         self.nb = None
+        self.error_flag = None
         self.data = None
         self.set_title('')
         self.root_item = None
@@ -424,10 +463,11 @@ class ResultsBrowser(OneColumnTree):
             self.parent().emit(SIGNAL("edit_goto(QString,int)"),
                                filename, lineno)
         
-    def set_results(self, search_text, results, nb):
+    def set_results(self, search_text, results, nb, error_flag):
         self.search_text = search_text
         self.results = results
         self.nb = nb
+        self.error_flag = error_flag
         self.refresh()
         self.restore()
         
@@ -447,6 +487,9 @@ class ResultsBrowser(OneColumnTree):
             if nb_files > 1:
                 text_files += 's'
             text = "%d %s %d %s" % (self.nb, text_matches, nb_files, text_files)
+        if self.error_flag:
+            text += ' (' + translate('FindInFiles', 'permission denied errors '
+                                     'were encountered') + ')'
         self.set_title(title+text)
         self.clear()
         self.data = {}
@@ -458,6 +501,8 @@ class ResultsBrowser(OneColumnTree):
             dir_set.add(dirname)
             if root_path is None or root_path not in dirname:
                 root_path = dirname
+        if root_path is None:
+            return
         # Populating tree: directories
         def create_dir_item(dirname, parent):
             if dirname != root_path:
@@ -568,9 +613,10 @@ class FindInFilesWidget(QWidget):
         self.find_options.stop_button.setEnabled(False)
         found = self.search_thread.get_results()
         if found is not None:
-            results, nb = found
+            results, nb, error_flag = found
             search_text = unicode( self.find_options.search_text.currentText() )
-            self.result_browser.set_results(search_text, results, nb)
+            self.result_browser.set_results(search_text, results,
+                                            nb, error_flag)
             self.result_browser.show()
             
             
