@@ -497,7 +497,7 @@ class DictEditorTableView(QTableView):
                                       triggered=self.insert_item)
         self.copy_action = create_action(self,
                                       translate("DictEditor", "Copy"),
-                                      None,
+                                      icon=get_icon('editcopy.png'),
                                       triggered=self.copy)									  
         self.paste_action = create_action(self,
                                       translate("DictEditor", "Paste"),

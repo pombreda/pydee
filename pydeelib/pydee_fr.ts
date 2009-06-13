@@ -4,12 +4,12 @@
 <context>
     <name>ArrayEditor</name>
     <message>
-        <location filename="widgets/arrayeditor.py" line="310"/>
+        <location filename="widgets/arrayeditor.py" line="316"/>
         <source>Array editor</source>
         <translation>Éditeur de tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="322"/>
+        <location filename="widgets/arrayeditor.py" line="328"/>
         <source>Format</source>
         <translation>Format</translation>
     </message>
@@ -24,22 +24,22 @@
         <translation>Couleur d&apos;arrière-plan</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="323"/>
+        <location filename="widgets/arrayeditor.py" line="329"/>
         <source>Float formatting</source>
         <translation>Format de flottant</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="330"/>
+        <location filename="widgets/arrayeditor.py" line="336"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="331"/>
+        <location filename="widgets/arrayeditor.py" line="337"/>
         <source>Format (%1) is incorrect</source>
         <translation>Le format (%1) n&apos;est pas valide</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="312"/>
+        <location filename="widgets/arrayeditor.py" line="318"/>
         <source>Warning: %1 arrays are currently not supported</source>
         <translation>Attention : les tableaux de type %1 ne sont pas pris en charge</translation>
     </message>
@@ -228,7 +228,7 @@
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="518"/>
+        <location filename="widgets/dicteditor.py" line="522"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
@@ -238,42 +238,42 @@
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="687"/>
+        <location filename="widgets/dicteditor.py" line="685"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="568"/>
+        <location filename="widgets/dicteditor.py" line="572"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="570"/>
+        <location filename="widgets/dicteditor.py" line="574"/>
         <source>Do you want to remove selected item%1?</source>
         <translation>Souhaitez-vous supprimer l&apos;élément %1 ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="678"/>
+        <location filename="widgets/dicteditor.py" line="676"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="688"/>
+        <location filename="widgets/dicteditor.py" line="686"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="641"/>
+        <location filename="widgets/dicteditor.py" line="639"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="526"/>
+        <location filename="widgets/dicteditor.py" line="530"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="499"/>
+        <location filename="widgets/dicteditor.py" line="503"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
@@ -293,7 +293,7 @@
         <translation>Clé</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="792"/>
+        <location filename="widgets/dicteditor.py" line="790"/>
         <source>Tree view</source>
         <translation>Arborescence</translation>
     </message>
@@ -303,39 +303,44 @@
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="507"/>
+        <location filename="widgets/dicteditor.py" line="511"/>
         <source>Truncate values</source>
         <translation>Tronquer les valeurs</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="512"/>
+        <location filename="widgets/dicteditor.py" line="516"/>
         <source>Show arrays min/max</source>
         <translation>Afficher les min/max des tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="626"/>
+        <location filename="widgets/dicteditor.py" line="624"/>
         <source>Empty clipboard</source>
         <translation>Presse-papiers vide</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="628"/>
+        <location filename="widgets/dicteditor.py" line="626"/>
         <source>Nothing to be imported from clipboard.</source>
         <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="610"/>
+        <location filename="widgets/dicteditor.py" line="608"/>
         <source>new</source>
         <translation>nouveau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="616"/>
+        <location filename="widgets/dicteditor.py" line="614"/>
         <source>Import from clipboard</source>
         <translation>Importer depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="618"/>
+        <location filename="widgets/dicteditor.py" line="616"/>
         <source>Clipboard contents</source>
         <translation>Contenu du presse-papiers</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="499"/>
+        <source>Copy</source>
+        <translation>Copier</translation>
     </message>
 </context>
 <context>
@@ -1221,12 +1226,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Remplacer tout</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="150"/>
+        <location filename="pydee.py" line="148"/>
         <source>Find text</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="153"/>
+        <location filename="pydee.py" line="151"/>
         <source>Replace text</source>
         <translation>Remplacer</translation>
     </message>
@@ -1444,82 +1449,82 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="pydee.py" line="145"/>
+        <location filename="pydee.py" line="143"/>
         <source>Toolbar</source>
         <translation>Barre d&apos;outils</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="193"/>
+        <location filename="pydee.py" line="191"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="198"/>
+        <location filename="pydee.py" line="196"/>
         <source>&amp;Edit</source>
         <translation>&amp;Édition</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="374"/>
+        <location filename="pydee.py" line="372"/>
         <source>&amp;View</source>
         <translation>&amp;Affichage</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="208"/>
+        <location filename="pydee.py" line="206"/>
         <source>Welcome to Pydee!</source>
         <translation>Bienvenue dans Pydee !</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="212"/>
+        <location filename="pydee.py" line="210"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="245"/>
+        <location filename="pydee.py" line="243"/>
         <source>Loading editor widget...</source>
         <translation>Chargement de l&apos;éditeur...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="259"/>
+        <location filename="pydee.py" line="257"/>
         <source>&amp;Source</source>
         <translation>&amp;Source</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="287"/>
+        <location filename="pydee.py" line="285"/>
         <source>Loading workspace widget...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="329"/>
+        <location filename="pydee.py" line="327"/>
         <source>Loading history widget...</source>
         <translation>Chargement de l&apos;historique...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="340"/>
+        <location filename="pydee.py" line="338"/>
         <source>Loading docviewer widget...</source>
         <translation>Chargement de l&apos;aide...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="380"/>
+        <location filename="pydee.py" line="378"/>
         <source>About %1...</source>
         <translation>À propos de %1...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="603"/>
+        <location filename="pydee.py" line="601"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="689"/>
+        <location filename="pydee.py" line="687"/>
         <source>Restart Python interpreter</source>
         <translation>Redémarrer l&apos;interpréteur Python</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="353"/>
+        <location filename="pydee.py" line="351"/>
         <source>Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another</source>
         <translation>Démarrer un nouvel interpréteur Python : les objets de la session en cours seront supprimés, à l&apos;exception des données de l&apos;espace du travail qui pourront être conservées</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="690"/>
+        <location filename="pydee.py" line="688"/>
         <source>Python interpreter will be restarted: all the objects created during this session will be lost (that includes imported modules which will have to be imported again).
 
 Do you want to continue?</source>
@@ -1528,22 +1533,22 @@ Do you want to continue?</source>
 Souhaitez-vous continuer ?</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="696"/>
+        <location filename="pydee.py" line="694"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="697"/>
+        <location filename="pydee.py" line="695"/>
         <source>Do you want to keep workspace data available?</source>
         <translation>Souhaitez-vous conserver les données de l&apos;espace de travail ?</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="131"/>
+        <location filename="pydee.py" line="129"/>
         <source>Initializing...</source>
         <translation>Initialisation...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="622"/>
+        <location filename="pydee.py" line="620"/>
         <source>&lt;b&gt;%1&lt;/b&gt; v %2
             &lt;br&gt;PYthon Development EnvironmEnt
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
@@ -1581,17 +1586,17 @@ Souhaitez-vous continuer ?</translation>
             &lt;p&gt;Python %3, Qt %4, PyQt %5%6 sous %7</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="157"/>
+        <location filename="pydee.py" line="155"/>
         <source>&amp;Find in files</source>
         <translation>Rechercher dans des &amp;fichiers</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="160"/>
+        <location filename="pydee.py" line="158"/>
         <source>Search text in multiple files</source>
         <translation>Rechercher une chaîne de caractères dans plusieurs fichiers à la fois</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="202"/>
+        <location filename="pydee.py" line="200"/>
         <source>&amp;Search</source>
         <translation>&amp;Recherche</translation>
     </message>
