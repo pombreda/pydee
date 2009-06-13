@@ -53,8 +53,6 @@ class ExternalShell(QWidget):
         history_filename = '.history_extcons'
         if python:
             history_filename += '.py'
-        elif os.name == 'nt':
-            history_filename += '.bat'
         self.shell = QsciShell(parent, get_conf_path(history_filename))
         self.connect(self.shell, SIGNAL("execute(QString)"),
                      self.send_to_process)

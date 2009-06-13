@@ -25,12 +25,7 @@ STDOUT = sys.stdout
 from pydeelib.config import CONF, get_conf_path, get_icon, get_font
 from pydeelib.qthelpers import create_toolbutton
 from pydeelib.dochelpers import getdoc, getsource
-try:
-    from pydeelib.widgets.qscieditor import QsciEditor
-except ImportError, e:
-    raise ImportError, str(e) + \
-        "\nPydee v0.3.23+ is exclusively based on QScintilla2\n" + \
-        "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
+from pydeelib.widgets.qscieditor import QsciEditor
 from pydeelib.widgets.comboboxes import EditableComboBox
 from pydeelib.widgets.findreplace import FindReplace
 from pydeelib.plugins import PluginWidget
