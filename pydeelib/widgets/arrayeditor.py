@@ -301,6 +301,12 @@ class ArrayEditor(QDialog):
             self.data.shape = self.old_data_shape
         QDialog.accept(self)
 
+    def reject(self):
+        """Reimplement Qt method"""
+        if self.old_data_shape:
+            self.data.shape = self.old_data_shape
+        QDialog.reject(self)
+        
     def get_format(self, data):
         """Return (type, format) depending on array dtype"""
         name = data.dtype.name
