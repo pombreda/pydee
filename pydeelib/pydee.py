@@ -8,7 +8,6 @@
 Pydee
 """
 
-#FIXME: Pydee's plugin loose focus when switching back from another application
 #TODO: New wonderful idea: make a treewidget with sys.path entries to navigate
 # in path and add/remove directories from path
 # (handle the PYTHONPATH paths separately? -> store all pydee projects as
@@ -849,15 +848,16 @@ def main():
     sys.exit = fake_sys_exit
     
     # Translation
-    locale = QLocale.system().name()
-    qt_translator = QTranslator()
-    if qt_translator.load("qt_" + locale,
-                          QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
-        app.installTranslator(qt_translator)
-    app_translator = QTranslator()
-    app_path = os.path.dirname(__file__)
-    if app_translator.load("pydee_" + locale, app_path):
-        app.installTranslator(app_translator)
+    if CONF.get('main', 'translation'):
+        locale = QLocale.system().name()
+        qt_translator = QTranslator()
+        if qt_translator.load("qt_" + locale,
+                              QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
+            app.installTranslator(qt_translator)
+        app_translator = QTranslator()
+        app_path = os.path.dirname(__file__)
+        if app_translator.load("pydee_" + locale, app_path):
+            app.installTranslator(app_translator)
     
     # Options
     commands, intitle, message, options = get_options()

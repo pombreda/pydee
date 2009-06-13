@@ -62,6 +62,10 @@ except ImportError:
     MPL_SIZE = (400, 300)
 
 DEFAULTS = [
+            ('main',
+             {
+              'translation': True,
+              }),
             ('window',
              {
               'size' : (1100, 600),
