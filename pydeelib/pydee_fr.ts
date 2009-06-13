@@ -1058,77 +1058,77 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Recherche dans des fichiers</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="253"/>
+        <location filename="widgets/findinfiles.py" line="283"/>
         <source>Search pattern</source>
         <translation>Expression recherchée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="254"/>
+        <location filename="widgets/findinfiles.py" line="284"/>
         <source>Search text:</source>
         <translation>Texte recherché :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="299"/>
+        <location filename="widgets/findinfiles.py" line="329"/>
         <source>Regular expression</source>
         <translation>Expression régulière</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="261"/>
+        <location filename="widgets/findinfiles.py" line="291"/>
         <source>Search</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="264"/>
+        <location filename="widgets/findinfiles.py" line="294"/>
         <source>Start search</source>
         <translation>Démarrer la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="268"/>
+        <location filename="widgets/findinfiles.py" line="298"/>
         <source>Stop search</source>
         <translation>Arrêter la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="282"/>
+        <location filename="widgets/findinfiles.py" line="312"/>
         <source>Included filenames pattern</source>
         <translation>Expression des noms de fichier à inclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="288"/>
+        <location filename="widgets/findinfiles.py" line="318"/>
         <source>Include:</source>
         <translation>Inclure :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="296"/>
+        <location filename="widgets/findinfiles.py" line="326"/>
         <source>Excluded filenames pattern</source>
         <translation>Expression des noms de fichier à exclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="302"/>
+        <location filename="widgets/findinfiles.py" line="332"/>
         <source>Exclude:</source>
         <translation>Exclure :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="312"/>
+        <location filename="widgets/findinfiles.py" line="342"/>
         <source>Search in:</source>
         <translation>Rechercher dans :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="320"/>
+        <location filename="widgets/findinfiles.py" line="355"/>
         <source>Directory:</source>
         <translation>Répertoire :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="325"/>
+        <location filename="widgets/findinfiles.py" line="360"/>
         <source>Search recursively in this directory</source>
         <translation>Rechercher de manière récursive dans ce répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="330"/>
+        <location filename="widgets/findinfiles.py" line="367"/>
         <source>Browse a search directory</source>
         <translation>Sélectionner un répertoire de recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="383"/>
+        <location filename="widgets/findinfiles.py" line="421"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
@@ -1138,27 +1138,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Résultats: %1 correspondances trouvées dans %2 fichiers</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="526"/>
+        <location filename="widgets/findinfiles.py" line="571"/>
         <source>Collapse all</source>
         <translation>Replier tout</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="529"/>
+        <location filename="widgets/findinfiles.py" line="574"/>
         <source>Expand all</source>
         <translation>Déplier tout</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="314"/>
+        <location filename="widgets/findinfiles.py" line="349"/>
         <source>Hg repository</source>
         <translation>Dépôt Mercurial</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="317"/>
+        <location filename="widgets/findinfiles.py" line="352"/>
         <source>Search in current directory hg repository</source>
         <translation>Rechercher dans le dépôt Mercurial du répertoire courant</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="533"/>
+        <location filename="widgets/findinfiles.py" line="578"/>
         <source>Restore original tree layout</source>
         <translation>Restaurer l&apos;organisation initiale de l&apos;arbre des résultats</translation>
     </message>
@@ -1168,19 +1168,34 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">&apos;%1&apos; - %2 correspondances trouvées dans %3 files</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="446"/>
+        <location filename="widgets/findinfiles.py" line="486"/>
         <source>matches in</source>
         <translation>correspondances trouvées dans</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="447"/>
+        <location filename="widgets/findinfiles.py" line="487"/>
         <source>file</source>
         <translation>fichier</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="444"/>
+        <location filename="widgets/findinfiles.py" line="484"/>
         <source>String not found</source>
         <translation>Chaîne de caractères non trouvée</translation>
+    </message>
+    <message>
+        <location filename="widgets/findinfiles.py" line="344"/>
+        <source>PYTHONPATH</source>
+        <translation>PYTHONPATH</translation>
+    </message>
+    <message>
+        <location filename="widgets/findinfiles.py" line="347"/>
+        <source>Search in all directories listed in sys.path which are outside the Python installation directory</source>
+        <translation>Rechercher dans tous les répertoires listés dans sys.path qui sont situés en dehors du répertoire d&apos;installation de Python</translation>
+    </message>
+    <message>
+        <location filename="widgets/findinfiles.py" line="492"/>
+        <source>permission denied errors were encountered</source>
+        <translation>des erreurs d&apos;autorisation d&apos;accès ont été rencontrées</translation>
     </message>
 </context>
 <context>
@@ -1206,12 +1221,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Remplacer tout</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="146"/>
+        <location filename="pydee.py" line="150"/>
         <source>Find text</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="149"/>
+        <location filename="pydee.py" line="153"/>
         <source>Replace text</source>
         <translation>Remplacer</translation>
     </message>
@@ -1429,82 +1444,82 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="pydee.py" line="141"/>
+        <location filename="pydee.py" line="145"/>
         <source>Toolbar</source>
         <translation>Barre d&apos;outils</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="189"/>
+        <location filename="pydee.py" line="193"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="194"/>
+        <location filename="pydee.py" line="198"/>
         <source>&amp;Edit</source>
         <translation>&amp;Édition</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="370"/>
+        <location filename="pydee.py" line="374"/>
         <source>&amp;View</source>
         <translation>&amp;Affichage</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="204"/>
+        <location filename="pydee.py" line="208"/>
         <source>Welcome to Pydee!</source>
         <translation>Bienvenue dans Pydee !</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="208"/>
+        <location filename="pydee.py" line="212"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="241"/>
+        <location filename="pydee.py" line="245"/>
         <source>Loading editor widget...</source>
         <translation>Chargement de l&apos;éditeur...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="255"/>
+        <location filename="pydee.py" line="259"/>
         <source>&amp;Source</source>
         <translation>&amp;Source</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="283"/>
+        <location filename="pydee.py" line="287"/>
         <source>Loading workspace widget...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="325"/>
+        <location filename="pydee.py" line="329"/>
         <source>Loading history widget...</source>
         <translation>Chargement de l&apos;historique...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="336"/>
+        <location filename="pydee.py" line="340"/>
         <source>Loading docviewer widget...</source>
         <translation>Chargement de l&apos;aide...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="376"/>
+        <location filename="pydee.py" line="380"/>
         <source>About %1...</source>
         <translation>À propos de %1...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="599"/>
+        <location filename="pydee.py" line="603"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="685"/>
+        <location filename="pydee.py" line="689"/>
         <source>Restart Python interpreter</source>
         <translation>Redémarrer l&apos;interpréteur Python</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="349"/>
+        <location filename="pydee.py" line="353"/>
         <source>Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another</source>
         <translation>Démarrer un nouvel interpréteur Python : les objets de la session en cours seront supprimés, à l&apos;exception des données de l&apos;espace du travail qui pourront être conservées</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="686"/>
+        <location filename="pydee.py" line="690"/>
         <source>Python interpreter will be restarted: all the objects created during this session will be lost (that includes imported modules which will have to be imported again).
 
 Do you want to continue?</source>
@@ -1513,22 +1528,22 @@ Do you want to continue?</source>
 Souhaitez-vous continuer ?</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="692"/>
+        <location filename="pydee.py" line="696"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="693"/>
+        <location filename="pydee.py" line="697"/>
         <source>Do you want to keep workspace data available?</source>
         <translation>Souhaitez-vous conserver les données de l&apos;espace de travail ?</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="127"/>
+        <location filename="pydee.py" line="131"/>
         <source>Initializing...</source>
         <translation>Initialisation...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="618"/>
+        <location filename="pydee.py" line="622"/>
         <source>&lt;b&gt;%1&lt;/b&gt; v %2
             &lt;br&gt;PYthon Development EnvironmEnt
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
@@ -1566,17 +1581,17 @@ Souhaitez-vous continuer ?</translation>
             &lt;p&gt;Python %3, Qt %4, PyQt %5%6 sous %7</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="153"/>
+        <location filename="pydee.py" line="157"/>
         <source>&amp;Find in files</source>
         <translation>Rechercher dans des &amp;fichiers</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="156"/>
+        <location filename="pydee.py" line="160"/>
         <source>Search text in multiple files</source>
         <translation>Rechercher une chaîne de caractères dans plusieurs fichiers à la fois</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="198"/>
+        <location filename="pydee.py" line="202"/>
         <source>&amp;Search</source>
         <translation>&amp;Recherche</translation>
     </message>
