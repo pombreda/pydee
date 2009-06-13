@@ -15,7 +15,6 @@ Pydee
 # -> see IDLE/path browser
 # -> special icon for package folders
 # -> same options as explorer for file extension filters
-
 #TODO: Add a PYTHONPATH configuration plugin
 
 #TODO: Explorer: add regexp options to define included/excluded files (formlayout)
@@ -40,7 +39,9 @@ from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
 from pydeelib import __version__
 from pydeelib.plugins.console import Console
 from pydeelib.plugins.workdir import WorkingDirectory
-from pydeelib.plugins.editor import Editor, HistoryLog, DocViewer
+from pydeelib.plugins.editor import Editor
+from pydeelib.plugins.history import HistoryLog
+from pydeelib.plugins.docviewer import DocViewer
 from pydeelib.plugins.workspace import Workspace
 from pydeelib.plugins.explorer import Explorer
 from pydeelib.plugins.externalconsole import ExternalConsole
