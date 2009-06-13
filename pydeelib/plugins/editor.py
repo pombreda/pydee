@@ -711,7 +711,7 @@ class Editor(PluginWidget):
             self.analyze_script(index)
             self.update_classbrowser(index)
             return True
-        except IOError, error:
+        except EnvironmentError, error:
             QMessageBox.critical(self, self.tr("Save"),
             self.tr("<b>Unable to save script '%1'</b>"
                     "<br><br>Error message:<br>%2") \

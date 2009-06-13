@@ -11,6 +11,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
+from __future__ import with_statement
+
 from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
                          QLabel, QHBoxLayout, QDrag, QApplication, QMessageBox,
                          QInputDialog, QLineEdit, QMenu, QWidget, QToolButton)
@@ -120,7 +122,15 @@ class ExplorerListWidget(QListWidget):
         """Update option menu"""
         self.menu.clear()
         actions = []
-        if self.currentItem() is not None:
+        if self.currentItem() is None:
+            # No selection
+            newdir_action = create_action(self,
+                                          translate('Explorer',
+                                                    "New folder..."),
+                                          icon="folder_new.png",
+                                          triggered=self.new_folder)
+            actions.append(newdir_action)
+        else:
             fname = self.get_filename()
             is_dir = osp.isdir(fname)
             ext = osp.splitext(fname)[1]
@@ -322,7 +332,7 @@ class ExplorerListWidget(QListWidget):
                 return
             try:
                 os.remove(fname)
-            except IOError, error:
+            except EnvironmentError, error:
                 QMessageBox.critical(self,
                     translate('Explorer', "Delete"),
                     translate('Explorer',
@@ -343,7 +353,7 @@ class ExplorerListWidget(QListWidget):
             if valid and path != fname:
                 try:
                     os.rename(fname, path)
-                except IOError, error:
+                except EnvironmentError, error:
                     QMessageBox.critical(self,
                         translate('Explorer', "Rename"),
                         translate('Explorer',
@@ -355,6 +365,31 @@ class ExplorerListWidget(QListWidget):
                     self.refresh()
                     self.setCurrentRow(selected_row)
         
+    def new_folder(self):
+        """Create a new folder"""
+        from pydeelib.widgets.formlayout import fedit
+        datalist = [(translate('Explorer', 'Folder name'), ''),
+                    (translate('Explorer', 'Python package'), False),]
+        answer = fedit( datalist, title=translate('Explorer', "New folder"),
+                        parent=self, icon=get_icon('pydee.png') )
+        if answer is not None:
+            name, pack = answer
+            try:
+                os.mkdir(name)
+            except EnvironmentError, error:
+                QMessageBox.critical(self,
+                    translate('Explorer', "New folder"),
+                    translate('Explorer',
+                              "<b>Unable to create folder <i>%1</i></b>"
+                              "<br><br>Error message:<br>%2") \
+                    .arg(name).arg(str(error)))
+            finally:
+                if pack:
+                    with open(osp.join(name, '__init__.py'), 'wb') as init:
+                        init.write(os.linesep.join(["# -*- coding: utf-8 -*-",
+                                                    "", ""]))
+                self.refresh()
+
 
 class ExplorerWidget(QWidget):
     """Explorer widget"""
