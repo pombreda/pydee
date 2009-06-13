@@ -26,12 +26,7 @@ from pydeelib import encoding
 from pydeelib.config import CONF, get_conf_path, get_icon, get_font, set_font
 from pydeelib.qthelpers import (create_action, add_actions, mimedata2url,
                                  get_filetype_icon, create_toolbutton)
-try:
-    from pydeelib.widgets.qscieditor import QsciEditor
-except ImportError, e:
-    raise ImportError, str(e) + \
-        "\nPydee v0.3.23+ is exclusively based on QScintilla2\n" + \
-        "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
+from pydeelib.widgets.qscieditor import QsciEditor
 from pydeelib.widgets.tabs import Tabs
 from pydeelib.widgets.findreplace import FindReplace
 from pydeelib.widgets.classbrowser import ClassBrowser

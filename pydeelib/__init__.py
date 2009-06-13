@@ -29,3 +29,24 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 __version__ = '0.4.13'
 __license__ = __doc__
+
+def check_required_package(package, actual_str, required_str):
+    actual = actual_str.split('.')
+    required = required_str.split('.')
+    wng = ''
+    if actual[0] < required[0] or \
+       (actual[0] == required[0] and actual[1] < required[1]):
+        wng = "\n%s v%s or higher is required (found v%s)" % (package,
+                                                              required_str,
+                                                              actual_str)
+    return wng
+
+def check_pyqt_qscintilla():
+    from PyQt4.QtCore import PYQT_VERSION_STR
+    wng = check_required_package("PyQt", PYQT_VERSION_STR, "4.4")
+    from PyQt4.Qsci import QSCINTILLA_VERSION_STR
+    wng += check_required_package("QScintilla", QSCINTILLA_VERSION_STR, "2.2")
+    if wng:
+        raise ImportError, wng
+    
+check_pyqt_qscintilla()

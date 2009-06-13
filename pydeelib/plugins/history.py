@@ -21,12 +21,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from pydeelib.config import CONF, get_font
-try:
-    from pydeelib.widgets.qscieditor import QsciEditor
-except ImportError, e:
-    raise ImportError, str(e) + \
-        "\nPydee v0.3.23+ is exclusively based on QScintilla2\n" + \
-        "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
+from pydeelib.widgets.qscieditor import QsciEditor
 from pydeelib.widgets.findreplace import FindReplace
 from pydeelib.plugins import PluginWidget
 
