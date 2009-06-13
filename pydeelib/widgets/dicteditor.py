@@ -495,6 +495,10 @@ class DictEditorTableView(QTableView):
                                       translate("DictEditor", "Insert"),
                                       icon=get_icon('insert.png'),
                                       triggered=self.insert_item)
+        self.copy_action = create_action(self,
+                                      translate("DictEditor", "Copy"),
+                                      None,
+                                      triggered=self.copy)									  
         self.paste_action = create_action(self,
                                       translate("DictEditor", "Paste"),
                                       icon=get_icon('editpaste.png'),
@@ -527,8 +531,8 @@ class DictEditorTableView(QTableView):
                                     triggered=self.duplicate_item)
         menu = QMenu(self)
         add_actions( menu,
-                     (self.edit_action, self.insert_action, self.paste_action,
-                      self.remove_action, None, self.truncate_action,
+                     (self.edit_action, self.insert_action, self.copy_action,
+					 self.paste_action, self.remove_action, None, self.truncate_action,
                       self.inplace_action, self.minmax_action) )
         vert_menu = QMenu(self)
         add_actions(vert_menu, (self.rename_action,self.duplicate_action,
@@ -576,42 +580,36 @@ class DictEditorTableView(QTableView):
                 data.pop( self.model.keys[ idx_row ] )
             self.set_data(data)
 
-    def _simplify_shape(self,alist):
-        """xxx"""
-        if len(alist) == 1:
-            return alist[-1]
-        return alist
-
-    def _decode_text(self,text):
-        """Decode the shape of the given text"""
-        out = []
-        textRows = map(None,text.split("\n"))
-        for row in textRows:
-            if row.isEmpty(): continue
-            line = QString(row).split("\t")
-            line = map(lambda x: try_to_eval(unicode(x)), line)
-            out.append(self._simplify_shape(line))
-        return self._simplify_shape(out)
-
     def copy(self):
         """Copy text to clipboard"""
-        #TODO: Implement the copy feature in DictEditor
-        # (user should be able to copy/paste to duplicate an item for example)
-        raise NotImplementedError()
+        clipboard = QApplication.clipboard()
+        data = self.model.get_data()
+        clipl = []
+        for idx in self.selectedIndexes():
+            if not idx.isValid:
+                continue
+            _txt = u''
+            if isinstance(data,dict):
+                _txt = unicode(data.get(self.model.keys[idx.row()]))
+            else:
+                _txt = unicode(data[idx.row()])
+            clipl.append(_txt)
+        clipboard.setText(u'\n'.join(clipl))
     
     def paste(self):
-        """Import complex data from clipboard"""
-        #TODO: Implement the paste feature in DictEditor
-        #      by using a GUI to define the data types.
+        """Import text/data/code from clipboard"""
         clipboard = QApplication.clipboard()
+        cliptext = u""
         if clipboard.mimeData().hasText():
+            cliptext = unicode(clipboard.text())
+        if cliptext.strip():
             data = self.model.get_data()
             varname_base = translate("DictEditor", "new")
             get_varname = lambda index: varname_base + ("%03d" % index)
             index = 0
             while data.has_key(get_varname(index)):
                 index += 1
-            editor = ImportWizard(self, clipboard.text(),
+            editor = ImportWizard(self, cliptext,
                                   title=translate("DictEditor",
                                                   "Import from clipboard"),
                                   contents_title=translate("DictEditor",
