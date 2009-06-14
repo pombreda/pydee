@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see pydeelib/__init__.py for details)
 
-"""Startup file used by Safe Shell"""
+"""Startup file used by ExternalShell"""
 
 def __run_pythonstartup_script():
     import os
