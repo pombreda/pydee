@@ -442,7 +442,7 @@ class MainWindow(QMainWindow):
         """Update file menu to show recent files"""
         self.file_menu.clear()
         add_actions(self.file_menu, self.editor.file_menu_actions)
-        add_actions(self.file_menu, [None, self.pydee_path_action])
+        add_actions(self.file_menu, [self.pydee_path_action])
         recent_files = []
         for fname in self.editor.recent_files:
             if (fname not in self.editor.filenames) and os.path.isfile(fname):
