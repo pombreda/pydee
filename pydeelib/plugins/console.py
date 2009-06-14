@@ -32,8 +32,15 @@ except ImportError:
 from pydeelib.widgets.interactiveshell import InteractiveShell
 from pydeelib.widgets.shellhelpers import get_error_match
 from pydeelib.widgets.findreplace import FindReplace
+from pydeelib.widgets.dicteditor import DictEditor
 from pydeelib.plugins import PluginWidget
 
+    
+def show_syspath():
+    """Show sys.path"""
+    dlg = DictEditor(sys.path, title="sys.path",
+                     width=600, icon='syspath.png', readonly=True)
+    dlg.exec_()
 
 class Console(PluginWidget):
     """
@@ -117,6 +124,11 @@ class Console(PluginWidget):
                             tip = self.tr("Show and edit environment variables"
                                           " (for current session)"),
                             triggered=self.show_env)
+        syspath_action = create_action(self,
+                            self.tr("Show sys.path contents..."),
+                            icon = 'syspath.png',
+                            tip = self.tr("Show (read-only) sys.path"),
+                            triggered=show_syspath)
         font_action = create_action(self,
                             self.tr("&Font..."), None,
                             'font.png', self.tr("Set shell font style"),
@@ -136,9 +148,10 @@ class Console(PluginWidget):
         calltips_action = create_action(self, self.tr("Balloon tips"),
             toggled=self.toggle_calltips)
         calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
-        menu_actions = [run_action, environ_action, None, font_action,
-                        history_action, wrap_action, calltips_action,
-                        exteditor_action, None, self.quit_action]
+        menu_actions = [run_action, environ_action, syspath_action, None,
+                        font_action, history_action, wrap_action,
+                        calltips_action, exteditor_action, None,
+                        self.quit_action]
         toolbar_actions = []
         if WinUserEnvDialog is not None:
             winenv_action = create_action(self,
