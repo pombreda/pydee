@@ -183,14 +183,16 @@ class ExternalShell(QWidget):
                 p_args.extend(['-m', 'pdb'])
             p_args.append(self.fname)
             
+            env = self.process.systemEnvironment()
+            
+            # Python init commands (interpreter only)
             if self.commands and self.interpreter:
-                # Python init commands (interpreter only)
-                env = self.process.systemEnvironment()
                 env.append('PYTHONINITCOMMANDS=%s' % ';'.join(self.commands))
                 self.process.setEnvironment(env)
                 
-            # Fix encoding
-            env = self.process.systemEnvironment()
+            pathlist = []
+
+            # Fix encoding with custom "sitecustomize.py"
             import pydeelib.widgets
             scpath = osp.dirname(osp.abspath(pydeelib.widgets.__file__))
             pypath = "PYTHONPATH"
