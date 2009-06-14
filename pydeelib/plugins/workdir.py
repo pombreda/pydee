@@ -182,7 +182,6 @@ class WorkingDirectory(QToolBar, PluginMixin):
         
         # Changing working directory
         os.chdir( unicode(directory) )
-        sys.path.append(os.getcwdu())
         self.refresh()
         self.emit(SIGNAL("chdir()"))
 

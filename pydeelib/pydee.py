@@ -25,6 +25,10 @@ Pydee
 #      (or move the interactive console option?)
 
 import sys, os, platform
+import os.path as osp
+
+# Force Python to search modules in the current directory first:
+sys.path[0] = ''
 
 # For debugging purpose only
 STDOUT = sys.stdout
