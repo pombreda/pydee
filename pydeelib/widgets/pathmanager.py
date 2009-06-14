@@ -42,7 +42,7 @@ class PathManager(QDialog):
         self.last_path = os.getcwdu()
         
         self.setWindowTitle(self.tr("Path manager"))
-        self.resize(600, 400)
+        self.resize(500, 300)
         
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -106,8 +106,7 @@ class PathManager(QDialog):
             hlayout2.addWidget(widget)
         
         # Buttons configuration
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        bbox = QDialogButtonBox(QDialogButtonBox.Close)
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
         hlayout2.addWidget(bbox)
         
@@ -179,6 +178,6 @@ class PathManager(QDialog):
 
 if __name__ == "__main__":
     QApplication([])
-    test = PathManager(None, [])
+    test = PathManager(None, sys.path)
     if test.exec_():
         print test.get_path_list()
