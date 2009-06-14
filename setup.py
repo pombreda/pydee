@@ -18,9 +18,8 @@ google_url = 'http://%s.googlecode.com' % name
 download_url = '%s/files/%s-%s-py2.5.egg' % (google_url, name, version)
 packages = [libname+p for p in ['', '.widgets', '.plugins', '.pyflakes']]
 package_data={libname: ['*.qm', 'python.api', 'images/*.png',
-                        'images/console/*.png', 'images/docviewer/*.png',
-                        'images/edit/*.png', 'images/editor/*.png',
-                        'images/explorer/*.png', 'images/file/*.png',
+                        'images/actions/*.png', 'images/console/*.png',
+                        'images/editor/*.png', 'images/file/*.png',
                         'images/filetypes/*.png', 'images/workspace/*.png',
                         ]}
 import os

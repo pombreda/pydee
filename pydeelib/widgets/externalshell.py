@@ -38,8 +38,8 @@ from pydeelib.widgets import startup
 #        3. terminal shell class (inherits base class)
 class ExternalShell(QWidget):
     """External Shell widget: execute Python script in a separate process"""
-    def __init__(self, parent=None, fname=None, wdir=None, commands=None,
-                 interact=False, debug=False, python=True):
+    def __init__(self, parent=None, fname=None, wdir=None, commands=[],
+                 interact=False, debug=False, python=True, path=[]):
         QWidget.__init__(self, parent)
         self.python = python
         self.interpreter = fname is None
@@ -47,8 +47,11 @@ class ExternalShell(QWidget):
         if wdir is None:
             wdir = osp.dirname(osp.abspath(self.fname))
         self.wdir = wdir if osp.isdir(wdir) else None
-        self.commands = commands
+        self.commands = ["import sys", "sys.path[0] = ''"] + commands
         self.arguments = ""
+        
+        # Additional python path list
+        self.path = path
         
         history_filename = '.history_extcons'
         if python:
@@ -195,12 +198,19 @@ class ExternalShell(QWidget):
             # Fix encoding with custom "sitecustomize.py"
             import pydeelib.widgets
             scpath = osp.dirname(osp.abspath(pydeelib.widgets.__file__))
+            pathlist.append(scpath)
+            
+            # Adding Pydee path
+            pathlist += self.path
+            
+            # Adding path list to PYTHONPATH environment variable
             pypath = "PYTHONPATH"
+            pathstr = os.pathsep.join(pathlist)
             if os.environ.get(pypath) is not None:
-                env.replaceInStrings(pypath+'=', pypath+'='+scpath+';',
+                env.replaceInStrings(pypath+'=', pypath+'='+pathstr+os.pathsep,
                                      Qt.CaseSensitive)
             else:
-                env.append(pypath+'='+scpath)
+                env.append(pypath+'='+pathstr)
             self.process.setEnvironment(env)
         else:
             # Shell arguments

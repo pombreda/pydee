@@ -21,6 +21,7 @@ SOURCES	     += widgets/findinfiles.py
 SOURCES	     += widgets/findreplace.py
 SOURCES      += widgets/importwizard.py
 SOURCES	     += widgets/interactiveshell.py
+SOURCES	     += widgets/pathmanager.py
 SOURCES	     += widgets/qscieditor.py
 SOURCES	     += widgets/qscishell.py
 SOURCES	     += widgets/texteditor.py

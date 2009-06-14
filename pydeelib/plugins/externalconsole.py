@@ -107,7 +107,7 @@ class ExternalConsole(PluginWidget):
 
         # Creating a new external shell
         shell = ExternalShell(self, fname, wdir, self.commands, interact, debug,
-                              python)        
+                              python, path=self.main.path)        
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
         shell.shell.set_docviewer(self.docviewer)

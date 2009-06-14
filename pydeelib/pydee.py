@@ -40,7 +40,8 @@ from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QObject, QVariant)
 
 # Local imports
-from pydeelib import __version__
+from pydeelib import __version__, encoding
+from pydeelib.widgets.pathmanager import PathManager
 from pydeelib.plugins.console import Console
 from pydeelib.plugins.workdir import WorkingDirectory
 from pydeelib.plugins.editor import Editor
@@ -52,7 +53,7 @@ from pydeelib.plugins.externalconsole import ExternalConsole
 from pydeelib.plugins.findinfiles import FindInFiles
 from pydeelib.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate, get_filetype_icon)
-from pydeelib.config import get_icon, get_image_path, CONF
+from pydeelib.config import get_icon, get_image_path, CONF, get_conf_path
 
 
 #TODO: Improve the stylesheet below for separator handles to be visible
@@ -92,7 +93,10 @@ QMainWindow::separator:horizontal {
 """
 
 class MainWindow(QMainWindow):
-    """Console QDialog"""
+    """Pydee main window"""
+    
+    pydee_path = get_conf_path('.path')
+    
     def __init__(self, commands=None, intitle="", message="", options=None):
         super(MainWindow, self).__init__()
         
@@ -101,6 +105,17 @@ class MainWindow(QMainWindow):
         # Area occupied by a dock widget can be split in either direction
         # to contain more dock widgets:
         self.setDockNestingEnabled(True)
+        
+        # Loading Pydee path
+        self.path = []
+        if osp.isfile(self.pydee_path):
+            self.path, _ = encoding.readlines(self.pydee_path)
+            self.path = [name for name in self.path if os.path.isdir(name)]
+        self.pydee_path_action = create_action(self,
+                                        self.tr("Path manager..."),
+                                        None, 'folder_new.png',
+                                        triggered=self.path_manager_callback,
+                                        tip=self.tr("Open Pydee path manager"))
         
         self.commands = commands
         self.message = message
@@ -427,6 +442,7 @@ class MainWindow(QMainWindow):
         """Update file menu to show recent files"""
         self.file_menu.clear()
         add_actions(self.file_menu, self.editor.file_menu_actions)
+        add_actions(self.file_menu, [None, self.pydee_path_action])
         recent_files = []
         for fname in self.editor.recent_files:
             if (fname not in self.editor.filenames) and os.path.isfile(fname):
@@ -534,6 +550,7 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed:
             return True
+        encoding.writelines(self.path, self.pydee_path) # Saving path
         size = self.window_size
         section = 'lightwindow' if self.light else 'window'
         CONF.set(section, 'size', (size.width(), size.height()))
@@ -719,6 +736,28 @@ class MainWindow(QMainWindow):
         self.extconsole.raise_()
         self.extconsole.start(unicode(fname), wdir,
                               ask_for_arguments, interact, debug)
+        
+    def add_path_to_sys_path(self):
+        """Add Pydee path to sys.path"""
+        for path in reversed(self.path):
+            sys.path.insert(1, path)
+
+    def remove_path_from_sys_path(self):
+        """Remove Pydee path from sys.path"""
+        sys_path = sys.path
+        while sys_path[1] in self.path:
+            sys_path.pop(1)
+        
+    def path_manager_callback(self):
+        """Pydee path manager"""
+        self.remove_path_from_sys_path()
+        dialog = PathManager(self, self.path)
+        self.connect(dialog, SIGNAL('redirect_stdio(bool)'),
+                     self.redirect_interactiveshell_stdio)
+        dialog.exec_()
+        self.add_path_to_sys_path()
+        #TODO: implement path manager in the rest of the application!!!
+        #      -> external shell + update sys.path for interactive console
 
         
 def get_options():
