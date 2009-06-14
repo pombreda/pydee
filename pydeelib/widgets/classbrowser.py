@@ -36,14 +36,14 @@ class ClassBrowser(OneColumnTree):
     def refresh(self, data=None, update=True):
         """Refresh class browser"""
         self.clear()
+        if data:
+            self.fname, self.classes, self.lines, self.class_names = data
         if data is None or update:
             from tokenize import TokenError
             try:
                 self.class_names = self.list_classes()
             except TokenError:
                 return
-        else:
-            self.fname, self.classes, self.lines, self.class_names = data
         self.populate_classes(self.class_names)
         self.resizeColumnToContents(0)
         self.expandAll()
