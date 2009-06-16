@@ -287,7 +287,15 @@ class QsciShell(QsciBase):
         Basic keypress event handler
         (reimplemented in InteractiveShell to add more sophisticated features)
         """
-        if self.new_input_line:
+        # Copy must be done first to be able to copy read-only text parts
+        # (otherwise, right below, we would remove selection
+        #  if not on current line)                        
+        if event.key() == Qt.Key_C and (event.modifiers() & Qt.ControlModifier):
+            self.copy()
+            event.accept()
+            return
+        
+        if self.new_input_line and len(event.text()):
             # Move cursor to end
             self.move_cursor_to_end()
             self.current_prompt_pos = self.getCursorPosition()
@@ -300,14 +308,6 @@ class QsciShell(QsciBase):
         event, text, key, ctrl, shift = restore_keyevent(event)
         
         last_line = self.lines()-1
-        
-        # Copy must be done first to be able to copy read-only text parts
-        # (otherwise, right below, we would remove selection
-        #  if not on current line)                        
-        if key == Qt.Key_C and ctrl:
-            self.copy()
-            event.accept()
-            return
         
         # Is cursor on the last line? and after prompt?
         if len(text):
