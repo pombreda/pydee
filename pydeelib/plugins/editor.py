@@ -132,7 +132,8 @@ class Editor(PluginWidget):
         if self.tabwidget.count():
             index = self.tabwidget.currentIndex()
             editor = self.editors[index]
-            title += " - "+osp.basename(self.filenames[index])
+            fname = self.filenames[index]
+            title += " - "+osp.basename(fname)
             if CONF.get(self.ID, 'class_browser'):
                 self.classbrowser.refresh(self.classes[index], update=False)
         else:
@@ -656,8 +657,7 @@ class Editor(PluginWidget):
                              lambda: self.emit(SIGNAL("focus_changed()")))
                 self.editors.append(editor)
 
-                self.classes.append(None)
-                self.classbrowser.set_filename(filename)
+                self.classes.append( (filename, None, None) )
                 
                 title = self.get_title(filename)
                 index = self.tabwidget.addTab(editor, title)
