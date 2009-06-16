@@ -33,14 +33,31 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.0.8'
+__version__ = '1.0.9'
 __license__ = __doc__
 
 import os, re
 import os.path as osp
 from ConfigParser import ConfigParser, MissingSectionHeaderError
 
-        
+
+def get_home_dir():
+    """
+    Return user home directory
+    """
+    try:
+        path = osp.expanduser('~')
+    except:
+        path = ''
+    for env_var in ('HOME', 'USERPROFILE', 'TMP'):
+        if osp.isdir(path):
+            break
+        path = os.environ.get(env_var, '')
+    if path:
+        return path
+    else:
+        raise RuntimeError('Please define environment variable $HOME')
+
 class NoDefault:
     pass
 
@@ -117,12 +134,12 @@ class UserConfig(ConfigParser):
         conf_file = file(self.filename(),'w')
         self.write(conf_file)
         conf_file.close()
-                
+
     def filename(self):
         """
         Create a .ini filename located in user home directory
         """
-        return osp.join(osp.expanduser('~'), '.%s.ini' % self.name)
+        return osp.join(get_home_dir(), '.%s.ini' % self.name)
         
     def cleanup(self):
         """
