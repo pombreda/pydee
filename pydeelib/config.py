@@ -14,7 +14,7 @@ from datetime import date
 from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 # Local import
-from userconfig import UserConfig
+from userconfig import UserConfig, get_home_dir
 
 APP_PATH = osp.dirname(__file__)
 
@@ -251,7 +251,7 @@ CONF = UserConfig('pydee', DEFAULTS, version='0.4.12', load=(not DEV))
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""
-    conf_dir = osp.join(osp.expanduser('~'), '.pydee')
+    conf_dir = osp.join(get_home_dir(), '.pydee')
     if not osp.isdir(conf_dir):
         os.mkdir(conf_dir)
     return osp.join(conf_dir, filename)
