@@ -9,7 +9,9 @@ Class browser widget
 """
 
 import os.path as osp
-import pyclbr, sys
+import sys
+
+STDOUT = sys.stdout
 
 from PyQt4.QtGui import QTreeWidgetItem
 from PyQt4.QtCore import SIGNAL
@@ -18,6 +20,7 @@ from PyQt4.QtCore import SIGNAL
 from pydeelib.config import get_icon
 from pydeelib.qthelpers import translate
 from pydeelib.widgets import OneColumnTree
+from pydeelib.widgets.classparser import get_classes
 
 
 class ClassBrowser(OneColumnTree):
@@ -28,88 +31,44 @@ class ClassBrowser(OneColumnTree):
         self.classes = None
         self.lines = None
         
-    def set_filename(self, fname):
-        """Setup class browser"""
-        assert osp.isfile(fname)
-        self.fname = osp.abspath(fname)
-
     def refresh(self, data=None, update=True):
         """Refresh class browser"""
-        self.clear()
-        if data:
-            self.fname, self.classes, self.lines, self.class_names = data
-        if data is None or update:
-            from tokenize import TokenError
+        if data is not None:
+            fname, self.classes, self.lines = data
+            self.fname = osp.abspath(fname)
+        if data is None or self.classes is None or update:
             try:
-                self.class_names = self.list_classes()
-            except TokenError:
-                return
-        self.populate_classes(self.class_names)
+                self.classes = get_classes(self.fname)
+            except SyntaxError:
+                if self.classes is None:
+                    self.clear()
+                return (self.fname, self.classes, self.lines)
+        self.clear()
+        self.populate_classes()
         self.resizeColumnToContents(0)
         self.expandAll()
-        return (self.fname, self.classes, self.lines, self.class_names)
+        return (self.fname, self.classes, self.lines)
 
     def activated(self, item):
         """Double-click or click event"""
         self.emit(SIGNAL('go_to_line(int)'), self.lines[item])
         
-    def list_classes(self):
-        """Analyze file and return classes and methods"""
-        pyclbr._modules.clear()
-        path, relpath = osp.split(self.fname)
-        basename, _ext = osp.splitext(relpath)
-        try:
-            contents = pyclbr.readmodule_ex(basename, [path] + sys.path)
-        except ImportError:
-            return []
-        items = []
-        self.classes = {}
-        for name, klass in contents.items():
-            if klass.module == basename:
-                if hasattr(klass, 'super') and klass.super:
-                    supers = []
-                    for sup in klass.super:
-                        if type(sup) is type(''):
-                            sname = sup
-                        else:
-                            sname = sup.name
-                            if sup.module != klass.module:
-                                sname = "%s.%s" % (sup.module, sname)
-                        supers.append(sname)
-                    name = name + "(%s)" % ", ".join(supers)
-                items.append((klass.lineno, name))
-                self.classes[name] = klass
-        items.sort()
-        return items
-        
-    def populate_classes(self, class_names):
+    def populate_classes(self):
         """Populate classes"""
         self.lines = {}
-        for lineno, c_name in class_names:
+        for lineno, c_name, methods in self.classes:
             item = QTreeWidgetItem(self, [c_name])
             self.lines[item] = lineno
-            if isinstance(self.classes[c_name], pyclbr.Function):
+            if methods is None:
                 item.setIcon(0, get_icon('function.png'))
             else:
                 item.setIcon(0, get_icon('class.png'))
-            if self.methods_exist(c_name):
-                self.populate_methods(item, c_name)
+            if methods:
+                self.populate_methods(item, c_name, methods)
             
-    def methods_exist(self, c_name):
-        """Is there any method?"""
-        return hasattr(self.classes[c_name], 'methods')
-                
-    def list_methods(self, c_name):
-        """List class c_name methods"""
-        items = []
-        for name, lineno in self.classes[c_name].methods.items():
-            items.append((lineno, name))
-        items.sort()
-        return items
-                
-    def populate_methods(self, parent, c_name):
+    def populate_methods(self, parent, c_name, methods):
         """Populate methods"""
-        for lineno, m_name in self.list_methods(c_name):
+        for lineno, m_name in methods:
             item = QTreeWidgetItem(parent, [m_name])
             self.lines[item] = lineno
             if m_name.startswith('__'):
@@ -125,7 +84,7 @@ if __name__ == '__main__':
     app = QApplication([])
     
     widget = ClassBrowser(None)
-    widget.set_filename("dicteditor.py")
+    widget.set_filename(sys.argv[1])
     widget.refresh()
     widget.show()
     
