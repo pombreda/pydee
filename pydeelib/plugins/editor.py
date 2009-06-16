@@ -82,7 +82,8 @@ class Editor(PluginWidget):
         splitter = QSplitter(self)
         splitter.addWidget(self.tabwidget)
         splitter.addWidget(self.classbrowser)
-        splitter.setSizes([3, 1])
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 1)
         layout.addWidget(splitter)
         
         self.find_widget = FindReplace(self, enable_replace=True)
