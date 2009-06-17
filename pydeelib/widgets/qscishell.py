@@ -356,6 +356,8 @@ class QsciShell(QsciBase):
                 return
             elif self.is_cursor_on_last_line():
                 self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
+                if self.isListActive():
+                    self.completion_chars -= 1
             
         elif key == Qt.Key_Tab:
             if self.isListActive():
