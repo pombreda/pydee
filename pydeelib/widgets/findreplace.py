@@ -189,9 +189,21 @@ class FindReplace(QWidget):
     def replace_find(self):
         """Replace and find"""
         if (self.editor is not None):
-            while self.find(changed=True, forward=True):
-                self.editor.replace(self.replace_edit.text())
+            replace_text = self.replace_edit.text()
+            sel_hist = []
+            changed = True
+            while self.find(changed=changed, forward=True):
+                if changed:
+                    changed = False
+                #-- Avoid infinite loop:
+                selection = self.editor.getSelection()
+                if selection in sel_hist:
+                    break
+                sel_hist.append(selection)
+                #--
+                self.editor.replace(replace_text)
                 self.refresh()
                 if not self.all_check.isChecked():
                     break
             self.all_check.setCheckState(Qt.Unchecked)
+            
