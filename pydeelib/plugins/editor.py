@@ -489,11 +489,20 @@ class Editor(PluginWidget):
     def exec_selected_text(self):
         """Run selected text in current script and set focus to shell"""
         index = self.tabwidget.currentIndex()
-        lines = unicode( self.editors[index].selectedText() )
+        editor = self.editors[index]
+        line_from, _, line_to, _ = editor.getSelection()
+        line_to += 1
+        index_to = 0
+        if line_to == editor.lines():
+            line_to -= 1
+            index_to = editor.text(line_to).length()
+        editor.setSelection(line_from, 0, line_to, index_to)
+        lines = unicode( editor.selectedText() )
         # If there is a common indent to all lines, remove it
         min_indent = 999
         for line in lines.split(os.linesep):
-            min_indent = min(len(line)-len(line.lstrip()), min_indent)
+            if line.strip():
+                min_indent = min(len(line)-len(line.lstrip()), min_indent)
         if min_indent:
             lines = [line[min_indent:] for line in lines.split(os.linesep)]
             lines = os.linesep.join(lines)
