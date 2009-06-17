@@ -111,6 +111,8 @@ class MainWindow(QMainWindow):
         if osp.isfile(self.pydee_path):
             self.path, _ = encoding.readlines(self.pydee_path)
             self.path = [name for name in self.path if os.path.isdir(name)]
+        self.remove_path_from_sys_path()
+        self.add_path_to_sys_path()
         self.pydee_path_action = create_action(self,
                                         self.tr("Path manager..."),
                                         None, 'folder_new.png',
