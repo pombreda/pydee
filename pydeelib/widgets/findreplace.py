@@ -190,17 +190,28 @@ class FindReplace(QWidget):
         """Replace and find"""
         if (self.editor is not None):
             replace_text = self.replace_edit.text()
-            sel_hist = []
             changed = True
             while self.find(changed=changed, forward=True):
                 if changed:
+                    # First found
                     changed = False
-                #-- Avoid infinite loop:
-                selection = self.editor.getSelection()
-                if selection in sel_hist:
-                    break
-                sel_hist.append(selection)
-                #--
+                    wrapped = False
+                    line, index = self.editor.getCursorPosition()
+                    line0, index0 = line, index
+                else:
+                    line1, index1 = self.editor.getCursorPosition()
+                    if line1 == line0 and index1 == index0:
+                        # Avoid infinite loop: single found occurence
+                        break
+                    if line1-line0 < 0 or (line1 == line0 and index1-index0 < 0):
+                        wrapped = True
+                    if wrapped:
+                        if line0 > line or (line0 == line and index0 > index):
+                            # Avoid infinite loop: replace string includes
+                            # part of the search string
+                            break
+                    line0, index0 = line1, index1
+                
                 self.editor.replace(replace_text)
                 self.refresh()
                 if not self.all_check.isChecked():
