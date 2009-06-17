@@ -659,7 +659,10 @@ class QsciEditor(QsciBase):
             self.unindent()
             event.accept()
         elif (key == Qt.Key_Tab):
-            self.indent()
+            if self.isListActive():
+                self.SendScintilla(QsciScintilla.SCI_TAB)
+            else:
+                self.indent()
             event.accept()
 #TODO: find other shortcuts...
 #        elif (key == Qt.Key_3) and ctrl:
