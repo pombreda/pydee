@@ -810,7 +810,9 @@ def get_options():
     # Option --all
     if options.all:
         intitlelist.append('all')
-        messagelist.append('import all optional modules')
+        messagelist += ['import (sys, time, re, os)', 'import os.path as osp',
+                        'import numpy as N', 'import scipy as S',
+                        'from pylab import *']
         commands.extend(['import sys',
                          'import time',
                          'import re'])
