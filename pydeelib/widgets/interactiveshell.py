@@ -15,7 +15,7 @@
 import __builtin__
 try:
     from IPython.deep_reload import reload
-    __builtin__.reload = reload
+    __builtin__.dreload = reload
 except ImportError:
     pass
 from pydeelib.widgets.objecteditor import oedit
