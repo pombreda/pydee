@@ -519,10 +519,14 @@ class ResultsBrowser(OneColumnTree):
         for filename in self.results:
             dirname = osp.dirname(filename)
             dir_set.add(dirname)
-            if root_path is None or root_path not in dirname:
+            if root_path is None:
                 root_path = dirname
+            else:
+                while root_path not in dirname:
+                    root_path = abspardir(root_path)
         if root_path is None:
             return
+        dir_set.add(root_path)
         # Populating tree: directories
         def create_dir_item(dirname, parent):
             if dirname != root_path:
