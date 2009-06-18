@@ -24,7 +24,8 @@ except ImportError:
 
 from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
                          QLabel, QHBoxLayout, QDrag, QApplication, QMessageBox,
-                         QInputDialog, QLineEdit, QMenu, QWidget, QToolButton)
+                         QInputDialog, QLineEdit, QMenu, QWidget, QToolButton,
+                         QFileDialog)
 from PyQt4.QtCore import Qt, SIGNAL, QMimeData
 
 import os, sys
@@ -37,9 +38,14 @@ STDOUT = sys.stdout
 from pydeelib.qthelpers import (get_std_icon, translate, add_actions,
                                 create_action, get_filetype_icon,
                                 create_toolbutton)
+from pydeelib import encoding
 from pydeelib.config import get_icon
 
 
+def create_script(fname):
+    """Create a new Python script"""
+    text = os.linesep.join(["# -*- coding: utf-8 -*-", "", ""])
+    encoding.write(unicode(text), fname, 'utf-8')
 
 def listdir(path, valid_types=('', '.py', '.pyw'),
             show_hidden=False, show_all=False):
@@ -53,7 +59,6 @@ def listdir(path, valid_types=('', '.py', '.pyw'),
              (show_hidden or not item.startswith('.')):
             namelist.append(item)
     return sorted(dirlist) + sorted(namelist)
-
 
 
 class ExplorerListWidget(QListWidget):
@@ -139,6 +144,12 @@ class ExplorerListWidget(QListWidget):
                                           icon="folder_new.png",
                                           triggered=self.new_folder)
             actions.append(newdir_action)
+            newfile_action = create_action(self,
+                                           translate('Explorer',
+                                                     "New file..."),
+                                           icon="filenew.png",
+                                           triggered=self.new_file)
+            actions.append(newfile_action)
         else:
             fname = self.get_filename()
             is_dir = osp.isdir(fname)
@@ -394,10 +405,35 @@ class ExplorerListWidget(QListWidget):
                     .arg(name).arg(str(error)))
             finally:
                 if pack:
-                    with open(osp.join(name, '__init__.py'), 'wb') as init:
-                        init.write(os.linesep.join(["# -*- coding: utf-8 -*-",
-                                                    "", ""]))
+                    create_script( osp.join(name, '__init__.py') )
                 self.refresh()
+
+    def new_file(self):
+        """Create a new file"""
+        _temp = sys.stdout
+        sys.stdout = None
+        fname = QFileDialog.getSaveFileName(self,
+                    translate('Explorer', "New Python script"), os.getcwdu(),
+                    translate('Explorer', "Python scripts")+" (*.py ; *.pyw)"+"\n"+\
+                    translate('Explorer', "All files")+" (*.*)")
+        sys.stdout = _temp
+        if not fname.isEmpty():
+            fname = unicode(fname)
+            try:
+                if osp.splitext(fname)[1] in ('.py', '.pyw'):
+                    create_script(fname)
+                else:
+                    file(fname, 'wb').write('')
+            except EnvironmentError, error:
+                QMessageBox.critical(self,
+                    translate('Explorer', "New file"),
+                    translate('Explorer',
+                              "<b>Unable to create file <i>%1</i></b>"
+                              "<br><br>Error message:<br>%2") \
+                    .arg(fname).arg(str(error)))
+            finally:
+                self.refresh()
+                self.open(fname)
 
 
 class ExplorerWidget(QWidget):
