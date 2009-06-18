@@ -165,7 +165,9 @@ class InteractiveShell(QsciShell):
         """Start Python interpreter"""
         self.clear()
         
+        self.restore_stds()
         self.interpreter = Interpreter(namespace, self.exitfunc, self.raw_input)
+        self.redirect_stds()
 
         # interpreter banner
         banner = create_banner(self.tr('Type "copyright", "credits" or "license" for more information.'), self.message)
@@ -180,7 +182,7 @@ class InteractiveShell(QsciShell):
         self.new_prompt(self.p1)
         self.setUndoRedoEnabled(True) #-enable undo/redo
         self.emit(SIGNAL("refresh()"))
-        
+
         return self.interpreter
 
 
