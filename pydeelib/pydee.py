@@ -17,6 +17,8 @@ Pydee
 # -> same options as explorer for file extension filters
 #TODO: Add a PYTHONPATH configuration plugin
 
+#TODO: web browser plugin for future documentation and for Python doc
+
 #TODO: Explorer: add regexp options to define included/excluded files (formlayout)
 
 #TODO: Add font option in Docviewer/Historylog context menu
