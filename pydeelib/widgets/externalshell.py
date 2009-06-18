@@ -32,6 +32,14 @@ from pydeelib.config import get_icon, get_conf_path
 from pydeelib.widgets import startup
 
 
+#TODO: Implement real introspection -> send dir(object) to console to obtain
+#                                     completion list, and so on... (doc...)
+#      (not the same as InteractiveShell)
+
+#TODO: Implement globals explorer
+#      (kind of simplified workspace where GUI edition is done by the
+#       external process and table row infos are sent directly from process)
+
 #TODO: [low-priority] Split ExternalShell into three classes:
 #        1. shell base class
 #        2. python shell class (inherits base class)
