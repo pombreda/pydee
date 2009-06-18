@@ -28,12 +28,22 @@ class FindInFiles(FindInFilesWidget, PluginMixin):
     """Find in files DockWidget"""
     ID = 'find_in_files'
     def __init__(self, parent=None):
-        supported_encodings = CONF.get(self.ID, 'supported_encodings')        
+        supported_encodings = CONF.get(self.ID, 'supported_encodings')
+        
+        self.search_text_samples = CONF.get(self.ID, 'search_text_samples')
+        search_text = CONF.get(self.ID, 'search_text')
+        search_text = [txt for txt in search_text \
+                       if txt not in self.search_text_samples]
+        search_text += self.search_text_samples
+        
+        search_text_regexp = CONF.get(self.ID, 'search_text_regexp')
         include = CONF.get(self.ID, 'include')
         include_regexp = CONF.get(self.ID, 'include_regexp')
         exclude = CONF.get(self.ID, 'exclude')
         exclude_regexp = CONF.get(self.ID, 'exclude_regexp')
-        FindInFilesWidget.__init__(self, parent, include, include_regexp,
+        FindInFilesWidget.__init__(self, parent,
+                                   search_text, search_text_regexp,
+                                   include, include_regexp,
                                    exclude, exclude_regexp, supported_encodings)
         PluginMixin.__init__(self, parent)
         
@@ -62,12 +72,19 @@ class FindInFiles(FindInFilesWidget, PluginMixin):
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        options = self.find_options.get_options()
+        options = self.find_options.get_options(all=True)
         if options is not None:
-            _, _, include, exclude, _, _ = options
+            search_text, text_re, include, \
+            include_re, exclude, exclude_re = options
+            hist_limit = 15
+            search_text = search_text[:hist_limit]
+            include = include[:hist_limit]
+            exclude = exclude[:hist_limit]
+            CONF.set(self.ID, 'search_text', search_text)
+            CONF.set(self.ID, 'search_text_regexp', text_re)
             CONF.set(self.ID, 'include', include)
-            CONF.set(self.ID, 'include_regexp', True)
+            CONF.set(self.ID, 'include_regexp', include_re)
             CONF.set(self.ID, 'exclude', exclude)
-            CONF.set(self.ID, 'exclude_regexp', True)
+            CONF.set(self.ID, 'exclude_regexp', exclude_re)
         return True
 

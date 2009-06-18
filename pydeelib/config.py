@@ -238,16 +238,19 @@ DEFAULTS = [
              {
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
-              'include': ".",
+              'include': ['.', r'\.py$|\.txt$|\.c$|\.cpp$|\.h$|\.f$|\.ini$'],
               'include_regexp': True,
-              'exclude': r"\.pyc$|\.orig$|\.hg|\.svn",
+              'exclude': [r'\.pyc$|\.orig$|\.hg|\.svn'],
               'exclude_regexp': True,
+              'search_text_regexp': True,
+              'search_text': [''],
+              'search_text_samples': [r'# ?TODO|# ?FIXME|# ?XXX'],
               }),
             ]
 
 DEV = not __file__.startswith(sys.prefix)
-#DEV = False
-CONF = UserConfig('pydee', DEFAULTS, version='0.4.12', load=(not DEV))
+DEV = False
+CONF = UserConfig('pydee', DEFAULTS, version='0.4.16', load=(not DEV))
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""
