@@ -295,7 +295,8 @@ class QsciShell(QsciBase):
             event.accept()
             return
         
-        if self.new_input_line and len(event.text()):
+        if self.new_input_line and ( len(event.text()) or event.key() in \
+           (Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right) ):
             # Move cursor to end
             self.move_cursor_to_end()
             self.current_prompt_pos = self.getCursorPosition()
@@ -541,7 +542,8 @@ class QsciShell(QsciBase):
                 rawhistory = self.inithistory
         else:
             rawhistory = self.inithistory
-        history = [line for line in rawhistory if not line.startswith('#')]
+        history = [line for line in rawhistory \
+                   if line and not line.startswith('#')]
         rawhistory.append(self.separator)
         return rawhistory, history
     
