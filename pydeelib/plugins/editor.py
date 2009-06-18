@@ -431,13 +431,8 @@ class Editor(PluginWidget):
         if not fname.isEmpty():
             fname = unicode(fname)
             default = ['# -*- coding: utf-8 -*-',
-                       '"""',
-                       osp.basename(fname),
-                       '"""',
-                       '',
-                       '',
-                       ]
-            text = "\r\n".join([unicode(qstr) for qstr in default])
+                       '"""', osp.basename(fname), '"""', '', '']
+            text = os.linesep.join(default)
             encoding.write(unicode(text), fname, 'utf-8')
             self.load(fname)
     
@@ -684,6 +679,9 @@ class Editor(PluginWidget):
                 
                 editor.setFocus()
                 self.add_recent_file(filename)
+            # -- Not a valid filename:
+            else:
+                continue
             
             if goto > 0:
                 editor.highlight_line(goto)
