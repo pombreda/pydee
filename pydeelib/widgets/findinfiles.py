@@ -267,9 +267,17 @@ class FindOptions(QWidget):
     """
     Find widget with options
     """
-    def __init__(self, parent, include, include_regexp,
-                 exclude, exclude_regexp, supported_encodings):
+    def __init__(self, parent, search_text, search_text_regexp,
+                 include, include_regexp, exclude, exclude_regexp,
+                 supported_encodings):
         QWidget.__init__(self, parent)
+        
+        if not isinstance(search_text, (list, tuple)):
+            search_text = [search_text]
+        if not isinstance(include, (list, tuple)):
+            include = [include]
+        if not isinstance(exclude, (list, tuple)):
+            exclude = [exclude]
 
         self.supported_encodings = supported_encodings
         hg_repository = is_hg_installed() and get_hg_root() is not None
@@ -278,6 +286,7 @@ class FindOptions(QWidget):
         hlayout1 = QHBoxLayout()
         self.search_text = QComboBox(self)
         self.search_text.setEditable(True)
+        self.search_text.addItems(search_text)
         self.search_text.setSizePolicy(QSizePolicy.Expanding,
                                        QSizePolicy.Fixed)
         self.search_text.setToolTip(translate('FindInFiles', "Search pattern"))
@@ -286,7 +295,7 @@ class FindOptions(QWidget):
         self.edit_regexp = create_toolbutton(self, get_icon("advanced.png"),
                          tip=translate('FindInFiles', "Regular expression"))
         self.edit_regexp.setCheckable(True)
-        self.edit_regexp.setChecked(False)
+        self.edit_regexp.setChecked(search_text_regexp)
         self.ok_button = create_toolbutton(self,
                                 text=translate('FindInFiles', "Search"),
                                 callback=lambda: self.emit(SIGNAL('find()')),
@@ -307,7 +316,7 @@ class FindOptions(QWidget):
         self.include_pattern.setSizePolicy(QSizePolicy.Expanding,
                                            QSizePolicy.Fixed)
         self.include_pattern.setEditable(True)
-        self.include_pattern.addItem(include)
+        self.include_pattern.addItems(include)
         self.include_pattern.setToolTip(translate('FindInFiles',
                                                   "Included filenames pattern"))
         self.include_regexp = create_toolbutton(self, get_icon("advanced.png"),
@@ -321,7 +330,7 @@ class FindOptions(QWidget):
         self.exclude_pattern.setSizePolicy(QSizePolicy.Expanding,
                                            QSizePolicy.Fixed)
         self.exclude_pattern.setEditable(True)
-        self.exclude_pattern.addItem(exclude)
+        self.exclude_pattern.addItems(exclude)
         self.exclude_pattern.setToolTip(translate('FindInFiles',
                                                   "Excluded filenames pattern"))
         self.exclude_regexp = create_toolbutton(self, get_icon("advanced.png"),
@@ -383,7 +392,7 @@ class FindOptions(QWidget):
         self.search_text.lineEdit().selectAll()
         self.search_text.setFocus()
         
-    def get_options(self):
+    def get_options(self, all=False):
         # Getting options
         utext = unicode(self.search_text.currentText())
         if not utext:
@@ -412,7 +421,18 @@ class FindOptions(QWidget):
         if not exclude_re:
             exclude = fnmatch.translate(exclude)
             
-        return path, python_path, hg_manifest, include, exclude, texts, text_re
+        if all:
+            search_text = [str(self.search_text.itemText(index)) \
+                           for index in range(self.search_text.count())]
+            include = [str(self.include_pattern.itemText(index)) \
+                       for index in range(self.include_pattern.count())]
+            exclude = [str(self.exclude_pattern.itemText(index)) \
+                       for index in range(self.exclude_pattern.count())]
+            return (search_text, text_re, include, include_re,
+                    exclude, exclude_re)
+        else:
+            return (path, python_path, hg_manifest,
+                    include, exclude, texts, text_re)
         
     def select_directory(self):
         """Select directory"""
@@ -550,7 +570,10 @@ class FindInFilesWidget(QWidget):
     """
     Find in files widget
     """
-    def __init__(self, parent, include=".", include_regexp=True,
+    def __init__(self, parent,
+                 search_text = r"# ?TODO|# ?FIXME|# ?XXX",
+                 search_text_regexp=True,
+                 include=".", include_regexp=True,
                  exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_regexp=True,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252")):
         QWidget.__init__(self, parent)
@@ -559,7 +582,8 @@ class FindInFilesWidget(QWidget):
         self.connect(self.search_thread, SIGNAL("finished()"),
                      self.search_complete)
         
-        self.find_options = FindOptions(self, include, include_regexp,
+        self.find_options = FindOptions(self, search_text, search_text_regexp,
+                                        include, include_regexp,
                                         exclude, exclude_regexp,
                                         supported_encodings)
         self.connect(self.find_options, SIGNAL('find()'), self.find)
