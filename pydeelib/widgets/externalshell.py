@@ -35,6 +35,8 @@ from pydeelib.widgets import startup
 #TODO: Implement real introspection -> send dir(object) to console to obtain
 #                                     completion list, and so on... (doc...)
 #      (not the same as InteractiveShell)
+# ----> after some tests, this method appears to be unreliable:
+#       use a socket instead to communicate with another thread
 
 #TODO: Implement globals explorer
 #      (kind of simplified workspace where GUI edition is done by the
@@ -277,34 +279,41 @@ class ExternalShell(QWidget):
         # Saving console history:
         self.shell.save_history()
     
-    def write_output(self):
+    def transcode(self, bytes):
+        if self.python or os.name != 'nt':
+            text = unicode( QString.fromLocal8Bit(bytes.data()) )
+        else:
+            text = transcode(str(bytes.data()), 'cp850')
+        return text
+    
+    def get_stdout(self):
         self.process.setReadChannel(QProcess.StandardOutput)
         bytes = QByteArray()
         while self.process.bytesAvailable():
             bytes += self.process.readAllStandardOutput()
-        if self.python or os.name != 'nt':
-            text = QString.fromLocal8Bit(bytes.data())
-        else:
-            text = transcode(str(bytes.data()), 'cp850')
-        self.shell.write(text)
-        QApplication.processEvents()
+        return self.transcode(bytes)
     
-    def write_error(self):
+    def get_stderr(self):
         self.process.setReadChannel(QProcess.StandardError)
         bytes = QByteArray()
         while self.process.bytesAvailable():
             bytes += self.process.readAllStandardError()
-        if self.python or os.name != 'nt':
-            text = unicode(QString.fromLocal8Bit(bytes.data()))
-        else:
-            text = transcode(str(bytes.data()), 'cp850')
-        lines = text.splitlines(True)
+        return self.transcode(bytes)
+    
+    def write_output(self):
+        self.shell.write( self.get_stdout() )
+        QApplication.processEvents()
+    
+    def write_error(self):
+        lines = self.get_stderr().splitlines(True)
         for index, line in enumerate(lines):
             self.shell.write_error(line)
 #            if index < len(lines)-1:
 #                self.shell.write_error('\n')
         
     def send_to_process(self, qstr):
+        if not isinstance(qstr, QString):
+            qstr = QString(qstr)
         if not self.python and qstr[:-1] in ["clear", "cls", "CLS"]:
             self.shell.clear()
             self.send_to_process(QString(os.linesep))
