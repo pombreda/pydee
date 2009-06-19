@@ -195,7 +195,8 @@ DEFAULTS = [
               'exclude_unsupported_datatypes': True,
               'inplace': False,
               'truncate': True,
-              'minmax': False,
+              'minmax': True,
+              'collvalue': False,
               }),
             ('arrayeditor',
              {
