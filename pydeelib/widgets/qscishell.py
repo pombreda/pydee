@@ -480,7 +480,7 @@ class QsciShell(QsciBase):
             self.redo()
             event.accept()
                 
-        elif key == Qt.Key_Question:
+        elif key == Qt.Key_Question and not self.hasSelectedText():
             if self.get_current_line_to_cursor():
                 self.show_docstring(self.get_last_obj())
                 _, self.calltip_index = self.getCursorPosition()
@@ -490,7 +490,7 @@ class QsciShell(QsciBase):
                 self.completion_chars += 1
             event.accept()
             
-        elif key == Qt.Key_ParenLeft:
+        elif key == Qt.Key_ParenLeft and not self.hasSelectedText():
             self.cancelList()
             if self.get_current_line_to_cursor():
                 self.show_docstring(self.get_last_obj(), call=True)
@@ -498,7 +498,7 @@ class QsciShell(QsciBase):
             self.insert_text(text)
             event.accept()
             
-        elif key == Qt.Key_Period:
+        elif key == Qt.Key_Period and not self.hasSelectedText():
             # Enable auto-completion only if last token isn't a float
             self.insert_text(text)
             last_obj = self.get_last_obj()
