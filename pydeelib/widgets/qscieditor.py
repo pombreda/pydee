@@ -682,8 +682,8 @@ class QsciEditor(QsciBase):
             
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
-        self.setFocus()
         if event.button() == Qt.MidButton:
+            self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
             QsciScintilla.mousePressEvent(self, event)
