@@ -136,6 +136,14 @@ class QsciShell(QsciBase):
         self.prompt_style = 1
         self.error_style = 2
         self.traceback_link_style = 3
+        
+    def set_wrap_mode(self, enable):
+        """
+        Enable/disable wrap mode
+        Reimplement QsciBase method: WrapWord -> WrapCharacter
+        """
+        self.setWrapMode(QsciScintilla.WrapCharacter if enable
+                         else QsciScintilla.WrapNone)
 
     def setUndoRedoEnabled(self, state):
         """Fake Qt method (QTextEdit)"""
