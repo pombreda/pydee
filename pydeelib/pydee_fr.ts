@@ -208,154 +208,159 @@
 <context>
     <name>DictEditor</name>
     <message>
-        <location filename="widgets/dicteditor.py" line="314"/>
+        <location filename="widgets/dicteditor.py" line="326"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="315"/>
+        <location filename="widgets/dicteditor.py" line="327"/>
         <source>Size</source>
         <translation>Taille</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="316"/>
+        <location filename="widgets/dicteditor.py" line="328"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="198"/>
+        <location filename="widgets/dicteditor.py" line="209"/>
         <source>Tuple</source>
         <translation>Tuple</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="201"/>
+        <location filename="widgets/dicteditor.py" line="212"/>
         <source>List</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="204"/>
+        <location filename="widgets/dicteditor.py" line="215"/>
         <source>Dictionary</source>
         <translation>Dictionnaire</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="209"/>
+        <location filename="widgets/dicteditor.py" line="220"/>
         <source>elements</source>
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="522"/>
+        <location filename="widgets/dicteditor.py" line="542"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="491"/>
+        <location filename="widgets/dicteditor.py" line="506"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="685"/>
+        <location filename="widgets/dicteditor.py" line="708"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="572"/>
+        <location filename="widgets/dicteditor.py" line="595"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="574"/>
+        <location filename="widgets/dicteditor.py" line="597"/>
         <source>Do you want to remove selected item%1?</source>
         <translation>Souhaitez-vous supprimer l&apos;élément %1 ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="676"/>
+        <location filename="widgets/dicteditor.py" line="699"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="686"/>
+        <location filename="widgets/dicteditor.py" line="709"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="639"/>
+        <location filename="widgets/dicteditor.py" line="662"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="530"/>
+        <location filename="widgets/dicteditor.py" line="550"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="503"/>
+        <location filename="widgets/dicteditor.py" line="518"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="193"/>
+        <location filename="widgets/dicteditor.py" line="204"/>
         <source>Index</source>
         <translation>Indice</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="195"/>
+        <location filename="widgets/dicteditor.py" line="206"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="206"/>
+        <location filename="widgets/dicteditor.py" line="217"/>
         <source>Key</source>
         <translation>Clé</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="790"/>
+        <location filename="widgets/dicteditor.py" line="818"/>
         <source>Tree view</source>
         <translation>Arborescence</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="154"/>
+        <location filename="widgets/dicteditor.py" line="164"/>
         <source>unknown</source>
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="511"/>
+        <location filename="widgets/dicteditor.py" line="526"/>
         <source>Truncate values</source>
         <translation>Tronquer les valeurs</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="516"/>
+        <location filename="widgets/dicteditor.py" line="531"/>
         <source>Show arrays min/max</source>
         <translation>Afficher les min/max des tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="624"/>
+        <location filename="widgets/dicteditor.py" line="647"/>
         <source>Empty clipboard</source>
         <translation>Presse-papiers vide</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="626"/>
+        <location filename="widgets/dicteditor.py" line="649"/>
         <source>Nothing to be imported from clipboard.</source>
         <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="608"/>
+        <location filename="widgets/dicteditor.py" line="631"/>
         <source>new</source>
         <translation>nouveau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="614"/>
+        <location filename="widgets/dicteditor.py" line="637"/>
         <source>Import from clipboard</source>
         <translation>Importer depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="616"/>
+        <location filename="widgets/dicteditor.py" line="639"/>
         <source>Clipboard contents</source>
         <translation>Contenu du presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="499"/>
+        <location filename="widgets/dicteditor.py" line="514"/>
         <source>Copy</source>
         <translation>Copier</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="536"/>
+        <source>Show collection contents</source>
+        <translation>Afficher le contenu des séquences</translation>
     </message>
 </context>
 <context>
@@ -1054,37 +1059,37 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
 <context>
     <name>ExternalShell</name>
     <message>
-        <location filename="widgets/externalshell.py" line="156"/>
+        <location filename="widgets/externalshell.py" line="158"/>
         <source>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;Running...&lt;/b&gt;&lt;/span&gt;</source>
         <translation>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;En cours d&apos;exécution...&lt;/b&gt;&lt;/span&gt;</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="121"/>
+        <location filename="widgets/externalshell.py" line="123"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="266"/>
+        <location filename="widgets/externalshell.py" line="268"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="81"/>
+        <location filename="widgets/externalshell.py" line="83"/>
         <source>Terminate</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="87"/>
+        <location filename="widgets/externalshell.py" line="89"/>
         <source>Kill</source>
         <translation>Terminer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="89"/>
+        <location filename="widgets/externalshell.py" line="91"/>
         <source>Kills the current process, causing it to exit immediately</source>
         <translation>Tue le processus, entraînant une sortie brutale et immédiate du programme</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="85"/>
+        <location filename="widgets/externalshell.py" line="87"/>
         <source>Attempts to terminate the process.
 The process may not exit as a result of clicking this button
 (it is given the chance to prompt the user for any unsaved files, etc).</source>
@@ -1093,47 +1098,47 @@ Le processus peut ne pas s&apos;arrêter suite à cette tentative,
 mais cela permet au programme en cours de quitter proprement.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="161"/>
+        <location filename="widgets/externalshell.py" line="163"/>
         <source>Terminated.</source>
         <translation>Terminé.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="77"/>
+        <location filename="widgets/externalshell.py" line="79"/>
         <source>Run</source>
         <translation>Exécuter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="78"/>
+        <location filename="widgets/externalshell.py" line="80"/>
         <source>Run again this program</source>
         <translation>Exécuter de nouveau ce programme</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="91"/>
+        <location filename="widgets/externalshell.py" line="93"/>
         <source>Interact</source>
         <translation>Interagir</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="172"/>
+        <location filename="widgets/externalshell.py" line="174"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="173"/>
+        <location filename="widgets/externalshell.py" line="175"/>
         <source>Command line arguments:</source>
         <translation>Arguments en ligne de commande :</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="93"/>
+        <location filename="widgets/externalshell.py" line="95"/>
         <source>Debug</source>
         <translation>Déboguer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="267"/>
+        <location filename="widgets/externalshell.py" line="269"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell.py" line="257"/>
+        <location filename="widgets/externalshell.py" line="259"/>
         <source>No shell has been configured</source>
         <translation>Aucun shell n&apos;a été configuré (bash, ...)</translation>
     </message>
@@ -1438,17 +1443,17 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>InteractiveShell</name>
     <message>
-        <location filename="widgets/qscishell.py" line="173"/>
+        <location filename="widgets/qscishell.py" line="181"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="177"/>
+        <location filename="widgets/qscishell.py" line="185"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="181"/>
+        <location filename="widgets/qscishell.py" line="189"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
@@ -1847,22 +1852,22 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QsciShell</name>
     <message>
-        <location filename="widgets/qscishell.py" line="724"/>
+        <location filename="widgets/qscishell.py" line="732"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="728"/>
+        <location filename="widgets/qscishell.py" line="736"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="732"/>
+        <location filename="widgets/qscishell.py" line="740"/>
         <source>Object `%1` is not callable (i.e. not a function, a method or a class constructor)</source>
         <translation>L&apos;objet `%1` ne peut pas être appelé (ce n&apos;est ni une fonction, ni une méthode, ni une classe)</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="735"/>
+        <location filename="widgets/qscishell.py" line="743"/>
         <source>Documentation</source>
         <translation>Documentation</translation>
     </message>

@@ -49,6 +49,12 @@ except ImportError:
         """Fake ndarray"""
         pass
 
+#----Misc.
+def address(obj):
+    """Return object address as a string: '<classname @ address>'"""
+    return "<%s @ %s>" % (obj.__class__.__name__,
+                          hex(id(obj)).upper().replace('X','x'))
+
 #----date and datetime objects support
 import datetime
 try:
@@ -95,7 +101,8 @@ def unsorted_unique(lista):
     return set.keys()
 
 #----Display <--> Value
-def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
+def value_to_display(value, truncate=False,
+                     trunc_len=80, minmax=False, collvalue=True):
     """Convert value for display purpose"""
     if minmax and isinstance(value, ndarray):
         if value.size == 0:
@@ -105,7 +112,10 @@ def value_to_display(value, truncate=False, trunc_len=80, minmax=False):
         except TypeError:
             pass
     if not isinstance(value, (str, unicode)):
-        value = repr(value)
+        if isinstance(value, (list, tuple, dict, set)) and not collvalue:            
+            value = address(value)
+        else:
+            value = repr(value)
     if truncate and len(value) > trunc_len:
         value = value[:trunc_len].rstrip() + ' ...'
     return value
@@ -161,13 +171,14 @@ def get_type(item):
 class DictModelRO(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
     def __init__(self, parent, data, title="", names=False,
-                 truncate=True, minmax=False):
+                 truncate=True, minmax=False, collvalue=True):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
         self.names = names
         self.truncate = truncate
         self.minmax = minmax
+        self.collvalue = collvalue
         self.header0 = None
         self._data = None
         self.showndata = None
@@ -281,8 +292,9 @@ class DictModelRO(QAbstractTableModel):
             return QVariant()
         value = self.get_value(index)
         display = value_to_display(value,
-                                   truncate=index.column()==3 and self.truncate,
-                                   minmax=self.minmax)
+                               truncate=index.column() == 3 and self.truncate,
+                               minmax=self.minmax,
+                               collvalue=self.collvalue or index.column() != 3)
         if role == Qt.DisplayRole:
             return QVariant(display)
         elif role == Qt.EditRole:
@@ -461,7 +473,8 @@ class DictDelegate(QItemDelegate):
 class DictEditorTableView(QTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
-                 names=False, truncate=True, minmax=False, inplace=False):
+                 names=False, truncate=True, minmax=False,
+                 inplace=False, collvalue=True):
         QTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
@@ -469,7 +482,8 @@ class DictEditorTableView(QTableView):
         self.delegate = None
         DictModelClass = DictModelRO if self.readonly else DictModel
         self.model = DictModelClass(self, data, title, names=names,
-                                    truncate=truncate, minmax=minmax)
+                                    truncate=truncate, minmax=minmax,
+                                    collvalue=collvalue)
         self.setModel(self.model)
         self.delegate = DictDelegate(self, inplace=inplace)
         self.setItemDelegate(self.delegate)
@@ -479,13 +493,14 @@ class DictEditorTableView(QTableView):
         self.connect(self.verticalHeader(),
                      SIGNAL("customContextMenuRequested(QPoint)"),
                      self.vertHeaderContextMenu)        
-        self.menu, self.vert_menu = self.setup_menu(truncate, minmax, inplace)
+        self.menu, self.vert_menu = self.setup_menu(truncate, minmax, inplace,
+                                                    collvalue)
         
         # Sorting columns
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
     
-    def setup_menu(self, truncate, minmax, inplace):
+    def setup_menu(self, truncate, minmax, inplace, collvalue):
         """Setup context menu"""
         self.edit_action = create_action(self, 
                                       translate("DictEditor", "Edit"),
@@ -517,12 +532,17 @@ class DictEditorTableView(QTableView):
                                 toggled=self.toggle_minmax)
         self.minmax_action.setChecked(minmax)
         self.toggle_minmax(minmax)
+        self.collvalue_action = create_action(self,
+                            translate("DictEditor", "Show collection contents"),
+                            toggled=self.toggle_collvalue)
+        self.collvalue_action.setChecked(collvalue)
+        self.toggle_collvalue(collvalue)
         self.inplace_action = create_action(self,
                                        translate("DictEditor",
                                                  "Always edit in-place"),
                                        toggled=self.toggle_inplace)
         self.inplace_action.setChecked(inplace)
-        self.toggle_minmax(inplace)
+        self.toggle_inplace(inplace)
         self.rename_action = create_action(self,
                                     translate("DictEditor", "Rename"),
                                     triggered=self.rename_item)
@@ -530,10 +550,13 @@ class DictEditorTableView(QTableView):
                                     translate("DictEditor", "Duplicate"),
                                     triggered=self.duplicate_item)
         menu = QMenu(self)
-        add_actions( menu,
-                     (self.edit_action, self.insert_action, self.copy_action,
-					 self.paste_action, self.remove_action, None, self.truncate_action,
-                      self.inplace_action, self.minmax_action) )
+        menu_actions = [self.edit_action, self.insert_action, self.copy_action,
+                        self.paste_action, self.remove_action, None,
+                        self.truncate_action, self.inplace_action,
+                        self.collvalue_action]
+        if ndarray is not FakeObject:
+            menu_actions.append(self.minmax_action)
+        add_actions(menu, menu_actions)
         vert_menu = QMenu(self)
         add_actions(vert_menu, (self.rename_action,self.duplicate_action,
                                 self.remove_action))
@@ -744,6 +767,11 @@ class DictEditorTableView(QTableView):
         """Toggle min/max display for numpy arrays"""
         self.emit(SIGNAL('option_changed'), 'minmax', state)
         self.model.minmax = state
+        
+    def toggle_collvalue(self, state):
+        """Toggle value display for collections"""
+        self.emit(SIGNAL('option_changed'), 'collvalue', state)
+        self.model.collvalue = state
         
     def set_filter(self, dictfilter=None):
         """Set table dict filter"""

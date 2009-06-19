@@ -89,9 +89,10 @@ class Workspace(DictEditorTableView, PluginMixin):
         truncate = CONF.get(self.ID, 'truncate')
         inplace = CONF.get(self.ID, 'inplace')
         minmax = CONF.get(self.ID, 'minmax')
+        collvalue = CONF.get(self.ID, 'collvalue')
         DictEditorTableView.__init__(self, parent, None, names=True,
                                      truncate=truncate, inplace=inplace,
-                                     minmax=minmax)
+                                     minmax=minmax, collvalue=collvalue)
         PluginMixin.__init__(self, parent)
         self.load_temp_namespace()
         
