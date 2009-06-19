@@ -779,8 +779,14 @@ class Editor(PluginWidget):
             CONF.set(self.ID, 'class_browser', checked)
             if checked:
                 self.classbrowser.show()
+                curindex = self.tabwidget.currentIndex()
                 for index in range(self.tabwidget.count()):
-                    self.update_classbrowser(index)
+                    if index != curindex:
+                        self.update_classbrowser(index)
+                # We must update the current editor after the others:
+                # (otherwise, we would show class tree of the last editor
+                #  instead of showing the one of the current editor)
+                self.update_classbrowser(curindex)
             else:
                 self.classbrowser.hide()
     
