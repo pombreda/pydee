@@ -291,7 +291,7 @@ class Editor(PluginWidget):
             toggled=self.toggle_code_analysis)
         analyze_action.setChecked( CONF.get(self.ID, 'code_analysis') )
         classbrowser_action = create_action(self,
-            self.tr("Classes and functions"),
+            self.tr("Classes and functions"), None, 'class_browser.png',
             toggled=self.toggle_classbrowser)
         classbrowser_action.setChecked( CONF.get(self.ID, 'class_browser') )
         fold_action = create_action(self, self.tr("Code folding"),
@@ -321,8 +321,8 @@ class Editor(PluginWidget):
                 None, font_action, wrap_action, fold_action, analyze_action,
                 classbrowser_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
-                self.save_all_action,
-                None, self.previous_warning_action, self.next_warning_action,
+                self.save_all_action, None, self.previous_warning_action,
+                self.next_warning_action, classbrowser_action,
                 None, self.exec_action, self.exec_selected_action,
                 self.exec_process_action]
         self.dock_toolbar_actions = toolbar_actions + \
