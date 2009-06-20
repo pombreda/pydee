@@ -58,7 +58,7 @@ def listdir(path, valid_types=('', '.py', '.pyw'),
         elif (show_all or (osp.splitext(item)[1] in valid_types)) and \
              (show_hidden or not item.startswith('.')):
             namelist.append(item)
-    return sorted(dirlist) + sorted(namelist)
+    return sorted(dirlist, key=str.lower) + sorted(namelist, key=str.lower)
 
 
 class ExplorerListWidget(QListWidget):
