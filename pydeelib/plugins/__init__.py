@@ -17,7 +17,7 @@ These plugins inherit the following classes (PluginMixin & PluginWidget)
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QDockWidget, QWidget
+from PyQt4.QtGui import QDockWidget, QWidget, QFontDialog
 from PyQt4.QtCore import SIGNAL, Qt, QObject
 
 import sys
@@ -26,8 +26,11 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from pydeelib.qthelpers import toggle_actions
-from pydeelib.config import CONF
+from pydeelib.qthelpers import (toggle_actions, create_action, add_actions,
+                                translate)
+from pydeelib.config import CONF, get_font, set_font
+from pydeelib.widgets.qscieditor import QsciEditor
+from pydeelib.widgets.findreplace import FindReplace
 
 
 class PluginMixin(object):
@@ -110,3 +113,59 @@ class PluginWidget(QWidget, PluginMixin):
         # Return menu and toolbar actions
         raise NotImplementedError
 
+
+class ReadOnlyEditor(PluginWidget):
+    """
+    Read-only editor plugin widget
+    (see examples of children classes in history.py and docviewer.py)
+    """
+    def __init__(self, parent):
+        PluginWidget.__init__(self, parent)
+
+        # Read-only editor
+        self.editor = QsciEditor(self, linenumbers=False, language='py',
+                                 code_folding=True)
+        self.connect(self.editor, SIGNAL("focus_changed()"),
+                     lambda: self.emit(SIGNAL("focus_changed()")))
+        self.editor.setReadOnly(True)
+        self.editor.set_font( get_font(self.ID) )
+        self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )
+        
+        # Add entries to read-only editor context-menu
+        font_action = create_action(self, translate("Editor", "&Font..."), None,
+                                    'font.png',
+                                    translate("Editor", "Set font style"),
+                                    triggered=self.change_font)
+        wrap_action = create_action(self, translate("Editor", "Wrap lines"),
+                                    toggled=self.toggle_wrap_mode)
+        wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
+        self.editor.readonly_menu.addSeparator()
+        add_actions(self.editor.readonly_menu, (font_action, wrap_action))
+        
+        # Find/replace widget
+        self.find_widget = FindReplace(self)
+        self.find_widget.set_editor(self.editor)
+        self.find_widget.hide()
+        
+        # <!> Layout will have to be implemented in child class!
+            
+    def set_actions(self):
+        """Setup actions"""
+        return (None, None)
+        
+    def closing(self, cancelable=False):
+        """Perform actions before parent main window is closed"""
+        return True
+        
+    def change_font(self):
+        """Change console font"""
+        font, valid = QFontDialog.getFont(get_font(self.ID), self,
+                                      translate("Editor", "Select a new font"))
+        if valid:
+            self.editor.set_font(font)
+            set_font(font, self.ID)
+            
+    def toggle_wrap_mode(self, checked):
+        """Toggle wrap mode"""
+        self.editor.set_wrap_mode(checked)
+        CONF.set(self.ID, 'wrap', checked)

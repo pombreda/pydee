@@ -639,7 +639,8 @@ class QsciEditor(QsciBase):
                                 None, selectall_action))        
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
-        add_actions(self.readonly_menu, (self.copy_action, None, selectall_action))        
+        add_actions(self.readonly_menu,
+                    (self.copy_action, None, selectall_action))        
             
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
