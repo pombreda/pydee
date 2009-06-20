@@ -6,11 +6,6 @@
 
 """Editor widgets"""
 
-# pylint: disable-msg=C0103
-# pylint: disable-msg=R0903
-# pylint: disable-msg=R0911
-# pylint: disable-msg=R0201
-
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                          QCheckBox, QComboBox)
 from PyQt4.QtCore import Qt, SIGNAL
@@ -22,13 +17,11 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from pydeelib.config import CONF, get_conf_path, get_icon, get_font
+from pydeelib.config import CONF, get_conf_path, get_icon
 from pydeelib.qthelpers import create_toolbutton
 from pydeelib.dochelpers import getdoc, getsource
-from pydeelib.widgets.qscieditor import QsciEditor
 from pydeelib.widgets.comboboxes import EditableComboBox
-from pydeelib.widgets.findreplace import FindReplace
-from pydeelib.plugins import PluginWidget
+from pydeelib.plugins import ReadOnlyEditor
 
 
 class DocComboBox(EditableComboBox):
@@ -56,34 +49,20 @@ class DocComboBox(EditableComboBox):
         else:
             QComboBox.keyPressEvent(self, event)
     
-class DocViewer(PluginWidget):
+class DocViewer(ReadOnlyEditor):
     """
     Docstrings viewer widget
     """
     ID = 'docviewer'
     log_path = get_conf_path('.docviewer')
     def __init__(self, parent):
-        PluginWidget.__init__(self, parent)
+        ReadOnlyEditor.__init__(self, parent)
         
         self.interpreter = None
         
         # locked = disable link with Console
         self.locked = False
         self._last_text = None
-
-        # Read-only editor
-        self.editor = QsciEditor(self, linenumbers=False, language='py',
-                                 code_folding=True)
-        self.connect(self.editor, SIGNAL("focus_changed()"),
-                     lambda: self.emit(SIGNAL("focus_changed()")))
-        self.editor.setReadOnly(True)
-        self.editor.set_font( get_font(self.ID) )
-        self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )
-        
-        # Find/replace widget
-        self.find_widget = FindReplace(self)
-        self.find_widget.set_editor(self.editor)
-        self.find_widget.hide()
         
         # Object name
         layout_edit = QHBoxLayout()
@@ -204,12 +183,3 @@ class DocViewer(PluginWidget):
             hlp_text = self.tr("No documentation available.")
         self.editor.set_text(hlp_text)
         self.editor.move_cursor_to_start()
-        
-    def set_actions(self):
-        """Setup actions"""
-        return (None, None)
-        
-    def closing(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-

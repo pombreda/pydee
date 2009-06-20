@@ -1,5 +1,6 @@
 SOURCES	     += pydee.py environ.py qthelpers.py
 
+SOURCES	     += plugins/__init__.py
 SOURCES	     += plugins/console.py
 SOURCES	     += plugins/docviewer.py
 SOURCES	     += plugins/editor.py
