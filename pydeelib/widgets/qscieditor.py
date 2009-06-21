@@ -422,16 +422,17 @@ class QsciEditor(QsciBase):
             # Add prefix to selected line(s)
             line_from, index_from, line_to, index_to = self.getSelection()
             if index_to == 0:
-                end_line = line_to - 1
-            else:
-                end_line = line_to
+                line_to -= 1
             self.beginUndoAction()
-            for line in range(line_from, end_line+1):
+            for line in range(line_from, line_to+1):
                 self.insertAt(prefix, line, 0)
-            self.setSelection(line_from, 0, end_line+1, 0)
             self.endUndoAction()
+            if index_to == 0:
+                line_to += 1
+            else:
+                index_to += len(prefix)
             self.setSelection(line_from, index_from+len(prefix),
-                              line_to, index_to+len(prefix))
+                              line_to, index_to)
         else:
             # Add prefix to current line
             line, index = self.getCursorPosition()
@@ -446,19 +447,19 @@ class QsciEditor(QsciBase):
             # Remove prefix from selected line(s)
             line_from, index_from, line_to, index_to = self.getSelection()
             if index_to == 0:
-                end_line = line_to - 1
-            else:
-                end_line = line_to
+                line_to -= 1
             self.beginUndoAction()
-            for line in range(line_from, end_line+1):
+            for line in range(line_from, line_to+1):
                 if not self.text(line).startsWith(prefix):
                     continue
                 self.setSelection(line, 0, line, len(prefix))
                 self.removeSelectedText()
                 if line == line_from:
                     index_from = max([0, index_from-len(prefix)])
-                if line == line_to:
+                if line == line_to and index_to != 0:
                     index_to = max([0, index_to-len(prefix)])
+            if index_to == 0:
+                line_to += 1
             self.setSelection(line_from, index_from, line_to, index_to)
             self.endUndoAction()
         else:
