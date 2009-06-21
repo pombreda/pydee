@@ -215,6 +215,20 @@ class QsciEditor(QsciBase):
                 self.connect(self.api, SIGNAL("apiPreparationFinished()"),
                              self.api.savePrepared)
         return is_api_ready
+    
+    def set_eol_mode(self, text):
+        """
+        Set QScintilla widget EOL mode based on *text* EOL characters
+        """
+        text = unicode(text)
+        if len(text.split("\r\n", 1)) == 2:
+            self.setEolMode( QsciScintilla.EolMode(QsciScintilla.EolWindows) )
+        elif len(text.split("\n", 1)) == 2:
+            self.setEolMode( QsciScintilla.EolMode(QsciScintilla.EolUnix) )
+        elif len(text.split("\r", 1)) == 2:
+            self.setEolMode( QsciScintilla.EolMode(QsciScintilla.EolMac) )
+        else:
+            return None    
         
     def __find_first(self, text):
         """Find first occurence"""
@@ -342,6 +356,7 @@ class QsciEditor(QsciBase):
         self.set_wrap_mode(wrap)
         self.setup_api()
         self.set_text(text)
+        self.set_eol_mode(text)
         self.setModified(False)
         
     def highlight_line(self, line):
