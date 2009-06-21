@@ -230,6 +230,18 @@ class QsciEditor(QsciBase):
         else:
             return None    
         
+    def get_line_separator(self):
+        """Return line separator based on current EOL mode"""
+        mode = self.eolMode()
+        if mode == QsciScintilla.EolWindows:
+            return '\r\n'
+        elif mode == QsciScintilla.EolUnix:
+            return '\n'
+        elif mode == QsciScintilla.EolMac:
+            return '\r'
+        else:
+            return ''
+    
     def __find_first(self, text):
         """Find first occurence"""
         self.__find_flags = QsciScintilla.SCFIND_MATCHCASE | \
@@ -561,7 +573,7 @@ class QsciEditor(QsciBase):
     
     def blockcomment(self):
         """Block comment current line or selection"""
-        comline = '#' + '='*79 + os.linesep
+        comline = '#' + '='*79 + self.get_line_separator()
         if self.hasSelectedText():
             line_from, _index_from, line_to, _index_to = self.getSelection()
             lines = range(line_from, line_to+1)
@@ -577,7 +589,7 @@ class QsciEditor(QsciBase):
         self.setCursorPosition(lines[-1]+2, 80)
 
     def __is_comment_bar(self, line):
-        comline = '#' + '='*79 + os.linesep
+        comline = '#' + '='*79 + self.get_line_separator()
         self.setSelection(line, 0, line+1, 0)
         return unicode(self.selectedText()) == comline            
     
