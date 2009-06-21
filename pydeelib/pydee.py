@@ -9,11 +9,9 @@ Pydee
 """
 
 #TODO: Explorer: add regexp options to define included/excluded files (formlayout)
+#TODO: External console: add history length option (or move the interactive console option?)
 
-#TODO: External console: add history length option
-#      (or move the interactive console option?)
-
-import sys, os, platform, re, webbrowser, imp
+import sys, os, platform, re, webbrowser
 import os.path as osp
 
 # Force Python to search modules in the current directory first:
@@ -41,11 +39,16 @@ from pydeelib.plugins.explorer import Explorer
 from pydeelib.plugins.externalconsole import ExternalConsole
 from pydeelib.plugins.findinfiles import FindInFiles
 from pydeelib.qthelpers import (create_action, add_actions, get_std_icon,
-                                 keybinding, translate, get_filetype_icon)
+                                 keybinding, translate, get_filetype_icon,
+                                 add_module_dependent_bookmarks)
 from pydeelib.config import get_icon, get_image_path, CONF, get_conf_path
 
 
 def get_python_doc_path():
+    """
+    Return Python documentation path
+    (Windows: return the PythonXX.chm path if available)
+    """
     python_doc = ''
     doc_path = osp.join(sys.prefix, "Doc")
     if osp.isdir(doc_path):
@@ -54,14 +57,16 @@ def get_python_doc_path():
                            if re.match(r"Python[0-9]{2}.chm", path) ]
             if python_chm:
                 python_doc = osp.join(doc_path, python_chm[0])
-    
         if not python_doc:
             python_doc = osp.join(doc_path, "index.html")
-    
     if osp.isfile(python_doc):
         return python_doc
     
 def open_python_doc():
+    """
+    Open Python documentation
+    (Windows: open .chm documentation if found)
+    """
     python_doc = get_python_doc_path()
     if os.name == 'nt':
         os.startfile(python_doc)
@@ -109,6 +114,20 @@ class MainWindow(QMainWindow):
     """Pydee main window"""
     
     pydee_path = get_conf_path('.path')
+    BOOKMARKS = (
+         ('PyQt4',
+          "http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/pyqt4ref.html",
+          translate("MainWindow", "PyQt4 Reference Guide")),
+         ('PyQt4',
+          "http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/classes.html",
+          translate("MainWindow", "PyQt4 API Reference")),
+         ('xy', "http://www.pythonxy.com",
+          translate("MainWindow", "Python(x,y)")),
+         ('numpy', "http://docs.scipy.org/doc/",
+          translate("MainWindow", "Numpy and Scipy documentation")),
+         ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
+          translate("MainWindow", "Matplotlib documentation")),
+                ) 
     
     def __init__(self, commands=None, intitle="", message="", options=None):
         super(MainWindow, self).__init__()
@@ -416,44 +435,21 @@ class MainWindow(QMainWindow):
             if self.console.shell.help_action is not None:
                 help_menu.addAction(self.console.shell.help_action)
             if get_python_doc_path() is not None:
+                pydoc_act = create_action(self, self.tr("Python documentation"),
+                                          icon=get_icon('python.png'),
+                                          triggered=open_python_doc)
                 help_menu.addSeparator()
-                help_menu.addAction(create_action(self,
-                    self.tr("Python documentation"),
-                    icon=get_icon('python.png'), triggered=open_python_doc))
+                help_menu.addAction(pydoc_act)
             if os.name == 'nt':
+                # Qt assistant link: Windows only
                 import PyQt4
-                qt_assistant = osp.join(osp.dirname(PyQt4.__file__),
-                                        "assistant.exe")
-                if osp.isfile(qt_assistant):
-                    help_menu.addAction(create_action(self,
-                        self.tr("Qt Assistant"),
-                        icon=get_icon('qtassistant.png'),
-                        triggered=lambda: os.startfile(qt_assistant)))
-            def add_bookmark(url, title):
-                help_menu.addAction(create_action(self, title,
-                    icon=get_icon('browser.png'),
-                    triggered=lambda url=url: webbrowser.open(url)))
-            add_bookmark("http://www.riverbankcomputing.co.uk/static/Docs/"
-                         "PyQt4/pyqt4ref.html",
-                         self.tr("PyQt4 Reference Guide"))
-            add_bookmark("http://www.riverbankcomputing.co.uk/static/Docs/"
-                         "PyQt4/html/classes.html",
-                         self.tr("PyQt4 API Reference"))
-            bookmarks = {
-                         'xy': ("http://www.pythonxy.com",
-                                self.tr("Python(x,y)")),
-                         'numpy': ("http://docs.scipy.org/doc/",
-                                   self.tr("Numpy and Scipy documentation")),
-                         'matplotlib': ("http://matplotlib.sourceforge.net/"
-                                        "contents.html",
-                                        self.tr("Matplotlib documentation")),
-                         }
-            for key, value in bookmarks.iteritems():
-                try:
-                    imp.find_module(key)
-                    add_bookmark(*value)
-                except ImportError:
-                    pass
+                qta = osp.join(osp.dirname(PyQt4.__file__), "assistant.exe")
+                if osp.isfile(qta):
+                    qta_act = create_action(self, self.tr("Qt Assistant"),
+                                            icon=get_icon('qtassistant.png'),
+                                            triggered=lambda: os.startfile(qta))
+                    help_menu.addAction(qta_act)
+            add_module_dependent_bookmarks(self, help_menu, self.BOOKMARKS)
                 
         # Window set-up
         section = 'lightwindow' if self.light else 'window'
