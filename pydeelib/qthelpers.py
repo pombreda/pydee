@@ -7,6 +7,7 @@
 """Qt utilities"""
 
 import os.path as osp
+import webbrowser, imp
 
 from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                          QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
@@ -125,7 +126,24 @@ def add_actions(target, actions):
             target.addAction(action)
         previous_action = action
 
+def add_bookmark(parent, menu, url, title):
+    """Add bookmark to a menu"""
+    act = create_action(parent, title, icon=get_icon('browser.png'),
+                        triggered=lambda u=url: webbrowser.open(u))
+    menu.addAction(act)
 
+def add_module_dependent_bookmarks(parent, menu, bookmarks):
+    """
+    Add bookmarks to a menu depending on module installation:
+    bookmarks = ((module_name, url, title), ...)
+    """
+    for key, url, title in bookmarks:
+        try:
+            imp.find_module(key)
+            add_bookmark(parent, menu, url, title)
+        except ImportError:
+            pass
+        
 def get_std_icon(name, size=None):
     """Get standard platform icon
     Call 'show_std_icons()' for details"""
