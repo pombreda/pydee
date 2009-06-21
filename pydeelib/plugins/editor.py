@@ -485,25 +485,28 @@ class Editor(PluginWidget):
         """Run selected text in current script and set focus to shell"""
         index = self.tabwidget.currentIndex()
         editor = self.editors[index]
-        line_from, _, line_to, _ = editor.getSelection()
-        line_to += 1
-        index_to = 0
-        if line_to == editor.lines():
-            line_to -= 1
-            index_to = editor.text(line_to).length()
-        editor.setSelection(line_from, 0, line_to, index_to)
+        ls = editor.get_line_separator()
+        
+        line_from, _index_from, line_to, index_to = editor.getSelection()
+        if line_from != line_to:
+            # Multiline selection -> first line must be entirely selected
+            editor.setSelection(line_from, 0, line_to, index_to)
         lines = unicode( editor.selectedText() )
+        
         # If there is a common indent to all lines, remove it
         min_indent = 999
-        for line in lines.split(os.linesep):
+        for line in lines.split(ls):
             if line.strip():
                 min_indent = min(len(line)-len(line.lstrip()), min_indent)
         if min_indent:
-            lines = [line[min_indent:] for line in lines.split(os.linesep)]
-            lines = os.linesep.join(lines)
-        # If there is only one line of code, add an EOL char
-        if (r"\n" not in lines) or (r"\r" not in lines):
-            lines += os.linesep
+            lines = [line[min_indent:] for line in lines.split(ls)]
+            lines = ls.join(lines)
+
+        last_line = lines.split(ls)[-1]
+        if last_line.strip() == unicode(editor.text(line_to)).strip():
+            # If last line is complete, add an EOL character
+            lines += ls
+            
         self.main.console.shell.execute_lines(lines)
         self.main.console.shell.setFocus()
 
