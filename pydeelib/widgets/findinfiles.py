@@ -280,7 +280,6 @@ class FindOptions(QWidget):
             exclude = [exclude]
 
         self.supported_encodings = supported_encodings
-        hg_repository = is_hg_installed() and get_hg_root() is not None
 
         # Layout 1
         hlayout1 = QHBoxLayout()
@@ -357,7 +356,7 @@ class FindOptions(QWidget):
                           " are outside the Python installation directory"))        
         self.hg_manifest = QRadioButton(translate('FindInFiles',
                                                   "Hg repository"), self)
-        self.hg_manifest.setEnabled(hg_repository)
+        self.detect_hg_repository()
         self.hg_manifest.setToolTip(translate('FindInFiles',
                               "Search in current directory hg repository"))
         searchin_label.setBuddy(self.hg_manifest)
@@ -387,6 +386,10 @@ class FindOptions(QWidget):
         self.setLayout(vlayout)
                 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        
+    def detect_hg_repository(self):
+        hg_repository = is_hg_installed() and get_hg_root() is not None
+        self.hg_manifest.setEnabled(hg_repository)
         
     def set_search_text(self, text):
         self.search_text.setEditText(text)
