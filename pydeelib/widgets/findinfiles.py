@@ -302,6 +302,7 @@ class FindOptions(QWidget):
                                 icon=get_std_icon("DialogApplyButton"),
                                 tip=translate('FindInFiles', "Start search"))
         self.stop_button = create_toolbutton(self,
+                                text=translate('FindInFiles', "Stop"),
                                 callback=lambda: self.emit(SIGNAL('stop()')),
                                 icon=get_icon("terminate.png"),
                                 tip=translate('FindInFiles', "Stop search"))
@@ -631,6 +632,7 @@ class FindInFilesWidget(QWidget):
             return
         self.search_thread.initialize(*options)
         self.search_thread.start()
+        self.find_options.ok_button.setEnabled(False)
         self.find_options.stop_button.setEnabled(True)
             
     def stop(self):
@@ -638,6 +640,7 @@ class FindInFilesWidget(QWidget):
             self.search_thread.stop()
             
     def search_complete(self):
+        self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
         found = self.search_thread.get_results()
         if found is not None:
