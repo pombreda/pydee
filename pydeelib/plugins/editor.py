@@ -39,11 +39,6 @@ def is_python_script(fname):
 
 #TODO: Implement multiple editor windows
 #      (editor tab -> context menu -> "Open in a new window")
-
-#TODO: Add task support -> icon in margin
-#      + task list plugin -> option to reload all PYTHONPATH script tasks
-#                           (otherwise only opened script tasks are shown)
-
 class Editor(PluginWidget):
     """
     Multi-file Editor widget

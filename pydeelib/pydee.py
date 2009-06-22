@@ -481,6 +481,8 @@ class MainWindow(QMainWindow):
                              self.update_edit_menu)
         
         # Give focus to shell widget
+        #FIXME: This is no longer working since implementation of focus
+        # handling in Pydee's plugins: (see Plugin.visibility_changed)
         self.console.shell.setFocus()
         
     def plugin_focus_changed(self):
