@@ -35,14 +35,6 @@ class HistoryLog(ReadOnlyEditor):
     def get_widget_title(self):
         """Return widget title"""
         return self.tr('History log')
-
-#TODO: Rewrite when multiple history files feature will be implemented
-#    def get_focus_widget(self):
-#        """
-#        Return the widget to give focus to when
-#        this plugin's dockwidget is raised on top-level
-#        """
-#        return self.editor
         
     def set_rawhistory(self, rawhistory):
         """Set history log's raw history"""

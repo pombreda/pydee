@@ -160,13 +160,6 @@ class ReadOnlyEditor(PluginWidget):
         self.find_widget.hide()
         
         # <!> Layout will have to be implemented in child class!
-    
-    def get_focus_widget(self):
-        """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
-        """
-        return self.editor
             
     def set_actions(self):
         """Setup actions"""
