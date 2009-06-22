@@ -95,6 +95,13 @@ class Console(PluginWidget):
     def get_widget_title(self):
         """Return widget title"""
         return self.tr('Interactive console')
+    
+    def get_focus_widget(self):
+        """
+        Return the widget to give focus to when
+        this plugin's dockwidget is raised on top-level
+        """
+        return self.shell
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""

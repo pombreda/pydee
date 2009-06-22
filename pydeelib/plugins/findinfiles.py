@@ -66,6 +66,13 @@ class FindInFiles(FindInFilesWidget, PluginMixin):
         """Return widget title"""
         return self.tr("Find in files")
     
+    def get_focus_widget(self):
+        """
+        Return the widget to give focus to when
+        this plugin's dockwidget is raised on top-level
+        """
+        return self.find_options.search_text
+    
     def set_actions(self):
         """Setup actions"""
         return (None, None)
