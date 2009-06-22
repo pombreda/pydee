@@ -69,6 +69,9 @@ class PluginMixin(object):
         DockWiget is visible or not, with 'not toplevel = visible'"""
         if enable:
             self.dockwidget.raise_()
+            widget = self.get_focus_widget()
+            if widget is not None:
+                widget.setFocus()
         visible = self.dockwidget.isVisible()
         toggle_actions(self.menu_actions, visible)
         toggle_actions(self.toolbar_actions, visible)
@@ -94,10 +97,19 @@ class PluginWidget(QWidget, PluginMixin):
         self.setWindowTitle(self.get_widget_title())
         
     def get_widget_title(self):
-        """Return widget title
+        """
+        Return widget title
         Note: after some thinking, it appears that using a method
-        is more flexible here than using a class attribute"""
+        is more flexible here than using a class attribute
+        """
         raise NotImplementedError
+    
+    def get_focus_widget(self):
+        """
+        Return the widget to give focus to when
+        this plugin's dockwidget is raised on top-level
+        """
+        pass
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -148,6 +160,13 @@ class ReadOnlyEditor(PluginWidget):
         self.find_widget.hide()
         
         # <!> Layout will have to be implemented in child class!
+    
+    def get_focus_widget(self):
+        """
+        Return the widget to give focus to when
+        this plugin's dockwidget is raised on top-level
+        """
+        return self.editor
             
     def set_actions(self):
         """Setup actions"""

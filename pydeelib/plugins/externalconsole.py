@@ -151,6 +151,13 @@ class ExternalConsole(PluginWidget):
     def get_widget_title(self):
         """Return widget title"""
         return self.tr('External console')
+    
+    def get_focus_widget(self):
+        """
+        Return the widget to give focus to when
+        this plugin's dockwidget is raised on top-level
+        """
+        return self.tabwidget.currentWidget()
         
     def set_actions(self):
         """Setup actions"""
@@ -235,6 +242,7 @@ class ExternalConsole(PluginWidget):
         """Refresh tabwidget"""
         if self.tabwidget.count():
             editor = self.tabwidget.currentWidget().shell
+            editor.setFocus()
         else:
             editor = None
         self.find_widget.set_editor(editor)

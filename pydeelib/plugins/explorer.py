@@ -51,6 +51,13 @@ class Explorer(ExplorerWidget, PluginMixin):
         """Return widget title"""
         return self.tr("File explorer")
     
+    def get_focus_widget(self):
+        """
+        Return the widget to give focus to when
+        this plugin's dockwidget is raised on top-level
+        """
+        return self.listwidget
+    
     def set_actions(self):
         """Setup actions"""
         return (None, None)

@@ -109,6 +109,13 @@ class Editor(PluginWidget):
     def get_widget_title(self):
         """Return widget title"""
         return self.tr('Editor')
+    
+    def get_focus_widget(self):
+        """
+        Return the widget to give focus to when
+        this plugin's dockwidget is raised on top-level
+        """
+        return self.tabwidget.currentWidget()
 
     def add_recent_file(self, fname):
         """Add to recent file list"""
@@ -133,6 +140,7 @@ class Editor(PluginWidget):
         if self.tabwidget.count():
             index = self.tabwidget.currentIndex()
             editor = self.editors[index]
+            editor.setFocus()
             fname = self.filenames[index]
             title += " - "+osp.basename(fname)
             if CONF.get(self.ID, 'class_browser'):
