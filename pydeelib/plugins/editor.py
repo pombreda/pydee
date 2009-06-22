@@ -477,6 +477,12 @@ class Editor(PluginWidget):
             wdir = osp.dirname(fname)
             self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool)'),
                       fname, wdir, ask_for_arguments, interact, debug)
+            if not interact and not debug:
+                # If external console dockwidget is hidden, it will be
+                # raised in top-level and so focus will be given to the
+                # current external shell automatically
+                # (see PluginWidget.visibility_changed method)
+                self.editors[index].setFocus()
     
     def exec_script(self, set_focus=False):
         """Run current script"""
@@ -484,6 +490,12 @@ class Editor(PluginWidget):
             index = self.tabwidget.currentIndex()
             self.main.console.run_script(self.filenames[index],
                                          silent=True, set_focus=set_focus)
+            if not set_focus:
+                # If interactive console dockwidget is hidden, it will be
+                # raised in top-level and so focus will be given to the
+                # interactive shell automatically
+                # (see PluginWidget.visibility_changed method)
+                self.editors[index].setFocus()
     
     def exec_script_and_interact(self):
         """Run current script and set focus to shell"""
