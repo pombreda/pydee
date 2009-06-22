@@ -12,7 +12,7 @@ import atexit, code
 class Interpreter(code.InteractiveConsole):
     """Interpreter"""
     def __init__(self, namespace=None, exitfunc=None,
-                 rawinputfunc=None):
+                 rawinputfunc=None, helpfunc=None):
         """
         namespace: locals send to InteractiveConsole object
         commands: list of commands executed at startup
@@ -26,6 +26,8 @@ class Interpreter(code.InteractiveConsole):
         self.namespace['__name__'] = '__main__'
         if rawinputfunc is not None:
             self.namespace['raw_input'] = rawinputfunc
+        if helpfunc is not None:
+            self.namespace['help'] = helpfunc
         
     def eval(self, text):
         """

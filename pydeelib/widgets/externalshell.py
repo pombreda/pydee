@@ -326,19 +326,32 @@ class ExternalShell(QWidget):
             self.process.write(str(qstr).decode('utf-8').encode('cp850'))
         self.process.waitForBytesWritten(-1)
         
+    def send_ctrl_to_process(self, letter):
+        char = chr("abcdefghijklmnopqrstuvwxyz".index(letter) + 1)
+        byte_array = QByteArray()
+        byte_array.append(char)
+        print >>STDOUT, "Ctrl+%s: %r -- %s" % (letter, char, char)
+        self.process.write(byte_array)
+        self.process.waitForBytesWritten(-1)
+        self.shell.write(QString(byte_array))
+        
     def keyboard_interrupt(self):
-        #TODO: How to send directly the interrupt key to the process?
+        #TODO: Send ctrl keys to process --> dig deeper:
+# Why don't the following code work? (for terminal)
+#        self.send_ctrl_to_process('d')
         self.shell.emit(SIGNAL("execute(QString)"), "raise KeyboardInterrupt")
 
 
 def test():
     app=QApplication(sys.argv)
-    from pydeelib.config import get_font
     import pydeelib
-    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), interact=True)
-#    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), python=False)
+#    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), interact=True)
+    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), python=False)
     shell.start(False)
-    shell.shell.set_font(get_font('external_shell'))
+    from PyQt4.QtGui import QFont
+    font = QFont("Lucida console")
+    font.setPointSize(10)
+    shell.shell.set_font(font)
     shell.show()
     sys.exit(app.exec_())
 

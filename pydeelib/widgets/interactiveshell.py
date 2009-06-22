@@ -21,7 +21,7 @@ except ImportError:
 from pydeelib.widgets.objecteditor import oedit
 __builtin__.oedit = oedit
 
-import sys, os, re
+import sys, os, re, pydoc
 from time import time
 from subprocess import Popen, PIPE
 import os.path as osp
@@ -166,7 +166,8 @@ class InteractiveShell(QsciShell):
         self.clear()
         
         self.restore_stds()
-        self.interpreter = Interpreter(namespace, self.exitfunc, self.raw_input)
+        self.interpreter = Interpreter(namespace, self.exitfunc,
+                                       self.raw_input, self.help_replacement)
         self.redirect_stds()
 
         # interpreter banner
@@ -257,11 +258,47 @@ class InteractiveShell(QsciShell):
         inp = self.wait_input()
         return inp
     
-    def readline(self):
+    def help_replacement(self, text=None, interactive=False):
         """For help() support (to be implemented...)"""
-        #TODO: help() support -> won't implement it
-        # (because IPython is coming
-        #  and because it's supported by external console)
+        if text is not None and not interactive:
+            return pydoc.help(text)
+        elif text is None:
+            pyver = "%d.%d" % (sys.version_info[0], sys.version_info[1])
+            self.write("""
+Welcome to Python %s!  This is the online help utility.
+
+If this is your first time using Python, you should definitely check out
+the tutorial on the Internet at http://www.python.org/doc/tut/.
+
+Enter the name of any module, keyword, or topic to get help on writing
+Python programs and using Python modules.  To quit this help utility and
+return to the interpreter, just type "quit".
+
+To get a list of available modules, keywords, or topics, type "modules",
+"keywords", or "topics".  Each module also comes with a one-line summary
+of what it does; to list the modules whose summaries contain a given word
+such as "spam", type "modules spam".
+""" % pyver)
+        else:
+            text = text.strip()
+            try:
+                eval("pydoc.help(%s)" % text)
+            except NameError, SyntaxError:
+                print "no Python documentation found for '%r'" % text
+        self.write(os.linesep)
+        self.new_prompt("help>")
+        inp = self.wait_input()
+        if inp.strip():
+            self.help_replacement(inp, interactive=True)
+        else:
+            self.write("""
+You are now leaving help and returning to the Python interpreter.
+If you want to ask for help on a particular object directly from the
+interpreter, you can type "help(object)".  Executing "help('string')"
+has the same effect as typing a particular string at the help> prompt.
+""")
+    
+    def readline(self):
         inp = self.wait_input()
         return inp
         
