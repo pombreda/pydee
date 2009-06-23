@@ -479,10 +479,9 @@ class MainWindow(QMainWindow):
             if isinstance(child, QMenu):
                 self.connect(child, SIGNAL("aboutToShow()"),
                              self.update_edit_menu)
-        
-        # Give focus to shell widget
-        #FIXME: This is no longer working since implementation of focus
-        # handling in Pydee's plugins: (see Plugin.visibility_changed)
+
+    def give_focus_to_interactive_console(self):
+        """Give focus to interactive shell widget"""
         self.console.shell.setFocus()
         
     def plugin_focus_changed(self):
@@ -1061,6 +1060,7 @@ def main():
         
     main.setup()
     main.show()
+    main.give_focus_to_interactive_console()
     app.exec_()
 
 
