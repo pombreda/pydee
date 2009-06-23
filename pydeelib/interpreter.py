@@ -26,6 +26,7 @@ class Interpreter(code.InteractiveConsole):
         self.namespace['__name__'] = '__main__'
         if rawinputfunc is not None:
             self.namespace['raw_input'] = rawinputfunc
+            self.namespace['input'] = lambda text='': eval(rawinputfunc(text))
         if helpfunc is not None:
             self.namespace['help'] = helpfunc
         
