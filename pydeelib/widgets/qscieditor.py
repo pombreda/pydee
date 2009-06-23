@@ -11,11 +11,11 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, os
+import sys, os, re
 from math import log
 
-from PyQt4.QtGui import QMouseEvent, QColor, QMenu, QPixmap, QToolTip
-from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QPoint
+from PyQt4.QtGui import QMouseEvent, QColor, QMenu, QPixmap
+from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
                         QsciLexerProperties, QsciLexerBatch)
@@ -521,6 +521,9 @@ class QsciEditor(QsciBase):
         elif prevtext.endswith('continue') or prevtext.endswith('break'):
             # Unindent
             correct_indent -= 4
+        elif prevtext.endswith(','):
+            prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
+            correct_indent = len(prevtext)-len(prevexpr)
         if forward:
             if indent == correct_indent or indent > correct_indent:
                 # Force indent
