@@ -86,8 +86,14 @@ try:
                 translate("WinUserEnvDialog", "Warning"),
                 translate("WinUserEnvDialog", "If you accept changes, "
                           "this will modify the current user environment "
-                          "variables (in Windows registry). Use it with "
-                          "precautions, at your own risks."))
+                          "variables directly <b>in Windows registry</b>. "
+                          "Use it with precautions, at your own risks.<br>"
+                          "<br>Note that for changes to take effect, you will "
+                          "need to restart the parent process of this applica"
+                          "tion (simply restart Pydee if you have executed it "
+                          "from a Windows shortcut, otherwise restart any "
+                          "application from which you may have executed it, "
+                          "like <i>Python(x,y) Home</i> for example)"))
             
         def accept(self):
             """Reimplement Qt method"""
@@ -102,8 +108,9 @@ try:
                 QMessageBox.warning(self,
                     translate("WinUserEnvDialog", "Warning"),
                     translate("WinUserEnvDialog",
-                              "Module pywin32 was not found: restart session "
-                              "to take these changes into account."))
+                              "Module <b>pywin32 was not found</b>.<br>"
+                              "Please restart this Windows <i>session</i> "
+                              "(not the computer) for changes to take effect."))
             QDialog.accept(self)
 
 except ImportError:
