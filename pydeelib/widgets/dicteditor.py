@@ -8,9 +8,6 @@
 Dictionary Editor Widget and Dialog based on PyQt4
 """
 
-#TODO: Unselect an item when clicked for the second time, or unselect it when
-#      clicked in the empty space below the last item
-
 #TODO: [low-priority] Copy/paste data --> Excel spreadsheet
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -782,6 +779,19 @@ class DictEditorTableView(QTableView):
         if data is not None:
             self.model.set_data(data, self.dictfilter)
             self.sortByColumn(0, Qt.AscendingOrder)
+
+    def mousePressEvent(self, event):
+        """Reimplement Qt method"""
+        index_clicked = self.indexAt(event.pos())
+        if index_clicked.isValid():
+            if index_clicked == self.currentIndex() \
+               and index_clicked in self.selectedIndexes():
+                self.clearSelection()
+            else:
+                QTableView.mousePressEvent(self, event)
+        else:
+            self.clearSelection()
+            event.accept()
 
 
 class DictEditorWidget(QWidget):
