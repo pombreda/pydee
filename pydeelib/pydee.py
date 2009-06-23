@@ -28,6 +28,10 @@ from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
 
 # Local imports
 from pydeelib import __version__, encoding
+try:
+    from pydeelib.environ import WinUserEnvDialog
+except ImportError:
+    WinUserEnvDialog = None
 from pydeelib.widgets.pathmanager import PathManager
 from pydeelib.plugins.console import Console
 from pydeelib.plugins.workdir import WorkingDirectory
@@ -243,6 +247,16 @@ class MainWindow(QMainWindow):
         if not self.light:
             # File menu
             self.file_menu = self.menuBar().addMenu(self.tr("&File"))
+            if WinUserEnvDialog is not None:
+                self.winenv_action = create_action(self,
+                    self.tr("Current user environment variables..."),
+                    icon = 'win_env.png',
+                    tip = self.tr("Show and edit current user environment "
+                                  "variables in Windows registry "
+                                  "(i.e. for all sessions)"),
+                    triggered=self.win_env)
+            else:
+                self.winenv_action = None
             self.connect(self.file_menu, SIGNAL("aboutToShow()"),
                          self.update_file_menu)
             
@@ -494,6 +508,8 @@ class MainWindow(QMainWindow):
         self.file_menu.clear()
         add_actions(self.file_menu, self.editor.file_menu_actions)
         add_actions(self.file_menu, [self.pydee_path_action])
+        if self.winenv_action is not None:
+            self.file_menu.addAction(self.winenv_action)
         recent_files = []
         for fname in self.editor.recent_files:
             if (fname not in self.editor.filenames) and os.path.isfile(fname):
@@ -807,6 +823,11 @@ class MainWindow(QMainWindow):
                      self.redirect_interactiveshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
+    
+    def win_env(self):
+        """Show Windows current user environment variables"""
+        dlg = WinUserEnvDialog(self)
+        dlg.exec_()
 
         
 def get_options():

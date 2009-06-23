@@ -25,10 +25,6 @@ STDOUT = sys.stdout
 from pydeelib.config import CONF, get_font, set_font
 from pydeelib.qthelpers import create_action,add_actions, mimedata2url
 from pydeelib.environ import EnvDialog
-try:
-    from pydeelib.environ import WinUserEnvDialog
-except ImportError:
-    WinUserEnvDialog = None
 from pydeelib.widgets.interactiveshell import InteractiveShell
 from pydeelib.widgets.shellhelpers import get_error_match
 from pydeelib.widgets.findreplace import FindReplace
@@ -160,14 +156,6 @@ class Console(PluginWidget):
                         calltips_action, exteditor_action, None,
                         self.quit_action]
         toolbar_actions = []
-        if WinUserEnvDialog is not None:
-            winenv_action = create_action(self,
-                self.tr("Windows user environment variables..."),
-                icon = 'win_env.png',
-                tip = self.tr("Show and edit current user environment variables"
-                              " in Windows registry (i.e. for all sessions)"),
-                triggered=self.win_env)
-            menu_actions.insert(2, winenv_action)
         
         # Add actions to context menu
         add_actions(self.shell.menu, menu_actions)
@@ -177,11 +165,6 @@ class Console(PluginWidget):
     def show_env(self):
         """Show environment variables"""
         dlg = EnvDialog()
-        dlg.exec_()
-    
-    def win_env(self):
-        """Show Windows current user environment variables"""
-        dlg = WinUserEnvDialog(self)
         dlg.exec_()
         
     def run_script(self, filename=None, silent=False, set_focus=False):
