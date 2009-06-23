@@ -74,6 +74,21 @@ class QsciBase(QsciScintilla):
             pos = self.SendScintilla(QsciScintilla.SCI_POSITIONAFTER, pos)
         return pos
     
+    def lineindex_from_position(self, position):
+        """Convert position to (line, index)"""
+        line = self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, position)
+        line_pos = self.SendScintilla(QsciScintilla.SCI_POSITIONFROMLINE, line)
+        index = 0
+        # Handling lines with multi-byte characters:
+        while line_pos < position:
+            new_line_pos = self.positionAfter(line_pos)
+            if new_line_pos == line_pos:
+                # End of line (wrong *position*)
+                break
+            line_pos = new_line_pos
+            index += 1
+        return line, index
+    
     def get_end_pos(self):
         """Return (line, index) position of the last character"""
         line = self.lines() - 1
@@ -111,6 +126,12 @@ class QsciBase(QsciScintilla):
         """Return cursor x, y point coordinates"""
         line, index = self.getCursorPosition()
         return self.get_coordinates_from_lineindex(line, index)
+    
+    def get_line_end_index(self, line):
+        """Return the line end index"""
+        pos = self.SendScintilla(QsciScintilla.SCI_GETLINEENDPOSITION, line)
+        _, index = self.lineindex_from_position(pos)
+        return index
 
     
     def is_a_word(self, text):
