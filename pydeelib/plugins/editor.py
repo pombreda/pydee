@@ -37,6 +37,7 @@ def is_python_script(fname):
     return osp.splitext(fname)[1][1:] in ('py', 'pyw')
 
 
+#TODO: Implement editor window horizontal/vertical splitting
 #TODO: Implement multiple editor windows
 #      (editor tab -> context menu -> "Open in a new window")
 class Editor(PluginWidget):

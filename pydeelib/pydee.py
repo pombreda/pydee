@@ -807,8 +807,6 @@ class MainWindow(QMainWindow):
                      self.redirect_interactiveshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
-        #TODO: implement path manager in the rest of the application!!!
-        #      -> external shell + update sys.path for interactive console
 
         
 def get_options():

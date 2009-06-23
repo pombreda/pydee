@@ -126,7 +126,6 @@ def fmatch(name, patlist):
 #                    nb += 1
 #    return results, nb
 
-#FIXME: Searching strings with accentuated chars is currently not working
 class SearchThread(QThread):
     def __init__(self, parent):
         QThread.__init__(self, parent)
