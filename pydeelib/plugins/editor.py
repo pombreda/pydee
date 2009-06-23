@@ -95,6 +95,10 @@ class Editor(PluginWidget):
         filenames = CONF.get(self.ID, 'filenames', [])
         if filenames:
             self.load(filenames)
+            current_filename = CONF.get(self.ID, 'current_filename', '')
+            if current_filename in self.filenames:
+                index = self.filenames.index(current_filename)
+                self.tabwidget.setCurrentIndex(index)
         else:
             self.load_temp_file()
             
@@ -350,6 +354,8 @@ class Editor(PluginWidget):
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         CONF.set(self.ID, 'filenames', self.filenames)
+        CONF.set(self.ID, 'current_filename',
+                 self.filenames[self.tabwidget.currentIndex()])
         CONF.set(self.ID, 'recent_files', self.recent_files)
         return self.save_if_changed(cancelable)
     
