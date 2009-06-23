@@ -255,6 +255,7 @@ class InteractiveShell(QsciShell):
     def raw_input(self, prompt):
         """Reimplementation of raw_input builtin"""
         self.new_prompt(prompt)
+        self.setFocus()
         inp = self.wait_input()
         return inp
     
