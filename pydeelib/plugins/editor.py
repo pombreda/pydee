@@ -149,9 +149,11 @@ class Editor(PluginWidget):
             editor = None
         if self.dockwidget:
             self.dockwidget.setWindowTitle(title)
-            
+        # Update the modification-state-dependent parameters
+        self.modification_changed()
+        # Update FindReplace binding
         self.find_widget.set_editor(editor, refresh=False)
-        
+        # Update code analysis buttons
         self.__refresh_code_analysis_buttons(index)
 
     def visibility_changed(self, enable):
@@ -163,9 +165,14 @@ class Editor(PluginWidget):
             self.dock_toolbar.hide()
         self.refresh()
 
-    def change(self, state=None):
-        """Change tab title depending on modified state"""
-        index = self.tabwidget.currentIndex()
+    def modification_changed(self, state=None, index=None):
+        """
+        Current editor's modification state has changed
+        --> change tab title depending on new modification state
+        --> enable/disable save/save all actions
+        """
+        if index is None:
+            index = self.tabwidget.currentIndex()
         if index == -1:
             return
         if state is None:
@@ -683,7 +690,7 @@ class Editor(PluginWidget):
                 editor.setup_editor(txt, font=get_font('editor'),
                                     wrap=CONF.get(self.ID, 'wrap'))
                 self.connect(editor, SIGNAL('modificationChanged(bool)'),
-                             self.change)
+                             self.modification_changed)
                 self.connect(editor, SIGNAL("focus_changed()"),
                              lambda: self.emit(SIGNAL("focus_changed()")))
                 self.editors.append(editor)
@@ -697,7 +704,7 @@ class Editor(PluginWidget):
                 
                 self.find_widget.set_editor(editor)
                
-                self.change()
+                self.modification_changed()
                 self.analyze_script(index)
                 self.update_classbrowser(index)
                 
@@ -746,7 +753,7 @@ class Editor(PluginWidget):
                                                    self.filenames[index],
                                                    self.encodings[index])
             self.editors[index].setModified(False)
-            self.change()
+            self.modification_changed(index=index)
             self.analyze_script(index)
             self.update_classbrowser(index)
             return True
