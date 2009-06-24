@@ -20,9 +20,6 @@ import os.path as osp
 # For debugging purpose:
 STDOUT = sys.stdout
 
-# Local imports
-from pydeelib.config import CONF
-
 
 class EditableComboBox(QComboBox):
     """

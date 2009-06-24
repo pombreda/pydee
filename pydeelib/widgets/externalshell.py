@@ -306,7 +306,7 @@ class ExternalShell(QWidget):
     
     def write_error(self):
         lines = self.get_stderr().splitlines(True)
-        for index, line in enumerate(lines):
+        for _index, line in enumerate(lines):
             self.shell.write_error(line)
 #            if index < len(lines)-1:
 #                self.shell.write_error('\n')
