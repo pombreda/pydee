@@ -458,7 +458,8 @@ class Editor(PluginWidget):
     def __refresh_code_analysis_buttons(self, index):
         """Refresh previous/next warning toolbar buttons state"""
         if index >= 0:
-            state = len(self.editors[index].marker_lines)
+            state = len(self.editors[index].marker_lines) and \
+                    CONF.get(self.ID, 'code_analysis')
             self.previous_warning_action.setEnabled(state)
             self.next_warning_action.setEnabled(state)
     
@@ -792,12 +793,18 @@ class Editor(PluginWidget):
         """Toggle code analysis"""
         if hasattr(self, 'tabwidget'):
             CONF.set(self.ID, 'code_analysis', checked)
+            curindex = self.tabwidget.currentIndex()
             for index in range(self.tabwidget.count()):
                 self.editors[index].setup_margins(linenumbers=True,
                           code_analysis=checked,
                           code_folding=CONF.get(self.ID, 'code_folding'))
-                self.analyze_script(index)
-                
+                if index != curindex:
+                    self.analyze_script(index)
+            # We must update the current editor after the others:
+            # (otherwise, code analysis buttons state would correspond to the
+            #  last editor instead of showing the one of the current editor)
+            self.analyze_script(curindex)
+
     def toggle_classbrowser(self, checked):
         """Toggle class browser"""
         if hasattr(self, 'tabwidget'):
