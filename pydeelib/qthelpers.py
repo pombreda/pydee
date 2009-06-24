@@ -195,7 +195,6 @@ def show_std_icons():
     Show all standard Icons
     """
     import sys
-    from PyQt4.QtGui import QApplication
     app = QApplication(sys.argv)
     dialog = ShowStdIcons(None)
     dialog.show()

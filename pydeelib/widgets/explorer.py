@@ -35,9 +35,8 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from pydeelib.qthelpers import (get_std_icon, translate, add_actions,
-                                create_action, get_filetype_icon,
-                                create_toolbutton)
+from pydeelib.qthelpers import (get_std_icon, create_action, add_actions,
+                                translate, get_filetype_icon, create_toolbutton)
 from pydeelib import encoding
 from pydeelib.config import get_icon
 

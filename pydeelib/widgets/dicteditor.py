@@ -20,13 +20,12 @@ Dictionary Editor Widget and Dialog based on PyQt4
 
 import re
 from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
-                          SIGNAL, SLOT, QDateTime, QString, QSize, QRect)
+                          SIGNAL, SLOT, QDateTime, QSize)
 from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
                          QVBoxLayout, QWidget, QColor, QDialog, QDateEdit,
                          QDialogButtonBox, QMenu, QInputDialog, QDateTimeEdit,
                          QApplication, QKeySequence, QSplitter, QTreeWidget,
-                         QTreeWidgetItem, QFont, QPixmap, QIcon,
-                         QItemSelectionModel)
+                         QTreeWidgetItem, QFont, QPixmap, QIcon)
 
 # Local import
 from pydeelib.config import get_icon, get_font
@@ -39,7 +38,7 @@ class FakeObject(object):
     """Fake class used in replacement of missing modules"""
     pass
 try:
-    from numpy import ndarray, array
+    from numpy import ndarray
     from pydeelib.widgets.arrayeditor import ArrayEditor
 except ImportError:
     class ndarray(FakeObject):

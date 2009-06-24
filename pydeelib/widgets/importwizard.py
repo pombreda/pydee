@@ -13,9 +13,8 @@ from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
 from PyQt4.QtGui import (QTableView, QVBoxLayout, QHBoxLayout, QGridLayout,
                          QWidget,QDialog, QTextEdit, QTabWidget, QPushButton,
                          QLabel, QSpacerItem, QSizePolicy, QCheckBox,
-                         QRadioButton, QLineEdit, QFrame, QMenu, QColor,
-                         QStackedWidget)
-						 
+                         QRadioButton, QLineEdit, QFrame, QMenu, QColor)
+
 from functools import partial as ft_partial
 
 # Local import
@@ -44,7 +43,6 @@ class FakeObject(object):
     pass
 try:
     from numpy import ndarray, array
-    from PyQtShell.widgets.arrayeditor import ArrayEditor
 except ImportError:
     class ndarray(FakeObject):
         """Fake ndarray"""

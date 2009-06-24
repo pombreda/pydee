@@ -92,5 +92,4 @@ def getargtxt(obj, one_arg_per_line=True):
     return textlist
 
 if __name__ == "__main__":
-    import os
     print getargtxt('os.getcwd')
