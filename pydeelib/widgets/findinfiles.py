@@ -56,25 +56,18 @@ def get_hg_root():
             previous_path = path
     return osp.abspath(path)
 
-def fmatch(name, patlist):
-    for pat in patlist:
-        cmp = re.compile(pat)
-        if cmp.search(name):
-            return True
-    return False
-
 #def find_files_in_hg_manifest(include, exclude):
 #    p = Popen("hg manifest", stdout=PIPE)
 #    found = []
 #    hgroot = get_hg_root()
 #    for path in p.stdout.read().splitlines():
 #        dirname = osp.join('.', osp.dirname(path))
-#        if fmatch(dirname+os.sep, exclude):
+#        if re.search(exclude, dirname+os.sep):
 #            continue
 #        filename = osp.join('.', osp.dirname(path))
-#        if fmatch(filename, exclude):
+#        if re.search(exclude, filename):
 #            continue
-#        if fmatch(filename, include):
+#        if re.search(include, filename):
 #            found.append(osp.join(hgroot, path))
 #    return found
 #
@@ -83,13 +76,13 @@ def fmatch(name, patlist):
 #    for path, dirs, files in os.walk(rootpath):
 #        for d in dirs[:]:
 #            dirname = os.path.join(path, d)
-#            if fmatch(dirname+os.sep, exclude):
+#            if re.search(exclude, dirname+os.sep):
 #                dirs.remove(d)
 #        for f in files:
 #            filename = os.path.join(path, f)
-#            if fmatch( filename, exclude):
+#            if re.search(exclude, filename):
 #                continue
-#            if fmatch( filename, include):
+#            if re.search(include, filename):
 #                found.append(filename)
 #    return found
 
@@ -140,8 +133,8 @@ class SearchThread(QThread):
         self.rootpath = path
         self.python_path = python_path
         self.hg_manifest = hg_manifest
-        self.include = [include]
-        self.exclude = [exclude]
+        self.include = include
+        self.exclude = exclude
         self.texts = texts
         self.text_re = text_re
         self.stopped = False
@@ -174,12 +167,12 @@ class SearchThread(QThread):
                 if self.stopped:
                     return False
             dirname = osp.dirname(path)
-            if fmatch(dirname+os.sep, self.exclude):
+            if re.search(self.exclude, dirname+os.sep):
                 continue
             filename = osp.dirname(path)
-            if fmatch(filename, self.exclude):
+            if re.search(self.exclude, filename):
                 continue
-            if fmatch(filename, self.include):
+            if re.search(self.include, filename):
                 self.filenames.append(path)
         return True
 
@@ -192,12 +185,12 @@ class SearchThread(QThread):
                 if self.stopped:
                     return False
             dirname = osp.dirname(path)
-            if fmatch(dirname+os.sep, self.exclude):
+            if re.search(self.exclude, dirname+os.sep):
                 continue
             filename = osp.dirname(path)
-            if fmatch(filename, self.exclude):
+            if re.search(self.exclude, filename):
                 continue
-            if fmatch(filename, self.include):
+            if re.search(self.include, filename):
                 self.filenames.append(osp.join(hgroot, path))
         return True
     
@@ -209,13 +202,13 @@ class SearchThread(QThread):
                     return False
             for d in dirs[:]:
                 dirname = os.path.join(path, d)
-                if fmatch(dirname+os.sep, self.exclude):
+                if re.search(self.exclude, dirname+os.sep):
                     dirs.remove(d)
             for f in files:
                 filename = os.path.join(path, f)
-                if fmatch(filename, self.exclude):
+                if re.search(self.exclude, filename):
                     continue
-                if fmatch(filename, self.include):
+                if re.search(self.include, filename):
                     self.filenames.append(filename)
         return True
         
