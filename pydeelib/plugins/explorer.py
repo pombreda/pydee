@@ -11,6 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
+from PyQt4.QtGui import QFontDialog
 from PyQt4.QtCore import SIGNAL
 
 import sys
@@ -20,7 +21,8 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from pydeelib.config import CONF
+from pydeelib.config import CONF, get_font, set_font
+from pydeelib.qthelpers import create_action, translate
 from pydeelib.widgets.explorer import ExplorerWidget
 from pydeelib.plugins import PluginMixin
 
@@ -42,6 +44,8 @@ class Explorer(ExplorerWidget, PluginMixin):
                                 valid_types, show_all, wrap,
                                 show_toolbar, show_icontext)
         PluginMixin.__init__(self, parent)
+
+        self.set_font(get_font(self.ID))
         
         self.connect(self, SIGNAL("open_file(QString)"), self.open_file)
         
@@ -62,6 +66,12 @@ class Explorer(ExplorerWidget, PluginMixin):
     
     def set_actions(self):
         """Setup actions"""
+        # Font
+        font_action = create_action(self, translate('Explorer', "&Font..."),
+                                    None, 'font.png',
+                                    translate("Explorer", "Set font style"),
+                                    triggered=self.change_font)
+        self.listwidget.common_actions.append(font_action)
         return (None, None)
         
     def closing(self, cancelable=False):
@@ -79,4 +89,17 @@ class Explorer(ExplorerWidget, PluginMixin):
             self.emit(SIGNAL("open_workspace(QString)"), fname)
         else:
             self.listwidget.startfile(fname)
+        
+    def change_font(self):
+        """Change font"""
+        font, valid = QFontDialog.getFont(get_font(self.ID), self,
+                                  translate("Explorer", "Select a new font"))
+        if valid:
+            self.set_font(font)
+            set_font(font, self.ID)
+            
+    def set_font(self, font):
+        """Set explorer widget font"""
+        self.setFont(font)
+        self.listwidget.setFont(font)
 

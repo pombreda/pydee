@@ -317,7 +317,10 @@ def get_font(section, option=None):
             option = 'font'
         else:
             option += '/font'
-        family = get_family( CONF.get(section, option+"/family") )
+        families = CONF.get(section, option+"/family", None)
+        if families is None:
+            return QFont()
+        family = get_family( families )
         weight = QFont.Normal
         if CONF.get(section, option+'/bold'):
             weight = QFont.Bold

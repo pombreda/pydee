@@ -406,7 +406,6 @@ class ExplorerListWidget(QListWidget):
         
     def new_folder(self):
         """Create a new folder"""
-        from pydeelib.widgets.formlayout import fedit
         datalist = [(translate('Explorer', 'Folder name'), ''),
                     (translate('Explorer', 'Python package'), False),]
         answer = fedit( datalist, title=translate('Explorer', "New folder"),
