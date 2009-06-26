@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QFileDialog, QMessageBox
+from PyQt4.QtGui import QFileDialog, QMessageBox, QFontDialog
 from PyQt4.QtCore import SIGNAL
 
 import os, sys, cPickle
@@ -31,7 +31,8 @@ except ImportError:
 STDOUT = sys.stdout
 
 # Local imports
-from pydeelib.config import CONF, get_conf_path, str2type, get_icon
+from pydeelib.config import (CONF, get_conf_path, str2type, get_icon,
+                             get_font, set_font)
 from pydeelib.qthelpers import create_action
 
 # Package local imports
@@ -95,6 +96,8 @@ class Workspace(DictEditorTableView, PluginMixin):
                                      minmax=minmax, collvalue=collvalue)
         PluginMixin.__init__(self, parent)
         self.load_temp_namespace()
+        
+        self.setFont(get_font(self.ID))
         
     def get_widget_title(self):
         """Return widget title"""
@@ -205,16 +208,39 @@ class Workspace(DictEditorTableView, PluginMixin):
                                  icon=get_icon('clear.png'),
                                  tip=self.tr("Clear all data from workspace"),
                                  triggered=self.clear)
+        font_action1 = create_action(self, self.tr("Header Font..."),
+                                     None, 'font.png',
+                                     self.tr("Set font style"),
+                                     triggered=self.change_font1)
+        font_action2 = create_action(self, self.tr("Value Font..."),
+                                     None, 'font.png',
+                                     self.tr("Set font style"),
+                                     triggered=self.change_font2)
         
         menu_actions = (refresh_action, autorefresh_action, None,
                         self.truncate_action, self.inplace_action, None,
                         exclude_private_action, exclude_upper_action,
-                        exclude_unsupported_action, None,
+                        exclude_unsupported_action,
+                        font_action1, font_action2, None,
                         new_action, open_action,
                         save_action, save_as_action, close_action,
                         autosave_action, None, clear_action)
         toolbar_actions = (refresh_action, open_action, save_action)
         return (menu_actions, toolbar_actions)
+        
+    def change_font1(self):
+        """Change font"""
+        self.__change_font('dicteditor_header')
+        
+    def change_font2(self):
+        """Change font"""
+        self.__change_font('dicteditor')
+    
+    def __change_font(self, section):
+        font, valid = QFontDialog.getFont(get_font(section), self,
+                                          self.tr("Select a new font"))
+        if valid:
+            set_font(font, section)
     
     def toggle_autorefresh(self, checked):
         """Toggle autorefresh mode"""
