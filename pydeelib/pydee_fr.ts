@@ -208,17 +208,17 @@
 <context>
     <name>DictEditor</name>
     <message>
-        <location filename="widgets/dicteditor.py" line="322"/>
+        <location filename="widgets/dicteditor.py" line="325"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="323"/>
+        <location filename="widgets/dicteditor.py" line="326"/>
         <source>Size</source>
         <translation>Taille</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="324"/>
+        <location filename="widgets/dicteditor.py" line="327"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
@@ -243,52 +243,52 @@
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="538"/>
+        <location filename="widgets/dicteditor.py" line="541"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="502"/>
+        <location filename="widgets/dicteditor.py" line="505"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="704"/>
+        <location filename="widgets/dicteditor.py" line="707"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="591"/>
+        <location filename="widgets/dicteditor.py" line="594"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="593"/>
+        <location filename="widgets/dicteditor.py" line="596"/>
         <source>Do you want to remove selected item%1?</source>
         <translation>Souhaitez-vous supprimer l&apos;élément %1 ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="695"/>
+        <location filename="widgets/dicteditor.py" line="698"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="705"/>
+        <location filename="widgets/dicteditor.py" line="708"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="658"/>
+        <location filename="widgets/dicteditor.py" line="661"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="546"/>
+        <location filename="widgets/dicteditor.py" line="549"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="514"/>
+        <location filename="widgets/dicteditor.py" line="517"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
@@ -308,7 +308,7 @@
         <translation>Clé</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="827"/>
+        <location filename="widgets/dicteditor.py" line="830"/>
         <source>Tree view</source>
         <translation>Arborescence</translation>
     </message>
@@ -318,47 +318,47 @@
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="522"/>
+        <location filename="widgets/dicteditor.py" line="525"/>
         <source>Truncate values</source>
         <translation>Tronquer les valeurs</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="527"/>
+        <location filename="widgets/dicteditor.py" line="530"/>
         <source>Show arrays min/max</source>
         <translation>Afficher les min/max des tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="643"/>
+        <location filename="widgets/dicteditor.py" line="646"/>
         <source>Empty clipboard</source>
         <translation>Presse-papiers vide</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="645"/>
+        <location filename="widgets/dicteditor.py" line="648"/>
         <source>Nothing to be imported from clipboard.</source>
         <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="627"/>
+        <location filename="widgets/dicteditor.py" line="630"/>
         <source>new</source>
         <translation>nouveau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="633"/>
+        <location filename="widgets/dicteditor.py" line="636"/>
         <source>Import from clipboard</source>
         <translation>Importer depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="635"/>
+        <location filename="widgets/dicteditor.py" line="638"/>
         <source>Clipboard contents</source>
         <translation>Contenu du presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="510"/>
+        <location filename="widgets/dicteditor.py" line="513"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="532"/>
+        <location filename="widgets/dicteditor.py" line="535"/>
         <source>Show collection contents</source>
         <translation>Afficher le contenu des séquences</translation>
     </message>
@@ -818,12 +818,12 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Ouvrir dans l&apos;explorateur Windows</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="394"/>
+        <location filename="widgets/explorer.py" line="397"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="387"/>
+        <location filename="widgets/explorer.py" line="390"/>
         <source>New name:</source>
         <translation>Nouveau nom :</translation>
     </message>
@@ -833,32 +833,32 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Ouvrir un invité de commandes ici</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="56"/>
+        <location filename="plugins/explorer.py" line="60"/>
         <source>File explorer</source>
         <translation>Explorateur de fichiers</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="472"/>
+        <location filename="widgets/explorer.py" line="474"/>
         <source>Show toolbar</source>
         <translation>Afficher la barre d&apos;outils</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="484"/>
+        <location filename="widgets/explorer.py" line="486"/>
         <source>Previous</source>
         <translation>Précédent</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="491"/>
+        <location filename="widgets/explorer.py" line="493"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="498"/>
+        <location filename="widgets/explorer.py" line="500"/>
         <source>Parent</source>
         <translation>Parent</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="510"/>
+        <location filename="widgets/explorer.py" line="512"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
@@ -873,32 +873,32 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Renommer...</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="373"/>
+        <location filename="widgets/explorer.py" line="376"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="366"/>
+        <location filename="widgets/explorer.py" line="369"/>
         <source>Do you really want to delete &lt;b&gt;%1&lt;/b&gt;?</source>
         <translation>Souhaitez-vous réellement supprimer &lt;b&gt;%1&lt;/b&gt; ?</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="377"/>
+        <location filename="widgets/explorer.py" line="380"/>
         <source>&lt;b&gt;Unable to delete selected file&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible de supprimer le fichier sélectionné&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="398"/>
+        <location filename="widgets/explorer.py" line="401"/>
         <source>&lt;b&gt;Unable to rename selected file&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible de renommer le fichier sélectionné&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="504"/>
+        <location filename="widgets/explorer.py" line="506"/>
         <source>Refresh</source>
         <translation>Rafraîchir</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="476"/>
+        <location filename="widgets/explorer.py" line="478"/>
         <source>Show icons and text</source>
         <translation>Afficher icônes et textes</translation>
     </message>
@@ -908,22 +908,22 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Nouveau répertoire...</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="417"/>
+        <location filename="widgets/explorer.py" line="419"/>
         <source>New folder</source>
         <translation>Nouveau répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="421"/>
+        <location filename="widgets/explorer.py" line="423"/>
         <source>&lt;b&gt;Unable to create folder &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible de créer le répertoire &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="407"/>
+        <location filename="widgets/explorer.py" line="409"/>
         <source>Folder name</source>
         <translation>Nom du répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="408"/>
+        <location filename="widgets/explorer.py" line="410"/>
         <source>Python package</source>
         <translation>Module Python</translation>
     </message>
@@ -933,27 +933,27 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Nouveau fichier...</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="445"/>
+        <location filename="widgets/explorer.py" line="447"/>
         <source>New file</source>
         <translation>Nouveau fichier</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="449"/>
+        <location filename="widgets/explorer.py" line="451"/>
         <source>&lt;b&gt;Unable to create file &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible de créer le fichier &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="432"/>
+        <location filename="widgets/explorer.py" line="434"/>
         <source>New Python script</source>
         <translation>Nouveau script Python</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="433"/>
+        <location filename="widgets/explorer.py" line="435"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets/explorer.py" line="434"/>
+        <location filename="widgets/explorer.py" line="436"/>
         <source>All files</source>
         <translation>Tous les fichiers</translation>
     </message>
@@ -991,6 +991,21 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <location filename="widgets/explorer.py" line="126"/>
         <source>Edit filter</source>
         <translation>Modifier le filtre</translation>
+    </message>
+    <message>
+        <location filename="plugins/explorer.py" line="70"/>
+        <source>&amp;Font...</source>
+        <translation>&amp;Police...</translation>
+    </message>
+    <message>
+        <location filename="plugins/explorer.py" line="72"/>
+        <source>Set font style</source>
+        <translation>Changer la police d&apos;écriture</translation>
+    </message>
+    <message>
+        <location filename="plugins/explorer.py" line="96"/>
+        <source>Select a new font</source>
+        <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
 </context>
 <context>
@@ -1364,12 +1379,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Remplacer tout</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="206"/>
+        <location filename="pydee.py" line="205"/>
         <source>Find text</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="209"/>
+        <location filename="pydee.py" line="208"/>
         <source>Replace text</source>
         <translation>Remplacer</translation>
     </message>
@@ -1607,82 +1622,82 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="pydee.py" line="201"/>
+        <location filename="pydee.py" line="200"/>
         <source>Toolbar</source>
         <translation>Barre d&apos;outils</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="249"/>
+        <location filename="pydee.py" line="248"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="264"/>
+        <location filename="pydee.py" line="263"/>
         <source>&amp;Edit</source>
         <translation>&amp;Édition</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="440"/>
+        <location filename="pydee.py" line="439"/>
         <source>&amp;View</source>
         <translation>&amp;Affichage</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="274"/>
+        <location filename="pydee.py" line="273"/>
         <source>Welcome to Pydee!</source>
         <translation>Bienvenue dans Pydee !</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="278"/>
+        <location filename="pydee.py" line="277"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="311"/>
+        <location filename="pydee.py" line="310"/>
         <source>Loading editor widget...</source>
         <translation>Chargement de l&apos;éditeur...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="325"/>
+        <location filename="pydee.py" line="324"/>
         <source>&amp;Source</source>
         <translation>&amp;Source</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="353"/>
+        <location filename="pydee.py" line="352"/>
         <source>Loading workspace widget...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="395"/>
+        <location filename="pydee.py" line="394"/>
         <source>Loading history widget...</source>
         <translation>Chargement de l&apos;historique...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="406"/>
+        <location filename="pydee.py" line="405"/>
         <source>Loading docviewer widget...</source>
         <translation>Chargement de l&apos;aide...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="446"/>
+        <location filename="pydee.py" line="445"/>
         <source>About %1...</source>
         <translation>À propos de %1...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="690"/>
+        <location filename="pydee.py" line="689"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="776"/>
+        <location filename="pydee.py" line="775"/>
         <source>Restart Python interpreter</source>
         <translation>Redémarrer l&apos;interpréteur Python</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="419"/>
+        <location filename="pydee.py" line="418"/>
         <source>Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another</source>
         <translation>Démarrer un nouvel interpréteur Python : les objets de la session en cours seront supprimés, à l&apos;exception des données de l&apos;espace du travail qui pourront être conservées</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="777"/>
+        <location filename="pydee.py" line="776"/>
         <source>Python interpreter will be restarted: all the objects created during this session will be lost (that includes imported modules which will have to be imported again).
 
 Do you want to continue?</source>
@@ -1691,22 +1706,22 @@ Do you want to continue?</source>
 Souhaitez-vous continuer ?</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="783"/>
+        <location filename="pydee.py" line="782"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="784"/>
+        <location filename="pydee.py" line="783"/>
         <source>Do you want to keep workspace data available?</source>
         <translation>Souhaitez-vous conserver les données de l&apos;espace de travail ?</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="187"/>
+        <location filename="pydee.py" line="186"/>
         <source>Initializing...</source>
         <translation>Initialisation...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="709"/>
+        <location filename="pydee.py" line="708"/>
         <source>&lt;b&gt;%1&lt;/b&gt; v %2
             &lt;br&gt;PYthon Development EnvironmEnt
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
@@ -1744,72 +1759,72 @@ Souhaitez-vous continuer ?</translation>
             &lt;p&gt;Python %3, Qt %4, PyQt %5%6 sous %7</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="213"/>
+        <location filename="pydee.py" line="212"/>
         <source>&amp;Find in files</source>
         <translation>Rechercher dans des &amp;fichiers</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="216"/>
+        <location filename="pydee.py" line="215"/>
         <source>Search text in multiple files</source>
         <translation>Rechercher une chaîne de caractères dans plusieurs fichiers à la fois</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="268"/>
+        <location filename="pydee.py" line="267"/>
         <source>&amp;Search</source>
         <translation>&amp;Recherche</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="153"/>
+        <location filename="pydee.py" line="152"/>
         <source>Path manager...</source>
         <translation>Gestionnaire de chemins d&apos;accès...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="156"/>
+        <location filename="pydee.py" line="155"/>
         <source>Open Pydee path manager</source>
         <translation>Ouvre le gestionnaire de chemin d&apos;accès de Pydee</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="452"/>
+        <location filename="pydee.py" line="451"/>
         <source>Python documentation</source>
         <translation>Documentation Python</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="462"/>
+        <location filename="pydee.py" line="461"/>
         <source>Qt Assistant</source>
         <translation>Qt Assistant (documentation Qt)</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="124"/>
+        <location filename="pydee.py" line="123"/>
         <source>PyQt4 Reference Guide</source>
         <translation>Guide de référence de PyQt4</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="127"/>
+        <location filename="pydee.py" line="126"/>
         <source>PyQt4 API Reference</source>
         <translation>Documentation de l&apos;API de PyQt4</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="129"/>
+        <location filename="pydee.py" line="128"/>
         <source>Python(x,y)</source>
         <translation>Python(x,y)</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="131"/>
+        <location filename="pydee.py" line="130"/>
         <source>Numpy and Scipy documentation</source>
         <translation>Documentation Numpy et Scipy</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="133"/>
+        <location filename="pydee.py" line="132"/>
         <source>Matplotlib documentation</source>
         <translation>Documentation Matplotlib</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="252"/>
+        <location filename="pydee.py" line="251"/>
         <source>Current user environment variables...</source>
         <translation>Variables d&apos;environnement de l&apos;utilisateur...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="256"/>
+        <location filename="pydee.py" line="255"/>
         <source>Show and edit current user environment variables in Windows registry (i.e. for all sessions)</source>
         <translation>Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire directement dans la base de registre)</translation>
     </message>
@@ -2075,32 +2090,32 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>Workspace</name>
     <message>
-        <location filename="plugins/workspace.py" line="198"/>
+        <location filename="plugins/workspace.py" line="201"/>
         <source>Auto save</source>
         <translation>Sauvegarde automatique</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="171"/>
+        <location filename="plugins/workspace.py" line="174"/>
         <source>Exclude private references</source>
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="242"/>
+        <location filename="plugins/workspace.py" line="268"/>
         <source>them</source>
         <translation>les</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="244"/>
+        <location filename="plugins/workspace.py" line="270"/>
         <source>one</source>
         <translation>un</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="246"/>
+        <location filename="plugins/workspace.py" line="272"/>
         <source>it</source>
         <translation>le</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="253"/>
+        <location filename="plugins/workspace.py" line="279"/>
         <source>Workspace is currently keeping reference to %1 object%2.
 
 Do you want to save %3?</source>
@@ -2109,164 +2124,184 @@ Do you want to save %3?</source>
 Souhaitez-vous %3 sauvegarder ?</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="163"/>
+        <location filename="plugins/workspace.py" line="166"/>
         <source>Open...</source>
         <translation>Ouvrir...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="164"/>
+        <location filename="plugins/workspace.py" line="167"/>
         <source>Open a workspace</source>
         <translation>Ouvrir un espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="165"/>
+        <location filename="plugins/workspace.py" line="168"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="166"/>
+        <location filename="plugins/workspace.py" line="169"/>
         <source>Save current workspace</source>
         <translation>Enregistrer l&apos;espace de travail actuel</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="167"/>
+        <location filename="plugins/workspace.py" line="170"/>
         <source>Save as...</source>
         <translation>Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="168"/>
+        <location filename="plugins/workspace.py" line="171"/>
         <source>Save current workspace as...</source>
         <translation>Enregistrer l&apos;espace de travail sous un autre nom...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="201"/>
+        <location filename="plugins/workspace.py" line="204"/>
         <source>Automatically save workspace in a temporary file when quitting</source>
         <translation>Enregistrer automatiquement l&apos;espace de travail dans un fichier temporaire en quittant</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="276"/>
+        <location filename="plugins/workspace.py" line="302"/>
         <source>Open workspace</source>
         <translation>Ouvrir un espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="354"/>
+        <location filename="plugins/workspace.py" line="380"/>
         <source>Workspaces</source>
         <translation>Espaces de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="290"/>
+        <location filename="plugins/workspace.py" line="316"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="315"/>
+        <location filename="plugins/workspace.py" line="341"/>
         <source>Unable to load the following workspace:</source>
         <translation>Impossible d&apos;ouvrir l&apos;espace de travail suivant :</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="409"/>
+        <location filename="plugins/workspace.py" line="435"/>
         <source>Save workspace</source>
         <translation>Enregistrer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="367"/>
+        <location filename="plugins/workspace.py" line="393"/>
         <source>Saving workspace...</source>
         <translation>Enregistrement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="190"/>
+        <location filename="plugins/workspace.py" line="193"/>
         <source>Refresh</source>
         <translation>Rafraîchir</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="191"/>
+        <location filename="plugins/workspace.py" line="194"/>
         <source>Refresh workspace</source>
         <translation>Rafraîchir l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="194"/>
+        <location filename="plugins/workspace.py" line="197"/>
         <source>Auto refresh</source>
         <translation>Rafraîchissement automatique</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="204"/>
+        <location filename="plugins/workspace.py" line="207"/>
         <source>Clear workspace</source>
         <translation>Effacer tout</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="136"/>
+        <location filename="plugins/workspace.py" line="139"/>
         <source>Do you want to clear all data from workspace?</source>
         <translation>Souhaitez-vous effacer tous les objets référencés dans l&apos;espace de travail ?</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="206"/>
+        <location filename="plugins/workspace.py" line="209"/>
         <source>Clear all data from workspace</source>
         <translation>Effacer tous les objets référencés dans l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="103"/>
+        <location filename="plugins/workspace.py" line="106"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="157"/>
+        <location filename="plugins/workspace.py" line="160"/>
         <source>New...</source>
         <translation>Nouveau...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="158"/>
+        <location filename="plugins/workspace.py" line="161"/>
         <source>Create a new workspace</source>
         <translation>Créer un nouvel espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="342"/>
+        <location filename="plugins/workspace.py" line="368"/>
         <source>New workspace</source>
         <translation>Nouvel espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="177"/>
+        <location filename="plugins/workspace.py" line="180"/>
         <source>Exclude capitalized references</source>
         <translation>Exclure les références en capitales</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="173"/>
+        <location filename="plugins/workspace.py" line="176"/>
         <source>Exclude references which name starts with an underscore</source>
         <translation>Exclure les références dont le nom commence par un tiret bas</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="179"/>
+        <location filename="plugins/workspace.py" line="182"/>
         <source>Exclude references which name starts with an upper-case character</source>
         <translation>Exclure les références dont le nom commence par une capitale</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="160"/>
+        <location filename="plugins/workspace.py" line="163"/>
         <source>Close...</source>
         <translation>Fermer...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="161"/>
+        <location filename="plugins/workspace.py" line="164"/>
         <source>Close the workspace</source>
         <translation>Fermer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="325"/>
+        <location filename="plugins/workspace.py" line="351"/>
         <source>Do you want to save current workspace before closing it?</source>
         <translation>Souhaitez-vous enregistrer l&apos;espace de travail avant de le fermer ?</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="183"/>
+        <location filename="plugins/workspace.py" line="186"/>
         <source>Exclude unsupported data types</source>
         <translation>Exclure les types non supportés</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="185"/>
+        <location filename="plugins/workspace.py" line="188"/>
         <source>Exclude references to unsupported data types (i.e. which won&apos;t be handled/saved correctly)</source>
         <translation>Exclure les références dont le type n&apos;est pas supporté par l&apos;espace de travail (en particulier, l&apos;enregistrement ne fonctionnera pas)</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="412"/>
+        <location filename="plugins/workspace.py" line="438"/>
         <source>&lt;b&gt;Unable to save current workspace&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer l&apos;espace de travail&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="217"/>
+        <source>Set font style</source>
+        <translation>Changer la police d&apos;écriture</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="241"/>
+        <source>Select a new font</source>
+        <translation>Sélectionner une police d&apos;écriture</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="211"/>
+        <source>Header Font...</source>
+        <translation>Police des en-têtes...</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="215"/>
+        <source>Value Font...</source>
+        <translation>Police des valeurs...</translation>
     </message>
 </context>
 </TS>

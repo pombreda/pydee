@@ -260,21 +260,21 @@ class DictModelRO(QAbstractTableModel):
     
     def get_value(self, index):
         """Return current value"""
-        if index.column()==0:
+        if index.column() == 0:
             return self.keys[ index.row() ]
-        elif index.column()==1:
+        elif index.column() == 1:
             return self.types[ index.row() ]
-        elif index.column()==2:
+        elif index.column() == 2:
             return self.sizes[ index.row() ]
         else:
             return self._data[ self.keys[index.row()] ]
 
     def get_bgcolor(self, index):
         """Background color depending on value"""
-        if index.column()==0:
+        if index.column() == 0:
             color = QColor(Qt.lightGray)
             color.setAlphaF(.05)
-        elif index.column()<3:
+        elif index.column() < 3:
             color = QColor(Qt.lightGray)
             color.setAlphaF(.2)
         else:
@@ -296,8 +296,8 @@ class DictModelRO(QAbstractTableModel):
         elif role == Qt.EditRole:
             return QVariant(value_to_display(value))
         elif role == Qt.TextAlignmentRole:
-            if index.column()==3:
-                if len(display.splitlines())<3:
+            if index.column() == 3:
+                if len(display.splitlines()) < 3:
                     return QVariant(int(Qt.AlignLeft|Qt.AlignVCenter))
                 else:
                     return QVariant(int(Qt.AlignLeft|Qt.AlignTop))
@@ -306,8 +306,8 @@ class DictModelRO(QAbstractTableModel):
         elif role == Qt.BackgroundColorRole:
             return QVariant( self.get_bgcolor(index) )
         elif role == Qt.FontRole:
-            if index.column()<3:
-                return QVariant(QFont())
+            if index.column() < 3:
+                return QVariant(get_font('dicteditor_header'))
             else:
                 return QVariant(get_font('dicteditor'))
         return QVariant()
@@ -315,7 +315,10 @@ class DictModelRO(QAbstractTableModel):
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Overriding method headerData"""
         if role != Qt.DisplayRole:
-            return QVariant()
+            if role == Qt.FontRole:
+                return QVariant(get_font('dicteditor_header'))
+            else:
+                return QVariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
             headers = (self.header0,
