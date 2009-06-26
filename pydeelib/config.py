@@ -228,10 +228,12 @@ DEFAULTS = [
              {
               'enable': True,
               'wrap': True,
+              'include': '.',
+              'exclude': r'\.pyc$|^\.',
               'valid_filetypes': ['', '.py', '.pyw', '.ws',
                                   '.txt', '.csv', '.mat', '.h5'],
               'show_hidden': True,
-              'show_all': True,
+              'show_all': False,
               'show_toolbar': True,
               'show_icontext': True,
               }),
@@ -251,7 +253,7 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-CONF = UserConfig('pydee', DEFAULTS, version='0.4.16', load=(not DEV))
+CONF = UserConfig('pydee', DEFAULTS, version='0.4.18', load=(not DEV))
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""

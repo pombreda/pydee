@@ -28,13 +28,14 @@ from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
                          QFileDialog)
 from PyQt4.QtCore import Qt, SIGNAL, QMimeData
 
-import os, sys
+import os, sys, re
 import os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
 
 # Local imports
+from pydeelib.widgets.formlayout import fedit
 from pydeelib.qthelpers import (get_std_icon, create_action, add_actions,
                                 translate, get_filetype_icon, create_toolbutton)
 from pydeelib import encoding
@@ -46,16 +47,16 @@ def create_script(fname):
     text = os.linesep.join(["# -*- coding: utf-8 -*-", "", ""])
     encoding.write(unicode(text), fname, 'utf-8')
 
-def listdir(path, valid_types=('', '.py', '.pyw'),
-            show_hidden=False, show_all=False):
+def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False):
     """List files and directories"""
     namelist = []
     dirlist = [osp.pardir]
     for item in os.listdir(path):
+        if re.search(exclude, item) and not show_all:
+            continue
         if osp.isdir(osp.join(path, item)):
             dirlist.append(item)
-        elif (show_all or (osp.splitext(item)[1] in valid_types)) and \
-             (show_hidden or not item.startswith('.')):
+        elif re.search(include, item) or show_all:
             namelist.append(item)
     return sorted(dirlist, key=str.lower) + sorted(namelist, key=str.lower)
 
@@ -63,12 +64,14 @@ def listdir(path, valid_types=('', '.py', '.pyw'),
 class ExplorerListWidget(QListWidget):
     """File and Directories Explorer Widget
     get_filetype_icon(fname): fn which returns a QIcon for file extension"""
-    def __init__(self, parent=None, path=None, valid_types=('', '.py', '.pyw'),
-                 show_hidden=False, show_all=False, wrap=True):
+    def __init__(self, parent=None, path=None, include='.',
+                 exclude=r'\.pyc$|^\.', valid_types= ('.py', '.pyw'),
+                 show_all=False, wrap=True):
         QListWidget.__init__(self, parent)
         
+        self.include = include
+        self.exclude = exclude
         self.valid_types = valid_types
-        self.show_hidden = show_hidden
         self.show_all = show_all
         self.wrap = wrap
         
@@ -92,37 +95,52 @@ class ExplorerListWidget(QListWidget):
     #---- Context menu
     def setup_common_actions(self):
         """Setup context menu common actions"""
-        # Wrap
-        wrap_action = create_action(self,
-                                    translate('Explorer', "Wrap lines"),
-                                    toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked(self.wrap)
-        self.toggle_wrap_mode(self.wrap)
-        # Show hidden files
-        hidden_action = create_action(self,
-                                  translate('Explorer', "Show hidden files"),
-                                  toggled=self.toggle_hidden)
-        hidden_action.setChecked(self.show_hidden)
-        self.toggle_hidden(self.show_hidden)
+        # Filters
+        filters_action = create_action(self,
+                                       translate('Explorer',
+                                                 "Edit filename filter..."),
+                                       None, get_icon('filter.png'),
+                                       triggered=self.edit_filter)
         # Show all files
         all_action = create_action(self,
                                    translate('Explorer', "Show all files"),
                                    toggled=self.toggle_all)
         all_action.setChecked(self.show_all)
         self.toggle_all(self.show_all)
+        # Wrap
+        wrap_action = create_action(self,
+                                    translate('Explorer', "Wrap lines"),
+                                    toggled=self.toggle_wrap_mode)
+        wrap_action.setChecked(self.wrap)
+        self.toggle_wrap_mode(self.wrap)
         
-        return [wrap_action, hidden_action, all_action]
+        return [filters_action, all_action, None, wrap_action]
+        
+    def edit_filter(self):
+        """Edit include/exclude filter"""
+        filter = [(translate('Explorer', 'Type'),
+                   [True, (True, translate('Explorer', 'regular expressions')),
+                    (False, translate('Explorer', 'global patterns'))]),
+                  (translate('Explorer', 'Include'), self.include),
+                  (translate('Explorer', 'Exclude'), self.exclude),]
+        result = fedit(filter, title=translate('Explorer', 'Edit filter'),
+                       parent=self)
+        if result:
+            regexp, self.include, self.exclude = result
+            if not regexp:
+                import fnmatch
+                self.include = fnmatch.translate(self.include)
+                self.exclude = fnmatch.translate(self.exclude)
+            self.parent().emit(SIGNAL('option_changed'),
+                               'include', self.include)
+            self.parent().emit(SIGNAL('option_changed'),
+                               'exclude', self.exclude)
+            self.refresh()
         
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         self.parent().emit(SIGNAL('option_changed'), 'wrap', checked)
         self.wrap = checked
-        self.refresh(clear=True)
-        
-    def toggle_hidden(self, checked):
-        """Toggle hidden files mode"""
-        self.parent().emit(SIGNAL('option_changed'), 'show_hidden', checked)
-        self.show_hidden = checked
         self.refresh(clear=True)
         
     def toggle_all(self, checked):
@@ -205,8 +223,7 @@ class ExplorerListWidget(QListWidget):
         if new_path is None:
             new_path = os.getcwd()
 
-        names = listdir(new_path, self.valid_types,
-                        self.show_hidden, self.show_all)
+        names = listdir(new_path, self.include, self.exclude, self.show_all)
         new_nameset = set(names)
         
         if (new_path != self.path) or clear:
@@ -217,8 +234,11 @@ class ExplorerListWidget(QListWidget):
             self.setWrapping(self.wrap)
 
         for name in self.nameset - new_nameset:
-            self.takeItem(self.row(self.itemdict[name]))
-            self.itemdict.pop(name)
+            try:
+                self.takeItem(self.row(self.itemdict[name]))
+                self.itemdict.pop(name)
+            except KeyError:
+                pass
 
         if new_nameset - self.nameset:
             for row, name in enumerate(names):
@@ -437,14 +457,15 @@ class ExplorerListWidget(QListWidget):
 
 class ExplorerWidget(QWidget):
     """Explorer widget"""
-    def __init__(self, parent=None, path=None, valid_types=('', '.py', '.pyw'),
-                 show_hidden=False, show_all=False, wrap=True,
+    def __init__(self, parent=None, path=None, include='.',
+                 exclude=r'\.pyc$|^\.', valid_types= ('.py', '.pyw'),
+                 show_all=False, wrap=True,
                  show_toolbar=True, show_icontext=True):
         QWidget.__init__(self, parent)
         
         self.listwidget = ExplorerListWidget(parent=self, path=path,
+                                             include=include, exclude=exclude,
                                              valid_types=valid_types,
-                                             show_hidden=show_hidden,
                                              show_all=show_all, wrap=wrap)        
         
         hlayout = QHBoxLayout()
@@ -532,7 +553,7 @@ class Test(QDialog):
         QDialog.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
-        self.explorer = ExplorerWidget(show_all=True)
+        self.explorer = ExplorerWidget()
         vlayout.addWidget(self.explorer)
         
         hlayout1 = QHBoxLayout()
