@@ -8,7 +8,6 @@
 Pydee
 """
 
-#TODO: Explorer: add regexp options to define included/excluded files (formlayout)
 #TODO: External console: add history length option (or move the interactive console option?)
 
 import sys, os, platform, re, webbrowser
