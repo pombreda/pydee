@@ -31,14 +31,16 @@ class Explorer(ExplorerWidget, PluginMixin):
     def __init__(self, parent=None, path=None):
         valid_types = CONF.get(self.ID, 'valid_filetypes') + \
                       CONF.get('editor', 'valid_filetypes')
-        show_hidden = CONF.get(self.ID, 'show_hidden')
+        include = CONF.get(self.ID, 'include')
+        exclude = CONF.get(self.ID, 'exclude')
         show_all = CONF.get(self.ID, 'show_all')
         wrap = CONF.get(self.ID, 'wrap')
         show_toolbar = CONF.get(self.ID, 'show_toolbar')
         show_icontext = CONF.get(self.ID, 'show_icontext')
         
-        ExplorerWidget.__init__(self, parent, path, valid_types, show_hidden,
-                                show_all, wrap, show_toolbar, show_icontext)
+        ExplorerWidget.__init__(self, parent, path, include, exclude,
+                                valid_types, show_all, wrap,
+                                show_toolbar, show_icontext)
         PluginMixin.__init__(self, parent)
         
         self.connect(self, SIGNAL("open_file(QString)"), self.open_file)
