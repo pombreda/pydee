@@ -268,6 +268,9 @@ class PreviewTableModel(QAbstractTableModel):
             elif kwargs['atype'] == "perc":
                 _tmp = self._data[index.row()][index.column()].replace("%","")
                 self._data[index.row()][index.column()] = eval(_tmp)/100.
+            elif kwargs['atype'] == "account":
+                _tmp = self._data[index.row()][index.column()].replace(",","")
+                self._data[index.row()][index.column()] = eval(_tmp)
             elif kwargs['atype'] == "unicode":
                 self._data[index.row()][index.column()] = unicode(
                     self._data[index.row()][index.column()])
@@ -278,8 +281,8 @@ class PreviewTableModel(QAbstractTableModel):
                 self._data[index.row()][index.column()] = float(
                     self._data[index.row()][index.column()])                
             self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),index,index)
-        except:
-            pass
+        except Exception, instance:
+            print instance
 
 class PreviewTable(QTableView):
     """Import wizard preview widget"""
@@ -294,6 +297,8 @@ class PreviewTable(QTableView):
             triggered=ft_partial(self.parse_to_type,atype="date",dayfirst=False))
         self.perc_action = create_action(self,"perc",
             triggered=ft_partial(self.parse_to_type,atype="perc"))
+        self.acc_action = create_action(self,"account",
+            triggered=ft_partial(self.parse_to_type,atype="account"))
         self.str_action = create_action(self,"unicode",
             triggered=ft_partial(self.parse_to_type,atype="unicode"))
         self.int_action = create_action(self,"int",
@@ -308,7 +313,7 @@ class PreviewTable(QTableView):
                                       self.date_monthfirst_action))
         self.parse_menu = QMenu(self)
         self.parse_menu.addMenu(self.date_menu)
-        add_actions( self.parse_menu, (self.perc_action, ))
+        add_actions( self.parse_menu, (self.perc_action, self.acc_action))
         self.parse_menu.setTitle("String to")
         self.opt_menu = QMenu(self)
         self.opt_menu.addMenu(self.parse_menu)
