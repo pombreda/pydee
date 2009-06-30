@@ -37,11 +37,9 @@ def is_number(dtype):
 
 def get_idx_rect(index_list):
     """Extract the boundaries from a list of indexes"""
-    rows, cols = zip(*[(i.row(),i.column()) \
-                       for i in index_list])
-    row_min, row_max = min(rows), max(rows)
-    col_min, col_max = min(cols), max(cols)
-    return (row_min, row_max, col_min, col_max)
+    rows, cols = zip(*[(i.row(),i.column()) for i in index_list])
+    return ( min(rows), max(rows), min(cols), max(cols) )
+
 
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
@@ -79,7 +77,7 @@ class ArrayModel(QAbstractTableModel):
         return self._format
     
     def get_data(self):
-        """"""
+        """Return data"""
         return self._data
     
     def set_format(self, format):
@@ -238,23 +236,23 @@ class ArrayView(QTableView):
         self.menu.popup(event.globalPos())
         event.accept()
 
-    def _sel_to_text(self,cell_range):
+    def _sel_to_text(self, cell_range):
         """Copy an array portion to a unicode string"""
-        _data = self.model().get_data()
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
-        n_rows, n_cols = row_max-row_min+1, col_max-col_min+1
-        row_list = [None,]*n_rows
-        for i in range(n_rows):
-            col_list = map(lambda v: unicode(v),_data[i,:])
-            row_list[i] = QStringList(col_list).join(u'\t')
+        _data = self.model().get_data()
+        row_list = []
+        for row_index in range(row_min, row_max+1):
+            col_list = map(lambda v: unicode(v),
+                           _data[row_index, col_min:col_max+1])
+            row_list.append( QStringList(col_list).join(u'\t') )
         return QStringList(row_list).join(u'\n')
     
     def copy(self):
         """Copy text to clipboard"""
+        cliptxt = self._sel_to_text( self.selectedIndexes() )
         clipboard = QApplication.clipboard()
-        cell_range = self.selectedIndexes()
-        cliptxt = self._sel_to_text(cell_range)
         clipboard.setText(cliptxt)
+
 
 class ArrayEditor(QDialog):
     """Array Editor Dialog"""
@@ -396,7 +394,6 @@ def aedit(data, title=""):
     (instantiate a new QApplication if necessary,
     so it can be called directly from the interpreter)
     """
-    from PyQt4.QtGui import QApplication
     if QApplication.startingUp():
         QApplication([])
     dialog = ArrayEditor(data, title)
@@ -404,6 +401,8 @@ def aedit(data, title=""):
         return data
 
 if __name__ == "__main__":
+    arr = N.random.rand(5, 5)
+    print "out:", aedit(arr, "float array")
     arr_in = N.array([True, False, True])
     print "in:", arr_in
     arr_out = aedit(arr_in, "bool array")
@@ -411,5 +410,3 @@ if __name__ == "__main__":
     print arr_in is arr_out
     arr = N.array([1, 2, 3], dtype="int8")
     print "out:", aedit(arr, "int array")
-    arr = N.random.rand(5, 5)
-    print "out:", aedit(arr, "float array")
