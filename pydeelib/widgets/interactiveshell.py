@@ -42,7 +42,7 @@ try:
     from pydeelib.widgets.qscishell import QsciShell
 except ImportError, e:
     raise ImportError, str(e) + \
-        "\nPyQtShell v0.3.23+ is exclusively based on QScintilla2\n" + \
+        "\npydeelib's code editor features are based on QScintilla2\n" + \
         "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
 
 
