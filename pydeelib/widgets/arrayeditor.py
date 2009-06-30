@@ -13,16 +13,17 @@ NumPy Array Editor Dialog based on PyQt4
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
+from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel, QStringList
 from PyQt4.QtCore import SIGNAL, SLOT
 from PyQt4.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                          QLineEdit, QCheckBox, QGridLayout, QDoubleValidator,
                          QDialog, QDialogButtonBox, QMessageBox, QPushButton,
-                         QInputDialog)
-import numpy as N
+                         QInputDialog, QMenu, QApplication)
+import numpy as N, itertools as itt, string
 
 # Local import
 from pydeelib.config import get_icon, get_font
+from pydeelib.qthelpers import translate, add_actions, create_action
 
 
 def is_float(dtype):
@@ -34,6 +35,13 @@ def is_number(dtype):
     return is_float(dtype) or ('int' in dtype.name) or ('long' in dtype.name) \
            or ('short' in dtype.name)
 
+def get_idx_rect(index_list):
+    """Extract the boundaries from a list of indexes"""
+    rows, cols = zip(*[(i.row(),i.column()) \
+                       for i in index_list])
+    row_min, row_max = min(rows), max(rows)
+    col_min, col_max = min(cols), max(cols)
+    return (row_min, row_max, col_min, col_max)
 
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
@@ -69,7 +77,11 @@ class ArrayModel(QAbstractTableModel):
         """Return current format"""
         # Avoid accessing the private attribute _format from outside
         return self._format
-        
+    
+    def get_data(self):
+        """"""
+        return self._data
+    
     def set_format(self, format):
         """Change display format"""
         self._format = format
@@ -205,6 +217,44 @@ class ArrayDelegate(QItemDelegate):
         text = index.model().data(index, Qt.DisplayRole).toString()
         editor.setText( text )
 
+class ArrayView(QTableView):
+    """Array view class"""
+    def __init__(self,parent=None):
+        super(ArrayView,self).__init__()
+        self.menu = self.setup_menu()
+    
+    def setup_menu(self):
+        """Setup context menu"""
+        self.copy_action = create_action(self,
+                                    translate("ArrayEditor", "Copy"),
+                                    icon=get_icon('editcopy.png'),
+                                    triggered=self.copy)
+        menu = QMenu(self)
+        add_actions(menu, [self.copy_action,])
+        return menu
+
+    def contextMenuEvent(self, event):
+        """Reimplement Qt method"""
+        self.menu.popup(event.globalPos())
+        event.accept()
+
+    def _sel_to_text(self,cell_range):
+        """Copy an array portion to a unicode string"""
+        _data = self.model().get_data()
+        row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
+        n_rows, n_cols = row_max-row_min+1, col_max-col_min+1
+        row_list = [None,]*n_rows
+        for i in range(n_rows):
+            col_list = map(lambda v: unicode(v),_data[i,:])
+            row_list[i] = QStringList(col_list).join(u'\t')
+        return QStringList(row_list).join(u'\n')
+    
+    def copy(self):
+        """Copy text to clipboard"""
+        clipboard = QApplication.clipboard()
+        cell_range = self.selectedIndexes()
+        cliptxt = self._sel_to_text(cell_range)
+        clipboard.setText(cliptxt)
 
 class ArrayEditor(QDialog):
     """Array Editor Dialog"""
@@ -254,7 +304,7 @@ class ArrayEditor(QDialog):
         self.resize(600, 500)
 
         # Table configuration
-        self.view = QTableView()
+        self.view = ArrayView()
         self.model = ArrayModel(self.data, self.changes, format=format,
                                 xy_mode=xy, readonly=readonly, parent=self)
         self.view.setModel(self.model)
