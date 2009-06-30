@@ -4,49 +4,54 @@
 <context>
     <name>ArrayEditor</name>
     <message>
-        <location filename="widgets/arrayeditor.py" line="316"/>
+        <location filename="widgets/arrayeditor.py" line="377"/>
         <source>Array editor</source>
         <translation>Éditeur de tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="328"/>
+        <location filename="widgets/arrayeditor.py" line="389"/>
         <source>Format</source>
         <translation>Format</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="276"/>
+        <location filename="widgets/arrayeditor.py" line="337"/>
         <source>Resize</source>
         <translation>Ajuster</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="279"/>
+        <location filename="widgets/arrayeditor.py" line="340"/>
         <source>Background color</source>
         <translation>Couleur d&apos;arrière-plan</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="329"/>
+        <location filename="widgets/arrayeditor.py" line="390"/>
         <source>Float formatting</source>
         <translation>Format de flottant</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="336"/>
+        <location filename="widgets/arrayeditor.py" line="397"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="337"/>
+        <location filename="widgets/arrayeditor.py" line="398"/>
         <source>Format (%1) is incorrect</source>
         <translation>Le format (%1) n&apos;est pas valide</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="318"/>
+        <location filename="widgets/arrayeditor.py" line="379"/>
         <source>Warning: %1 arrays are currently not supported</source>
         <translation>Attention : les tableaux de type %1 ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="252"/>
+        <location filename="widgets/arrayeditor.py" line="313"/>
         <source>read only</source>
         <translation>lecture seule</translation>
+    </message>
+    <message>
+        <location filename="widgets/arrayeditor.py" line="229"/>
+        <source>Copy</source>
+        <translation>Copier</translation>
     </message>
 </context>
 <context>

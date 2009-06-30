@@ -25,7 +25,7 @@ from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
                          QVBoxLayout, QWidget, QColor, QDialog, QDateEdit,
                          QDialogButtonBox, QMenu, QInputDialog, QDateTimeEdit,
                          QApplication, QKeySequence, QSplitter, QTreeWidget,
-                         QTreeWidgetItem, QFont, QPixmap, QIcon)
+                         QTreeWidgetItem, QPixmap, QIcon)
 
 # Local import
 from pydeelib.config import get_icon, get_font

@@ -18,12 +18,12 @@ from PyQt4.QtCore import SIGNAL, SLOT
 from PyQt4.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                          QLineEdit, QCheckBox, QGridLayout, QDoubleValidator,
                          QDialog, QDialogButtonBox, QMessageBox, QPushButton,
-                         QInputDialog, QMenu, QApplication)
-import numpy as N, itertools as itt, string
+                         QInputDialog, QMenu, QApplication, QKeySequence)
+import numpy as N
 
 # Local import
 from pydeelib.config import get_icon, get_font
-from pydeelib.qthelpers import translate, add_actions, create_action
+from pydeelib.qthelpers import translate, add_actions, create_action, keybinding
 
 
 def is_float(dtype):
@@ -215,6 +215,8 @@ class ArrayDelegate(QItemDelegate):
         text = index.model().data(index, Qt.DisplayRole).toString()
         editor.setText( text )
 
+
+#TODO: Implement "Paste" (from clipboard) feature
 class ArrayView(QTableView):
     """Array view class"""
     def __init__(self,parent=None):
@@ -223,10 +225,11 @@ class ArrayView(QTableView):
     
     def setup_menu(self):
         """Setup context menu"""
-        self.copy_action = create_action(self,
-                                    translate("ArrayEditor", "Copy"),
-                                    icon=get_icon('editcopy.png'),
-                                    triggered=self.copy)
+        self.copy_action = create_action(self, translate("ArrayEditor", "Copy"),
+                                         shortcut=keybinding("Copy"),
+                                         icon=get_icon('editcopy.png'),
+                                         triggered=self.copy,
+                                         window_context=False)
         menu = QMenu(self)
         add_actions(menu, [self.copy_action,])
         return menu
@@ -235,6 +238,14 @@ class ArrayView(QTableView):
         """Reimplement Qt method"""
         self.menu.popup(event.globalPos())
         event.accept()
+        
+    def keyPressEvent(self, event):
+        """Reimplement Qt method"""
+        if event == QKeySequence.Copy:
+            self.copy()
+            event.accept()
+        else:
+            QTableView.keyPressEvent(self, event)
 
     def _sel_to_text(self, cell_range):
         """Copy an array portion to a unicode string"""
