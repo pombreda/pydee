@@ -608,7 +608,7 @@ class QsciShell(QsciBase):
         idx = start_idx
         if len(tocursor) == 0 or self.hist_wholeline:
             idx += step
-            if idx >= len(self.history):
+            if idx >= len(self.history) or len(self.history) == 0:
                 return "", len(self.history)
             elif idx < 0:
                 idx = 0
