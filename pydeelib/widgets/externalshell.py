@@ -323,7 +323,7 @@ class ExternalShell(QWidget):
         if self.python or os.name != 'nt':
             self.process.write(qstr.toLocal8Bit())
         else:
-            self.process.write(str(qstr).decode('utf-8').encode('cp850'))
+            self.process.write(unicode(qstr).encode('cp850'))
         self.process.waitForBytesWritten(-1)
         
     def send_ctrl_to_process(self, letter):
