@@ -13,13 +13,14 @@ NumPy Array Editor Dialog based on PyQt4
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel, QStringList
+from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
 from PyQt4.QtCore import SIGNAL, SLOT
 from PyQt4.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                          QLineEdit, QCheckBox, QGridLayout, QDoubleValidator,
                          QDialog, QDialogButtonBox, QMessageBox, QPushButton,
                          QInputDialog, QMenu, QApplication, QKeySequence)
 import numpy as N
+import StringIO
 
 # Local import
 from pydeelib.config import get_icon, get_font
@@ -251,12 +252,13 @@ class ArrayView(QTableView):
         """Copy an array portion to a unicode string"""
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
         _data = self.model().get_data()
-        row_list = []
-        for row_index in range(row_min, row_max+1):
-            col_list = map(lambda v: unicode(v),
-                           _data[row_index, col_min:col_max+1])
-            row_list.append( QStringList(col_list).join(u'\t') )
-        return QStringList(row_list).join(u'\n')
+        output = StringIO.StringIO()
+        N.savetxt(output,
+                  _data[row_min:row_max+1, col_min:col_max+1],
+                  delimiter='\t')
+        contents = output.getvalue()
+        output.close()
+        return contents
     
     def copy(self):
         """Copy text to clipboard"""
