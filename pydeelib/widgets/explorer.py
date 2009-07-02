@@ -18,7 +18,7 @@ try:
     # -> pythoncom must be imported first, otherwise py2exe's boot_com_servers
     #    will raise an exception ("ImportError: DLL load failed [...]") when
     #    calling any of the QFileDialog static methods (getOpenFileName, ...)
-    import pythoncom
+    import pythoncom #@UnusedImport
 except ImportError:
     pass
 
@@ -485,27 +485,27 @@ class ExplorerWidget(QWidget):
         self.previous_button = create_toolbutton(self,
                     text=translate('Explorer', "Previous"),
                     icon=get_icon('previous.png'),
-                    callback=lambda: self.emit(SIGNAL("open_previous_dir()")))
+                    triggered=lambda: self.emit(SIGNAL("open_previous_dir()")))
         self.toolbar_widgets.append(self.previous_button)
         self.previous_button.setEnabled(False)
         
         self.next_button = create_toolbutton(self,
                     text=translate('Explorer', "Next"),
                     icon=get_icon('next.png'),
-                    callback=lambda: self.emit(SIGNAL("open_next_dir()")))
+                    triggered=lambda: self.emit(SIGNAL("open_next_dir()")))
         self.toolbar_widgets.append(self.next_button)
         self.next_button.setEnabled(False)
         
         parent_button = create_toolbutton(self,
                     text=translate('Explorer', "Parent"),
                     icon=get_icon('up.png'),
-                    callback=lambda: self.emit(SIGNAL("open_parent_dir()")))
+                    triggered=lambda: self.emit(SIGNAL("open_parent_dir()")))
         self.toolbar_widgets.append(parent_button)
                 
         refresh_button = create_toolbutton(self,
                     text=translate('Explorer', "Refresh"),
                     icon=get_icon('reload.png'),
-                    callback=lambda: self.listwidget.refresh(clear=True))
+                    triggered=lambda: self.listwidget.refresh(clear=True))
         self.toolbar_widgets.append(refresh_button)
 
         options_button = create_toolbutton(self,

@@ -34,7 +34,7 @@ class MatplotlibFigure(PluginWidget):
         PluginWidget.__init__(self, parent)
 
         # Close button
-        self.close_button = create_toolbutton(self, callback=self.close,
+        self.close_button = create_toolbutton(self, triggered=self.close,
                                       icon=get_icon("fileclose.png"),
                                       tip=self.tr("Close figure %1").arg(num))
         

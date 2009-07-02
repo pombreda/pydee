@@ -289,12 +289,12 @@ class FindOptions(QWidget):
         self.edit_regexp.setChecked(search_text_regexp)
         self.ok_button = create_toolbutton(self,
                                 text=translate('FindInFiles', "Search"),
-                                callback=lambda: self.emit(SIGNAL('find()')),
+                                triggered=lambda: self.emit(SIGNAL('find()')),
                                 icon=get_std_icon("DialogApplyButton"),
                                 tip=translate('FindInFiles', "Start search"))
         self.stop_button = create_toolbutton(self,
                                 text=translate('FindInFiles', "Stop"),
-                                callback=lambda: self.emit(SIGNAL('stop()')),
+                                triggered=lambda: self.emit(SIGNAL('stop()')),
                                 icon=get_icon("terminate.png"),
                                 tip=translate('FindInFiles', "Stop search"))
         self.stop_button.setEnabled(False)
@@ -366,7 +366,7 @@ class FindOptions(QWidget):
         browse = create_toolbutton(self, get_std_icon('DirOpenIcon'),
                                    tip=translate('FindInFiles',
                                                  'Browse a search directory'),
-                                   callback=self.select_directory)
+                                   triggered=self.select_directory)
         for widget in [searchin_label, self.python_path, self.hg_manifest,
                        self.custom_dir, self.dir_combo, browse]:
             hlayout3.addWidget(widget)
@@ -593,14 +593,14 @@ class FindInFilesWidget(QWidget):
         
         collapse_btn = create_toolbutton(self, get_icon("collapse.png"),
                                  tip=translate('FindInFiles', "Collapse all"),
-                                 callback=self.result_browser.collapseAll)
+                                 triggered=self.result_browser.collapseAll)
         expand_btn = create_toolbutton(self, get_icon("expand.png"),
                                  tip=translate('FindInFiles', "Expand all"),
-                                 callback=self.result_browser.expandAll)
+                                 triggered=self.result_browser.expandAll)
         restore_btn = create_toolbutton(self, get_icon("restore.png"),
                                  tip=translate('FindInFiles',
                                                "Restore original tree layout"),
-                                 callback=self.result_browser.restore)
+                                 triggered=self.result_browser.restore)
         btn_layout = QVBoxLayout()
         btn_layout.setAlignment(Qt.AlignTop)
         for widget in [collapse_btn, expand_btn, restore_btn]:
