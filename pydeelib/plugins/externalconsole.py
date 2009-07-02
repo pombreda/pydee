@@ -52,7 +52,7 @@ class ExternalConsole(PluginWidget):
                      self.tabwidget.removeTab)
         self.close_button = create_toolbutton(self.tabwidget,
                                           icon=get_icon("fileclose.png"),
-                                          callback=self.close,
+                                          triggered=self.close,
                                           tip=self.tr("Close current console"))
         self.tabwidget.setCornerWidget(self.close_button)
         layout.addWidget(self.tabwidget)

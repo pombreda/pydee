@@ -39,7 +39,7 @@ class FindReplace(QWidget):
         glayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(glayout)
         
-        self.close_button = create_toolbutton(self, callback=self.hide,
+        self.close_button = create_toolbutton(self, triggered=self.hide,
                                       icon=get_std_icon("DialogCloseButton"))
         glayout.addWidget(self.close_button, 0, 0)
         
@@ -49,10 +49,10 @@ class FindReplace(QWidget):
                      self.text_has_changed)
         
         self.previous_button = create_toolbutton(self,
-                                             callback=self.find_previous,
+                                             triggered=self.find_previous,
                                              icon=get_std_icon("ArrowBack"))
         self.next_button = create_toolbutton(self,
-                                             callback=self.find_next,
+                                             triggered=self.find_next,
                                              icon=get_std_icon("ArrowForward"))
 
         self.case_check = QCheckBox(self.tr("Case Sensitive"))
@@ -72,7 +72,7 @@ class FindReplace(QWidget):
         self.replace_edit = QLineEdit()
         
         self.replace_button = create_toolbutton(self,
-                                     callback=self.replace_find,
+                                     triggered=self.replace_find,
                                      icon=get_std_icon("DialogApplyButton"))
         
         self.all_check = QCheckBox(self.tr("Replace all"))

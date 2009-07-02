@@ -64,7 +64,8 @@ def restore_keyevent(event):
     shift = modifiers & Qt.ShiftModifier
     return event, text, key, ctrl, shift
 
-def create_toolbutton(parent, icon=None, text=None, callback=None, tip=None):
+def create_toolbutton(parent, icon=None, text=None,
+                      triggered=None, tip=None, toggled=None):
     """Create a QToolButton"""
     button = QToolButton(parent)
     if text is not None:
@@ -75,8 +76,11 @@ def create_toolbutton(parent, icon=None, text=None, callback=None, tip=None):
         button.setToolTip(text if tip is None else tip)
     button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
     button.setAutoRaise(True)
-    if callback is not None:
-        QObject.connect(button, SIGNAL('clicked()'), callback)
+    if triggered is not None:
+        QObject.connect(button, SIGNAL('clicked()'), triggered)
+    if toggled is not None:
+        QObject.connect(button, SIGNAL("toggled(bool)"), toggled)
+        button.setCheckable(True)
     return button
 
 def toggle_actions(actions, enable):

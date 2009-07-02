@@ -84,7 +84,7 @@ class DocViewer(ReadOnlyEditor):
         
         # Lock checkbox
         self.locked_button = create_toolbutton(self,
-                                               callback=self.toggle_locked)
+                                               triggered=self.toggle_locked)
         layout_edit.addWidget(self.locked_button)
         self._update_lock_icon()
 

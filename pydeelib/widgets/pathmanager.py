@@ -57,22 +57,22 @@ class PathManager(QDialog):
         self.movetop_button = create_toolbutton(self,
                                     text=self.tr("Move to top"),
                                     icon=get_icon('2uparrow.png'),
-                                    callback=lambda: self.move_to(absolute=0))
+                                    triggered=lambda: self.move_to(absolute=0))
         self.toolbar_widgets1.append(self.movetop_button)
         self.moveup_button = create_toolbutton(self,
                                     text=self.tr("Move up"),
                                     icon=get_icon('1uparrow.png'),
-                                    callback=lambda: self.move_to(relative=-1))
+                                    triggered=lambda: self.move_to(relative=-1))
         self.toolbar_widgets1.append(self.moveup_button)
         self.movedown_button = create_toolbutton(self,
                                     text=self.tr("Move down"),
                                     icon=get_icon('1downarrow.png'),
-                                    callback=lambda: self.move_to(relative=1))
+                                    triggered=lambda: self.move_to(relative=1))
         self.toolbar_widgets1.append(self.movedown_button)
         self.movebottom_button = create_toolbutton(self,
                                     text=self.tr("Move to bottom"),
                                     icon=get_icon('2downarrow.png'),
-                                    callback=lambda: self.move_to(absolute=1))
+                                    triggered=lambda: self.move_to(absolute=1))
         self.toolbar_widgets1.append(self.movebottom_button)
         
         for widget in self.toolbar_widgets1:
@@ -93,12 +93,12 @@ class PathManager(QDialog):
         self.add_button = create_toolbutton(self,
                                                 text=self.tr("Add path"),
                                                 icon=get_icon('edit_add.png'),
-                                                callback=self.add_path)
+                                                triggered=self.add_path)
         self.toolbar_widgets2.append(self.add_button)
         self.remove_button = create_toolbutton(self,
                                                 text=self.tr("Remove path"),
                                                 icon=get_icon('edit_remove.png'),
-                                                callback=self.remove_path)
+                                                triggered=self.remove_path)
         self.toolbar_widgets2.append(self.remove_button)
         self.selection_widgets.append(self.remove_button)
         

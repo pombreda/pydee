@@ -63,7 +63,7 @@ class Editor(PluginWidget):
         self.connect(self.tabwidget, SIGNAL("close_tab(int)"), self.close)
         self.close_button = create_toolbutton(self.tabwidget,
                                           icon=get_icon("fileclose.png"),
-                                          callback=self.close,
+                                          triggered=self.close,
                                           tip=self.tr("Close current script"))
         self.tabwidget.setCornerWidget(self.close_button)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
