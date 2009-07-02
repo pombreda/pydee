@@ -783,7 +783,7 @@ class QsciShell(QsciBase):
             # Insert text at the end of the command line
             self.move_cursor_to_end()
             self.SendScintilla(QsciScintilla.SCI_STARTSTYLING,
-                               self.text().length(), 0xFF)
+                               len(unicode(self.text()).encode('utf-8')), 0xFF)
             if error:
                 if text.startswith('  File'):
                     # Show error links in blue underlined text
