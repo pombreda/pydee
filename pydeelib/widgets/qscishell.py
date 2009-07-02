@@ -26,7 +26,7 @@ STDERR = sys.stderr
 # Local import
 from pydeelib import __version__, encoding
 from pydeelib.config import CONF, get_icon, get_font
-from pydeelib.dochelpers import getobj, getargtxt
+from pydeelib.dochelpers import getobj
 from pydeelib.qthelpers import (translate, keybinding, create_action,
                                  add_actions, restore_keyevent)
 from pydeelib.widgets.qscibase import QsciBase
@@ -685,24 +685,6 @@ class QsciShell(QsciBase):
                 txt = txt.replace(text, "")
             self.insert_text(txt)
             self.completion_chars = 0
-            
-    def eval(self, text):
-        """Is text a valid object?"""
-        try:
-            return eval(text), True
-        except:
-            try:
-                return __import__(text), True
-            except:
-                return None, False
-
-    def show_code_completion(self, text):
-        """
-        Display a completion list based on the last token
-        """
-        obj, valid = self.eval(text)
-        if valid:
-            self.show_completion_list(dir(obj), 'dir(%s)' % text) 
 
     def show_file_completion(self):
         """
@@ -710,38 +692,6 @@ class QsciShell(QsciBase):
         """
         cwd = os.getcwdu()
         self.show_completion_list(os.listdir(cwd), cwd)
-    
-    def show_docstring(self, text, call=False):
-        """Show docstring or arguments"""
-        if not self.calltips:
-            return
-        obj, valid = self.eval(text)
-        if valid:
-            done = False
-            size, font = self.calltip_size, self.calltip_font
-            if (self.docviewer is not None) and \
-               (self.docviewer.dockwidget.isVisible()):
-                # DocViewer widget exists and is visible
-                self.docviewer.refresh(text)
-                if call:
-                    # Display argument list if this is function call
-                    if callable(obj):
-                        arglist = getargtxt(obj)
-                        if arglist:
-                            done = True
-                            self.show_calltip(self.tr("Arguments"),
-                                              arglist, size, font, '#129625')
-                    else:
-                        done = True
-                        self.show_calltip(self.tr("Warning"),
-                                          self.tr("Object `%1` is not callable"
-                                                  " (i.e. not a function, "
-                                                  "a method or a class "
-                                                  "constructor)").arg(text),
-                                          size, font, color='#FF0000')
-            if not done:
-                self.show_calltip(self.tr("Documentation"),
-                                  obj.__doc__, size, font)
         
         
     #------ Miscellanous
