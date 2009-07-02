@@ -35,3 +35,11 @@ if __name__ == "__main__":
             exec command
     else:
         __run_pythonstartup_script()
+
+    for name in ('__run_pythonstartup_script', '__run_init_commands',
+                 '__remove_pyqt_inputhook', '__create_banner', '__commands__',
+                 'command', '__file__', 'name'):
+        locals().pop(name)
+
+    __doc__ = ''
+    __name__ = '__main__'

@@ -30,15 +30,21 @@ def oedit(obj):
     from PyQt4.QtGui import QApplication
     if QApplication.startingUp():
         QApplication([])
-        
+
     if isinstance(obj, ndarray) and ndarray is not FakeObject:
         dialog = ArrayEditor(obj)
+        if dialog.exec_():
+            return obj
     elif isinstance(obj, (str, unicode)):
         dialog = TextEditor(obj)
-    else:
+        if dialog.exec_():
+            return dialog.get_copy()
+    elif isinstance(obj, (dict, tuple, list)):
         dialog = DictEditor(obj)
-    if dialog.exec_():
-        return dialog.get_copy()
+        if dialog.exec_():
+            return dialog.get_copy()
+    else:
+        raise RuntimeError("Unsupported datatype")
 
 if __name__ == "__main__":
     import datetime

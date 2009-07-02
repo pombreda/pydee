@@ -76,7 +76,7 @@ COLORS = {
           datetime.date: Qt.darkYellow,
           }
 
-def get_color(value, alpha):
+def get_color(value, alpha=.2):
     """Return color depending on value type"""
     color = QColor()
     for typ in COLORS:
@@ -164,10 +164,10 @@ def get_type(item):
     return text[text.find('.')+1:]
 
 
-class DictModelRO(QAbstractTableModel):
+class ReadOnlyDictModel(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
     def __init__(self, parent, data, title="", names=False,
-                 truncate=True, minmax=False, collvalue=True):
+                 truncate=True, minmax=False, collvalue=True, remote=False):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
             data = {}
@@ -175,6 +175,7 @@ class DictModelRO(QAbstractTableModel):
         self.truncate = truncate
         self.minmax = minmax
         self.collvalue = collvalue
+        self.remote = remote
         self.header0 = None
         self._data = None
         self.showndata = None
@@ -193,7 +194,7 @@ class DictModelRO(QAbstractTableModel):
     def set_data(self, data, dictfilter=None):
         """Set model data"""
         self._data = data
-        if dictfilter is not None:
+        if dictfilter is not None and not self.remote:
             data = dictfilter(data)
         self.showndata = data
         self.header0 = translate("DictEditor", "Index")
@@ -214,10 +215,16 @@ class DictModelRO(QAbstractTableModel):
             raise RuntimeError("Invalid data type")
         self.title += ' ('+str(len(self.keys))+' '+ \
                       translate("DictEditor", "elements")+')'
-        self.sizes = [ get_size(data[self.keys[index]])
-                       for index in range(len(self.keys)) ]
-        self.types = [ get_type(data[self.keys[index]])
-                       for index in range(len(self.keys)) ]
+        if self.remote:
+            self.sizes = [ data[self.keys[index]]['size']
+                           for index in range(len(self.keys)) ]
+            self.types = [ data[self.keys[index]]['type']
+                           for index in range(len(self.keys)) ]
+        else:
+            self.sizes = [ get_size(data[self.keys[index]])
+                           for index in range(len(self.keys)) ]
+            self.types = [ get_type(data[self.keys[index]])
+                           for index in range(len(self.keys)) ]
         self.reset()
 
     def sort(self, column, order=Qt.AscendingOrder):
@@ -287,6 +294,8 @@ class DictModelRO(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
         value = self.get_value(index)
+        if index.column() == 3 and self.remote:
+            value = value['view']
         display = value_to_display(value,
                                truncate=index.column() == 3 and self.truncate,
                                minmax=self.minmax,
@@ -338,7 +347,7 @@ class DictModelRO(QAbstractTableModel):
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
                             Qt.ItemIsEditable)
 
-class DictModel(DictModelRO):
+class DictModel(ReadOnlyDictModel):
     """DictEditor Table Model"""
     
     def set_value(self, index, value):
@@ -352,9 +361,12 @@ class DictModel(DictModelRO):
         """Background color depending on value"""
         value = self.get_value(index)
         if index.column()<3:
-            color = DictModelRO.get_bgcolor(self, index)
+            color = ReadOnlyDictModel.get_bgcolor(self, index)
         else:
-            color = get_color(value, .2)
+            if self.remote:
+                color = value['color']
+            else:
+                color = get_color(value)
         return color
 
     def setData(self, index, value, role=Qt.EditRole):
@@ -375,12 +387,18 @@ class DictDelegate(QItemDelegate):
     def __init__(self, parent=None, inplace=False):
         QItemDelegate.__init__(self, parent)
         self.inplace = inplace
+        
+    def get_value(self, index):
+        return index.model().get_value(index)
+    
+    def set_value(self, index, value):
+        index.model().set_value(index, value)
 
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
-        if index.column()<2:
+        if index.column()<3:
             return None
-        value = index.model().get_value(index)
+        value = self.get_value(index)
         key = index.model().get_key(index)
         readonly = isinstance(value, tuple) or self.parent().readonly
         #---editor = DictEditor
@@ -388,14 +406,18 @@ class DictDelegate(QItemDelegate):
             editor = DictEditor(value, key, icon=self.parent().windowIcon(),
                                 readonly=readonly)
             if editor.exec_() and not readonly:
-                index.model().set_value(index, editor.get_copy())
+                self.set_value(index, editor.get_copy())
             return None
         #---editor = ArrayEditor
         elif isinstance(value, ndarray) and ndarray is not FakeObject \
                                         and not self.inplace:
             if value.size == 0:
                 return None
-            ArrayEditor(value, title=key, readonly=readonly).exec_()
+            editor = ArrayEditor(value, title=key, readonly=readonly)
+            if editor.exec_():
+                # Only necessary for child class RemoteDictDelegate:
+                # (ArrayEditor does not make a copy of value)
+                self.set_value(index, value)
             return None
         #---editor = QDateTimeEdit
         elif isinstance(value, datetime.datetime) and not self.inplace:
@@ -418,7 +440,7 @@ class DictDelegate(QItemDelegate):
             editor = TextEditor(value, key)
             if editor.exec_() and not readonly:
                 conv = str if isinstance(value, str) else unicode
-                index.model().set_value(index, conv(editor.get_copy()))
+                self.set_value(index, conv(editor.get_copy()))
             return None
         #---editor = QLineEdit
         else:
@@ -438,48 +460,133 @@ class DictDelegate(QItemDelegate):
     def setEditorData(self, editor, index):
         """Overriding method setEditorData
         Model --> Editor"""
+        value = self.get_value(index)
         if isinstance(editor, QLineEdit):
-            text = index.model().data(index, Qt.EditRole).toString()
-            editor.setText(text)
+            if not isinstance(value, basestring):
+                value = unicode(value)
+            editor.setText(value)
         elif isinstance(editor, QDateEdit):
-            value = index.model().get_value(index)
             editor.setDate(value)
         elif isinstance(editor, QDateTimeEdit):
-            value = index.model().get_value(index)
             editor.setDateTime(QDateTime(value.date(), value.time()))
 
     def setModelData(self, editor, model, index):
         """Overriding method setModelData
         Editor --> Model"""
-        if not hasattr(index.model(), "set_value"):
+        if not hasattr(model, "set_value"):
             # Read-only mode
             return
+        
         if isinstance(editor, QLineEdit):
-            model.setData(index, QVariant(editor.text()))
+            value = editor.text()
         elif isinstance(editor, QDateEdit):
             qdate = editor.date()
-            index.model().set_value(index,
-                datetime.date(qdate.year(), qdate.month(), qdate.day()) )
+            value = datetime.date( qdate.year(), qdate.month(), qdate.day() )
         elif isinstance(editor, QDateTimeEdit):
             qdatetime = editor.dateTime()
             qdate = qdatetime.date()
             qtime = qdatetime.time()
-            index.model().set_value(index,
-                datetime.datetime(qdate.year(), qdate.month(), qdate.day(),
-                         qtime.hour(), qtime.minute(), qtime.second()) )
+            value = datetime.datetime( qdate.year(), qdate.month(),
+                                       qdate.day(), qtime.hour(),
+                                       qtime.minute(), qtime.second() )
+        else:
+            # Should not happen...
+            raise RuntimeError("Unsupported editor widget")
+        
+        value = display_to_value( QVariant(value), self.get_value(index) )        
+        self.set_value(index, value)
 
 
-class DictEditorTableView(QTableView):
+class RemoteDictDelegate(DictDelegate):
+    """DictEditor Item Delegate"""
+    def __init__(self, parent=None, inplace=False,
+                 getattr_func=None, setattr_func=None):
+        DictDelegate.__init__(self, parent, inplace=inplace)
+        self.getattr_func = getattr_func
+        self.setattr_func = setattr_func
+        
+    def get_value(self, index):
+        name = index.model().keys[index.row()]
+        return self.getattr_func(name)
+    
+    def set_value(self, index, value):
+        name = index.model().keys[index.row()]
+        self.setattr_func(name, value)
+#        
+#    def createEditor(self, parent, option, index):
+#        """Overriding method createEditor"""
+#        if index.column()<3:
+#            return None
+#        key = index.model().get_key(index)
+#        # In remote mode, key will always be a string
+#        self.emit(SIGNAL('edit(QString)'), key)
+
+
+class BaseTableView(QTableView):
+    def __init__(self, parent):
+        QTableView.__init__(self, parent)
+        
+    def adjust_columns(self):
+        """Resize two first columns to contents"""
+        for col in range(3):
+            self.resizeColumnToContents(col)
+        
+    def set_data(self, data):
+        """Set table data"""
+        if data is not None:
+            self.model.set_data(data, self.dictfilter)
+            self.sortByColumn(0, Qt.AscendingOrder)
+
+    def mousePressEvent(self, event):
+        """Reimplement Qt method"""
+        index_clicked = self.indexAt(event.pos())
+        if index_clicked.isValid():
+            if index_clicked == self.currentIndex() \
+               and index_clicked in self.selectedIndexes():
+                self.clearSelection()
+            else:
+                QTableView.mousePressEvent(self, event)
+        else:
+            self.clearSelection()
+            event.accept()
+        
+
+class RemoteDictEditorTableView(BaseTableView):
+    """DictEditor table view"""
+    def __init__(self, parent, data,
+                 truncate=True, minmax=False, inplace=False, collvalue=True,
+                 getattr_func=None, setattr_func=None):
+        BaseTableView.__init__(self, parent)
+        self.dictfilter = None
+        self.model = None
+        self.delegate = None
+        self.readonly = False
+        self.model = DictModel(self, data, names=True,
+                               truncate=truncate, minmax=minmax,
+                               collvalue=collvalue, remote=True)
+        self.setModel(self.model)
+        self.delegate = RemoteDictDelegate(self, inplace,
+                                           getattr_func, setattr_func)
+        self.setItemDelegate(self.delegate)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.adjust_columns()
+        
+        # Sorting columns
+        self.setSortingEnabled(True)
+        self.sortByColumn(0, Qt.AscendingOrder)
+
+
+class DictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data, readonly=False, title="",
                  names=False, truncate=True, minmax=False,
                  inplace=False, collvalue=True):
-        QTableView.__init__(self, parent)
+        BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
         self.model = None
         self.delegate = None
-        DictModelClass = DictModelRO if self.readonly else DictModel
+        DictModelClass = ReadOnlyDictModel if self.readonly else DictModel
         self.model = DictModelClass(self, data, title, names=names,
                                     truncate=truncate, minmax=minmax,
                                     collvalue=collvalue)
@@ -541,7 +648,10 @@ class DictEditorTableView(QTableView):
                                                  "Always edit in-place"),
                                        toggled=self.toggle_inplace)
         self.inplace_action.setChecked(inplace)
-        self.toggle_inplace(inplace)
+        if self.delegate is None:
+            self.inplace_action.setEnabled(False)
+        else:
+            self.toggle_inplace(inplace)
         self.rename_action = create_action(self,
                                     translate("DictEditor", "Rename"),
                                     triggered=self.rename_item)
@@ -746,11 +856,6 @@ class DictEditorTableView(QTableView):
         self.selectRow(sel_row)
         parent_pos = self.mapToParent(point)
         self.vert_menu.popup(self.mapToGlobal(parent_pos))
-
-    def adjust_columns(self):
-        """Resize two first columns to contents"""
-        for col in range(3):
-            self.resizeColumnToContents(col)
         
     def toggle_inplace(self, state):
         """Toggle in-place editor option"""
@@ -775,32 +880,16 @@ class DictEditorTableView(QTableView):
     def set_filter(self, dictfilter=None):
         """Set table dict filter"""
         self.dictfilter = dictfilter
-        
-    def set_data(self, data):
-        """Set table data"""
-        if data is not None:
-            self.model.set_data(data, self.dictfilter)
-            self.sortByColumn(0, Qt.AscendingOrder)
-
-    def mousePressEvent(self, event):
-        """Reimplement Qt method"""
-        index_clicked = self.indexAt(event.pos())
-        if index_clicked.isValid():
-            if index_clicked == self.currentIndex() \
-               and index_clicked in self.selectedIndexes():
-                self.clearSelection()
-            else:
-                QTableView.mousePressEvent(self, event)
-        else:
-            self.clearSelection()
-            event.accept()
 
 
 class DictEditorWidget(QWidget):
     """Dictionary Editor Dialog"""
-    def __init__(self, parent, data, readonly=False, title=""):
+    def __init__(self, parent, data, readonly=False, title="", remote=False):
         QWidget.__init__(self, parent)
-        self.editor = DictEditorTableView(self, data, readonly, title)
+        if remote:
+            self.editor = RemoteDictEditorTableView(self, data, readonly)
+        else:
+            self.editor = DictEditorTableView(self, data, readonly, title)
         layout = QVBoxLayout()
         layout.addWidget(self.editor)
         self.setLayout(layout)
@@ -935,12 +1024,12 @@ def dedit_experimental(seq):
 class DictEditor(QDialog):
     """Dictionary/List Editor Dialog"""
     def __init__(self, data, title="", width=500,
-                 readonly=False, icon='dictedit.png'):
+                 readonly=False, icon='dictedit.png', remote=False):
         QDialog.__init__(self)
         import copy
         self.data_copy = copy.deepcopy(data)
         self.widget = DictEditorWidget(self, self.data_copy, title=title,
-                                       readonly=readonly)
+                                       readonly=readonly, remote=remote)
         
         layout = QVBoxLayout()
         layout.addWidget(self.widget)
@@ -990,11 +1079,13 @@ def dedit(seq):
     if dialog.exec_():
         return dialog.get_copy()
 
+
 if __name__ == "__main__":
     import numpy as N
     testdict = {'d': 1, 'a': N.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     example = {'str': 'kjkj kj k j j kj k jkj',
+               'unicode': u'éù',
                'list': [1, 3, [4, 5, 6], 'kjkj', None],
                'tuple': ([1, testdate, testdict], 'kjkj', None),
                'dict': testdict,
@@ -1003,7 +1094,19 @@ if __name__ == "__main__":
                'empty_array': N.array([]),
                'date': testdate,
                'datetime': datetime.datetime(1945, 5, 8),
-            }
+               }
+    
+#    # Remote dict test:
+#    from pydeelib.widgets.monitor import glexp_make
+#    remote = glexp_make(example)
+#    from pprint import pprint
+#    pprint(remote)
+#    if QApplication.startingUp():
+#        QApplication([])
+#    dialog = DictEditor(remote, remote=True)
+#    if dialog.exec_():
+#        print dialog.get_copy()
+    
     out = dedit_experimental(example)
     print "out:", out
     

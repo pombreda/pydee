@@ -26,7 +26,7 @@ except ImportError:
     pass
 
 EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc', 'e', 'pi',
-            'typecodes']
+            'typecodes', '__builtins__', '__main__', '__doc__']
 # The following exhaustive list is no longer necessary since v0.3.27 and the
 # improvements on Worskpace filter function:
 # (to be removed)
