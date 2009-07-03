@@ -25,7 +25,7 @@ from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
 from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer, Qt
 
 # Local imports
-from pydeelib.widgets.monitor import (write_packet, read_packet,
+from pydeelib.widgets.monitor import (communicate,
                                       monitor_setattr, monitor_getattr)
 from pydeelib.encoding import transcode
 from pydeelib.widgets.qscishell import QsciShell
@@ -69,6 +69,7 @@ class GlobalsExplorer(QWidget):
         explorer_label = QLabel(self.tr("<span style=\'color: #444444\'>"
                                         "<b>Global variables explorer</b>"
                                         "</span>"))
+
         self.toolbar_widgets.append(explorer_label)
         hide_button = create_toolbutton(self,
                                            text=self.tr("Hide"),
@@ -183,7 +184,8 @@ class ExternalShell(QWidget):
         self.debug_check = QCheckBox(self.tr("Debug"), self)
         self.debug_check.setChecked(debug)
         
-        #TODO: The following lines are ugly, aren't they? -> do something!!
+        #TODO: Code cleaning
+        # The following lines are ugly, aren't they? -> do something about it!!
         if self.interpreter or not self.python:
             self.interact_check.hide()
             self.debug_check.hide()
@@ -407,7 +409,6 @@ class ExternalShell(QWidget):
 #===============================================================================
     def transcode(self, bytes):
         if self.python or os.name != 'nt':
-            #FIXME: print u"é" does not work (but it used to work??!!)
             text = unicode( QString.fromLocal8Bit(bytes.data()) )
         else:
             text = transcode(str(bytes.data()), 'cp850')
@@ -457,16 +458,15 @@ class ExternalShell(QWidget):
         char = chr("abcdefghijklmnopqrstuvwxyz".index(letter) + 1)
         byte_array = QByteArray()
         byte_array.append(char)
-        print >>STDOUT, "Ctrl+%s: %r -- %s" % (letter, char, char)
         self.process.write(byte_array)
         self.process.waitForBytesWritten(-1)
         self.shell.write(QString(byte_array))
         
     def keyboard_interrupt(self):
-        #TODO: Send ctrl keys to process --> dig deeper:
-# Why don't the following code work? (for terminal)
-#        self.send_ctrl_to_process('c')
-        self.shell.emit(SIGNAL("execute(QString)"), "raise KeyboardInterrupt")
+        if self.python:
+            communicate(self.monitor_socket, "thread.interrupt_main()")
+        else:
+            self.send_ctrl_to_process('c')
             
 #===============================================================================
 #    Namespace explorer
@@ -474,8 +474,7 @@ class ExternalShell(QWidget):
     def refresh_globals_explorer(self):
         if self.monitor_socket is None:
             return
-        write_packet(self.monitor_socket, "glexp_make(globals())")
-        data = read_packet(self.monitor_socket)
+        data = communicate(self.monitor_socket, "glexp_make(globals())")
         obj = pickle.loads(data)
         self.globalsexplorer.set_data(obj)
         
@@ -506,8 +505,7 @@ class ExternalShell(QWidget):
     def ask_monitor(self, command):
         if self.monitor_socket is None:
             return
-        write_packet(self.monitor_socket, command)
-        data = read_packet(self.monitor_socket)
+        data = communicate(self.monitor_socket, command)
         try:
             return pickle.loads(data)
         except EOFError:
