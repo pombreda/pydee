@@ -25,14 +25,15 @@ from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
 from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer, Qt
 
 # Local imports
-from pydeelib.widgets.monitor import (communicate,
-                                      monitor_setattr, monitor_getattr)
+from pydeelib.widgets.externalshell.monitor import (communicate,
+                                                    monitor_setattr,
+                                                    monitor_getattr)
 from pydeelib.encoding import transcode
 from pydeelib.widgets.qscishell import QsciShell
 from pydeelib.widgets.dicteditor import RemoteDictEditorTableView
 from pydeelib.qthelpers import create_toolbutton, translate
 from pydeelib.config import get_icon, get_conf_path, CONF, get_font
-from pydeelib.widgets import startup
+from pydeelib.widgets.externalshell import startup
 
 
 class ExternalShellBase(QsciShell):
@@ -315,7 +316,7 @@ class ExternalShell(QWidget):
             
             # Monitor
             env.append('SHELL_ID=%s' % id(self))
-            from pydeelib.widgets.monitor import start_server
+            from pydeelib.widgets.externalshell.monitor import start_server
             server, port = start_server()
             self.notification_thread = server.register(str(id(self)), self)
             self.connect(self.notification_thread, SIGNAL('refresh()'),
@@ -330,8 +331,8 @@ class ExternalShell(QWidget):
             pathlist = []
 
             # Fix encoding with custom "sitecustomize.py"
-            import pydeelib.widgets
-            scpath = osp.dirname(osp.abspath(pydeelib.widgets.__file__))
+            import pydeelib.widgets.externalshell as extsh
+            scpath = osp.dirname(osp.abspath(extsh.__file__))
             pathlist.append(scpath)
             
             # Adding Pydee path
@@ -466,7 +467,12 @@ class ExternalShell(QWidget):
         if self.python:
             communicate(self.monitor_socket, "thread.interrupt_main()")
         else:
-            self.send_ctrl_to_process('c')
+            if os.name == 'nt':
+                import win32api, win32con
+                win32api.GenerateConsoleCtrlEvent(win32con.CTRL_C_EVENT,
+                                                  int(self.process.pid()))
+            else:
+                self.send_ctrl_to_process('c')
             
 #===============================================================================
 #    Namespace explorer
@@ -559,8 +565,8 @@ class ExternalShell(QWidget):
 def test():
     app = QApplication(sys.argv)
     import pydeelib
-    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), interact=True)
-#    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), python=False)
+#    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), interact=True)
+    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), python=False)
     shell.shell.set_wrap_mode(True)
     shell.start(False)
     from PyQt4.QtGui import QFont

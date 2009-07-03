@@ -21,8 +21,8 @@ if encoding is None:
 
 sys.setdefaultencoding(encoding)
 
-import pydeelib.widgets
-scpath = osp.dirname(osp.abspath(pydeelib.widgets.__file__))
+import pydeelib.widgets.externalshell as extsh
+scpath = osp.dirname(osp.abspath(extsh.__file__))
 sys.path.remove(scpath)
 
 try:
@@ -31,7 +31,7 @@ except ImportError:
     pass
 
 # Communication between ExternalShell and the QProcess
-from pydeelib.widgets.monitor import Monitor
+from pydeelib.widgets.externalshell.monitor import Monitor
 monitor = Monitor("127.0.0.1", int(os.environ['PYDEE_PORT']),
                   os.environ['SHELL_ID'])
 monitor.start()
