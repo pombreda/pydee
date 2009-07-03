@@ -87,7 +87,7 @@ class Monitor(threading.Thread):
         
     def refresh(self):
         """
-        Refresh Globals explorer in ExternalShell
+        Refresh Globals explorer in ExternalPythonShell
         """
         self.request.send("x", socket.MSG_OOB)
         

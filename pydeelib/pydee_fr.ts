@@ -1029,132 +1029,117 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
 <context>
     <name>ExternalConsole</name>
     <message>
-        <location filename="plugins/externalconsole.py" line="56"/>
+        <location filename="plugins/externalconsole.py" line="57"/>
         <source>Close current console</source>
         <translation>Fermer la console</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="155"/>
+        <location filename="plugins/externalconsole.py" line="159"/>
         <source>External console</source>
         <translation>Console externe</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="165"/>
+        <location filename="plugins/externalconsole.py" line="169"/>
         <source>Open &amp;interpreter</source>
         <translation>Ouvrir un &amp;interpréteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="166"/>
+        <location filename="plugins/externalconsole.py" line="170"/>
         <source>Open a Python interpreter</source>
         <translation>Ouvrir un interpréteur Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="177"/>
+        <location filename="plugins/externalconsole.py" line="181"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="178"/>
+        <location filename="plugins/externalconsole.py" line="182"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="181"/>
+        <location filename="plugins/externalconsole.py" line="185"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="182"/>
+        <location filename="plugins/externalconsole.py" line="186"/>
         <source>Set shell font style</source>
         <translation>Changer la police d&apos;écriture de la console</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="185"/>
+        <location filename="plugins/externalconsole.py" line="189"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="210"/>
+        <location filename="plugins/externalconsole.py" line="214"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="211"/>
+        <location filename="plugins/externalconsole.py" line="215"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="219"/>
+        <location filename="plugins/externalconsole.py" line="223"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="189"/>
+        <location filename="plugins/externalconsole.py" line="193"/>
         <source>One tab per script</source>
         <translation>Un onglet par script</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="99"/>
+        <location filename="plugins/externalconsole.py" line="100"/>
         <source>%1 is already running in a separate process.
 Do you want to kill the process before starting a new one?</source>
         <translation>%1 est déjà en cours d&apos;exécution dans un processus séparé.
 Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="170"/>
+        <location filename="plugins/externalconsole.py" line="174"/>
         <source>Open &amp;command prompt</source>
         <translation>Ouvrir un invité de &amp;commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="171"/>
+        <location filename="plugins/externalconsole.py" line="175"/>
         <source>Open a Windows command prompt</source>
         <translation>Ouvrir un invité de commandes Windows</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="173"/>
+        <location filename="plugins/externalconsole.py" line="177"/>
         <source>Open &amp;command shell</source>
         <translation>Ouvrir un terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="174"/>
+        <location filename="plugins/externalconsole.py" line="178"/>
         <source>Open a shell window inside Pydee</source>
         <translation>Ouvrir un terminal de commandes dans Pydee</translation>
     </message>
 </context>
 <context>
-    <name>ExternalShell</name>
+    <name>ExternalPythonShell</name>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="215"/>
-        <source>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;Running...&lt;/b&gt;&lt;/span&gt;</source>
-        <translation>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;En cours d&apos;exécution...&lt;/b&gt;&lt;/span&gt;</translation>
+        <location filename="widgets/externalshell/pythonshell.py" line="61"/>
+        <source>Variables</source>
+        <translation>Variables</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="180"/>
-        <source>Console</source>
-        <translation>Console</translation>
+        <location filename="widgets/externalshell/pythonshell.py" line="62"/>
+        <source>Show/hide global variables explorer</source>
+        <translation>Afficher/masquer l&apos;explorateur de variables globales</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="330"/>
-        <source>Error</source>
-        <translation>Erreur</translation>
-    </message>
-    <message>
-        <location filename="widgets/externalshell/__init__.py" line="116"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="65"/>
         <source>Terminate</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="122"/>
-        <source>Kill</source>
-        <translation>Terminer</translation>
-    </message>
-    <message>
-        <location filename="widgets/externalshell/__init__.py" line="124"/>
-        <source>Kills the current process, causing it to exit immediately</source>
-        <translation>Tue le processus, entraînant une sortie brutale et immédiate du programme</translation>
-    </message>
-    <message>
-        <location filename="widgets/externalshell/__init__.py" line="120"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="69"/>
         <source>Attempts to terminate the process.
 The process may not exit as a result of clicking this button
 (it is given the chance to prompt the user for any unsaved files, etc).</source>
@@ -1163,49 +1148,111 @@ Le processus peut ne pas s&apos;arrêter suite à cette tentative,
 mais cela permet au programme en cours de quitter proprement.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="220"/>
-        <source>Terminated.</source>
-        <translation>Terminé.</translation>
-    </message>
-    <message>
-        <location filename="widgets/externalshell/__init__.py" line="112"/>
-        <source>Run</source>
-        <translation>Exécuter</translation>
-    </message>
-    <message>
-        <location filename="widgets/externalshell/__init__.py" line="113"/>
-        <source>Run again this program</source>
-        <translation>Exécuter de nouveau ce programme</translation>
-    </message>
-    <message>
-        <location filename="widgets/externalshell/__init__.py" line="126"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="70"/>
         <source>Interact</source>
         <translation>Interagir</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="231"/>
-        <source>Arguments</source>
-        <translation>Arguments</translation>
-    </message>
-    <message>
-        <location filename="widgets/externalshell/__init__.py" line="232"/>
-        <source>Command line arguments:</source>
-        <translation>Arguments en ligne de commande :</translation>
-    </message>
-    <message>
-        <location filename="widgets/externalshell/__init__.py" line="128"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="71"/>
         <source>Debug</source>
         <translation>Déboguer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="331"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="179"/>
+        <source>Error</source>
+        <translation>Erreur</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/pythonshell.py" line="180"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
+    </message>
+</context>
+<context>
+    <name>ExternalShell</name>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="215"/>
+        <source>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;Running...&lt;/b&gt;&lt;/span&gt;</source>
+        <translation type="obsolete">&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;En cours d&apos;exécution...&lt;/b&gt;&lt;/span&gt;</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="180"/>
+        <source>Console</source>
+        <translation type="obsolete">Console</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="330"/>
+        <source>Error</source>
+        <translation type="obsolete">Erreur</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="116"/>
+        <source>Terminate</source>
+        <translation type="obsolete">Quitter</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="122"/>
+        <source>Kill</source>
+        <translation type="obsolete">Terminer</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="124"/>
+        <source>Kills the current process, causing it to exit immediately</source>
+        <translation type="obsolete">Tue le processus, entraînant une sortie brutale et immédiate du programme</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="120"/>
+        <source>Attempts to terminate the process.
+The process may not exit as a result of clicking this button
+(it is given the chance to prompt the user for any unsaved files, etc).</source>
+        <translation type="obsolete">Tentative de fermeture du processus.
+Le processus peut ne pas s&apos;arrêter suite à cette tentative,
+mais cela permet au programme en cours de quitter proprement.</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="220"/>
+        <source>Terminated.</source>
+        <translation type="obsolete">Terminé.</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="112"/>
+        <source>Run</source>
+        <translation type="obsolete">Exécuter</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="113"/>
+        <source>Run again this program</source>
+        <translation type="obsolete">Exécuter de nouveau ce programme</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="126"/>
+        <source>Interact</source>
+        <translation type="obsolete">Interagir</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="231"/>
+        <source>Arguments</source>
+        <translation type="obsolete">Arguments</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="232"/>
+        <source>Command line arguments:</source>
+        <translation type="obsolete">Arguments en ligne de commande :</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="128"/>
+        <source>Debug</source>
+        <translation type="obsolete">Déboguer</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="331"/>
+        <source>Process failed to start</source>
+        <translation type="obsolete">Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
         <location filename="widgets/externalshell/__init__.py" line="321"/>
         <source>No shell has been configured</source>
-        <translation>Aucun shell n&apos;a été configuré (bash, ...)</translation>
+        <translation type="obsolete">Aucun shell n&apos;a été configuré (bash, ...)</translation>
     </message>
     <message>
         <location filename="widgets/externalshell.py" line="150"/>
@@ -1220,12 +1267,78 @@ mais cela permet au programme en cours de quitter proprement.</translation>
     <message>
         <location filename="widgets/externalshell/__init__.py" line="108"/>
         <source>Variables</source>
-        <translation>Variables</translation>
+        <translation type="obsolete">Variables</translation>
     </message>
     <message>
         <location filename="widgets/externalshell/__init__.py" line="109"/>
         <source>Show/hide global variables explorer</source>
-        <translation>Afficher/masquer l&apos;explorateur de variables globales</translation>
+        <translation type="obsolete">Afficher/masquer l&apos;explorateur de variables globales</translation>
+    </message>
+</context>
+<context>
+    <name>ExternalShellBase</name>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="106"/>
+        <source>Console</source>
+        <translation>Console</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="115"/>
+        <source>Run</source>
+        <translation>Exécuter</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="116"/>
+        <source>Run again this program</source>
+        <translation>Exécuter de nouveau ce programme</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="119"/>
+        <source>Kill</source>
+        <translation>Terminer</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="121"/>
+        <source>Kills the current process, causing it to exit immediately</source>
+        <translation>Tue le processus, entraînant une sortie brutale et immédiate du programme</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="154"/>
+        <source>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;Running...&lt;/b&gt;&lt;/span&gt;</source>
+        <translation>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;En cours d&apos;exécution...&lt;/b&gt;&lt;/span&gt;</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="159"/>
+        <source>Terminated.</source>
+        <translation>Terminé.</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="174"/>
+        <source>Arguments</source>
+        <translation>Arguments</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/__init__.py" line="175"/>
+        <source>Command line arguments:</source>
+        <translation>Arguments en ligne de commande :</translation>
+    </message>
+</context>
+<context>
+    <name>ExternalSystemShell</name>
+    <message>
+        <location filename="widgets/externalshell/systemshell.py" line="80"/>
+        <source>Error</source>
+        <translation>Erreur</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/systemshell.py" line="71"/>
+        <source>No shell has been configured</source>
+        <translation>Aucun shell n&apos;a été configuré (bash, ...)</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/systemshell.py" line="81"/>
+        <source>Process failed to start</source>
+        <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
 </context>
 <context>
