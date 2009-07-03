@@ -239,6 +239,7 @@ class ExternalShell(QWidget):
         self.shell.clear()
             
         self.process = QProcess(self)
+        self.process.setProcessChannelMode(QProcess.MergedChannels)
         
         # Working directory
         if self.wdir is not None:
@@ -297,8 +298,6 @@ class ExternalShell(QWidget):
         if self.arguments:
             p_args.extend( self.arguments.split(' ') )
                         
-        self.connect(self.process, SIGNAL("readyReadStandardError()"),
-                     self.write_error)
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
                      self.write_output)
         self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
@@ -310,10 +309,8 @@ class ExternalShell(QWidget):
                      self.process.kill)
         
         if self.python:
-            self.process.setProcessChannelMode(QProcess.SeparateChannels)
             self.process.start(sys.executable, p_args)
         else:
-            self.process.setProcessChannelMode(QProcess.MergedChannels)
             if os.name == 'nt':
                 self.process.start('cmd.exe', p_args)
             else:
@@ -369,16 +366,24 @@ class ExternalShell(QWidget):
             bytes += self.process.readAllStandardError()
         return self.transcode(bytes)
     
-    def write_output(self):
-        self.shell.write( self.get_stdout() )
-        QApplication.processEvents()
+    def _write_error(self, text, findstr):
+        pos = text.find(findstr)
+        if pos != -1:
+            self.shell.write(text[:pos])
+            if text.endswith(">>> "):
+                self.shell.write_error(text[pos:-5])
+                self.shell.write(text[-5:], flush=True)
+            else:
+                self.shell.write_error(text[pos:])
+            return True
+        return False
     
-    def write_error(self):
-        lines = self.get_stderr().splitlines(True)
-        for _index, line in enumerate(lines):
-            self.shell.write_error(line)
-#            if index < len(lines)-1:
-#                self.shell.write_error('\n')
+    def write_output(self):
+        text = self.get_stdout()
+        if not self._write_error(text, 'Traceback (most recent call last):') \
+           and not self._write_error(text, 'File "<stdin>", line 1'):
+            self.shell.write(text)
+        QApplication.processEvents()
         
     def send_to_process(self, qstr):
         if not isinstance(qstr, QString):
