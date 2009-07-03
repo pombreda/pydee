@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Pydee's ExternalShell sitecustomize
+# Pydee's ExternalPythonShell sitecustomize
 
 
 # Set standard outputs encoding:

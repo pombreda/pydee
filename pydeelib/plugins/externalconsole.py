@@ -24,7 +24,8 @@ STDOUT = sys.stdout
 from pydeelib.config import CONF, get_font, get_icon, set_font
 from pydeelib.qthelpers import create_toolbutton, create_action, mimedata2url
 from pydeelib.widgets.tabs import Tabs
-from pydeelib.widgets.externalshell import ExternalShell
+from pydeelib.widgets.externalshell.pythonshell import ExternalPythonShell
+from pydeelib.widgets.externalshell.systemshell import ExternalSystemShell
 from pydeelib.widgets.shellhelpers import get_error_match
 from pydeelib.widgets.findreplace import FindReplace
 from pydeelib.plugins import PluginWidget
@@ -106,8 +107,11 @@ class ExternalConsole(PluginWidget):
             self.close(index)
 
         # Creating a new external shell
-        shell = ExternalShell(self, fname, wdir, self.commands, interact, debug,
-                              python, path=self.main.path)        
+        if python:
+            shell = ExternalPythonShell(self, fname, wdir, self.commands,
+                                        interact, debug, path=self.main.path)
+        else:
+            shell = ExternalSystemShell(self, wdir)
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
         shell.shell.set_docviewer(self.docviewer)
