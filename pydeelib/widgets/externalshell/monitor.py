@@ -124,6 +124,7 @@ def select_port(port=20128):
 class Server(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
+        self.setDaemon(True)
         self.shells = {}
         global PYDEE_PORT
         PYDEE_PORT = select_port()
