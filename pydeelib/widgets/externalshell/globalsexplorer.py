@@ -21,14 +21,18 @@ from PyQt4.QtGui import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
-from pydeelib.widgets.externalshell.monitor import (monitor_setattr,
-                                                    monitor_getattr)
+from pydeelib.widgets.externalshell.monitor import (monitor_set_value,
+                                                    monitor_get_value)
 from pydeelib.widgets.dicteditor import RemoteDictEditorTableView
 from pydeelib.qthelpers import create_toolbutton
 from pydeelib.config import get_icon, CONF, get_font
 
 
 #TODO: Add a context-menu to customize wsfilter, ...
+#      --> store these settings elsewhere?
+#          (Workspace's settings are currently used)
+
+#FIXME: Horizontal headers are truncated
 class GlobalsExplorer(QWidget):
     ID = 'workspace'
     def __init__(self, parent):
@@ -69,22 +73,20 @@ class GlobalsExplorer(QWidget):
         self.editor = RemoteDictEditorTableView(parent, None,
                                             truncate=truncate, inplace=inplace,
                                             minmax=minmax, collvalue=collvalue,
-                                            getattr_func=self.getattr_func,
-                                            setattr_func=self.setattr_func)
+                                            get_value_func=self.get_value,
+                                            set_value_func=self.set_value)
         self.editor.setFont(get_font(self.ID))
-        self.connect(self.editor.delegate, SIGNAL('edit(QString)'),
-                     lambda qstr: self.emit(SIGNAL('edit(QString)'), qstr))
         
         vlayout = QVBoxLayout()
         vlayout.addLayout(hlayout)
         vlayout.addWidget(self.editor)
         self.setLayout(vlayout)
         
-    def getattr_func(self, name):
-        return monitor_getattr(self.shell.monitor_socket, name)
+    def get_value(self, name):
+        return monitor_get_value(self.shell.monitor_socket, name)
         
-    def setattr_func(self, name, value):
-        monitor_setattr(self.shell.monitor_socket, name, value)
+    def set_value(self, name, value):
+        monitor_set_value(self.shell.monitor_socket, name, value)
         self.emit(SIGNAL('refresh()'))
         
     def set_data(self, data):

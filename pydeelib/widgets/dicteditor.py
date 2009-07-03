@@ -500,26 +500,18 @@ class DictDelegate(QItemDelegate):
 class RemoteDictDelegate(DictDelegate):
     """DictEditor Item Delegate"""
     def __init__(self, parent=None, inplace=False,
-                 getattr_func=None, setattr_func=None):
+                 get_value_func=None, set_value_func=None):
         DictDelegate.__init__(self, parent, inplace=inplace)
-        self.getattr_func = getattr_func
-        self.setattr_func = setattr_func
+        self.get_value_func = get_value_func
+        self.set_value_func = set_value_func
         
     def get_value(self, index):
         name = index.model().keys[index.row()]
-        return self.getattr_func(name)
+        return self.get_value_func(name)
     
     def set_value(self, index, value):
         name = index.model().keys[index.row()]
-        self.setattr_func(name, value)
-#        
-#    def createEditor(self, parent, option, index):
-#        """Overriding method createEditor"""
-#        if index.column()<3:
-#            return None
-#        key = index.model().get_key(index)
-#        # In remote mode, key will always be a string
-#        self.emit(SIGNAL('edit(QString)'), key)
+        self.set_value_func(name, value)
 
 
 class BaseTableView(QTableView):
@@ -555,7 +547,7 @@ class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data,
                  truncate=True, minmax=False, inplace=False, collvalue=True,
-                 getattr_func=None, setattr_func=None):
+                 get_value_func=None, set_value_func=None):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.model = None
@@ -566,7 +558,7 @@ class RemoteDictEditorTableView(BaseTableView):
                                collvalue=collvalue, remote=True)
         self.setModel(self.model)
         self.delegate = RemoteDictDelegate(self, inplace,
-                                           getattr_func, setattr_func)
+                                           get_value_func, set_value_func)
         self.setItemDelegate(self.delegate)
         self.horizontalHeader().setStretchLastSection(True)
         self.adjust_columns()
