@@ -524,43 +524,22 @@ has the same effect as typing a particular string at the help> prompt.
     def _eval(self, text):
         """Is text a valid object?"""
         return self.interpreter.eval(text)
-
-    def show_code_completion(self, text):
-        """
-        Display a completion list based on the last token
-        """
-        obj, valid = self._eval(text)
-        if valid:
-            self.show_completion_list(dir(obj), 'dir(%s)' % text) 
+                
+    def get_dir(self, objtxt):
+        """Return dir(object)"""
+        obj, _valid = self._eval(objtxt)
+        return dir(obj)
+                
+    def iscallable(self, objtxt):
+        """Is object callable?"""
+        obj, _valid = self._eval(objtxt)
+        return callable(obj)
     
-    def show_docstring(self, text, call=False):
-        """Show docstring or arguments"""
-        if not self.calltips:
-            return
-        obj, valid = self._eval(text)
-        if valid:
-            done = False
-            size, font = self.calltip_size, self.calltip_font
-            if (self.docviewer is not None) and \
-               (self.docviewer.dockwidget.isVisible()):
-                # DocViewer widget exists and is visible
-                self.docviewer.refresh(text)
-                if call:
-                    # Display argument list if this is function call
-                    if callable(obj):
-                        arglist = getargtxt(obj)
-                        if arglist:
-                            done = True
-                            self.show_calltip(self.tr("Arguments"),
-                                              arglist, size, font, '#129625')
-                    else:
-                        done = True
-                        self.show_calltip(self.tr("Warning"),
-                                          self.tr("Object `%1` is not callable"
-                                                  " (i.e. not a function, "
-                                                  "a method or a class "
-                                                  "constructor)").arg(text),
-                                          size, font, color='#FF0000')
-            if not done:
-                self.show_calltip(self.tr("Documentation"),
-                                  obj.__doc__, size, font)
+    def get_arglist(self, objtxt):
+        """Get func/method argument list"""
+        return getargtxt(objtxt)
+    
+    def get_doc(self, objtxt):
+        """Get object documentation"""
+        obj, _valid = self._eval(objtxt)
+        return obj.__doc__

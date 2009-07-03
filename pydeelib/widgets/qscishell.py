@@ -656,7 +656,7 @@ class QsciShell(QsciBase):
         self.new_input_line = True
     
   
-    #------ Code Completion / Calltips        
+    #------ Code Completion / Calltips
     def completion_list_selected(self, userlist_id, seltxt):
         """
         Private slot to handle the selection from the completion list
@@ -687,11 +687,66 @@ class QsciShell(QsciBase):
             self.completion_chars = 0
 
     def show_file_completion(self):
-        """
-        Display a completion list for files and directories
-        """
+        """Display a completion list for files and directories"""
         cwd = os.getcwdu()
         self.show_completion_list(os.listdir(cwd), cwd)
+
+    # Methods implemented in child class:
+    def get_dir(self, objtxt):
+        """Return dir(object)"""
+        raise NotImplementedError
+    def iscallable(self, objtxt):
+        """Is object callable?"""
+        raise NotImplementedError
+    def get_arglist(self, objtxt):
+        """Get func/method argument list"""
+        raise NotImplementedError
+    def get_doc(self, objtxt):
+        """Get object documentation"""
+        raise NotImplementedError
+        
+    def show_code_completion(self, text):
+        """Display a completion list based on the last token"""
+        text = unicode(text) # Useful only for ExternalShellBase
+        objdir = self.get_dir(text)
+        if objdir:
+            self.show_completion_list(objdir, 'dir(%s)' % text) 
+    
+    def show_docstring(self, text, call=False):
+        """Show docstring or arguments"""
+        if not self.calltips:
+            return
+        
+        text = unicode(text) # Useful only for ExternalShellBase
+        done = False
+        size, font = self.calltip_size, self.calltip_font
+        if (self.docviewer is not None) and \
+           (self.docviewer.dockwidget.isVisible()):
+            # DocViewer widget exists and is visible
+            self.docviewer.refresh(text)
+            if call:
+                # Display argument list if this is function call
+                iscallable = self.iscallable(text)
+                if iscallable is not None: # Useful only for ExternalShellBase
+                    if iscallable:
+                        arglist = self.get_arglist(text)
+                        if arglist:
+                            done = True
+                            self.show_calltip(self.tr("Arguments"),
+                                              arglist, size, font, '#129625')
+                    else:
+                        done = True
+                        self.show_calltip(self.tr("Warning"),
+                                          self.tr("Object `%1` is not callable"
+                                                  " (i.e. not a function, "
+                                                  "a method or a class "
+                                                  "constructor)").arg(text),
+                                          size, font, color='#FF0000')
+        if not done:
+            doc = self.get_doc(text)
+            if doc is None: # Useful only for ExternalShellBase
+                return
+            self.show_calltip(self.tr("Documentation"), doc, size, font)
         
         
     #------ Miscellanous

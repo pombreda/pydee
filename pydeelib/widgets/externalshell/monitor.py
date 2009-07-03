@@ -39,19 +39,28 @@ def read_packet(sock):
         data += sock.recv(dlen)
     return data
 
-def communicate(sock, data):
+def communicate(sock, input, pickle_try=False):
     """Communicate with monitor"""
-    write_packet(sock, data)
-    return read_packet(sock)
+    write_packet(sock, input)
+    output = read_packet(sock)
+    if pickle_try:
+        try:
+            return pickle.loads(output)
+        except EOFError:
+            pass
+    else:
+        return output
 
-def monitor_getattr(sock, name):
-    data = communicate(sock, name)
-    return pickle.loads(data)
+def monitor_get_value(sock, name):
+    """Get global variable *name* value"""
+    return communicate(sock, name, pickle_try=True)
 
-def monitor_setattr(sock, name, value):
-    write_packet(sock, '***assign***')
+def monitor_set_value(sock, name, value):
+    """Set global variable *name* value to *value*"""
+    write_packet(sock, '__set_value__()')
     write_packet(sock, name)
-    write_packet(sock, pickle.dumps(value))
+    write_packet(sock, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
+    read_packet(sock)
 
 
 class Monitor(threading.Thread):
@@ -62,37 +71,44 @@ class Monitor(threading.Thread):
         self.request = socket.socket( socket.AF_INET )
         self.request.connect( (host, port) )
         write_packet(self.request, shell_id)
-        self.locals = {"setglobal": self.setglobal,
-                       "setlocal": self.setlocal,
+        self.locals = {"setlocal": self.setlocal,
                        "getargtxt": getargtxt,
                        "glexp_make": glexp_make,
                        "thread": thread,
+                       "__set_value__": self.set_global_value,
                        "_" : None}
         
-    def setglobal(self, name, val):
-        globals()[name] = val
-        
-    def setlocal(self, name, val):
-        self.locals[name] = val
+    def setlocal(self, name, value):
+        """
+        Set local reference value
+        Not used right now - could be useful in the future
+        """
+        self.locals[name] = value
         
     def refresh(self):
+        """
+        Refresh Globals explorer in ExternalShell
+        """
         self.request.send("x", socket.MSG_OOB)
         
+    def set_global_value(self):
+        """
+        Set global reference value
+        """
+        from __main__ import __dict__ as glbs
+        name = read_packet(self.request)
+        value = pickle.loads(read_packet(self.request))
+        glbs[name] = value
+        
     def run(self):
-        import __main__
-        glbs = __main__.__dict__
+        from __main__ import __dict__ as glbs
         while True:
             try:
                 command = read_packet(self.request)
-                if command == '***assign***':
-                    name = read_packet(self.request)
-                    value = pickle.loads(read_packet(self.request))
-                    glbs[name] = value
-                else:
-                    result = eval(command, glbs, self.locals)
-                    self.locals["_"] = result
-                    output = pickle.dumps(result)
-                    write_packet(self.request, output)
+                result = eval(command, glbs, self.locals)
+                self.locals["_"] = result
+                output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
+                write_packet(self.request, output)
             except StandardError:
                 out = StringIO.StringIO()
                 traceback.print_exc(file=out)

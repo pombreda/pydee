@@ -25,9 +25,6 @@ from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
 from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer, Qt
 
 # Local imports
-from pydeelib.widgets.externalshell.monitor import (communicate,
-                                                    monitor_setattr,
-                                                    monitor_getattr)
 from pydeelib.encoding import transcode
 from pydeelib.qthelpers import create_toolbutton, translate
 from pydeelib.config import get_icon, get_conf_path, CONF, get_font
@@ -35,25 +32,41 @@ from pydeelib.widgets.qscishell import QsciShell
 from pydeelib.widgets.dicteditor import RemoteDictEditorTableView
 from pydeelib.widgets.externalshell import startup
 from pydeelib.widgets.externalshell.globalsexplorer import GlobalsExplorer
+from pydeelib.widgets.externalshell.monitor import (communicate,
+                                                    monitor_set_value,
+                                                    monitor_get_value)
 
 
 class ExternalShellBase(QsciShell):
     def __init__(self, parent, history_filename, max_history_entries=100,
-                 debug=False, profile=False):
+                 debug=False, profile=False, externalshell=None):
         QsciShell.__init__(self, parent, history_filename,
                            max_history_entries, debug, profile)
+        # ExternalShell instance:
+        self.externalshell = externalshell
         
     #------ Code completion / Calltips
-    def show_code_completion(self, text):
-        """Display a completion list based on the last token"""
-        self.emit(SIGNAL('show_code_completion(QString)'), text)
-    
-    def show_docstring(self, text, call=False):
-        """Show docstring or arguments"""
-        if not self.calltips:
+    def ask_monitor(self, command):
+        sock = self.externalshell.monitor_socket
+        if sock is None:
             return
-        self.emit(SIGNAL('show_docstring(QString,bool)'), text, call)            
-
+        return communicate(sock, command, pickle_try=True)
+            
+    def get_dir(self, objtxt):
+        """Return dir(object)"""
+        return self.ask_monitor("dir(%s)" % objtxt)
+            
+    def iscallable(self, objtxt):
+        """Is object callable?"""
+        return self.ask_monitor("callable(%s)" % objtxt)
+    
+    def get_arglist(self, objtxt):
+        """Get func/method argument list"""
+        return self.ask_monitor("getargtxt(%s)" % objtxt)
+            
+    def get_doc(self, objtxt):
+        """Get object documentation"""
+        return self.ask_monitor("%s.__doc__" % objtxt)
 
 
 #TODO: [low-priority] Split ExternalShell into three classes:
@@ -81,15 +94,12 @@ class ExternalShell(QWidget):
         history_filename = '.history_extcons'
         if python:
             history_filename += '.py'
-        self.shell = ExternalShellBase(parent, get_conf_path(history_filename))
+        self.shell = ExternalShellBase(parent, get_conf_path(history_filename),
+                                       externalshell=self)
         self.connect(self.shell, SIGNAL("execute(QString)"),
                      self.send_to_process)
         self.connect(self.shell, SIGNAL("keyboard_interrupt()"),
                      self.keyboard_interrupt)
-        self.connect(self.shell, SIGNAL('show_code_completion(QString)'),
-                     self.show_code_completion)
-        self.connect(self.shell, SIGNAL('show_docstring(QString,bool)'),
-                     self.show_docstring)
         
         self.state_label = QLabel()
         self.time_label = QLabel()
@@ -145,8 +155,6 @@ class ExternalShell(QWidget):
                      self.refresh_globals_explorer)
         self.connect(self.globalsexplorer, SIGNAL('collapse()'),
                      lambda: self.toggle_globals_explorer(False))
-        self.connect(self.globalsexplorer, SIGNAL('edit(QString)'),
-                     self.globals_explorer_edit)
         
         self.splitter = splitter = QSplitter(Qt.Vertical, self)
         self.connect(self.splitter, SIGNAL('splitterMoved(int, int)'),
@@ -399,15 +407,29 @@ class ExternalShell(QWidget):
         if self.python:
             communicate(self.monitor_socket, "thread.interrupt_main()")
         else:
-            if os.name == 'nt':
-                import win32api, win32con
-                win32api.GenerateConsoleCtrlEvent(win32con.CTRL_C_EVENT,
-                                                  int(self.process.pid()))
-            else:
-                self.send_ctrl_to_process('c')
+            # This does not work on Windows:
+            # (unfortunately there is no easy way to send a Ctrl+C to cmd.exe)
+            self.send_ctrl_to_process('c')
+
+#            # The following code will soon be removed:
+#            # (last attempt to send a Ctrl+C on Windows)
+#            if os.name == 'nt':
+#                pid = int(self.process.pid())
+#                import ctypes, win32api, win32con
+#                class _PROCESS_INFORMATION(ctypes.Structure):
+#                    _fields_ = [("hProcess", ctypes.c_int),
+#                                ("hThread", ctypes.c_int),
+#                                ("dwProcessID", ctypes.c_int),
+#                                ("dwThreadID", ctypes.c_int)]
+#                x = ctypes.cast( ctypes.c_void_p(pid),
+#                                 ctypes.POINTER(_PROCESS_INFORMATION) )
+#                win32api.GenerateConsoleCtrlEvent(win32con.CTRL_C_EVENT,
+#                                                  x.dwProcessID)
+#            else:
+#                self.send_ctrl_to_process('c')
             
 #===============================================================================
-#    Namespace explorer
+#    Globals explorer
 #===============================================================================
     def refresh_globals_explorer(self):
         if self.monitor_socket is None:
@@ -424,81 +446,13 @@ class ExternalShell(QWidget):
         
     def splitter_moved(self, pos, index):
         self.globalsexplorer_button.setChecked( self.splitter.sizes()[1] )
-        
-    def globals_explorer_edit(self, qstr):
-        name = unicode(qstr)
-        if self.monitor_socket is None:
-            return
-        obj = monitor_getattr(self.monitor_socket, name)
-        from pydeelib.widgets.objecteditor import oedit
-        result = oedit(obj)
-        if result is not None:
-            monitor_setattr(self.monitor_socket, name, result)
-            self.refresh_globals_explorer()
-        
-        
-#===============================================================================
-#    Introspection
-#===============================================================================
-    def ask_monitor(self, command):
-        if self.monitor_socket is None:
-            return
-        data = communicate(self.monitor_socket, command)
-        try:
-            return pickle.loads(data)
-        except EOFError:
-            pass
-        
-    def show_code_completion(self, text):
-        """Display a completion list based on the last token"""
-        text = unicode(text)
-        objdir = self.ask_monitor("dir(%s)" % text)
-        if objdir:
-            self.shell.show_completion_list(objdir, 'dir(%s)' % text) 
-            
-    #TODO: Refactoring with InteractiveShell --> into QsciShell
-    def show_docstring(self, text, call=False):
-        """Show docstring or arguments"""
-        text = unicode(text)
-        
-        sh = self.shell
-        done = False
-        size, font = sh.calltip_size, sh.calltip_font
-        if (sh.docviewer is not None) and \
-           (sh.docviewer.dockwidget.isVisible()):
-            # DocViewer widget exists and is visible
-            sh.docviewer.refresh(text)
-            if call:
-                # Display argument list if this is function call
-                iscallable = self.ask_monitor("callable(%s)" % text)
-                if iscallable is not None:
-                    if iscallable:
-                        arglist = self.ask_monitor("getargtxt(%s)" % text)
-                        if arglist:
-                            done = True
-                            sh.show_calltip(translate("QsciShell", "Arguments"),
-                                            arglist, size, font, '#129625')
-                    else:
-                        done = True
-                        sh.show_calltip(translate("QsciShell", "Warning"),
-                                        translate("QsciShell", "Object `%1` is not callable"
-                                                  " (i.e. not a function, "
-                                                  "a method or a class "
-                                                  "constructor)").arg(text),
-                                        size, font, color='#FF0000')
-        if not done:
-            doc = self.ask_monitor("%s.__doc__" % text)
-            if doc is None:
-                return
-            sh.show_calltip(translate("QsciShell", "Documentation"), doc, size, font)
-        
     
 
 def test():
     app = QApplication(sys.argv)
     import pydeelib
-#    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), interact=True)
-    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), python=False)
+    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), interact=True)
+#    shell = ExternalShell(wdir=osp.dirname(pydeelib.__file__), python=False)
     shell.shell.set_wrap_mode(True)
     shell.start(False)
     from PyQt4.QtGui import QFont
