@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
-import threading, socket, traceback
+import threading, socket, traceback, thread
 import StringIO, pickle, struct
 from PyQt4.QtCore import QThread, SIGNAL
 
 from pydeelib.dochelpers import getargtxt
-from pydeelib.widgets.dicteditor import (get_type, get_size, value_to_display,
-                                         get_color)
+from pydeelib.widgets.dicteditor import (get_type, get_size, get_color,
+                                         value_to_display)
 from pydeelib.plugins.workspace import wsfilter
 
 
@@ -29,21 +29,23 @@ SZ = struct.calcsize("l")
 def write_packet(sock, data):
     """Write *data* to socket *sock*"""
     sock.send(struct.pack("l", len(data)) + data)
-#    print "*w*", len(data), "*w*"
 
 def read_packet(sock):
     """Read data from socket *sock*"""
     datalen = sock.recv(SZ)
     dlen, = struct.unpack("l", datalen)
-#    print "*r*", dlen, "*r*"
     data = ''
     while len(data) < dlen:
         data += sock.recv(dlen)
     return data
 
+def communicate(sock, data):
+    """Communicate with monitor"""
+    write_packet(sock, data)
+    return read_packet(sock)
+
 def monitor_getattr(sock, name):
-    write_packet(sock, name)
-    data = read_packet(sock)
+    data = communicate(sock, name)
     return pickle.loads(data)
 
 def monitor_setattr(sock, name, value):
@@ -64,6 +66,7 @@ class Monitor(threading.Thread):
                        "setlocal": self.setlocal,
                        "getargtxt": getargtxt,
                        "glexp_make": glexp_make,
+                       "thread": thread,
                        "_" : None}
         
     def setglobal(self, name, val):
