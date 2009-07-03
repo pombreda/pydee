@@ -790,19 +790,22 @@ class QsciShell(QsciBase):
             self.SendScintilla(QsciScintilla.SCI_STARTSTYLING,
                                len(unicode(self.text()).encode('utf-8')), 0xFF)
             if error:
-                if text.startswith('  File'):
-                    # Show error links in blue underlined text
-                    self.append('  ')
-                    self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
-                                       2, self.default_style)
-                    self.append(text[2:])
-                    self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
-                                       len(text)-2, self.traceback_link_style)
-                else:
-                    # Show error messages in red
-                    self.append(text)
-                    self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
-                                       len(text), self.error_style)
+                for text in text.splitlines(True):
+                    if text.startswith('  File'):
+                        # Show error links in blue underlined text
+                        self.append('  ')
+                        self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
+                                           2, self.default_style)
+                        self.append(text[2:])
+                        self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
+                                           len(text)-2,
+                                           self.traceback_link_style)
+                    else:
+                        # Show error messages in red
+                        self.append(text)
+                        self.SendScintilla(QsciScintilla.SCI_SETSTYLING,
+                                           len(text),
+                                           self.error_style)
             elif prompt:
                 # Show prompt in green
                 self.append(text)
