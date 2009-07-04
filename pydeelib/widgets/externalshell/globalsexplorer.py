@@ -31,8 +31,6 @@ from pydeelib.config import get_icon, CONF, get_font
 #TODO: Add a context-menu to customize wsfilter, ...
 #      --> store these settings elsewhere?
 #          (Workspace's settings are currently used)
-
-#FIXME: Horizontal headers are truncated
 class GlobalsExplorer(QWidget):
     ID = 'workspace'
     def __init__(self, parent):
@@ -91,6 +89,7 @@ class GlobalsExplorer(QWidget):
         
     def set_data(self, data):
         self.editor.set_data(data)
+        self.editor.adjust_columns()
         
     def collapse(self):
         self.emit(SIGNAL('collapse()'))
