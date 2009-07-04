@@ -76,8 +76,6 @@ class ExternalPythonShell(ExternalShellBase):
     def get_shell_widget(self):
         # Globals explorer
         self.globalsexplorer = GlobalsExplorer(self)
-        self.connect(self.globalsexplorer, SIGNAL('refresh()'),
-                     self.refresh_globals_explorer)
         self.connect(self.globalsexplorer, SIGNAL('collapse()'),
                      lambda: self.toggle_globals_explorer(False))
         
@@ -128,7 +126,7 @@ class ExternalPythonShell(ExternalShellBase):
         server, port = start_server()
         self.notification_thread = server.register(str(id(self)), self)
         self.connect(self.notification_thread, SIGNAL('refresh()'),
-                     self.refresh_globals_explorer)
+                     self.globalsexplorer.refresh_table)
         env.append('PYDEE_PORT=%d' % port)
         
         # Python init commands (interpreter only)
@@ -220,18 +218,11 @@ class ExternalPythonShell(ExternalShellBase):
 #===============================================================================
 #    Globals explorer
 #===============================================================================
-    def refresh_globals_explorer(self):
-        if self.monitor_socket is None:
-            return
-        data = communicate(self.monitor_socket, "glexp_make(globals())")
-        obj = pickle.loads(data)
-        self.globalsexplorer.set_data(obj)
-        
     def toggle_globals_explorer(self, state):
         self.splitter.setSizes([1, 1 if state else 0])
         self.globalsexplorer_button.setChecked(state)
         if state:
-            self.refresh_globals_explorer()
+            self.globalsexplorer.refresh_table()
         
     def splitter_moved(self, pos, index):
         self.globalsexplorer_button.setChecked( self.splitter.sizes()[1] )

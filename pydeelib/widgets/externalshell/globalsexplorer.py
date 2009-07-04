@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys
+import sys, pickle
 
 # Debug
 STDOUT = sys.stdout
@@ -21,18 +21,20 @@ from PyQt4.QtGui import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
-from pydeelib.widgets.externalshell.monitor import (monitor_set_value,
-                                                    monitor_get_value)
+from pydeelib.widgets.externalshell.monitor import (communicate,
+                                    monitor_set_global, monitor_get_global,
+                                    monitor_del_global, monitor_copy_global)
 from pydeelib.widgets.dicteditor import RemoteDictEditorTableView
 from pydeelib.qthelpers import create_toolbutton
-from pydeelib.config import get_icon, CONF, get_font
+from pydeelib.config import get_icon, CONF
 
 
 #TODO: Add a context-menu to customize wsfilter, ...
 #      --> store these settings elsewhere?
 #          (Workspace's settings are currently used)
 class GlobalsExplorer(QWidget):
-    ID = 'workspace'
+    ID = 'external_shell'
+    
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         
@@ -56,7 +58,7 @@ class GlobalsExplorer(QWidget):
         refresh_button = create_toolbutton(self,
                                            text=self.tr("Refresh"),
                                            icon=get_icon('reload.png'),
-                                           triggered=self.refresh)
+                                           triggered=self.refresh_table)
         self.toolbar_widgets.append(refresh_button)
         
         for widget in self.toolbar_widgets:
@@ -69,23 +71,45 @@ class GlobalsExplorer(QWidget):
         minmax = CONF.get(self.ID, 'minmax')
         collvalue = CONF.get(self.ID, 'collvalue')
         self.editor = RemoteDictEditorTableView(parent, None,
-                                            truncate=truncate, inplace=inplace,
-                                            minmax=minmax, collvalue=collvalue,
-                                            get_value_func=self.get_value,
-                                            set_value_func=self.set_value)
-        self.editor.setFont(get_font(self.ID))
+                                        truncate=truncate, inplace=inplace,
+                                        minmax=minmax, collvalue=collvalue,
+                                        get_value_func=self.get_value,
+                                        set_value_func=self.set_value,
+                                        new_value_func=self.set_value,
+                                        remove_values_func=self.remove_values,
+                                        copy_value_func=self.copy_value)
         
         vlayout = QVBoxLayout()
         vlayout.addLayout(hlayout)
         vlayout.addWidget(self.editor)
         self.setLayout(vlayout)
         
+    def refresh_table(self):
+        sock = self.shell.monitor_socket
+        if sock is None:
+            return
+        data = communicate(sock, "__make_remote_view__(globals())")
+        obj = pickle.loads(data)
+        self.set_data(obj)
+        
     def get_value(self, name):
-        return monitor_get_value(self.shell.monitor_socket, name)
+        return monitor_get_global(self.shell.monitor_socket, name)
         
     def set_value(self, name, value):
-        monitor_set_value(self.shell.monitor_socket, name, value)
-        self.emit(SIGNAL('refresh()'))
+        sock = self.shell.monitor_socket
+        monitor_set_global(sock, name, value)
+        self.refresh_table()
+        
+    def remove_values(self, names):
+        sock = self.shell.monitor_socket
+        for name in names:
+            monitor_del_global(sock, name)
+        self.refresh_table()
+        
+    def copy_value(self, orig_name, new_name):
+        sock = self.shell.monitor_socket
+        monitor_copy_global(sock, orig_name, new_name)
+        self.refresh_table()
         
     def set_data(self, data):
         self.editor.set_data(data)
@@ -93,7 +117,4 @@ class GlobalsExplorer(QWidget):
         
     def collapse(self):
         self.emit(SIGNAL('collapse()'))
-        
-    def refresh(self):
-        self.emit(SIGNAL('refresh()'))
         

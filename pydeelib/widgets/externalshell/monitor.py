@@ -11,19 +11,23 @@ from pydeelib.widgets.dicteditor import (get_type, get_size, get_color,
                                          value_to_display, globalsfilter)
 
 
-FILTERS = tuple(str2type(CONF.get('external_shell', 'globalsexplorer/filters')))
-ITERMAX = CONF.get('external_shell', 'globalsexplorer/itermax')
-EXCLUDE_PRIVATE = CONF.get('external_shell', 'globalsexplorer/exclude_private')
-EXCLUDE_UPPER = CONF.get('external_shell', 'globalsexplorer/exclude_upper')
-EXCLUDE_UNSUPPORTED = CONF.get('external_shell',
-                               'globalsexplorer/exclude_unsupported_datatypes')
-EXCLUDED_NAMES = CONF.get('external_shell', 'globalsexplorer/excluded')
-
-def glexp_make(data):
+def make_remote_view(data):
     """
     Make a remote view of dictionary *data*
     -> globals explorer
     """
+    #FIXME: These settings are not taken into account until next external shell session
+    FILTERS = tuple(str2type(CONF.get('external_shell', 'filters')))
+    ITERMAX = CONF.get('external_shell', 'itermax')
+    EXCLUDE_PRIVATE = CONF.get('external_shell', 'exclude_private')
+    EXCLUDE_UPPER = CONF.get('external_shell', 'exclude_upper')
+    EXCLUDE_UNSUPPORTED = CONF.get('external_shell',
+                                   'exclude_unsupported_datatypes')
+    EXCLUDED_NAMES = CONF.get('external_shell', 'excluded')
+    TRUNCATE = CONF.get('external_shell', 'truncate')
+    MINMAX = CONF.get('external_shell', 'minmax')
+    COLLVALUE = CONF.get('external_shell', 'collvalue')
+    
     data = globalsfilter(data, itermax=ITERMAX, filters=FILTERS,
                          exclude_private=EXCLUDE_PRIVATE,
                          exclude_upper=EXCLUDE_UPPER,
@@ -34,7 +38,9 @@ def glexp_make(data):
         remote[key] = {'type': get_type(value),
                        'size': get_size(value),
                        'color': get_color(value),
-                       'view': value_to_display(value)}
+                       'view': value_to_display(value, truncate=TRUNCATE,
+                                                minmax=MINMAX,
+                                                collvalue=COLLVALUE)}
     return remote
     
 
@@ -65,15 +71,28 @@ def communicate(sock, input, pickle_try=False):
     else:
         return output
 
-def monitor_get_value(sock, name):
+def monitor_get_global(sock, name):
     """Get global variable *name* value"""
     return communicate(sock, name, pickle_try=True)
 
-def monitor_set_value(sock, name, value):
+def monitor_set_global(sock, name, value):
     """Set global variable *name* value to *value*"""
-    write_packet(sock, '__set_value__()')
+    write_packet(sock, '__set_global__()')
     write_packet(sock, name)
     write_packet(sock, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
+    read_packet(sock)
+
+def monitor_del_global(sock, name):
+    """Del global variable *name*"""
+    write_packet(sock, '__del_global__()')
+    write_packet(sock, name)
+    read_packet(sock)
+
+def monitor_copy_global(sock, orig_name, new_name):
+    """Copy global variable *orig_name* to *new_name*"""
+    write_packet(sock, '__copy_global__()')
+    write_packet(sock, orig_name)
+    write_packet(sock, new_name)
     read_packet(sock)
 
 
@@ -87,9 +106,11 @@ class Monitor(threading.Thread):
         write_packet(self.request, shell_id)
         self.locals = {"setlocal": self.setlocal,
                        "getargtxt": getargtxt,
-                       "glexp_make": glexp_make,
+                       "__make_remote_view__": make_remote_view,
                        "thread": thread,
-                       "__set_value__": self.set_global_value,
+                       "__set_global__": self.setglobal,
+                       "__del_global__": self.delglobal,
+                       "__copy_global__": self.copyglobal,
                        "_" : None}
         
     def setlocal(self, name, value):
@@ -105,7 +126,7 @@ class Monitor(threading.Thread):
         """
         self.request.send("x", socket.MSG_OOB)
         
-    def set_global_value(self):
+    def setglobal(self):
         """
         Set global reference value
         """
@@ -113,6 +134,23 @@ class Monitor(threading.Thread):
         name = read_packet(self.request)
         value = pickle.loads(read_packet(self.request))
         glbs[name] = value
+        
+    def delglobal(self):
+        """
+        Del global reference
+        """
+        from __main__ import __dict__ as glbs
+        name = read_packet(self.request)
+        glbs.pop(name)
+        
+    def copyglobal(self):
+        """
+        Copy global reference
+        """
+        from __main__ import __dict__ as glbs
+        orig_name = read_packet(self.request)
+        new_name = read_packet(self.request)
+        glbs[new_name] = glbs[orig_name]
         
     def run(self):
         from __main__ import __dict__ as glbs
