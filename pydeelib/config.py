@@ -25,6 +25,10 @@ try:
 except ImportError:
     pass
 
+# Max number of filter iterations for worskpace display:
+# (for workspace saving, itermax == -1, see Workspace.save)
+ITERMAX = -1 #XXX: To be adjusted if it takes too much to compute... 2, 3?
+
 EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc', 'e', 'pi',
             'typecodes', '__builtins__', '__main__', '__doc__']
 # The following exhaustive list is no longer necessary since v0.3.27 and the
@@ -135,6 +139,16 @@ DEFAULTS = [
               'autocompletion/threshold' : -1,
               'autocompletion/select-single' : True,
               'autocompletion/from-document' : False,
+              'globalsexplorer/filters' : type2str(FILTERS),
+              'globalsexplorer/itermax' : ITERMAX,
+              'globalsexplorer/excluded': EXCLUDED,
+              'globalsexplorer/exclude_private': True,
+              'globalsexplorer/exclude_upper': True,
+              'globalsexplorer/exclude_unsupported_datatypes': True,
+              'globalsexplorer/inplace': False,
+              'globalsexplorer/truncate': True,
+              'globalsexplorer/minmax': True,
+              'globalsexplorer/collvalue': False,
               }),
             ('calltips',
              {
@@ -188,6 +202,7 @@ DEFAULTS = [
               'enable' : True,
               'autorefresh' : True,
               'filters' : type2str(FILTERS),
+              'itermax' : ITERMAX,
               'autosave' : False,
               'excluded': EXCLUDED,
               'exclude_private': True,
