@@ -499,57 +499,10 @@ class BaseTableView(QTableView):
     def __init__(self, parent):
         QTableView.__init__(self, parent)
         
-    def adjust_columns(self):
-        """Resize two first columns to contents"""
-        for col in range(3):
-            self.resizeColumnToContents(col)
-        
-    def set_data(self, data):
-        """Set table data"""
-        if data is not None:
-            self.model.set_data(data, self.dictfilter)
-            self.sortByColumn(0, Qt.AscendingOrder)
-
-    def mousePressEvent(self, event):
-        """Reimplement Qt method"""
-        index_clicked = self.indexAt(event.pos())
-        if index_clicked.isValid():
-            if index_clicked == self.currentIndex() \
-               and index_clicked in self.selectedIndexes():
-                self.clearSelection()
-            else:
-                QTableView.mousePressEvent(self, event)
-        else:
-            self.clearSelection()
-            event.accept()
-        
-
-class DictEditorTableView(BaseTableView):
-    """DictEditor table view"""
-    def __init__(self, parent, data, readonly=False, title="",
-                 names=False, truncate=True, minmax=False,
-                 inplace=False, collvalue=True):
-        BaseTableView.__init__(self, parent)
-        self.dictfilter = None
-        self.readonly = readonly or isinstance(data, tuple)
-        self.model = None
-        self.delegate = None
-        DictModelClass = ReadOnlyDictModel if self.readonly else DictModel
-        self.model = DictModelClass(self, data, title, names=names,
-                                    truncate=truncate, minmax=minmax,
-                                    collvalue=collvalue)
-        self.setModel(self.model)
-        self.delegate = DictDelegate(self, inplace=inplace)
-        self.setItemDelegate(self.delegate)
+    def setup_table(self):
+        """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
         self.adjust_columns()
-        self.verticalHeader().setContextMenuPolicy(Qt.CustomContextMenu)
-        self.connect(self.verticalHeader(),
-                     SIGNAL("customContextMenuRequested(QPoint)"),
-                     self.vertHeaderContextMenu)        
-        self.menu, self.vert_menu = self.setup_menu(truncate, minmax, inplace,
-                                                    collvalue)
-        
         # Sorting columns
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
@@ -564,14 +517,6 @@ class DictEditorTableView(BaseTableView):
                                       translate("DictEditor", "Insert"),
                                       icon=get_icon('insert.png'),
                                       triggered=self.insert_item)
-        self.copy_action = create_action(self,
-                                      translate("DictEditor", "Copy"),
-                                      icon=get_icon('editcopy.png'),
-                                      triggered=self.copy)									  
-        self.paste_action = create_action(self,
-                                      translate("DictEditor", "Paste"),
-                                      icon=get_icon('editpaste.png'),
-                                      triggered=self.paste)
         self.remove_action = create_action(self, 
                                       translate("DictEditor", "Remove"),
                                       icon=get_icon('editdelete.png'),
@@ -602,22 +547,56 @@ class DictEditorTableView(BaseTableView):
             self.toggle_inplace(inplace)
         self.rename_action = create_action(self,
                                     translate("DictEditor", "Rename"),
+                                    icon=get_icon('rename.png'),
                                     triggered=self.rename_item)
         self.duplicate_action = create_action(self,
                                     translate("DictEditor", "Duplicate"),
+                                    icon=get_icon('edit_add.png'),
                                     triggered=self.duplicate_item)
         menu = QMenu(self)
-        menu_actions = [self.edit_action, self.insert_action, self.copy_action,
-                        self.paste_action, self.remove_action, None,
+        menu_actions = [self.edit_action, self.insert_action,
+                        self.remove_action, None,
+                        self.rename_action,self.duplicate_action, None,
                         self.truncate_action, self.inplace_action,
                         self.collvalue_action]
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
-        vert_menu = QMenu(self)
-        add_actions(vert_menu, (self.rename_action,self.duplicate_action,
-                                self.remove_action))
-        return menu, vert_menu
+        return menu
+    
+    def refresh_menu(self):
+        """Refresh context menu"""
+        index = self.currentIndex()
+        condition = index.isValid()
+        self.edit_action.setEnabled( condition )
+        self.remove_action.setEnabled( condition )
+        
+    def adjust_columns(self):
+        """Resize two first columns to contents"""
+        for col in range(3):
+            self.resizeColumnToContents(col)
+        
+    def set_data(self, data):
+        """Set table data"""
+        if data is not None:
+            self.model.set_data(data, self.dictfilter)
+            self.sortByColumn(0, Qt.AscendingOrder)
+
+    def mousePressEvent(self, event):
+        """Reimplement Qt method"""
+        if event.button() != Qt.LeftButton:
+            QTableView.mousePressEvent(self, event)
+            return
+        index_clicked = self.indexAt(event.pos())
+        if index_clicked.isValid():
+            if index_clicked == self.currentIndex() \
+               and index_clicked in self.selectedIndexes():
+                self.clearSelection()
+            else:
+                QTableView.mousePressEvent(self, event)
+        else:
+            self.clearSelection()
+            event.accept()
     
     def keyPressEvent(self, event):
         """Reimplement Qt methods"""
@@ -632,7 +611,33 @@ class DictEditorTableView(BaseTableView):
             event.accept()
         else:
             QTableView.keyPressEvent(self, event)
-    
+        
+    def contextMenuEvent(self, event):
+        """Reimplement Qt method"""
+        self.refresh_menu()
+        self.menu.popup(event.globalPos())
+        event.accept()
+
+    def toggle_inplace(self, state):
+        """Toggle in-place editor option"""
+        self.emit(SIGNAL('option_changed'), 'inplace', state)
+        self.delegate.inplace = state
+        
+    def toggle_truncate(self, state):
+        """Toggle display truncating option"""
+        self.emit(SIGNAL('option_changed'), 'truncate', state)
+        self.model.truncate = state
+        
+    def toggle_minmax(self, state):
+        """Toggle min/max display for numpy arrays"""
+        self.emit(SIGNAL('option_changed'), 'minmax', state)
+        self.model.minmax = state
+        
+    def toggle_collvalue(self, state):
+        """Toggle value display for collections"""
+        self.emit(SIGNAL('option_changed'), 'collvalue', state)
+        self.model.collvalue = state
+            
     def edit_item(self):
         """Edit item"""
         index = self.currentIndex()
@@ -654,11 +659,141 @@ class DictEditorTableView(BaseTableView):
             .arg('s' if len(indexes)>1 else ''),
             QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
-            data = self.model.get_data()
             idx_rows = unsorted_unique(map(lambda idx: idx.row(), indexes))
-            for idx_row in idx_rows:
-                data.pop( self.model.keys[ idx_row ] )
-            self.set_data(data)
+            keys = [ self.model.keys[idx_row] for idx_row in idx_rows ]
+            self.remove_values(keys)
+
+    def copy_item(self, erase_original=False):
+        """Copy item"""
+        indexes = self.selectedIndexes()
+        if not indexes:
+            return
+        idx_rows = unsorted_unique(map(lambda idx: idx.row(), indexes))
+        if len(idx_rows) > 1 or not indexes[0].isValid():
+            return
+        orig_key = self.model.keys[idx_rows[0]]
+        new_key, valid = QInputDialog.getText(self,
+                          translate("DictEditor", 'Rename'),
+                          translate("DictEditor", 'Key:'),
+                          QLineEdit.Normal,orig_key)
+        if valid and not new_key.isEmpty():
+            new_key = try_to_eval(unicode(new_key))
+            if new_key == orig_key:
+                return
+            self.copy_value(orig_key, new_key)
+            if erase_original:
+                self.remove_values([orig_key])
+    
+    def duplicate_item(self):
+        """Duplicate item"""
+        self.copy_item()
+
+    def rename_item(self):
+        """Rename item"""
+        self.copy_item(True)
+    
+    def insert_item(self):
+        """Insert item"""
+        index = self.currentIndex()
+        if not index.isValid():
+            row = self.model.rowCount()
+        else:
+            row = index.row()
+        data = self.model.get_data()
+        if isinstance(data, list):
+            key = row
+            data.insert(row, '')
+        elif isinstance(data, dict):
+            key, valid = QInputDialog.getText(self,
+                              translate("DictEditor", 'Insert'),
+                              translate("DictEditor", 'Key:'),
+                              QLineEdit.Normal)
+            if valid and not key.isEmpty():
+                key = try_to_eval(unicode(key))
+            else:
+                return
+        else:
+            return
+        value, valid = QInputDialog.getText(self,
+                  translate("DictEditor", 'Insert'),
+                  translate("DictEditor", 'Value:'),
+                  QLineEdit.Normal)
+        if valid and not value.isEmpty():
+            self.new_value(key, try_to_eval(unicode(value)))
+        
+
+class DictEditorTableView(BaseTableView):
+    """DictEditor table view"""
+    def __init__(self, parent, data, readonly=False, title="",
+                 names=False, truncate=True, minmax=False,
+                 inplace=False, collvalue=True):
+        BaseTableView.__init__(self, parent)
+        self.dictfilter = None
+        self.readonly = readonly or isinstance(data, tuple)
+        self.model = None
+        self.delegate = None
+        DictModelClass = ReadOnlyDictModel if self.readonly else DictModel
+        self.model = DictModelClass(self, data, title, names=names,
+                                    truncate=truncate, minmax=minmax,
+                                    collvalue=collvalue)
+        self.setModel(self.model)
+        self.delegate = DictDelegate(self, inplace=inplace)
+        self.setItemDelegate(self.delegate)
+
+        self.setup_table()
+        self.menu = self.setup_menu(truncate, minmax, inplace, collvalue)
+        self.copy_action = create_action(self,
+                                      translate("DictEditor", "Copy"),
+                                      icon=get_icon('editcopy.png'),
+                                      triggered=self.copy)                                      
+        self.paste_action = create_action(self,
+                                      translate("DictEditor", "Paste"),
+                                      icon=get_icon('editpaste.png'),
+                                      triggered=self.paste)
+        self.menu.insertAction(self.remove_action, self.copy_action)
+        self.menu.insertAction(self.remove_action, self.paste_action)
+    
+    def remove_values(self, keys):
+        """
+        Remove values from data
+        (implemented differently for remote table view)
+        """
+        data = self.model.get_data()
+        for key in keys:
+            data.pop(key)
+        self.set_data(data)
+
+    def copy_value(self, orig_key, new_key):
+        """
+        Copy value
+        (implemented differently for remote table view)
+        """
+        data = self.model.get_data()
+        data[new_key] = data[orig_key]
+        self.set_data(data)
+    
+    def new_value(self, key, value):
+        """
+        Create new value in data
+        (implemented differently for remote table view)
+        """
+        data = self.model.get_data()
+        data[key] = value
+        self.set_data(data)
+            
+    def refresh_menu(self):
+        """Refresh context menu"""
+        data = self.model.get_data()
+        index = self.currentIndex()
+        condition = (not isinstance(data, tuple)) and index.isValid() \
+                    and not self.readonly
+        self.edit_action.setEnabled( condition )
+        self.remove_action.setEnabled( condition )
+        self.insert_action.setEnabled( not self.readonly )
+
+    def set_filter(self, dictfilter=None):
+        """Set table dict filter"""
+        self.dictfilter = dictfilter
 
     def copy(self):
         """Copy text to clipboard"""
@@ -704,130 +839,6 @@ class DictEditorTableView(BaseTableView):
                                 translate("DictEditor", "Empty clipboard"),
                                 translate("DictEditor", "Nothing to be imported"
                                           " from clipboard."))
-
-    def _copy_item(self,erase_original=False):
-        """Copy item"""
-        indexes = self.selectedIndexes()
-        if not indexes:
-            return
-        idx_rows = unsorted_unique(map(lambda idx: idx.row(), indexes))
-        if len(idx_rows) > 1 or\
-            not indexes[0].isValid():
-            return
-        orig_key = self.model.keys[idx_rows[0]]
-        new_key, valid = QInputDialog.getText(self,
-                          translate("DictEditor", 'Rename'),
-                          translate("DictEditor", 'Key:'),
-                          QLineEdit.Normal,orig_key)
-        if valid and not new_key.isEmpty():
-            new_key = try_to_eval(unicode(new_key))
-            if new_key == orig_key:
-                return
-            data = self.model.get_data()
-            value = data.get(self.model.keys[idx_rows[0]])
-            data[new_key] = value
-            self.set_data(data)
-            if erase_original:
-                data.pop(orig_key)
-                self.set_data(data)
-    
-    def duplicate_item(self):
-        """Duplicate item"""
-        self._copy_item()
-
-    def rename_item(self):
-        """Rename item"""
-        self._copy_item(True)
-    
-    def insert_item(self):
-        """Insert item"""
-        index = self.currentIndex()
-        if not index.isValid():
-            row = self.model.rowCount()
-        else:
-            row = index.row()
-        data = self.model.get_data()
-        if isinstance(data, list):
-            key = row
-            data.insert(row, '')
-        elif isinstance(data, dict):
-            key, valid = QInputDialog.getText(self,
-                              translate("DictEditor", 'Insert'),
-                              translate("DictEditor", 'Key:'),
-                              QLineEdit.Normal)
-            if valid and not key.isEmpty():
-                key = try_to_eval(unicode(key))
-            else:
-                return
-        else:
-            return
-        value, valid = QInputDialog.getText(self,
-                  translate("DictEditor", 'Insert'),
-                  translate("DictEditor", 'Value:'),
-                  QLineEdit.Normal)
-        if valid and not value.isEmpty():
-            data[key] = try_to_eval(unicode(value))
-            self.set_data(data)
-            
-    def refresh_menu(self):
-        """Refresh context menu"""
-        data = self.model.get_data()
-        index = self.currentIndex()
-        condition = (not isinstance(data, tuple)) and index.isValid() \
-                    and not self.readonly
-        self.edit_action.setEnabled( condition )
-        self.remove_action.setEnabled( condition )
-        self.insert_action.setEnabled( not self.readonly )
-
-#    def mousePressEvent(self, event):
-#        """Reimplement Qt method"""
-#        index = self.indexAt(event.pos())
-#        if not index.isValid():
-#            self.setSelection(QRect(), QItemSelectionModel.Clear)
-#            event.accept()
-#        else:
-#            self.setSelection(QRect(event.pos(), QSize(2, 2)),
-#                              QItemSelectionModel.ToggleCurrent)
-#            QTableView.mousePressEvent(self, event)
-        
-    def contextMenuEvent(self, event):
-        """Reimplement Qt method"""
-        self.refresh_menu()
-        self.menu.popup(event.globalPos())
-        event.accept()
-
-    def vertHeaderContextMenu(self, point):
-        """Show the context menu for vertical headers"""
-        sel_row = self.rowAt(point.y())
-        if sel_row == -1:
-            return
-        self.selectRow(sel_row)
-        parent_pos = self.mapToParent(point)
-        self.vert_menu.popup(self.mapToGlobal(parent_pos))
-        
-    def toggle_inplace(self, state):
-        """Toggle in-place editor option"""
-        self.emit(SIGNAL('option_changed'), 'inplace', state)
-        self.delegate.inplace = state
-        
-    def toggle_truncate(self, state):
-        """Toggle display truncating option"""
-        self.emit(SIGNAL('option_changed'), 'truncate', state)
-        self.model.truncate = state
-        
-    def toggle_minmax(self, state):
-        """Toggle min/max display for numpy arrays"""
-        self.emit(SIGNAL('option_changed'), 'minmax', state)
-        self.model.minmax = state
-        
-    def toggle_collvalue(self, state):
-        """Toggle value display for collections"""
-        self.emit(SIGNAL('option_changed'), 'collvalue', state)
-        self.model.collvalue = state
-        
-    def set_filter(self, dictfilter=None):
-        """Set table dict filter"""
-        self.dictfilter = dictfilter
 
 
 class DictEditorWidget(QWidget):
@@ -932,8 +943,15 @@ class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data,
                  truncate=True, minmax=False, inplace=False, collvalue=True,
-                 get_value_func=None, set_value_func=None):
+                 get_value_func=None, set_value_func=None,
+                 new_value_func=None, remove_values_func=None,
+                 copy_value_func=None):
         BaseTableView.__init__(self, parent)
+        
+        self.remove_values = remove_values_func
+        self.copy_value = copy_value_func
+        self.new_value = new_value_func
+        
         self.dictfilter = None
         self.model = None
         self.delegate = None
@@ -945,12 +963,9 @@ class RemoteDictEditorTableView(BaseTableView):
         self.delegate = RemoteDictDelegate(self, inplace,
                                            get_value_func, set_value_func)
         self.setItemDelegate(self.delegate)
-        self.horizontalHeader().setStretchLastSection(True)
-        self.adjust_columns()
         
-        # Sorting columns
-        self.setSortingEnabled(True)
-        self.sortByColumn(0, Qt.AscendingOrder)
+        self.setup_table()
+        self.menu = self.setup_menu(truncate, minmax, inplace, collvalue)
 
 
 #----Globals filter: filter namespace dictionaries (to be edited in DictEditor)
@@ -1005,8 +1020,8 @@ if __name__ == "__main__":
                }
     
 #    # Remote dict test:
-#    from pydeelib.widgets.monitor import glexp_make
-#    remote = glexp_make(example)
+#    from pydeelib.widgets.monitor import make_remote_view
+#    remote = make_remote_view(example)
 #    from pprint import pprint
 #    pprint(remote)
 #    if QApplication.startingUp():

@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, os, pickle
+import sys
 import os.path as osp
 from time import time, strftime, gmtime
 
@@ -20,21 +20,15 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-                         QMessageBox, QLabel, QInputDialog, QLineEdit,
-                         QCheckBox, QSplitter)
-from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer, Qt
+                         QLabel, QInputDialog, QLineEdit)
+from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer
 
 # Local imports
 from pydeelib.encoding import transcode
-from pydeelib.qthelpers import create_toolbutton, translate
-from pydeelib.config import get_icon, get_conf_path, CONF, get_font
+from pydeelib.qthelpers import create_toolbutton
+from pydeelib.config import get_icon, get_conf_path
 from pydeelib.widgets.qscishell import QsciShell
-from pydeelib.widgets.dicteditor import RemoteDictEditorTableView
-from pydeelib.widgets.externalshell import startup
-from pydeelib.widgets.externalshell.globalsexplorer import GlobalsExplorer
-from pydeelib.widgets.externalshell.monitor import (communicate,
-                                                    monitor_set_value,
-                                                    monitor_get_value)
+from pydeelib.widgets.externalshell.monitor import communicate
 
 
 class ExternalQsciShell(QsciShell):
