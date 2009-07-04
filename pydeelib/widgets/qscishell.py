@@ -289,6 +289,18 @@ class QsciShell(QsciBase):
         self.add_to_history(command)
         self.new_input_line = True
         
+    def on_new_line(self):
+        """On new input line"""
+        self.move_cursor_to_end()
+        self.current_prompt_pos = self.getCursorPosition()
+        self.new_input_line = False
+        
+    def paste(self):
+        """Reimplement QScintilla method"""
+        if self.new_input_line:
+            self.on_new_line()
+        QsciBase.paste(self)
+        
     def keyPressEvent(self, event):
         """
         Reimplement Qt Method
@@ -297,18 +309,16 @@ class QsciShell(QsciBase):
         """
         # Copy must be done first to be able to copy read-only text parts
         # (otherwise, right below, we would remove selection
-        #  if not on current line)                        
-        if event.key() == Qt.Key_C and (event.modifiers() & Qt.ControlModifier):
+        #  if not on current line)
+        ctrl = event.modifiers() & Qt.ControlModifier
+        if event.key() == Qt.Key_C and ctrl:
             self.copy()
             event.accept()
             return
         
         if self.new_input_line and ( len(event.text()) or event.key() in \
            (Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right) ):
-            # Move cursor to end
-            self.move_cursor_to_end()
-            self.current_prompt_pos = self.getCursorPosition()
-            self.new_input_line = False
+            self.on_new_line()
             
         self.process_keyevent(event)
         
@@ -338,9 +348,10 @@ class QsciShell(QsciBase):
                 if self.isListActive():
                     self.SendScintilla(QsciScintilla.SCI_NEWLINE)
                 else:
-                    self.insert_text('\n', at_end=True)
+                    self.append('\n')
                     command = self.input_buffer
                     self.on_enter(command)
+                    self.flush()
             # add and run selection
             else:
                 text = self.selectedText()
