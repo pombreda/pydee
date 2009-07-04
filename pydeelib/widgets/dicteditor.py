@@ -8,8 +8,6 @@
 Dictionary Editor Widget and Dialog based on PyQt4
 """
 
-#TODO: [low-priority] Copy/paste data --> Excel spreadsheet
-
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
 #      at the same time
 
@@ -497,23 +495,6 @@ class DictDelegate(QItemDelegate):
         self.set_value(index, value)
 
 
-class RemoteDictDelegate(DictDelegate):
-    """DictEditor Item Delegate"""
-    def __init__(self, parent=None, inplace=False,
-                 get_value_func=None, set_value_func=None):
-        DictDelegate.__init__(self, parent, inplace=inplace)
-        self.get_value_func = get_value_func
-        self.set_value_func = set_value_func
-        
-    def get_value(self, index):
-        name = index.model().keys[index.row()]
-        return self.get_value_func(name)
-    
-    def set_value(self, index, value):
-        name = index.model().keys[index.row()]
-        self.set_value_func(name, value)
-
-
 class BaseTableView(QTableView):
     def __init__(self, parent):
         QTableView.__init__(self, parent)
@@ -542,31 +523,6 @@ class BaseTableView(QTableView):
             self.clearSelection()
             event.accept()
         
-
-class RemoteDictEditorTableView(BaseTableView):
-    """DictEditor table view"""
-    def __init__(self, parent, data,
-                 truncate=True, minmax=False, inplace=False, collvalue=True,
-                 get_value_func=None, set_value_func=None):
-        BaseTableView.__init__(self, parent)
-        self.dictfilter = None
-        self.model = None
-        self.delegate = None
-        self.readonly = False
-        self.model = DictModel(self, data, names=True,
-                               truncate=truncate, minmax=minmax,
-                               collvalue=collvalue, remote=True)
-        self.setModel(self.model)
-        self.delegate = RemoteDictDelegate(self, inplace,
-                                           get_value_func, set_value_func)
-        self.setItemDelegate(self.delegate)
-        self.horizontalHeader().setStretchLastSection(True)
-        self.adjust_columns()
-        
-        # Sorting columns
-        self.setSortingEnabled(True)
-        self.sortByColumn(0, Qt.AscendingOrder)
-
 
 class DictEditorTableView(BaseTableView):
     """DictEditor table view"""
@@ -895,124 +851,6 @@ class DictEditorWidget(QWidget):
         return self.editor.model.title
 
 
-#TODO: Populate only the two first levels at a time
-class DictTreeWidget(QTreeWidget):
-    def __init__(self, parent, data, editor):
-        QTreeWidget.__init__(self, parent)
-        self.editor = editor
-        if data is not None:
-            self.set_data(data)
-        
-    def set_data(self, data):
-        """Set DictTreeWidget data"""
-#        selected = None
-        self.clear()
-        self.setColumnCount(1)
-        self.setHeaderLabels([translate("DictEditor", "Tree view")])
-        self.setItemsExpandable(True)
-        self.populate(data)
-        self.resizeColumnToContents(0)
-        self.collapseAll()
-#        if selected is not None:
-#            selected.setSelected(True)
-#            self.setCurrentItem(selected)
-        
-    def populate(self, data, parent=None):
-        """Populate tree"""
-        for index, value in enumerate(data):
-            if isinstance(data, (list, tuple)):
-                key = index
-            else:
-                key = value
-            value = data[key]
-            prop = [unicode(key)]
-            item = QTreeWidgetItem(self if parent is None else parent, prop)
-                        
-            pixmap = QPixmap(QSize(8, 8))
-            pixmap.fill(get_color(value, .4))
-            item.setIcon(0, QIcon(pixmap))
-            
-            self.expandItem(parent)
-            if isinstance(value, (list, tuple, dict)):
-                self.populate(value, item)
-
-#TODO: use a stack widget to open multiple DictEditorTableView instances
-# The following widget will replace DictEditorWidget when it's ready
-class DictEditorWidget_Experimental(QSplitter):
-    """Dictionary Editor Dialog"""
-    def __init__(self, parent, data, readonly=False, title="", names=False):
-        QSplitter.__init__(self, Qt.Horizontal, parent)
-        self.editor = DictEditorTableView(self, data, readonly, title, names)
-        self.tree = DictTreeWidget(self, data, self.editor)
-        self.addWidget(self.tree)
-        self.addWidget(self.editor)
-        self.setStretchFactor(0, 1)
-        self.setStretchFactor(1, 4)
-        
-    def set_data(self, data):
-        """Set DictEditor data"""
-        self.tree.set_data(data)
-        self.editor.set_data(data)
-        
-    def set_filter(self, dictfilter=None):
-        """Set table dict filter"""
-        self.editor.set_filter(dictfilter)
-        
-    def get_title(self):
-        """Get model title"""
-        return self.editor.model.title
-
-
-class DictEditor_Experimental(QDialog):
-    """Dictionary/List Editor Dialog"""
-    def __init__(self, data, title="", width=650,
-                 readonly=False, icon='dictedit.png'):
-        QDialog.__init__(self)
-        import copy
-        self.data_copy = copy.deepcopy(data)
-        self.widget = DictEditorWidget_Experimental(self, self.data_copy,
-                                                    title=title,
-                                                    readonly=readonly)
-        
-        layout = QVBoxLayout()
-        layout.addWidget(self.widget)
-        self.setLayout(layout)
-        
-        # Buttons configuration
-        buttons = QDialogButtonBox.Ok
-        if not readonly:
-            buttons = buttons | QDialogButtonBox.Cancel
-        bbox = QDialogButtonBox(buttons)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        if not readonly:
-            self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
-        layout.addWidget(bbox)
-
-        constant = 121
-        row_height = 30
-        error_margin = 20
-        height = constant + row_height*min([20, len(data)]) + error_margin
-        self.resize(width, height)
-        
-        self.setWindowTitle(self.widget.get_title())
-        if isinstance(icon, (str, unicode)):
-            icon = get_icon(icon)
-        self.setWindowIcon(icon)
-        # Make the dialog act as a window
-        self.setWindowFlags(Qt.Window)
-        
-    def get_copy(self):
-        """Return modified copy of dictionary or list"""
-        return self.data_copy
-    
-def dedit_experimental(seq):
-    if QApplication.startingUp():
-        QApplication([])
-    dialog = DictEditor_Experimental(seq)
-    if dialog.exec_():
-        return dialog.get_copy()
-
-
 class DictEditor(QDialog):
     """Dictionary/List Editor Dialog"""
     def __init__(self, data, title="", width=500,
@@ -1072,6 +910,84 @@ def dedit(seq):
         return dialog.get_copy()
 
 
+#----Remote versions of DictDelegate and DictEditorTableView
+class RemoteDictDelegate(DictDelegate):
+    """DictEditor Item Delegate"""
+    def __init__(self, parent=None, inplace=False,
+                 get_value_func=None, set_value_func=None):
+        DictDelegate.__init__(self, parent, inplace=inplace)
+        self.get_value_func = get_value_func
+        self.set_value_func = set_value_func
+        
+    def get_value(self, index):
+        name = index.model().keys[index.row()]
+        return self.get_value_func(name)
+    
+    def set_value(self, index, value):
+        name = index.model().keys[index.row()]
+        self.set_value_func(name, value)
+        
+#TODO: Implement add/remove values (add_value_func, remove_value_func)
+class RemoteDictEditorTableView(BaseTableView):
+    """DictEditor table view"""
+    def __init__(self, parent, data,
+                 truncate=True, minmax=False, inplace=False, collvalue=True,
+                 get_value_func=None, set_value_func=None):
+        BaseTableView.__init__(self, parent)
+        self.dictfilter = None
+        self.model = None
+        self.delegate = None
+        self.readonly = False
+        self.model = DictModel(self, data, names=True,
+                               truncate=truncate, minmax=minmax,
+                               collvalue=collvalue, remote=True)
+        self.setModel(self.model)
+        self.delegate = RemoteDictDelegate(self, inplace,
+                                           get_value_func, set_value_func)
+        self.setItemDelegate(self.delegate)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.adjust_columns()
+        
+        # Sorting columns
+        self.setSortingEnabled(True)
+        self.sortByColumn(0, Qt.AscendingOrder)
+
+
+#----Globals filter: filter namespace dictionaries (to be edited in DictEditor)
+def is_supported(value, iter=0, itermax=-1, filters=None):
+    """Return True if the value is supported, False otherwise"""
+    assert filters is not None
+    if iter == itermax:
+        return True
+    elif not isinstance(value, filters):
+        return False
+    elif isinstance(value, (list, tuple, set)):
+        for val in value:
+            if not is_supported(val, iter+1, filters=filters):
+                return False
+    elif isinstance(value, dict):
+        for key, val in value.iteritems():
+            if not is_supported(key, iter+1, filters=filters) \
+               or not is_supported(val, iter+1, filters=filters):
+                return False
+    return True
+
+def globalsfilter(input_dict, itermax=-1, filters=None,
+                  exclude_private=None, exclude_upper=None,
+                  exclude_unsupported=None, excluded_names=None):
+    """Keep only objects that can be pickled"""
+    output_dict = input_dict.copy() # Shallow copy
+    for key in input_dict:
+        if (exclude_private and key.startswith('_')) or \
+           (exclude_upper and key[0].isupper()) or \
+           (key in excluded_names) or \
+           (exclude_unsupported and not is_supported(input_dict[key],
+                                                     itermax=itermax,
+                                                     filters=filters)):
+            output_dict.pop(key)
+    return output_dict
+
+
 if __name__ == "__main__":
     import numpy as N
     testdict = {'d': 1, 'a': N.random.rand(10, 10), 'b': [1, 2]}
@@ -1099,6 +1015,6 @@ if __name__ == "__main__":
 #    if dialog.exec_():
 #        print dialog.get_copy()
     
-    out = dedit_experimental(example)
+    out = dedit(example)
     print "out:", out
     

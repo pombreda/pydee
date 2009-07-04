@@ -36,45 +36,23 @@ from pydeelib.config import (CONF, get_conf_path, str2type, get_icon,
 from pydeelib.qthelpers import create_action
 
 # Package local imports
-from pydeelib.widgets.dicteditor import DictEditorTableView
+from pydeelib.widgets.dicteditor import DictEditorTableView, globalsfilter
 from pydeelib.plugins import PluginMixin
 
 FILTERS = tuple(str2type(CONF.get('workspace', 'filters')))
-# Max number of filter iterations for worskpace display:
-# (for workspace saving, itermax == -1, see Workspace.save)
-ITERMAX = -1 #XXX: To be adjusted if it takes too much to compute... 2, 3?
+ITERMAX = CONF.get('workspace', 'itermax')
 
-def is_supported(value, iter=0, itermax=-1):
-    """Return True if the value is supported, False otherwise"""
-    if iter == itermax:
-        return True
-    elif not isinstance(value, FILTERS):
-        return False
-    elif isinstance(value, (list, tuple, set)):
-        for val in value:
-            if not is_supported(val, iter+1):
-                return False
-    elif isinstance(value, dict):
-        for key, val in value.iteritems():
-            if not is_supported(key, iter+1) or not is_supported(val, iter+1):
-                return False
-    return True
-
-def wsfilter(input_dict, itermax=ITERMAX):
+def wsfilter(input_dict, itermax=ITERMAX, filters=FILTERS):
     """Keep only objects that can be saved"""
     exclude_private = CONF.get('workspace', 'exclude_private')
     exclude_upper = CONF.get('workspace', 'exclude_upper')
     exclude_unsupported = CONF.get('workspace', 'exclude_unsupported_datatypes')
     excluded_names = CONF.get('workspace', 'excluded')
-    output_dict = input_dict.copy() # Shallow copy
-    for key in input_dict:
-        if (exclude_private and key.startswith('_')) or \
-           (exclude_upper and key[0].isupper()) or \
-           (key in excluded_names) or \
-           (exclude_unsupported and not is_supported(input_dict[key],
-                                                     itermax=itermax)):
-            output_dict.pop(key)
-    return output_dict
+    return globalsfilter(input_dict, itermax=itermax, filters=filters,
+                         exclude_private=exclude_private,
+                         exclude_upper=exclude_upper,
+                         exclude_unsupported=exclude_unsupported,
+                         excluded_names=excluded_names)
 
 
 class Workspace(DictEditorTableView, PluginMixin):

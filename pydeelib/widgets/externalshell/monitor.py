@@ -5,18 +5,32 @@ import threading, socket, traceback, thread
 import StringIO, pickle, struct
 from PyQt4.QtCore import QThread, SIGNAL
 
+from pydeelib.config import CONF, str2type
 from pydeelib.dochelpers import getargtxt
 from pydeelib.widgets.dicteditor import (get_type, get_size, get_color,
-                                         value_to_display)
-from pydeelib.plugins.workspace import wsfilter
+                                         value_to_display, globalsfilter)
 
 
-def glexp_make(d):
-    """Make a remote view of dictionary *d*
-    -> namespace explorer"""
-    d = wsfilter(d)
+FILTERS = tuple(str2type(CONF.get('external_shell', 'globalsexplorer/filters')))
+ITERMAX = CONF.get('external_shell', 'globalsexplorer/itermax')
+EXCLUDE_PRIVATE = CONF.get('external_shell', 'globalsexplorer/exclude_private')
+EXCLUDE_UPPER = CONF.get('external_shell', 'globalsexplorer/exclude_upper')
+EXCLUDE_UNSUPPORTED = CONF.get('external_shell',
+                               'globalsexplorer/exclude_unsupported_datatypes')
+EXCLUDED_NAMES = CONF.get('external_shell', 'globalsexplorer/excluded')
+
+def glexp_make(data):
+    """
+    Make a remote view of dictionary *data*
+    -> globals explorer
+    """
+    data = globalsfilter(data, itermax=ITERMAX, filters=FILTERS,
+                         exclude_private=EXCLUDE_PRIVATE,
+                         exclude_upper=EXCLUDE_UPPER,
+                         exclude_unsupported=EXCLUDE_UNSUPPORTED,
+                         excluded_names=EXCLUDED_NAMES)
     remote = {}
-    for key, value in d.iteritems():
+    for key, value in data.iteritems():
         remote[key] = {'type': get_type(value),
                        'size': get_size(value),
                        'color': get_color(value),
