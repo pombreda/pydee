@@ -254,6 +254,9 @@ class QsciShell(QsciBase):
         Check if selected text is r/w,
         otherwise remove read-only parts of selection
         """
+        if self.current_prompt_pos is None:
+            self.move_cursor_to_end()
+            return
         line_from, index_from, line_to, index_to = self.getSelection()
         pline, pindex = self.current_prompt_pos
         if line_from < pline or \
