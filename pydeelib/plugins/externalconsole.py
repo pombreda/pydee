@@ -110,10 +110,6 @@ class ExternalConsole(PluginWidget):
         if python:
             shell = ExternalPythonShell(self, fname, wdir, self.commands,
                                         interact, debug, path=self.main.path)
-            self.connect(shell.globalsexplorer.editor,
-                         SIGNAL('option_changed'),
-                         lambda opt,val: self.emit(SIGNAL('option_changed'),
-                                                   opt, val))
         else:
             shell = ExternalSystemShell(self, wdir)
         shell.shell.set_font( get_font(self.ID) )

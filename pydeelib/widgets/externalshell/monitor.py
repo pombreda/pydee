@@ -5,42 +5,32 @@ import threading, socket, traceback, thread
 import StringIO, pickle, struct
 from PyQt4.QtCore import QThread, SIGNAL
 
-from pydeelib.config import CONF, str2type
+from pydeelib.config import str2type
 from pydeelib.dochelpers import getargtxt
 from pydeelib.widgets.dicteditor import (get_type, get_size, get_color,
                                          value_to_display, globalsfilter)
 
 
-def make_remote_view(data):
+def make_remote_view(data, settings):
     """
     Make a remote view of dictionary *data*
     -> globals explorer
     """
-    #FIXME: These settings are not taken into account until next external shell session
-    FILTERS = tuple(str2type(CONF.get('external_shell', 'filters')))
-    ITERMAX = CONF.get('external_shell', 'itermax')
-    EXCLUDE_PRIVATE = CONF.get('external_shell', 'exclude_private')
-    EXCLUDE_UPPER = CONF.get('external_shell', 'exclude_upper')
-    EXCLUDE_UNSUPPORTED = CONF.get('external_shell',
-                                   'exclude_unsupported_datatypes')
-    EXCLUDED_NAMES = CONF.get('external_shell', 'excluded')
-    TRUNCATE = CONF.get('external_shell', 'truncate')
-    MINMAX = CONF.get('external_shell', 'minmax')
-    COLLVALUE = CONF.get('external_shell', 'collvalue')
-    
-    data = globalsfilter(data, itermax=ITERMAX, filters=FILTERS,
-                         exclude_private=EXCLUDE_PRIVATE,
-                         exclude_upper=EXCLUDE_UPPER,
-                         exclude_unsupported=EXCLUDE_UNSUPPORTED,
-                         excluded_names=EXCLUDED_NAMES)
+    data = globalsfilter(data, itermax=settings['itermax'],
+                         filters=tuple(str2type(settings['filters'])),
+                         exclude_private=settings['exclude_private'],
+                         exclude_upper=settings['exclude_upper'],
+                         exclude_unsupported=settings['exclude_unsupported'],
+                         excluded_names=settings['excluded_names'])
     remote = {}
     for key, value in data.iteritems():
+        view = value_to_display(value, truncate=settings['truncate'],
+                                minmax=settings['minmax'],
+                                collvalue=settings['collvalue'])
         remote[key] = {'type': get_type(value),
                        'size': get_size(value),
                        'color': get_color(value),
-                       'view': value_to_display(value, truncate=TRUNCATE,
-                                                minmax=MINMAX,
-                                                collvalue=COLLVALUE)}
+                       'view': view}
     return remote
     
 
@@ -70,6 +60,12 @@ def communicate(sock, input, pickle_try=False):
             pass
     else:
         return output
+
+def monitor_get_remote_view(sock, settings):
+    """Get globals() remote view"""
+    write_packet(sock, "__make_remote_view__(globals())")
+    write_packet(sock, pickle.dumps(settings, pickle.HIGHEST_PROTOCOL))
+    return pickle.loads( read_packet(sock) )
 
 def monitor_get_global(sock, name):
     """Get global variable *name* value"""
@@ -106,7 +102,7 @@ class Monitor(threading.Thread):
         write_packet(self.request, shell_id)
         self.locals = {"setlocal": self.setlocal,
                        "getargtxt": getargtxt,
-                       "__make_remote_view__": make_remote_view,
+                       "__make_remote_view__": self.make_remote_view,
                        "thread": thread,
                        "__set_global__": self.setglobal,
                        "__del_global__": self.delglobal,
@@ -126,13 +122,20 @@ class Monitor(threading.Thread):
         """
         self.request.send("x", socket.MSG_OOB)
         
+    def make_remote_view(self, glbs):
+        """
+        Return remote view of globals()
+        """
+        settings = pickle.loads( read_packet(self.request) )
+        return make_remote_view(glbs, settings)
+        
     def setglobal(self):
         """
         Set global reference value
         """
         from __main__ import __dict__ as glbs
         name = read_packet(self.request)
-        value = pickle.loads(read_packet(self.request))
+        value = pickle.loads( read_packet(self.request) )
         glbs[name] = value
         
     def delglobal(self):
