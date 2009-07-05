@@ -74,6 +74,19 @@ try:
         key = OpenKey(HKEY_CURRENT_USER, "Environment", 0, KEY_SET_VALUE)
         for name in reg:
             SetValueEx(key, name, 0, types[name], reg[name])
+        try:
+            from win32gui import SendMessageTimeout
+            from win32con import (HWND_BROADCAST, WM_SETTINGCHANGE,
+                                  SMTO_ABORTIFHUNG)
+            SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
+                               "Environment", SMTO_ABORTIFHUNG, 5000)
+        except ImportError:
+            QMessageBox.warning(self,
+                translate("WinUserEnvDialog", "Warning"),
+                translate("WinUserEnvDialog",
+                          "Module <b>pywin32 was not found</b>.<br>"
+                          "Please restart this Windows <i>session</i> "
+                          "(not the computer) for changes to take effect."))
             
     class WinUserEnvDialog(DictEditor):
         """Windows User Environment Variables Editor"""
@@ -98,19 +111,6 @@ try:
         def accept(self):
             """Reimplement Qt method"""
             set_user_env( listdict2envdict(self.get_copy()) )
-            try:
-                from win32gui import SendMessageTimeout
-                from win32con import (HWND_BROADCAST, WM_SETTINGCHANGE,
-                                      SMTO_ABORTIFHUNG)
-                SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
-                                   "Environment", SMTO_ABORTIFHUNG, 5000)
-            except ImportError:
-                QMessageBox.warning(self,
-                    translate("WinUserEnvDialog", "Warning"),
-                    translate("WinUserEnvDialog",
-                              "Module <b>pywin32 was not found</b>.<br>"
-                              "Please restart this Windows <i>session</i> "
-                              "(not the computer) for changes to take effect."))
             QDialog.accept(self)
 
 except ImportError:

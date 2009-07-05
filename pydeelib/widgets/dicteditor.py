@@ -18,12 +18,11 @@ Dictionary Editor Widget and Dialog based on PyQt4
 
 import re
 from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
-                          SIGNAL, SLOT, QDateTime, QSize)
+                          SIGNAL, SLOT, QDateTime)
 from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
                          QVBoxLayout, QWidget, QColor, QDialog, QDateEdit,
                          QDialogButtonBox, QMenu, QInputDialog, QDateTimeEdit,
-                         QApplication, QKeySequence, QSplitter, QTreeWidget,
-                         QTreeWidgetItem, QPixmap, QIcon)
+                         QApplication, QKeySequence)
 
 # Local import
 from pydeelib.config import get_icon, get_font

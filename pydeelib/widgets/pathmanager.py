@@ -30,8 +30,6 @@ from pydeelib.config import get_icon
 
 
 #TODO: Add an export button to configure environment variables outside Pydee
-#TODO: Add an option to automatically configure PYTHONPATH env var on Windows
-#TODO: Add multiple selection support
 class PathManager(QDialog):
     def __init__(self, parent=None, pathlist=None):
         QDialog.__init__(self, parent)
@@ -44,40 +42,14 @@ class PathManager(QDialog):
         self.setWindowTitle(self.tr("Path manager"))
         self.resize(500, 300)
         
+        self.selection_widgets = []
+        
         layout = QVBoxLayout()
         self.setLayout(layout)
         
-        hlayout1 = QHBoxLayout()
-        layout.addLayout(hlayout1)
-        hlayout1.setAlignment(Qt.AlignLeft)
-        
-        self.selection_widgets = []
-        
-        self.toolbar_widgets1 = []
-        self.movetop_button = create_toolbutton(self,
-                                    text=self.tr("Move to top"),
-                                    icon=get_icon('2uparrow.png'),
-                                    triggered=lambda: self.move_to(absolute=0))
-        self.toolbar_widgets1.append(self.movetop_button)
-        self.moveup_button = create_toolbutton(self,
-                                    text=self.tr("Move up"),
-                                    icon=get_icon('1uparrow.png'),
-                                    triggered=lambda: self.move_to(relative=-1))
-        self.toolbar_widgets1.append(self.moveup_button)
-        self.movedown_button = create_toolbutton(self,
-                                    text=self.tr("Move down"),
-                                    icon=get_icon('1downarrow.png'),
-                                    triggered=lambda: self.move_to(relative=1))
-        self.toolbar_widgets1.append(self.movedown_button)
-        self.movebottom_button = create_toolbutton(self,
-                                    text=self.tr("Move to bottom"),
-                                    icon=get_icon('2downarrow.png'),
-                                    triggered=lambda: self.move_to(absolute=1))
-        self.toolbar_widgets1.append(self.movebottom_button)
-        
-        for widget in self.toolbar_widgets1:
-            hlayout1.addWidget(widget)
-            self.selection_widgets.append(widget)
+        top_layout = QHBoxLayout()
+        layout.addLayout(top_layout)
+        self.toolbar_widgets1 = self.setup_top_toolbar(top_layout)
 
         self.listwidget = QListWidget(self)
 #        self.listwidget.setSelectionMode(QListWidget.ContiguousSelection)
@@ -85,33 +57,99 @@ class PathManager(QDialog):
                      self.refresh)
         layout.addWidget(self.listwidget)
 
-        hlayout2 = QHBoxLayout()
-        layout.addLayout(hlayout2)
-        hlayout2.setAlignment(Qt.AlignLeft)
-        
-        self.toolbar_widgets2 = []
-        self.add_button = create_toolbutton(self,
-                                                text=self.tr("Add path"),
-                                                icon=get_icon('edit_add.png'),
-                                                triggered=self.add_path)
-        self.toolbar_widgets2.append(self.add_button)
-        self.remove_button = create_toolbutton(self,
-                                                text=self.tr("Remove path"),
-                                                icon=get_icon('edit_remove.png'),
-                                                triggered=self.remove_path)
-        self.toolbar_widgets2.append(self.remove_button)
-        self.selection_widgets.append(self.remove_button)
-        
-        for widget in self.toolbar_widgets2:
-            hlayout2.addWidget(widget)
+        bottom_layout = QHBoxLayout()
+        layout.addLayout(bottom_layout)
+        self.toolbar_widgets2 = self.setup_bottom_toolbar(bottom_layout)        
         
         # Buttons configuration
         bbox = QDialogButtonBox(QDialogButtonBox.Close)
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
-        hlayout2.addWidget(bbox)
+        bottom_layout.addWidget(bbox)
         
         self.update_list()
         self.refresh()
+        
+    def _add_widgets_to_layout(self, layout, widgets):
+        layout.setAlignment(Qt.AlignLeft)
+        for widget in widgets:
+            layout.addWidget(widget)
+        
+    def setup_top_toolbar(self, layout):
+        toolbar = []
+        movetop_button = create_toolbutton(self,
+                                    text=self.tr("Move to top"),
+                                    icon=get_icon('2uparrow.png'),
+                                    triggered=lambda: self.move_to(absolute=0))
+        toolbar.append(movetop_button)
+        moveup_button = create_toolbutton(self,
+                                    text=self.tr("Move up"),
+                                    icon=get_icon('1uparrow.png'),
+                                    triggered=lambda: self.move_to(relative=-1))
+        toolbar.append(moveup_button)
+        movedown_button = create_toolbutton(self,
+                                    text=self.tr("Move down"),
+                                    icon=get_icon('1downarrow.png'),
+                                    triggered=lambda: self.move_to(relative=1))
+        toolbar.append(movedown_button)
+        movebottom_button = create_toolbutton(self,
+                                    text=self.tr("Move to bottom"),
+                                    icon=get_icon('2downarrow.png'),
+                                    triggered=lambda: self.move_to(absolute=1))
+        toolbar.append(movebottom_button)
+        self.selection_widgets.extend(toolbar)
+        self._add_widgets_to_layout(layout, toolbar)
+        return toolbar
+    
+    def setup_bottom_toolbar(self, layout):
+        toolbar = []
+        add_button = create_toolbutton(self, text=self.tr("Add path"),
+                                       icon=get_icon('edit_add.png'),
+                                       triggered=self.add_path)
+        toolbar.append(add_button)
+        remove_button = create_toolbutton(self, text=self.tr("Remove path"),
+                                          icon=get_icon('edit_remove.png'),
+                                          triggered=self.remove_path)
+        toolbar.append(remove_button)
+        self.selection_widgets.append(remove_button)
+        self._add_widgets_to_layout(layout, toolbar)
+        layout.addStretch(1)
+        if os.name == 'nt':
+            syncbtn = create_toolbutton(self, text=self.tr("Synchronize..."),
+                  icon=get_icon('synchronize.png'), triggered=self.synchronize,
+                  tip=self.tr("Synchronize Pydee's path list with PYTHONPATH "
+                              "environment variable"))
+            layout.addWidget(syncbtn)
+            self.selection_widgets.append(syncbtn)
+        return toolbar
+    
+    def synchronize(self):
+        answer = QMessageBox.question(self, self.tr("Synchronize"),
+            self.tr("This will synchronize Pydee's path list with "
+                    "<b>PYTHONPATH</b> environment variable for current user, "
+                    "allowing you to run your Python modules outside Pydee "
+                    "without having to configure sys.path. "
+                    "<br>Do you want to clear contents of PYTHONPATH before "
+                    "adding Pydee's path list?"),
+            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+        if answer == QMessageBox.Cancel:
+            return
+        elif answer == QMessageBox.Yes:
+            remove = True
+        else:
+            remove = False
+        from pydeelib.environ import (get_user_env, set_user_env,
+                                      listdict2envdict)
+        env = get_user_env()
+        if remove:
+            ppath = self.pathlist
+        else:
+            ppath = env.get('PYTHONPATH', [])
+            if not isinstance(ppath, list):
+                ppath = [ppath]
+            ppath = [path for path in ppath if path not in self.pathlist]
+            ppath.extend(self.pathlist)
+        env['PYTHONPATH'] = ppath
+        set_user_env( listdict2envdict(env) )
         
     def get_path_list(self):
         """Return path list"""

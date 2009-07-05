@@ -6,11 +6,6 @@
 
 """External System Shell widget: execute terminal in a separate process"""
 
-# pylint: disable-msg=C0103
-# pylint: disable-msg=R0903
-# pylint: disable-msg=R0911
-# pylint: disable-msg=R0201
-
 import sys, os
 
 # Debug
