@@ -46,8 +46,8 @@ def wsfilter(input_dict, itermax=ITERMAX, filters=FILTERS):
     """Keep only objects that can be saved"""
     exclude_private = CONF.get('workspace', 'exclude_private')
     exclude_upper = CONF.get('workspace', 'exclude_upper')
-    exclude_unsupported = CONF.get('workspace', 'exclude_unsupported_datatypes')
-    excluded_names = CONF.get('workspace', 'excluded')
+    exclude_unsupported = CONF.get('workspace', 'exclude_unsupported')
+    excluded_names = CONF.get('workspace', 'excluded_names')
     return globalsfilter(input_dict, itermax=itermax, filters=filters,
                          exclude_private=exclude_private,
                          exclude_upper=exclude_upper,
@@ -166,7 +166,7 @@ class Workspace(DictEditorTableView, PluginMixin):
                         " (i.e. which won't be handled/saved correctly)"),
             toggled=self.toggle_exclude_unsupported)
         exclude_unsupported_action.setChecked(CONF.get(self.ID,
-                                              'exclude_unsupported_datatypes'))
+                                              'exclude_unsupported'))
 
         refresh_action = create_action(self, self.tr("Refresh"), None,
             'ws_refresh.png', self.tr("Refresh workspace"),
@@ -431,7 +431,7 @@ class Workspace(DictEditorTableView, PluginMixin):
 
     def toggle_exclude_unsupported(self, checked):
         """Toggle exclude unsupported datatypes"""
-        CONF.set(self.ID, 'exclude_unsupported_datatypes', checked)
+        CONF.set(self.ID, 'exclude_unsupported', checked)
         self.refresh()
 
     #----Focus

@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, pickle
+import sys
 
 # Debug
 STDOUT = sys.stdout
@@ -21,7 +21,7 @@ from PyQt4.QtGui import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
-from pydeelib.widgets.externalshell.monitor import (communicate,
+from pydeelib.widgets.externalshell.monitor import (monitor_get_remote_view,
                                     monitor_set_global, monitor_get_global,
                                     monitor_del_global, monitor_copy_global)
 from pydeelib.widgets.dicteditor import RemoteDictEditorTableView
@@ -78,19 +78,27 @@ class GlobalsExplorer(QWidget):
                                         new_value_func=self.set_value,
                                         remove_values_func=self.remove_values,
                                         copy_value_func=self.copy_value)
+        self.connect(self.editor, SIGNAL('option_changed'), self.option_changed)
         
         vlayout = QVBoxLayout()
         vlayout.addLayout(hlayout)
         vlayout.addWidget(self.editor)
         self.setLayout(vlayout)
+
+    def option_changed(self, option, value):
+        CONF.set(self.ID, option, value)
+        self.refresh_table()
         
     def refresh_table(self):
         sock = self.shell.monitor_socket
         if sock is None:
             return
-        data = communicate(sock, "__make_remote_view__(globals())")
-        obj = pickle.loads(data)
-        self.set_data(obj)
+        settings = {}
+        for name in ('filters', 'itermax', 'exclude_private', 'exclude_upper',
+                     'exclude_unsupported', 'excluded_names',
+                     'truncate', 'minmax', 'collvalue'):
+            settings[name] = CONF.get('external_shell', name)
+        self.set_data( monitor_get_remote_view(sock, settings) )
         
     def get_value(self, name):
         return monitor_get_global(self.shell.monitor_socket, name)
