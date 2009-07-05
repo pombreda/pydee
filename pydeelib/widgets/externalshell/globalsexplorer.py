@@ -6,11 +6,6 @@
 
 """Globals explorer widget"""
 
-# pylint: disable-msg=C0103
-# pylint: disable-msg=R0903
-# pylint: disable-msg=R0911
-# pylint: disable-msg=R0201
-
 import sys
 
 # Debug
@@ -29,9 +24,6 @@ from pydeelib.qthelpers import create_toolbutton
 from pydeelib.config import get_icon, CONF
 
 
-#TODO: Add a context-menu to customize wsfilter, ...
-#      --> store these settings elsewhere?
-#          (Workspace's settings are currently used)
 class GlobalsExplorer(QWidget):
     ID = 'external_shell'
     
