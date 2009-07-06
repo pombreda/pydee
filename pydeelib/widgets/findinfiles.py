@@ -177,7 +177,7 @@ class SearchThread(QThread):
         return True
 
     def find_files_in_hg_manifest(self):
-        p = Popen("hg manifest", stdout=PIPE)
+        p = Popen(['hg', 'manifest'], stdout=PIPE)
         self.filenames = []
         hgroot = get_hg_root()
         for path in p.stdout.read().splitlines():
@@ -409,7 +409,7 @@ class FindOptions(QWidget):
         exclude_re = self.exclude_regexp.isChecked()
         python_path = self.python_path.isChecked()
         hg_manifest = self.hg_manifest.isChecked()
-        path = osp.abspath(self.dir_combo.currentText())
+        path = osp.abspath( unicode( self.dir_combo.currentText() ) )
         
         # Finding text occurences
         if not include_re:
@@ -485,7 +485,8 @@ class ResultsBrowser(OneColumnTree):
         self.nb = nb
         self.error_flag = error_flag
         self.refresh()
-        self.restore()
+        if not self.error_flag:
+            self.restore()
         
     def restore(self):
         self.collapseAll()
