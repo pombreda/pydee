@@ -292,7 +292,7 @@ class FormDialog(QDialog):
     """Form Dialog"""
     def __init__(self, data, title="", comment="",
                  icon=None, parent=None):
-        super(FormDialog, self).__init__(parent, Qt.Window)
+        super(FormDialog, self).__init__(parent)
         
         # Form
         if isinstance(data[0][0], (list, tuple)):
