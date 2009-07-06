@@ -937,7 +937,6 @@ class RemoteDictDelegate(DictDelegate):
         name = index.model().keys[index.row()]
         self.set_value_func(name, value)
         
-#TODO: Implement add/remove values (add_value_func, remove_value_func)
 class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
     def __init__(self, parent, data,

@@ -6,11 +6,6 @@
 
 """Pydee path manager"""
 
-# pylint: disable-msg=C0103
-# pylint: disable-msg=R0903
-# pylint: disable-msg=R0911
-# pylint: disable-msg=R0201
-
 from __future__ import with_statement
 
 from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
@@ -52,7 +47,6 @@ class PathManager(QDialog):
         self.toolbar_widgets1 = self.setup_top_toolbar(top_layout)
 
         self.listwidget = QListWidget(self)
-#        self.listwidget.setSelectionMode(QListWidget.ContiguousSelection)
         self.connect(self.listwidget, SIGNAL("currentRowChanged(int)"),
                      self.refresh)
         layout.addWidget(self.listwidget)
@@ -114,15 +108,19 @@ class PathManager(QDialog):
         self._add_widgets_to_layout(layout, toolbar)
         layout.addStretch(1)
         if os.name == 'nt':
-            syncbtn = create_toolbutton(self, text=self.tr("Synchronize..."),
+            self.sync_button = create_toolbutton(self,
+                  text=self.tr("Synchronize..."),
                   icon=get_icon('synchronize.png'), triggered=self.synchronize,
                   tip=self.tr("Synchronize Pydee's path list with PYTHONPATH "
                               "environment variable"))
-            layout.addWidget(syncbtn)
-            self.selection_widgets.append(syncbtn)
+            layout.addWidget(self.sync_button)
         return toolbar
     
     def synchronize(self):
+        """
+        Synchronize Pydee's path list with PYTHONPATH environment variable
+        Only apply to: current user, on Windows platforms
+        """
         answer = QMessageBox.question(self, self.tr("Synchronize"),
             self.tr("This will synchronize Pydee's path list with "
                     "<b>PYTHONPATH</b> environment variable for current user, "
@@ -168,6 +166,9 @@ class PathManager(QDialog):
         """Refresh widget"""
         for widget in self.selection_widgets:
             widget.setEnabled(self.listwidget.currentItem() is not None)
+        not_empty = self.listwidget.count() > 0
+        if os.name == 'nt':
+            self.sync_button.setEnabled(not_empty)
     
     def move_to(self, absolute=None, relative=None):
         index = self.listwidget.currentRow()
