@@ -6,7 +6,7 @@ import StringIO, pickle, struct
 from PyQt4.QtCore import QThread, SIGNAL
 
 from pydeelib.config import str2type
-from pydeelib.dochelpers import getargtxt
+from pydeelib.dochelpers import getargtxt, getdoc, getsource
 from pydeelib.widgets.dicteditor import (get_type, get_size, get_color,
                                          value_to_display, globalsfilter)
 
@@ -102,6 +102,8 @@ class Monitor(threading.Thread):
         write_packet(self.request, shell_id)
         self.locals = {"setlocal": self.setlocal,
                        "getargtxt": getargtxt,
+                       "getdoc": getdoc,
+                       "getsource": getsource,
                        "__make_remote_view__": self.make_remote_view,
                        "thread": thread,
                        "__set_global__": self.setglobal,

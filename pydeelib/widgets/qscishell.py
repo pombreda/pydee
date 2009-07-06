@@ -715,8 +715,14 @@ class QsciShell(QsciBase):
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
         raise NotImplementedError
+    def get__doc__(self, objtxt):
+        """Get object __doc__"""
+        raise NotImplementedError
     def get_doc(self, objtxt):
         """Get object documentation"""
+        raise NotImplementedError
+    def get_source(self, objtxt):
+        """Get object source"""
         raise NotImplementedError
         
     def show_code_completion(self, text):
@@ -757,7 +763,7 @@ class QsciShell(QsciBase):
                                                   "constructor)").arg(text),
                                           size, font, color='#FF0000')
         if not done:
-            doc = self.get_doc(text)
+            doc = self.get__doc__(text)
             if doc is None: # Useful only for ExternalShellBase
                 return
             self.show_calltip(self.tr("Documentation"), doc, size, font)

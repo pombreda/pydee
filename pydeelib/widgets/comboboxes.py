@@ -46,15 +46,18 @@ class EditableComboBox(QComboBox):
         self.show_tip()
         
     def is_valid(self, qstr):
-        """Return True if string is valid"""
-        raise NotImplementedError
+        """
+        Return True if string is valid
+        Return None if validation can't be done
+        """
+        pass
         
     def validate(self, qstr):
         """Validate entered path"""
-        if self.hasFocus():
+        valid = self.is_valid(qstr)
+        if self.hasFocus() and valid is not None:
             self.font.setBold(True)
             self.setFont(self.font)
-            valid = self.is_valid(qstr)
             if valid:
                 self.setStyleSheet("color:rgb(50, 155, 50);")
             else:
