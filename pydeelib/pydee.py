@@ -14,7 +14,7 @@ import sys, os, platform, re, webbrowser
 import os.path as osp
 
 # Force Python to search modules in the current directory first:
-sys.path[0] = ''
+sys.path.insert(0, '')
 
 # For debugging purpose only
 STDOUT = sys.stdout
