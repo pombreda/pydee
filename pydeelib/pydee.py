@@ -406,7 +406,7 @@ class MainWindow(QMainWindow):
                 self.docviewer = DocViewer( self )
                 self.connect(self.docviewer, SIGNAL('focus_changed()'),
                              self.plugin_focus_changed)
-                self.docviewer.set_interpreter(self.console.shell.interpreter)
+                self.docviewer.set_shell(self.console.shell)
                 self.add_dockwidget(self.docviewer)
                 self.console.set_docviewer(self.docviewer)
         
@@ -497,10 +497,23 @@ class MainWindow(QMainWindow):
         """Give focus to interactive shell widget"""
         self.console.shell.setFocus()
         
+    def __focus_shell(self):
+        """Return shell widget which has focus, if any"""
+        widget = QApplication.focusWidget()
+        from pydeelib.widgets.qscishell import QsciShell
+        from pydeelib.widgets.externalshell import ExternalShellBase
+        if isinstance(widget, QsciShell):
+            return widget
+        elif isinstance(widget, ExternalShellBase):
+            return widget.shell
+        
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
         self.update_edit_menu()
         self.update_search_menu()
+        shell = self.__focus_shell()
+        if shell is not None and self.docviewer is not None:
+            self.docviewer.set_shell(shell)
         
     def update_file_menu(self):
         """Update file menu to show recent files"""
@@ -786,7 +799,6 @@ class MainWindow(QMainWindow):
                 namespace = None
         interpreter = self.console.shell.start_interpreter(namespace)
         self.workspace.set_interpreter(interpreter)
-        self.docviewer.set_interpreter(interpreter)
         self.console.dockwidget.raise_()
         
     def redirect_interactiveshell_stdio(self, state):

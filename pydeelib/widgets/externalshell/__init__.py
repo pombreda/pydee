@@ -58,9 +58,17 @@ class ExternalQsciShell(QsciShell):
         """Get func/method argument list"""
         return self.ask_monitor("getargtxt(%s)" % objtxt)
             
+    def get__doc__(self, objtxt):
+        """Get object __doc__"""
+        return self.ask_monitor("%s.__doc__" % objtxt)
+    
     def get_doc(self, objtxt):
         """Get object documentation"""
-        return self.ask_monitor("%s.__doc__" % objtxt)
+        return self.ask_monitor("getdoc(%s)" % objtxt)
+    
+    def get_source(self, objtxt):
+        """Get object source"""
+        return self.ask_monitor("getsource(%s)" % objtxt)
 
 
 class ExternalShellBase(QWidget):

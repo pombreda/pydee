@@ -35,7 +35,7 @@ from PyQt4.QtCore import SIGNAL, QString, QEventLoop, Qt
 from pydeelib.qthelpers import (translate, create_action, get_std_icon,
                                  add_actions, keyevent2tuple)
 from pydeelib.interpreter import Interpreter
-from pydeelib.dochelpers import getargtxt
+from pydeelib.dochelpers import getargtxt, getsource, getdoc
 from pydeelib.encoding import transcode
 from pydeelib.config import CONF, get_icon, get_conf_path
 try:
@@ -539,7 +539,17 @@ has the same effect as typing a particular string at the help> prompt.
         """Get func/method argument list"""
         return getargtxt(objtxt)
     
+    def get__doc__(self, objtxt):
+        """Get object __doc__"""
+        obj, _valid = self._eval(objtxt)
+        return obj.__doc__
+    
     def get_doc(self, objtxt):
         """Get object documentation"""
         obj, _valid = self._eval(objtxt)
-        return obj.__doc__
+        return getdoc(obj)
+    
+    def get_source(self, objtxt):
+        """Get object source"""
+        obj, _valid = self._eval(objtxt)
+        return getsource(obj)

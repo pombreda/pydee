@@ -19,7 +19,6 @@ STDOUT = sys.stdout
 # Local imports
 from pydeelib.config import CONF, get_conf_path, get_icon
 from pydeelib.qthelpers import create_toolbutton
-from pydeelib.dochelpers import getdoc, getsource
 from pydeelib.widgets.comboboxes import EditableComboBox
 from pydeelib.plugins import ReadOnlyEditor
 
@@ -36,14 +35,17 @@ class DocComboBox(EditableComboBox):
         
     def is_valid(self, qstr):
         """Return True if string is valid"""
-        _, valid = self.parent().interpreter.eval(unicode(qstr))
-        return valid
+        shell = self.parent().shell
+        if hasattr(shell, 'interpreter'):
+            _, valid = shell.interpreter.eval(unicode(qstr))
+            return valid
         
     def keyPressEvent(self, event):
         """Handle key press events"""
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
             text = self.currentText()
-            if self.is_valid(text):
+            valid = self.is_valid(text)
+            if valid or valid is None:
                 self.parent().refresh(text, force=True)
                 self.set_default_style()
         else:
@@ -58,7 +60,7 @@ class DocViewer(ReadOnlyEditor):
     def __init__(self, parent):
         ReadOnlyEditor.__init__(self, parent)
         
-        self.interpreter = None
+        self.shell = None
         
         # locked = disable link with Console
         self.locked = False
@@ -134,10 +136,9 @@ class DocViewer(ReadOnlyEditor):
         tip = self.tr("Unlock") if self.locked else self.tr("Lock")
         self.locked_button.setToolTip(tip)
         
-    def set_interpreter(self, interpreter):
-        """Bind to interpreter"""
-        self.interpreter = interpreter
-        self.refresh()
+    def set_shell(self, shell):
+        """Bind to shell"""
+        self.shell = shell
         
     def refresh(self, text=None, force=False):
         """Refresh widget"""
@@ -163,23 +164,25 @@ class DocViewer(ReadOnlyEditor):
         
     def set_help(self, obj_text):
         """Show help"""
-        if self.interpreter is None:
+        if self.shell is None:
             return
         obj_text = unicode(obj_text)
-        hlp_text = None
-        obj, valid = self.interpreter.eval(obj_text)
-        if valid:
-            if self.docstring:
-                hlp_text = getdoc(obj)
+        doc_text = self.shell.get_doc(obj_text)
+        try:
+            source_text = self.shell.get_source(obj_text)
+        except (TypeError, IOError):
+            source_text = None
+        if self.docstring:
+            hlp_text = doc_text
+            if hlp_text is None:
+                hlp_text = source_text
                 if hlp_text is None:
-                    self.help_or_doc.setChecked(True)
-                    return
-            else:
-                try:
-                    hlp_text = getsource(obj)
-                except (TypeError, IOError):
+                    hlp_text = self.tr("No documentation available.")
+        else:
+            hlp_text = source_text
+            if hlp_text is None:
+                hlp_text = doc_text
+                if hlp_text is None:
                     hlp_text = self.tr("No source code available.")
-        if hlp_text is None:
-            hlp_text = self.tr("No documentation available.")
         self.editor.set_text(hlp_text)
         self.editor.move_cursor_to_start()

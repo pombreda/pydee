@@ -61,6 +61,7 @@ def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False):
     return sorted(dirlist, key=str.lower) + sorted(namelist, key=str.lower)
 
 
+#TODO: Add "Size", "Type" and "Modification date" fields to ExplorerListWidget
 class ExplorerListWidget(QListWidget):
     """File and Directories Explorer Widget
     get_filetype_icon(fname): fn which returns a QIcon for file extension"""
