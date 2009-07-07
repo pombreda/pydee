@@ -253,7 +253,16 @@ class SearchThread(QThread):
     
     def get_results(self):
         return self.results, self.nb, self.error_flag
-        
+
+
+class PatternComboBox(QComboBox):
+    def __init__(self, parent, items, tip):
+        QComboBox.__init__(self, parent)
+        self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setEditable(True)
+        self.addItems(items)
+        self.setToolTip(tip)
 
 class FindOptions(QWidget):
     """
@@ -275,12 +284,8 @@ class FindOptions(QWidget):
 
         # Layout 1
         hlayout1 = QHBoxLayout()
-        self.search_text = QComboBox(self)
-        self.search_text.setEditable(True)
-        self.search_text.addItems(search_text)
-        self.search_text.setSizePolicy(QSizePolicy.Expanding,
-                                       QSizePolicy.Fixed)
-        self.search_text.setToolTip(translate('FindInFiles', "Search pattern"))
+        self.search_text = PatternComboBox(self, search_text,
+                                    translate('FindInFiles', "Search pattern"))
         search_label = QLabel(translate('FindInFiles', "Search text:"))
         search_label.setBuddy(self.search_text)
         self.edit_regexp = create_toolbutton(self, get_icon("advanced.png"),
@@ -304,13 +309,8 @@ class FindOptions(QWidget):
 
         # Layout 2
         hlayout2 = QHBoxLayout()
-        self.include_pattern = QComboBox(self)
-        self.include_pattern.setSizePolicy(QSizePolicy.Expanding,
-                                           QSizePolicy.Fixed)
-        self.include_pattern.setEditable(True)
-        self.include_pattern.addItems(include)
-        self.include_pattern.setToolTip(translate('FindInFiles',
-                                                  "Included filenames pattern"))
+        self.include_pattern = PatternComboBox(self, include,
+                        translate('FindInFiles', "Included filenames pattern"))
         self.include_regexp = create_toolbutton(self, get_icon("advanced.png"),
                                             tip=translate('FindInFiles',
                                                           "Regular expression"))
@@ -318,13 +318,8 @@ class FindOptions(QWidget):
         self.include_regexp.setChecked(include_regexp)
         include_label = QLabel(translate('FindInFiles', "Include:"))
         include_label.setBuddy(self.include_pattern)
-        self.exclude_pattern = QComboBox(self)
-        self.exclude_pattern.setSizePolicy(QSizePolicy.Expanding,
-                                           QSizePolicy.Fixed)
-        self.exclude_pattern.setEditable(True)
-        self.exclude_pattern.addItems(exclude)
-        self.exclude_pattern.setToolTip(translate('FindInFiles',
-                                                  "Excluded filenames pattern"))
+        self.exclude_pattern = PatternComboBox(self, exclude,
+                        translate('FindInFiles', "Excluded filenames pattern"))
         self.exclude_regexp = create_toolbutton(self, get_icon("advanced.png"),
                                             tip=translate('FindInFiles',
                                                           "Regular expression"))
