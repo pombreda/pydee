@@ -17,7 +17,8 @@ These plugins inherit the following classes (PluginMixin & PluginWidget)
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QDockWidget, QWidget, QFontDialog
+from PyQt4.QtGui import (QDockWidget, QWidget, QFontDialog, QShortcut,
+                         QKeySequence)
 from PyQt4.QtCore import SIGNAL, Qt, QObject
 
 import sys
@@ -61,7 +62,15 @@ class PluginMixin(object):
                      self.visibility_changed)
         self.dockwidget = dock
         self.refresh()
+        short = self.get_shortcut()
+        if short is not None:
+            QShortcut(QKeySequence(short), self.main,
+                      lambda: self.visibility_changed(True))
         return (dock, self.location)
+    
+    def get_shortcut(self):
+        """Return widget shortcut key sequence (string)"""
+        pass
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed
@@ -160,6 +169,13 @@ class ReadOnlyEditor(PluginWidget):
         self.find_widget.hide()
         
         # <!> Layout will have to be implemented in child class!
+    
+    def get_focus_widget(self):
+        """
+        Return the widget to give focus to when
+        this plugin's dockwidget is raised on top-level
+        """
+        return self.editor
             
     def set_actions(self):
         """Setup actions"""
