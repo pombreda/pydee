@@ -6,13 +6,14 @@
 
 """Globals explorer widget"""
 
-import sys
+import sys, imp
 
 # Debug
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import QWidget, QVBoxLayout, QHBoxLayout, QLabel
+from PyQt4.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QMenu,
+                         QToolButton)
 from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
@@ -20,7 +21,7 @@ from pydeelib.widgets.externalshell.monitor import (monitor_get_remote_view,
                                     monitor_set_global, monitor_get_global,
                                     monitor_del_global, monitor_copy_global)
 from pydeelib.widgets.dicteditor import RemoteDictEditorTableView
-from pydeelib.qthelpers import create_toolbutton
+from pydeelib.qthelpers import create_toolbutton, add_actions, create_action
 from pydeelib.config import get_icon, CONF
 
 
@@ -31,32 +32,7 @@ class GlobalsExplorer(QWidget):
         QWidget.__init__(self, parent)
         
         self.shell = parent
-        
-        hlayout = QHBoxLayout()
-        hlayout.setAlignment(Qt.AlignLeft)
-        
-        # Setup toolbar
-        self.toolbar_widgets = []
-        explorer_label = QLabel(self.tr("<span style=\'color: #444444\'>"
-                                        "<b>Global variables explorer</b>"
-                                        "</span>"))
 
-        self.toolbar_widgets.append(explorer_label)
-        hide_button = create_toolbutton(self,
-                                           text=self.tr("Hide"),
-                                           icon=get_icon('hide.png'),
-                                           triggered=self.collapse)
-        self.toolbar_widgets.append(hide_button)
-        refresh_button = create_toolbutton(self,
-                                           text=self.tr("Refresh"),
-                                           icon=get_icon('reload.png'),
-                                           triggered=self.refresh_table)
-        self.toolbar_widgets.append(refresh_button)
-        
-        for widget in self.toolbar_widgets:
-            hlayout.addWidget(widget)
-        hlayout.insertStretch(1, 1)
-        
         # Dict editor:
         truncate = CONF.get(self.ID, 'truncate')
         inplace = CONF.get(self.ID, 'inplace')
@@ -72,10 +48,80 @@ class GlobalsExplorer(QWidget):
                                         copy_value_func=self.copy_value)
         self.connect(self.editor, SIGNAL('option_changed'), self.option_changed)
         
+        # Setup layout
         vlayout = QVBoxLayout()
+        hlayout = QHBoxLayout()
+        self.setup_toolbar(hlayout)
         vlayout.addLayout(hlayout)
         vlayout.addWidget(self.editor)
         self.setLayout(vlayout)
+
+        self.connect(self, SIGNAL('option_changed'), self.option_changed)
+        
+    def setup_toolbar(self, layout):
+        toolbar = []
+
+        explorer_label = QLabel(self.tr("<span style=\'color: #444444\'>"
+                                        "<b>Global variables explorer</b>"
+                                        "</span>"))
+        toolbar.append(explorer_label)
+        
+        hide_button = create_toolbutton(self, text=self.tr("Hide"),
+                                        icon=get_icon('hide.png'),
+                                        triggered=self.collapse)
+        toolbar.append(hide_button)
+        
+        refresh_button = create_toolbutton(self, text=self.tr("Refresh"),
+                                           icon=get_icon('reload.png'),
+                                           triggered=self.refresh_table)
+        toolbar.append(refresh_button)
+        
+        exclude_private_action = create_action(self,
+                self.tr("Exclude private references"),
+                tip=self.tr("Exclude references which name starts"
+                            " with an underscore"),
+                toggled=lambda state:self.emit(SIGNAL('option_changed'),
+                                               'exclude_private', state))
+        exclude_private_action.setChecked(CONF.get(self.ID, 'exclude_private'))
+        
+        exclude_upper_action = create_action(self,
+                self.tr("Exclude capitalized references"),
+                tip=self.tr("Exclude references which name starts with an "
+                            "upper-case character"),
+                toggled=lambda state:self.emit(SIGNAL('option_changed'),
+                                               'exclude_upper', state))
+        exclude_upper_action.setChecked( CONF.get(self.ID, 'exclude_upper') )
+        
+        exclude_unsupported_action = create_action(self,
+                self.tr("Exclude unsupported data types"),
+                tip=self.tr("Exclude references to unsupported data types"
+                            " (i.e. which won't be handled/saved correctly)"),
+                toggled=lambda state:self.emit(SIGNAL('option_changed'),
+                                               'exclude_unsupported', state))
+        exclude_unsupported_action.setChecked(CONF.get(self.ID,
+                                              'exclude_unsupported'))
+        
+        options_button = create_toolbutton(self, text=self.tr("Options"),
+                                           icon=get_icon('tooloptions.png'))
+        toolbar.append(options_button)
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        menu = QMenu(self)
+        editor = self.editor
+        actions = [exclude_private_action, exclude_upper_action,
+                   exclude_unsupported_action, None, editor.truncate_action,
+                   editor.inplace_action, editor.collvalue_action]
+        try:
+            imp.find_module('numpy')
+            actions.append(editor.minmax_action)
+        except ImportError:
+            pass
+        add_actions(menu, actions)
+        options_button.setMenu(menu)
+
+        layout.setAlignment(Qt.AlignLeft)
+        for widget in toolbar:
+            layout.addWidget(widget)
+        layout.insertStretch(1, 1)
 
     def option_changed(self, option, value):
         CONF.set(self.ID, option, value)
