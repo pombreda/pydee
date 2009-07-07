@@ -116,6 +116,10 @@ class Editor(PluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.tabwidget.currentWidget()
+    
+    def get_shortcut(self):
+        """Return widget shortcut key sequence (string)"""
+        return "Ctrl+Maj+E"
 
     def add_recent_file(self, fname):
         """Add to recent file list"""

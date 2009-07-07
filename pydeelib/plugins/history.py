@@ -35,6 +35,10 @@ class HistoryLog(ReadOnlyEditor):
     def get_widget_title(self):
         """Return widget title"""
         return self.tr('History log')
+    
+    def get_shortcut(self):
+        """Return widget shortcut key sequence (string)"""
+        return "Ctrl+Maj+H"
         
     def set_rawhistory(self, rawhistory):
         """Set history log's raw history"""
