@@ -100,6 +100,18 @@ class DocViewer(ReadOnlyEditor):
     def get_widget_title(self):
         """Return widget title"""
         return self.tr('Doc')
+    
+    def get_focus_widget(self):
+        """
+        Return the widget to give focus to when
+        this plugin's dockwidget is raised on top-level
+        """
+        self.combo.lineEdit().selectAll()
+        return self.combo
+    
+    def get_shortcut(self):
+        """Return widget shortcut key sequence (string)"""
+        return "Ctrl+Maj+D"
         
     def load_dvhistory(self, obj=None):
         """Load history from a text file in user home directory"""

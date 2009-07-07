@@ -87,6 +87,10 @@ class Workspace(DictEditorTableView, PluginMixin):
         this plugin's dockwidget is raised on top-level
         """
         return self
+    
+    def get_shortcut(self):
+        """Return widget shortcut key sequence (string)"""
+        return "Ctrl+Maj+W"
         
     def set_interpreter(self, interpreter):
         """Bind to interpreter"""
