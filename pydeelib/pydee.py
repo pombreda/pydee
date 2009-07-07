@@ -9,6 +9,9 @@ Pydee
 """
 
 #TODO: External console: add history length option (or move the interactive console option?)
+#TODO: Add documentation in a browser-like (non-modal) dialog
+#TODO: Documentation on global shortcuts
+#TODO: Documentation on interactive/external console, docviewer, etc.
 
 import sys, os, platform, re, webbrowser
 import os.path as osp
