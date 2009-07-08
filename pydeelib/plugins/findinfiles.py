@@ -61,7 +61,6 @@ class FindInFiles(FindInFilesWidget, PluginMixin):
     def refreshdir(self):
         """Refresh search directory"""
         self.find_options.set_directory(os.getcwdu())
-        self.find_options.detect_hg_repository()
         
     def get_widget_title(self):
         """Return widget title"""

@@ -45,8 +45,7 @@ def is_hg_installed():
     else:
         return False
 
-def get_hg_root():
-    path = os.getcwd()
+def get_hg_root(path):
     previous_path = path
     while not osp.isdir(osp.join(path, '.hg')):
         path = abspardir(path)
@@ -56,10 +55,10 @@ def get_hg_root():
             previous_path = path
     return osp.abspath(path)
 
-#def find_files_in_hg_manifest(include, exclude):
+#def find_files_in_hg_manifest(rootpath, include, exclude):
 #    p = Popen("hg manifest", stdout=PIPE)
 #    found = []
-#    hgroot = get_hg_root()
+#    hgroot = get_hg_root(rootpath)
 #    for path in p.stdout.read().splitlines():
 #        dirname = osp.join('.', osp.dirname(path))
 #        if re.search(exclude, dirname+os.sep):
@@ -179,7 +178,7 @@ class SearchThread(QThread):
     def find_files_in_hg_manifest(self):
         p = Popen(['hg', 'manifest'], stdout=PIPE)
         self.filenames = []
-        hgroot = get_hg_root()
+        hgroot = get_hg_root(self.rootpath)
         for path in p.stdout.read().splitlines():
             with QMutexLocker(self.mutex):
                 if self.stopped:
@@ -354,6 +353,8 @@ class FindOptions(QWidget):
         self.dir_combo.addItem(os.getcwdu())
         self.dir_combo.setToolTip(translate('FindInFiles',
                                     "Search recursively in this directory"))
+        self.connect(self.dir_combo, SIGNAL("open_dir(QString)"),
+                     self.set_directory)
         self.connect(self.python_path, SIGNAL('toggled(bool)'),
                      self.dir_combo.setDisabled)
         self.connect(self.hg_manifest, SIGNAL('toggled(bool)'),
@@ -374,9 +375,13 @@ class FindOptions(QWidget):
                 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         
-    def detect_hg_repository(self):
-        hg_repository = is_hg_installed() and get_hg_root() is not None
+    def detect_hg_repository(self, path=None):
+        if path is None:
+            path = os.getcwdu()
+        hg_repository = is_hg_installed() and get_hg_root(path) is not None
         self.hg_manifest.setEnabled(hg_repository)
+        if not hg_repository and self.hg_manifest.isChecked():
+            self.custom_dir.setChecked(True)
         
     def set_search_text(self, text):
         self.search_text.setEditText(text)
@@ -436,7 +441,9 @@ class FindOptions(QWidget):
         self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
         
     def set_directory(self, directory):
-        self.dir_combo.setEditText(unicode(osp.abspath(directory)))        
+        path = unicode(osp.abspath(directory))
+        self.dir_combo.setEditText(path)
+        self.detect_hg_repository(path)
         
     def keyPressEvent(self, event):
         """Reimplemented to handle key events"""
