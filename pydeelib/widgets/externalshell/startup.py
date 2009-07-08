@@ -16,10 +16,6 @@ def __run_init_commands():
     import os
     return os.environ.get('PYTHONINITCOMMANDS')
 
-def __remove_pyqt_inputhook():
-    from PyQt4.QtCore import pyqtRemoveInputHook
-    pyqtRemoveInputHook()
-
 def __create_banner():
     """Create shell banner"""
     import sys
@@ -28,7 +24,6 @@ def __create_banner():
 
 if __name__ == "__main__":
     __create_banner()
-    __remove_pyqt_inputhook()
     __commands__ = __run_init_commands()
     if __commands__:
         for command in __commands__.split(';'):
@@ -36,9 +31,8 @@ if __name__ == "__main__":
     else:
         __run_pythonstartup_script()
 
-    for name in ('__run_pythonstartup_script', '__run_init_commands',
-                 '__remove_pyqt_inputhook', '__create_banner', '__commands__',
-                 'command', '__file__', 'name'):
+    for name in ('__run_pythonstartup_script', '__run_init_commands', 'name',
+                 '__create_banner', '__commands__', 'command', '__file__'):
         locals().pop(name)
 
     __doc__ = ''
