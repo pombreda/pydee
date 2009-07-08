@@ -43,3 +43,6 @@ def displayhook(obj):
     monitor.refresh()
 
 sys.displayhook = displayhook
+
+from PyQt4.QtCore import pyqtRemoveInputHook
+pyqtRemoveInputHook()
