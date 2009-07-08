@@ -93,6 +93,9 @@ class ExternalPythonShell(ExternalShellBase):
         self.interact_check.setEnabled(not state)
         self.debug_check.setEnabled(not state)
         self.terminate_button.setEnabled(state)
+        if not state:
+            self.toggle_globals_explorer(False)
+        self.globalsexplorer_button.setEnabled(state)
     
     def create_process(self):
         self.shell.clear()
