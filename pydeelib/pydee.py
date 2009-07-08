@@ -409,7 +409,6 @@ class MainWindow(QMainWindow):
                 self.docviewer = DocViewer( self )
                 self.connect(self.docviewer, SIGNAL('focus_changed()'),
                              self.plugin_focus_changed)
-                self.docviewer.set_shell(self.console.shell)
                 self.add_dockwidget(self.docviewer)
                 self.console.set_docviewer(self.docviewer)
         

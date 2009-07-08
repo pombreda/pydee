@@ -779,6 +779,7 @@ class QsciShell(QsciBase):
     def set_docviewer(self, docviewer):
         """Set DocViewer DockWidget reference"""
         self.docviewer = docviewer
+        self.docviewer.set_shell(self)
 
 
     #------ Utilities

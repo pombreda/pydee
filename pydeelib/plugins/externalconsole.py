@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QVBoxLayout, QFileDialog, QFontDialog, QMessageBox
-from PyQt4.QtCore import Qt, SIGNAL, QProcess, QString
+from PyQt4.QtCore import Qt, SIGNAL, QString
 
 import sys, os
 import os.path as osp
@@ -93,7 +93,7 @@ class ExternalConsole(PluginWidget):
         if index is not None and CONF.get(self.ID, 'single_tab') \
            and fname is not None:
             old_shell = self.tabwidget.widget(index)
-            if old_shell.process.state() == QProcess.Running:
+            if old_shell.is_running():
                 answer = QMessageBox.question(self, self.get_widget_title(),
                     self.tr("%1 is already running in a separate process.\n"
                             "Do you want to kill the process before starting "
