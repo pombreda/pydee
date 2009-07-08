@@ -112,6 +112,8 @@ class ExternalShellBase(QWidget):
 
         self.process = None
         
+        self.is_closing = False
+        
     def is_running(self):
         if self.process is not None:
             return self.process.state() == QProcess.Running
@@ -149,6 +151,7 @@ class ExternalShellBase(QWidget):
         
     def closeEvent(self, event):
         if self.process is not None:
+            self.is_closing = True
             self.process.kill()
         self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
     
@@ -188,11 +191,13 @@ class ExternalShellBase(QWidget):
         raise NotImplementedError
     
     def finished(self, exit_code, exit_status):
+        # Saving console history:
+        self.shell.save_history()
+        if self.is_closing:
+            return
         self.set_running_state(False)
         self.show_time(end=True)
         self.emit(SIGNAL('finished()'))
-        # Saving console history:
-        self.shell.save_history()
     
 #===============================================================================
 #    Input/Output
