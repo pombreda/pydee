@@ -93,6 +93,24 @@ class Tabs(QTabWidget):
                 event.accept()
                 return
         QTabWidget.mousePressEvent(self, event)
+        
+    def keyPressEvent(self, event):
+        """Override Qt method"""
+        ctrl = event.modifiers() & Qt.ControlModifier
+        key = event.key()
+        handled = False
+        if ctrl and self.count() > 0:
+            index = self.currentIndex()
+            if key == Qt.Key_PageUp and index > 0:
+                self.setCurrentIndex(index-1)
+                handled = True
+            elif key == Qt.Key_PageDown and index < self.count()-1:
+                self.setCurrentIndex(index+1)
+                handled = True
+        if handled:
+            event.accept()
+        else:
+            QTabWidget.keyPressEvent(self, event)
 
     def switch_tabs(self, index1, index2):
         """Switch tabs"""
