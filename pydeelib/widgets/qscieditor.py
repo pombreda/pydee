@@ -88,10 +88,12 @@ class QsciEditor(QsciBase):
         QsciBase.__init__(self, parent)
         
         # Lexer
+        self.supported_language = False
         if language is not None:
             for key in self.LEXERS:
                 if language.lower() in key:
                     self.setLexer( self.LEXERS[key](self) )
+                    self.supported_language = True
                     break
                 
         # Tab always indents (event when cursor is not at the begin of line)
@@ -291,16 +293,15 @@ class QsciEditor(QsciBase):
             return
 
         text = self.selectedText()
-        if not self.is_a_word(text):
-            return
-        
-        ok = self.__find_first(text)
-        while ok:
-            spos = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
-            epos = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
-            self.SendScintilla(QsciScintilla.SCI_INDICATORFILLRANGE,
-                               spos, epos-spos)
-            ok = self.__find_next(text)
+        if self.supported_language and self.is_a_word(text):
+            # Highlighting all occurences of word *text*
+            ok = self.__find_first(text)
+            while ok:
+                spos = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
+                epos = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
+                self.SendScintilla(QsciScintilla.SCI_INDICATORFILLRANGE,
+                                   spos, epos-spos)
+                ok = self.__find_next(text)
         
     def __lines_changed(self):
         """Update margin"""
