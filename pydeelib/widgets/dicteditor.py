@@ -512,6 +512,16 @@ class BaseTableView(QTableView):
                                       translate("DictEditor", "Edit"),
                                       icon=get_icon('edit.png'),
                                       triggered=self.edit_item)
+        self.plot_action = create_action(self, 
+                                      translate("DictEditor", "Plot"),
+                                      icon=get_icon('plot.png'),
+                                      triggered=self.plot_item)
+        self.plot_action.setVisible(False)
+        self.imshow_action = create_action(self, 
+                                      translate("DictEditor", "Show image"),
+                                      icon=get_icon('imshow.png'),
+                                      triggered=self.imshow_item)
+        self.imshow_action.setVisible(False)
         self.insert_action = create_action(self, 
                                       translate("DictEditor", "Insert"),
                                       icon=get_icon('insert.png'),
@@ -553,7 +563,8 @@ class BaseTableView(QTableView):
                                     icon=get_icon('edit_add.png'),
                                     triggered=self.duplicate_item)
         menu = QMenu(self)
-        menu_actions = [self.edit_action, self.insert_action,
+        menu_actions = [self.edit_action, self.plot_action, self.imshow_action,
+                        self.insert_action,
                         self.remove_action, None,
                         self.rename_action,self.duplicate_action, None,
                         self.truncate_action, self.inplace_action,
@@ -569,6 +580,15 @@ class BaseTableView(QTableView):
         condition = index.isValid()
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
+        self.refresh_plot_entries(index)
+        
+    def refresh_plot_entries(self, index):
+        value = self.delegate.get_value(index)
+        condition_plot = isinstance(value, ndarray) and len(value) != 0 \
+                         and len(value.shape) <= 2
+        condition_imshow = condition_plot and min(value.shape) > 2
+        self.plot_action.setVisible(condition_plot)
+        self.imshow_action.setVisible(condition_imshow)
         
     def adjust_columns(self):
         """Resize two first columns to contents"""
@@ -719,6 +739,35 @@ class BaseTableView(QTableView):
                   QLineEdit.Normal)
         if valid and not value.isEmpty():
             self.new_value(key, try_to_eval(unicode(value)))
+            
+    def __prepare_plot(self):
+        try:
+            from matplotlib import rcParams
+            rcParams['backend'] = 'Qt4agg'
+            return True
+        except ImportError:
+            QMessageBox.warning(self, translate("DictEditor", "Import error"),
+                    translate("DictEditor",
+                              "Please install <b>matplotlib</b>."))
+
+            
+    def plot_item(self):
+        """Plot item"""
+        index = self.currentIndex()
+        if self.__prepare_plot():
+            from pylab import plot, show
+            data = self.delegate.get_value(index)
+            plot(data)
+            show()
+            
+    def imshow_item(self):
+        """Imshow item"""
+        index = self.currentIndex()
+        if self.__prepare_plot():
+            from pylab import imshow, show
+            data = self.delegate.get_value(index)
+            imshow(data)
+            show()
         
 
 class DictEditorTableView(BaseTableView):
@@ -789,7 +838,8 @@ class DictEditorTableView(BaseTableView):
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
         self.insert_action.setEnabled( not self.readonly )
-
+        self.refresh_plot_entries(index)
+        
     def set_filter(self, dictfilter=None):
         """Set table dict filter"""
         self.dictfilter = dictfilter
