@@ -744,6 +744,10 @@ class QsciShell(QsciBase):
            (self.docviewer.dockwidget.isVisible()):
             # DocViewer widget exists and is visible
             self.docviewer.refresh(text)
+            self.setFocus() # if docviewer was not at top level, raising it to
+                            # top will automatically give it focus because of
+                            # the visibility_changed signal, so we must give
+                            # focus back to shell
             if call:
                 # Display argument list if this is function call
                 iscallable = self.iscallable(text)
