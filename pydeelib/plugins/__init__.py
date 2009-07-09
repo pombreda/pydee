@@ -62,15 +62,11 @@ class PluginMixin(object):
                      self.visibility_changed)
         self.dockwidget = dock
         self.refresh()
-        short = self.get_shortcut()
+        short = CONF.get(self.ID, "shortcut", None)
         if short is not None:
             QShortcut(QKeySequence(short), self.main,
                       lambda: self.visibility_changed(True))
         return (dock, self.location)
-    
-    def get_shortcut(self):
-        """Return widget shortcut key sequence (string)"""
-        pass
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed

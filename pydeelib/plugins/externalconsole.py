@@ -162,10 +162,6 @@ class ExternalConsole(PluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.tabwidget.currentWidget()
-    
-    def get_shortcut(self):
-        """Return widget shortcut key sequence (string)"""
-        return "Ctrl+Maj+X"
         
     def set_actions(self):
         """Setup actions"""
