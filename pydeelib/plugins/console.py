@@ -98,10 +98,6 @@ class Console(PluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.shell
-    
-    def get_shortcut(self):
-        """Return widget shortcut key sequence (string)"""
-        return "Ctrl+Maj+I"
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""

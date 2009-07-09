@@ -111,6 +111,7 @@ DEFAULTS = [
               }),
             ('shell',
              {
+              'shortcut': "Ctrl+Maj+C",
               'working_dir_history' : 10,
               'working_dir_adjusttocontents' : False,
               'font/family' : MONOSPACE,
@@ -129,6 +130,7 @@ DEFAULTS = [
               }),
             ('external_shell',
              {
+              'shortcut': "Ctrl+Maj+X",
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
               'font/bold' : False,
@@ -159,6 +161,7 @@ DEFAULTS = [
               }),
             ('editor',
              {
+              'shortcut': "Ctrl+Maj+E",
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
               'font/bold' : False,
@@ -178,6 +181,7 @@ DEFAULTS = [
               }),
             ('historylog',
              {
+              'shortcut': "Ctrl+Maj+H",
               'enable' : True,
               'max_entries' : 100,
               'font/family' : MONOSPACE,
@@ -190,6 +194,7 @@ DEFAULTS = [
               }),
             ('docviewer',
              {
+              'shortcut': "Ctrl+Maj+D",
               'enable' : True,
               'max_history_entries' : 20,
               'font/family' : MONOSPACE,
@@ -199,6 +204,7 @@ DEFAULTS = [
               }),
             ('workspace',
              {
+              'shortcut': "Ctrl+Maj+W",
               'enable' : True,
               'autorefresh' : True,
               'filters' : type2str(FILTERS),
@@ -241,6 +247,7 @@ DEFAULTS = [
               }),
             ('explorer',
              {
+              'shortcut': "Ctrl+Maj+F",
               'enable': True,
               'wrap': True,
               'include': '.',
