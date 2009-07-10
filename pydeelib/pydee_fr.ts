@@ -1517,22 +1517,22 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>FindReplace</name>
     <message>
-        <location filename="widgets/findreplace.py" line="58"/>
+        <location filename="widgets/findreplace.py" line="60"/>
         <source>Case Sensitive</source>
         <translation>Respecter la casse</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="60"/>
+        <location filename="widgets/findreplace.py" line="62"/>
         <source>Whole words</source>
         <translation>Mots entiers</translation>
     </message>
     <message>
         <location filename="widgets/findreplace.py" line="71"/>
         <source>Replace with:</source>
-        <translation>Remplacer par :</translation>
+        <translation type="obsolete">Remplacer par :</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="78"/>
+        <location filename="widgets/findreplace.py" line="86"/>
         <source>Replace all</source>
         <translation>Remplacer tout</translation>
     </message>
@@ -1545,6 +1545,26 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <location filename="pydee.py" line="211"/>
         <source>Replace text</source>
         <translation>Remplacer</translation>
+    </message>
+    <message>
+        <location filename="widgets/findreplace.py" line="52"/>
+        <source>Previous</source>
+        <translation>Précédent</translation>
+    </message>
+    <message>
+        <location filename="widgets/findreplace.py" line="56"/>
+        <source>Next</source>
+        <translation>Suivant</translation>
+    </message>
+    <message>
+        <location filename="widgets/findreplace.py" line="74"/>
+        <source>Replace</source>
+        <translation>Remplacer</translation>
+    </message>
+    <message>
+        <location filename="widgets/findreplace.py" line="79"/>
+        <source>with:</source>
+        <translation>par :</translation>
     </message>
 </context>
 <context>
