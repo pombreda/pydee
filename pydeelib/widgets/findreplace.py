@@ -13,7 +13,7 @@
 
 from PyQt4.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel, QWidget,
                          QLineEdit, QSizePolicy)
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtCore import SIGNAL, SLOT, Qt
 
 import sys
 
@@ -49,9 +49,11 @@ class FindReplace(QWidget):
                      self.text_has_changed)
         
         self.previous_button = create_toolbutton(self,
+                                             text=self.tr("Previous"),
                                              triggered=self.find_previous,
                                              icon=get_std_icon("ArrowBack"))
         self.next_button = create_toolbutton(self,
+                                             text=self.tr("Next"),
                                              triggered=self.find_next,
                                              icon=get_std_icon("ArrowForward"))
 
@@ -65,10 +67,16 @@ class FindReplace(QWidget):
                         self.next_button, self.case_check, self.words_check]
         for widget in self.widgets[1:]:
             hlayout.addWidget(widget)
+        hlayout.addStretch(1)
         glayout.addLayout(hlayout, 0, 1)
 
         # Replace layout
-        replace_with = QLabel(self.tr("Replace with:"))
+        replace_with1 = QLabel(self.tr("Replace"))
+        replace_with2 = QLabel()
+        font = replace_with2.font()
+        font.setBold(True)
+        replace_with2.setFont(font)
+        replace_with3 = QLabel(self.tr("with:"))
         self.replace_edit = QLineEdit()
         
         self.replace_button = create_toolbutton(self,
@@ -78,10 +86,13 @@ class FindReplace(QWidget):
         self.all_check = QCheckBox(self.tr("Replace all"))
         
         self.replace_layout = QHBoxLayout()
-        widgets = [replace_with, self.replace_edit,
-                   self.replace_button, self.all_check]
+        widgets = [replace_with1, replace_with2, replace_with3,
+                   self.replace_edit, self.replace_button, self.all_check]
         for widget in widgets:
             self.replace_layout.addWidget(widget)
+        self.connect(self.edit, SIGNAL("textChanged(QString)"),
+                     replace_with2, SLOT("setText(QString)"))
+        self.replace_layout.addStretch(1)
         glayout.addLayout(self.replace_layout, 1, 1)
         self.widgets.extend(widgets)
         self.replace_widgets = widgets
