@@ -9,15 +9,15 @@ Pydee
 """
 
 #TODO: External console: add history length option (or move the interactive console option?)
-#TODO: Add documentation in a browser-like (non-modal) dialog
-#TODO: Documentation on global shortcuts
-#TODO: Documentation on interactive/external console, docviewer, etc.
 
 import sys, os, platform, re, webbrowser
 import os.path as osp
 
 # Force Python to search modules in the current directory first:
 sys.path.insert(0, '')
+
+# pydeelib install path:
+APP_PATH = osp.dirname(__file__)
 
 # For debugging purpose only
 STDOUT = sys.stdout
@@ -46,7 +46,7 @@ from pydeelib.plugins.externalconsole import ExternalConsole
 from pydeelib.plugins.findinfiles import FindInFiles
 from pydeelib.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate, get_filetype_icon,
-                                 add_module_dependent_bookmarks)
+                                 add_module_dependent_bookmarks, add_bookmark)
 from pydeelib.config import get_icon, get_image_path, CONF, get_conf_path
 
 
@@ -123,16 +123,18 @@ class MainWindow(QMainWindow):
     BOOKMARKS = (
          ('PyQt4',
           "http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/pyqt4ref.html",
-          translate("MainWindow", "PyQt4 Reference Guide")),
+          translate("MainWindow", "PyQt4 Reference Guide"), "qt.png"),
          ('PyQt4',
           "http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/classes.html",
-          translate("MainWindow", "PyQt4 API Reference")),
+          translate("MainWindow", "PyQt4 API Reference"), "qt.png"),
          ('xy', "http://www.pythonxy.com",
-          translate("MainWindow", "Python(x,y)")),
+          translate("MainWindow", "Python(x,y)"), "pythonxy.png"),
          ('numpy', "http://docs.scipy.org/doc/",
-          translate("MainWindow", "Numpy and Scipy documentation")),
+          translate("MainWindow", "Numpy and Scipy documentation"),
+          "scipy.png"),
          ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
-          translate("MainWindow", "Matplotlib documentation")),
+          translate("MainWindow", "Matplotlib documentation"),
+          "matplotlib.png"),
                 ) 
     
     def __init__(self, commands=None, intitle="", message="", options=None):
@@ -148,7 +150,7 @@ class MainWindow(QMainWindow):
         self.path = []
         if osp.isfile(self.pydee_path):
             self.path, _ = encoding.readlines(self.pydee_path)
-            self.path = [name for name in self.path if os.path.isdir(name)]
+            self.path = [name for name in self.path if osp.isdir(name)]
         self.remove_path_from_sys_path()
         self.add_path_to_sys_path()
         self.pydee_path_action = create_action(self,
@@ -443,12 +445,14 @@ class MainWindow(QMainWindow):
         
             # ? menu
             help_menu = self.menuBar().addMenu("?")
-            help_menu.addAction(create_action(self,
-                self.tr("About %1...").arg("Pydee"),
-                icon=get_std_icon('MessageBoxInformation'),
-                triggered=self.about))
-            if self.console.shell.help_action is not None:
-                help_menu.addAction(self.console.shell.help_action)
+            help_menu.addAction( create_action(self,
+                                    self.tr("About %1...").arg("Pydee"),
+                                    icon=get_std_icon('MessageBoxInformation'),
+                                    triggered=self.about) )
+            add_bookmark(self, help_menu,
+                         osp.join(APP_PATH, "doc", "index.html"),
+                         self.tr("Pydee documentation"), shortcut="F1",
+                         icon=get_std_icon('DialogHelpButton'))
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, self.tr("Python documentation"),
                                           icon=get_icon('python.png'),
@@ -526,14 +530,13 @@ class MainWindow(QMainWindow):
             self.file_menu.addAction(self.winenv_action)
         recent_files = []
         for fname in self.editor.recent_files:
-            if (fname not in self.editor.filenames) and os.path.isfile(fname):
+            if (fname not in self.editor.filenames) and osp.isfile(fname):
                 recent_files.append(fname)
         if recent_files:
             self.file_menu.addSeparator()
             for i, fname in enumerate(recent_files):
                 action = create_action(self,
-                                       "&%d %s" % (i+1,
-                                                   os.path.basename(fname)),
+                                       "&%d %s" % (i+1, osp.basename(fname)),
                                        icon=get_filetype_icon(fname),
                                        triggered=self.editor.load)
                 action.setData(QVariant(fname))
@@ -942,9 +945,9 @@ def get_options():
     else:
         filename = os.environ.get('PYTHONSTARTUP')
         msg = 'PYTHONSTARTUP'
-    if filename and os.path.isfile(filename):
+    if filename and osp.isfile(filename):
         commands.append('execfile(r"%s")' % filename)
-        messagelist.append(msg+' (%s)' % os.path.basename(filename))
+        messagelist.append(msg+' (%s)' % osp.basename(filename))
         
     # Options shown in console
     message = ""
@@ -988,8 +991,7 @@ def main():
                               QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
             app.installTranslator(qt_translator)
         app_translator = QTranslator()
-        app_path = os.path.dirname(__file__)
-        if app_translator.load("pydee_" + locale, app_path):
+        if app_translator.load("pydee_" + locale, APP_PATH):
             app.installTranslator(app_translator)
     
     # Options
@@ -1028,7 +1030,7 @@ def main():
                 self.window = MatplotlibFigure(main, canvas, num)
                 self.window.setAttribute(Qt.WA_DeleteOnClose)
         
-                image = os.path.join( matplotlib.rcParams['datapath'],'images','matplotlib.png' )
+                image = osp.join( matplotlib.rcParams['datapath'],'images','matplotlib.png' )
                 self.window.setWindowIcon(QIcon( image ))
         
                 # Give the keyboard focus to the figure instead of the manager

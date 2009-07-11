@@ -1,6 +1,9 @@
 \.pyc$
 \.settings$
 \.orig$
+^pydeelib/doc/.doctrees/
+^pydeelib/doc/_sources/
+.buildinfo
 ^build/
 ^dist/
 ^pydee.egg-info/

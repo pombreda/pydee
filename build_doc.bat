@@ -1,0 +1,1 @@
+sphinx-build doc_src pydeelib\doc

@@ -206,7 +206,6 @@ class InteractiveShell(QsciShell):
                            triggered=self.clear_terminal)
         self.help_action = create_action(self,
                            translate("InteractiveShell", "Help..."),
-                           shortcut="F1",
                            icon=get_std_icon('DialogHelpButton'),
                            triggered=self.help)
         add_actions(self.menu, (clear_line_action, None, clear_action, None,
