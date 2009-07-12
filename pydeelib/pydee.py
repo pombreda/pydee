@@ -23,7 +23,8 @@ APP_PATH = osp.abspath(osp.dirname(__file__))
 STDOUT = sys.stdout
 
 from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
-                         QMessageBox, QMenu, QIcon, QLabel, QCursor, QColor)
+                         QMessageBox, QMenu, QIcon, QLabel, QCursor, QColor,
+                         QShortcut, QKeySequence)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QLibraryInfo, QLocale, QTranslator, QSize, QByteArray,
                           QObject, QVariant)
@@ -197,6 +198,7 @@ class MainWindow(QMainWindow):
         self.already_closed = False
         
         self.window_size = None
+        self.last_window_state = None
         
     def setup(self):
         """Setup main window"""
@@ -479,6 +481,8 @@ class MainWindow(QMainWindow):
         self.move( QPoint(posx, posy) )
         
         if not self.light:
+            QShortcut(QKeySequence("Ctrl+Alt+Shift+M"), self,
+                      self.maximize_dockwidget)
             # Window layout
             hexstate = CONF.get(section, 'state')
             self.restoreState( QByteArray().fromHex(hexstate) )
@@ -663,6 +667,24 @@ class MainWindow(QMainWindow):
             dockwidget.setFloating(True)
                 
         self.widgetlist.append(child)
+        
+    def maximize_dockwidget(self):
+        """
+        Shortcut: Ctrl+Alt+Shift+M
+        First call: maximize current dockwidget
+        Second call: restore original window layout
+        """
+        if self.last_window_state is None:
+            # No plugin is currently maximized: maximizing focus plugin
+            self.last_window_state = self.saveState()
+            focus_widget = QApplication.focusWidget()
+            for plugin in self.widgetlist:
+                if not plugin.isAncestorOf(focus_widget):
+                    plugin.dockwidget.hide()
+        else:
+            # Restore original layout (before maximizing current dockwidget)
+            self.restoreState(self.last_window_state)
+            self.last_window_state = None
     
     def add_to_menubar(self, widget, title=None):
         """Add menu and actions to menubar"""
