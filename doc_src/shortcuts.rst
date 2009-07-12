@@ -3,26 +3,30 @@ Global shortcuts
 
 The default Pydee global shortcuts are the following:
 
-- Editor:
-  
-  Ctrl+Maj+E
-  
-- Interactive console:
+- Maximizing current plugin / restoring original window layout:
 
-  Ctrl+Maj+C
-  
-- Workspace:
+  Ctrl+Shift+Alt+M
 
-  Ctrl+Maj+W
+- Go to :doc:`editor`:
   
-- History:
-
-  Ctrl+Maj+H
+  Ctrl+Shift+E
   
-- Documentation viewer:
+- Go to :doc:`console`:
 
-  Ctrl+Maj+D
+  Ctrl+Shift+C
   
-- External console:
+- Go to :doc:`workspace`:
 
-  Ctrl+Maj+X
+  Ctrl+Shift+W
+  
+- Go to :doc:`historylog`:
+
+  Ctrl+Shift+H
+  
+- Go to :doc:`docviewer`:
+
+  Ctrl+Shift+D
+  
+- Go to :doc:`extconsole`:
+
+  Ctrl+Shift+X

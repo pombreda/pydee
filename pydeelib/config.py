@@ -111,7 +111,7 @@ DEFAULTS = [
               }),
             ('shell',
              {
-              'shortcut': "Ctrl+Maj+C",
+              'shortcut': "Ctrl+Shift+C",
               'working_dir_history' : 10,
               'working_dir_adjusttocontents' : False,
               'font/family' : MONOSPACE,
@@ -130,7 +130,7 @@ DEFAULTS = [
               }),
             ('external_shell',
              {
-              'shortcut': "Ctrl+Maj+X",
+              'shortcut': "Ctrl+Shift+X",
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
               'font/bold' : False,
@@ -161,7 +161,7 @@ DEFAULTS = [
               }),
             ('editor',
              {
-              'shortcut': "Ctrl+Maj+E",
+              'shortcut': "Ctrl+Shift+E",
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
               'font/bold' : False,
@@ -181,7 +181,7 @@ DEFAULTS = [
               }),
             ('historylog',
              {
-              'shortcut': "Ctrl+Maj+H",
+              'shortcut': "Ctrl+Shift+H",
               'enable' : True,
               'max_entries' : 100,
               'font/family' : MONOSPACE,
@@ -194,7 +194,7 @@ DEFAULTS = [
               }),
             ('docviewer',
              {
-              'shortcut': "Ctrl+Maj+D",
+              'shortcut': "Ctrl+Shift+D",
               'enable' : True,
               'max_history_entries' : 20,
               'font/family' : MONOSPACE,
@@ -204,7 +204,7 @@ DEFAULTS = [
               }),
             ('workspace',
              {
-              'shortcut': "Ctrl+Maj+W",
+              'shortcut': "Ctrl+Shift+W",
               'enable' : True,
               'autorefresh' : True,
               'filters' : type2str(FILTERS),
@@ -247,7 +247,7 @@ DEFAULTS = [
               }),
             ('explorer',
              {
-              'shortcut': "Ctrl+Maj+F",
+              'shortcut': "Ctrl+Shift+F",
               'enable': True,
               'wrap': True,
               'include': '.',
@@ -274,7 +274,7 @@ DEFAULTS = [
             ]
 
 DEV = not __file__.startswith(sys.prefix)
-DEV = False
+#DEV = False
 CONF = UserConfig('pydee', DEFAULTS, version='0.4.20', load=(not DEV))
 
 def get_conf_path(filename):
