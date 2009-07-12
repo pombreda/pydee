@@ -17,7 +17,7 @@ import os.path as osp
 sys.path.insert(0, '')
 
 # pydeelib install path:
-APP_PATH = osp.dirname(__file__)
+APP_PATH = osp.abspath(osp.dirname(__file__))
 
 # For debugging purpose only
 STDOUT = sys.stdout
