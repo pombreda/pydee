@@ -660,24 +660,7 @@ class MainWindow(QMainWindow):
         # Matplotlib figures
         from pydeelib.plugins.figure import MatplotlibFigure
         if isinstance(child, MatplotlibFigure):
-            # Tabifying
-            if self.widgetlist:
-                last_object = self.widgetlist[-1]
-                if isinstance(last_object, MatplotlibFigure):
-                    if (last_object.dockwidget is None) \
-                       or last_object.dockwidget.isWindow():
-                        # last_object is floating
-                        dockwidget.setFloating(True)
-                        size = QSize(*CONF.get('figure', 'size'))
-                        if isinstance(last_object, MatplotlibFigure):
-                            size = last_object.size()
-                        dockwidget.resize(size)
-                    else:
-                        # last_object is docked
-                        self.tabifyDockWidget(last_object.dockwidget,
-                                              dockwidget)
-            dockwidget.setVisible(True)
-            dockwidget.raise_()
+            dockwidget.setFloating(True)
                 
         self.widgetlist.append(child)
     
