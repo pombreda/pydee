@@ -45,7 +45,7 @@ class ExternalPythonShell(ExternalShellBase):
             self.debug_check.hide()
             self.terminate_button.hide()
         
-        self.commands = ["import sys", "sys.path[0] = ''"] + commands
+        self.commands = ["import sys", "sys.path.insert(0, '')"] + commands
         
         # Additional python path list
         self.path = path
