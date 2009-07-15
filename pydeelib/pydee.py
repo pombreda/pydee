@@ -481,6 +481,8 @@ class MainWindow(QMainWindow):
         self.move( QPoint(posx, posy) )
         
         if not self.light:
+            #TODO: Add "Maximize" icon to main toolbar (and eventually to view_menu)
+            # ---> maximize.png / unmaximize.png
             QShortcut(QKeySequence("Ctrl+Alt+Shift+M"), self,
                       self.maximize_dockwidget)
             # Window layout
@@ -534,7 +536,7 @@ class MainWindow(QMainWindow):
             self.file_menu.addAction(self.winenv_action)
         recent_files = []
         for fname in self.editor.recent_files:
-            if (fname not in self.editor.filenames) and osp.isfile(fname):
+            if not self.editor.is_file_opened(fname) and osp.isfile(fname):
                 recent_files.append(fname)
         if recent_files:
             self.file_menu.addSeparator()
@@ -578,7 +580,7 @@ class MainWindow(QMainWindow):
         console, not_readonly, readwrite_editor = scintilla_properties
         
         # Editor has focus and there is no file opened in it
-        if not console and not_readonly and not self.editor.tabwidget.count():
+        if not console and not_readonly and not self.editor.is_file_opened():
             return
         
         self.selectall_action.setEnabled(True)
