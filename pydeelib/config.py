@@ -274,8 +274,8 @@ DEFAULTS = [
             ]
 
 DEV = not __file__.startswith(sys.prefix)
-#DEV = False
-CONF = UserConfig('pydee', DEFAULTS, version='0.4.20', load=(not DEV))
+DEV = False
+CONF = UserConfig('pydee', DEFAULTS, version='0.4.21', load=(not DEV))
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""
