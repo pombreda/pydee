@@ -126,7 +126,7 @@ def add_actions(target, actions):
     for action in actions:
         if (action is None) and (previous_action is not None):
             target.addSeparator()
-        else:
+        elif action is not None:
             target.addAction(action)
         previous_action = action
 
