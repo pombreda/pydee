@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys
+import sys, re
 from PyQt4.QtGui import QFont, QToolTip
 from PyQt4.QtCore import QPoint, SIGNAL, QString, QRegExp
 from PyQt4.Qsci import QsciScintilla
@@ -134,11 +134,30 @@ class QsciBase(QsciScintilla):
         return index
 
     
-    def is_a_word(self, text):
-        """Is 'text' a word? (according to current lexer)"""
-        regexp = QRegExp( QString('[^%1]').arg(self.wordCharacters()) )
-        return not regexp.exactMatch(text)
-
+    def get_current_word(self):
+        """Return current word, i.e. word at cursor position"""
+        line, index = self.getCursorPosition()
+        text = self.text(line)
+        wc = self.wordCharacters()
+        if wc is None:
+            regexp = QRegExp('[^\w_]')
+        else:
+            regexp = QRegExp('[^%s]' % re.escape(wc))
+        start = text.lastIndexOf(regexp, index) + 1
+        end = text.indexOf(regexp, index)
+        if start == end + 1 and index > 0:
+            # we are on a word boundary, try again
+            start = text.lastIndexOf(regexp, index - 1) + 1
+        if start == -1:
+            start = 0
+        if end == -1:
+            end = text.length()
+        if end > start:
+            word = text.mid(start, end - start)
+        else:
+            word = QString('')
+        return word
+        
 
     def clear_selection(self):
         """Clear current selection"""
