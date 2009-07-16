@@ -15,7 +15,7 @@ import sys, os, re
 from math import log
 
 from PyQt4.QtGui import QMouseEvent, QColor, QMenu, QPixmap
-from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent
+from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
                         QsciLexerProperties, QsciLexerBatch)
@@ -129,6 +129,15 @@ class QsciEditor(QsciBase):
             
         # Scintilla Python API
         self.api = None
+        
+        # Mark occurences timer
+        self.occurences_timer = QTimer(self)
+        self.occurences_timer.setSingleShot(True)
+        #TODO: Add attribute for timer interval -> as well as an entry in CONF ('Editor')
+        # self.occurences_timer.setInterval(self.occurences_timeout)
+        self.occurences_timer.setInterval(750)
+        self.connect(self.occurences_timer, SIGNAL("timeout()"), 
+                     self.__mark_occurences)
         
         # Context menu
         self.setup_context_menu()
@@ -280,28 +289,34 @@ class QsciEditor(QsciBase):
         return (spos, epos - spos)
         
     def __cursor_position_changed(self):
-        """
-        Cursor position has changed:
-        marking occurences of the currently selected word
-        """
+        """Cursor position has changed"""
+        #TODO: Add attribute for occurences marking enable/disable:
+        # if self.occurences_marking:
+        self.occurences_timer.stop()
+        self.occurences_timer.start()
+        
+    def __mark_occurences(self):
+        """Marking occurences of the currently selected word"""
         self.SendScintilla(QsciScintilla.SCI_SETINDICATORCURRENT,
                            self.OCCURENCE_INDICATOR)
         self.SendScintilla(QsciScintilla.SCI_INDICATORCLEARRANGE,
                            0, self.length())
-        
-        if not self.hasSelectedText():
+
+        if not self.supported_language:
+            return
+            
+        text = self.get_current_word()
+        if text.isEmpty():
             return
 
-        text = self.selectedText()
-        if self.supported_language and self.is_a_word(text):
-            # Highlighting all occurences of word *text*
-            ok = self.__find_first(text)
-            while ok:
-                spos = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
-                epos = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
-                self.SendScintilla(QsciScintilla.SCI_INDICATORFILLRANGE,
-                                   spos, epos-spos)
-                ok = self.__find_next(text)
+        # Highlighting all occurences of word *text*
+        ok = self.__find_first(text)
+        while ok:
+            spos = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
+            epos = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
+            self.SendScintilla(QsciScintilla.SCI_INDICATORFILLRANGE,
+                               spos, epos-spos)
+            ok = self.__find_next(text)
         
     def __lines_changed(self):
         """Update margin"""
