@@ -86,19 +86,7 @@ class QsciEditor(QsciBase):
     def __init__(self, parent=None, linenumbers=True, language=None,
                  code_analysis=False, code_folding=False):
         QsciBase.__init__(self, parent)
-        
-        # Lexer
-        self.supported_language = False
-        if language is not None:
-            for key in self.LEXERS:
-                if language.lower() in key:
-                    self.setLexer( self.LEXERS[key](self) )
-                    self.supported_language = True
-                    break
-                
-        # Tab always indents (event when cursor is not at the begin of line)
-        self.tab_indents = language in self.TAB_ALWAYS_INDENTS
-            
+                    
         # Indicate occurences of the selected word
         self.connect(self, SIGNAL('cursorPositionChanged(int, int)'),
                      self.__cursor_position_changed)
@@ -121,9 +109,6 @@ class QsciEditor(QsciBase):
                                                  'png'))
 
         self.margin_font = get_font('editor', 'margin')
-        if linenumbers:
-            self.connect( self, SIGNAL('linesChanged()'), self.__lines_changed )
-        self.setup_margins(linenumbers, code_analysis, code_folding)
         self.calltip_size = CONF.get('calltips', 'size')
         self.calltip_font = get_font('calltips')
             
@@ -141,6 +126,34 @@ class QsciEditor(QsciBase):
         
         # Context menu
         self.setup_context_menu()
+        
+    def setup_editor(self, linenumbers=True, language=None,
+                     code_analysis=False, code_folding=False,
+                     font=None, wrap=True):
+        # Lexer
+        self.set_language(language)
+                
+        # Tab always indents (event when cursor is not at the begin of line)
+        self.tab_indents = language in self.TAB_ALWAYS_INDENTS
+        if linenumbers:
+            self.connect( self, SIGNAL('linesChanged()'), self.__lines_changed )
+        self.setup_margins(linenumbers, code_analysis, code_folding)
+
+        if font is not None:
+            self.set_font(font)
+        self.set_wrap_mode(wrap)
+        self.setup_api()
+        self.setModified(False)
+        
+    def set_language(self, language):
+        self.supported_language = False
+        if language is not None:
+            for key in self.LEXERS:
+                if language.lower() in key:
+                    self.setLexer( self.LEXERS[key](self) )
+                    self.supported_language = True
+                    break
+        
         
 #===============================================================================
 #    QScintilla
@@ -343,6 +356,7 @@ class QsciEditor(QsciBase):
     def set_text(self, text):
         """Set the text of the editor"""
         self.setText(text)
+        self.set_eol_mode(text)
 
     def get_text(self):
         """Return editor text"""
@@ -377,16 +391,6 @@ class QsciEditor(QsciBase):
 #===============================================================================
 #    High-level editor features
 #===============================================================================
-    def setup_editor(self, text, font=None, wrap=True):
-        """Setup Editor"""
-        if font is not None:
-            self.set_font(font)
-        self.set_wrap_mode(wrap)
-        self.setup_api()
-        self.set_text(text)
-        self.set_eol_mode(text)
-        self.setModified(False)
-        
     def highlight_line(self, line):
         """Highlight line number *line*"""
         text = unicode(self.text(line-1)).strip()
@@ -400,10 +404,9 @@ class QsciEditor(QsciBase):
         self.markers = []
         self.marker_lines = {}
         
-    def do_code_analysis(self, filename):
+    def process_code_analysis(self, check_results):
         """Analyze filename code with pyflakes"""
         self.cleanup_code_analysis()
-        check_results = check(filename)
         if check_results is None:
             # Not able to compile module
             return
