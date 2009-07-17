@@ -140,7 +140,8 @@ class ReadOnlyEditor(PluginWidget):
         PluginWidget.__init__(self, parent)
 
         # Read-only editor
-        self.editor = QsciEditor(self, linenumbers=False, language='py',
+        self.editor = QsciEditor(self)
+        self.editor.setup_editor(linenumbers=False, language='py',
                                  code_folding=True)
         self.connect(self.editor, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
