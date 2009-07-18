@@ -123,6 +123,11 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 def add_actions(target, actions):
     """Add actions to a menu"""
     previous_action = None
+    target_actions = list(target.actions())
+    if target_actions:
+        previous_action = target_actions[-1]
+        if previous_action.isSeparator():
+            previous_action = None
     for action in actions:
         if (action is None) and (previous_action is not None):
             target.addSeparator()
