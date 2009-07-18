@@ -199,6 +199,7 @@ class MainWindow(QMainWindow):
         
         self.window_size = None
         self.last_window_state = None
+        self.last_plugin = None
         
     def setup(self):
         """Setup main window"""
@@ -251,6 +252,14 @@ class MainWindow(QMainWindow):
 
         namespace = None
         if not self.light:
+            # Maximize current plugin
+            self.maximize_action = create_action(self, '',
+                                             shortcut="Ctrl+Alt+Shift+M",
+                                             triggered=self.maximize_dockwidget)
+            self.__update_maximize_action()
+            self.toolbar.addAction(self.maximize_action)
+            self.toolbar.addSeparator()
+
             # File menu
             self.file_menu = self.menuBar().addMenu(self.tr("&File"))
             if WinUserEnvDialog is not None:
@@ -443,6 +452,8 @@ class MainWindow(QMainWindow):
             # View menu
             self.view_menu = self.createPopupMenu()
             self.view_menu.setTitle(self.tr("&View"))
+            self.view_menu.addSeparator()
+            self.view_menu.addAction(self.maximize_action)
             self.menuBar().addMenu(self.view_menu)
         
             # ? menu
@@ -481,10 +492,6 @@ class MainWindow(QMainWindow):
         self.move( QPoint(posx, posy) )
         
         if not self.light:
-            #TODO: Add "Maximize" icon to main toolbar (and eventually to view_menu)
-            # ---> maximize.png / unmaximize.png
-            QShortcut(QKeySequence("Ctrl+Alt+Shift+M"), self,
-                      self.maximize_dockwidget)
             # Window layout
             hexstate = CONF.get(section, 'state')
             self.restoreState( QByteArray().fromHex(hexstate) )
@@ -670,6 +677,21 @@ class MainWindow(QMainWindow):
                 
         self.widgetlist.append(child)
         
+    def __update_maximize_action(self):
+        if self.last_window_state is None:
+            text = self.tr("Maximize current plugin")
+            tip = self.tr("Maximize current plugin to fit the whole "
+                          "application window")
+            icon = "maximize.png"
+        else:
+            text = self.tr("Restore current plugin")
+            tip = self.tr("Restore current plugin to its original size and "
+                          "position within the application window")
+            icon = "unmaximize.png"
+        self.maximize_action.setText(text)
+        self.maximize_action.setIcon(get_icon(icon))
+        self.maximize_action.setToolTip(tip)
+        
     def maximize_dockwidget(self):
         """
         Shortcut: Ctrl+Alt+Shift+M
@@ -681,12 +703,16 @@ class MainWindow(QMainWindow):
             self.last_window_state = self.saveState()
             focus_widget = QApplication.focusWidget()
             for plugin in self.widgetlist:
-                if not plugin.isAncestorOf(focus_widget):
+                if plugin.isAncestorOf(focus_widget):
+                    self.last_plugin = plugin
+                else:
                     plugin.dockwidget.hide()
         else:
             # Restore original layout (before maximizing current dockwidget)
             self.restoreState(self.last_window_state)
             self.last_window_state = None
+            self.last_plugin.get_focus_widget().setFocus()
+        self.__update_maximize_action()
     
     def add_to_menubar(self, widget, title=None):
         """Add menu and actions to menubar"""
