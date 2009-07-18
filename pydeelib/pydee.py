@@ -257,8 +257,7 @@ class MainWindow(QMainWindow):
                                              shortcut="Ctrl+Alt+Shift+M",
                                              triggered=self.maximize_dockwidget)
             self.__update_maximize_action()
-            self.toolbar.addAction(self.maximize_action)
-            self.toolbar.addSeparator()
+            add_actions(self.toolbar, (self.maximize_action, None))
 
             # File menu
             self.file_menu = self.menuBar().addMenu(self.tr("&File"))
@@ -355,13 +354,10 @@ class MainWindow(QMainWindow):
                              self.findinfiles.set_search_text)
                 self.connect(self.workdir, SIGNAL("chdir()"),
                              self.findinfiles.refreshdir)
-                self.search_menu.addSeparator()
-                self.search_menu.addAction(self.findinfiles_action)
+                add_actions(self.search_menu, (None, self.findinfiles_action))
                 toolbar_search_actions.append(self.findinfiles_action)
                 
-            self.toolbar.addSeparator()
-            for action in toolbar_search_actions:
-                self.toolbar.addAction(action)
+            add_actions(self.toolbar, [None] + toolbar_search_actions)
             
             # Workspace
             if self.workspace is not None:
@@ -452,8 +448,7 @@ class MainWindow(QMainWindow):
             # View menu
             self.view_menu = self.createPopupMenu()
             self.view_menu.setTitle(self.tr("&View"))
-            self.view_menu.addSeparator()
-            self.view_menu.addAction(self.maximize_action)
+            add_actions(self.view_menu, (None, self.maximize_action))
             self.menuBar().addMenu(self.view_menu)
         
             # ? menu
@@ -470,8 +465,7 @@ class MainWindow(QMainWindow):
                 pydoc_act = create_action(self, self.tr("Python documentation"),
                                           icon=get_icon('python.png'),
                                           triggered=open_python_doc)
-                help_menu.addSeparator()
-                help_menu.addAction(pydoc_act)
+                add_actions(help_menu, (None, pydoc_act))
             if os.name == 'nt':
                 # Qt assistant link: Windows only
                 import PyQt4
@@ -554,8 +548,7 @@ class MainWindow(QMainWindow):
                                        triggered=self.editor.load)
                 action.setData(QVariant(fname))
                 self.file_menu.addAction(action)
-        self.file_menu.addSeparator()
-        self.file_menu.addAction(self.console.quit_action)
+        add_actions(self.file_menu, (None, self.console.quit_action))
         
     def __focus_widget_properties(self):
         widget = QApplication.focusWidget()
