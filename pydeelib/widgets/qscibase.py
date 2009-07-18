@@ -13,7 +13,7 @@
 
 import sys, re
 from PyQt4.QtGui import QFont, QToolTip
-from PyQt4.QtCore import QPoint, SIGNAL, QString, QRegExp
+from PyQt4.QtCore import QPoint, SIGNAL, QString, QRegExp, Qt
 from PyQt4.Qsci import QsciScintilla
 
 # For debugging purpose:
@@ -43,6 +43,7 @@ class QsciBase(QsciScintilla):
         
         # Enable brace matching
         self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
+        self.setMatchedBraceBackgroundColor(Qt.yellow)
         
     def remove_margins(self):
         """Suppressing Scintilla margins"""
