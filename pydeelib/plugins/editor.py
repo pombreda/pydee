@@ -50,7 +50,7 @@ class TabbedEditor(Tabs):
         self.ID = self.plugin.ID
         self.interactive_console = self.plugin.main.console
         
-        self.connect(self, SIGNAL('switch_data(int,int)'), self.switch_data)
+        self.connect(self, SIGNAL('move_data(int,int)'), self.move_data)
         self.connect(self, SIGNAL("close_tab(int)"), self.close_file)
         self.close_button = create_toolbutton(self,
                                           icon=get_icon("fileclose.png"),
@@ -111,22 +111,23 @@ class TabbedEditor(Tabs):
             self.editors[index].setFocus()
             return True
 
-    def switch_data(self, index1, index2):
+    def move_data(self, index_from, index_to):
         """
-        Switching tabs
-        In fact tabs have already been switched by the tabwidget
-        but we have to switch the self.editors/fnames elements too
+        Move tab
+        In fact tabs have already been moved by the tabwidget
+        but we have to move the self.editors/fnames elements too
         """
-        self.editors[index2], self.editors[index1] = \
-            self.editors[index1], self.editors[index2]
-        self.filenames[index2], self.filenames[index1] = \
-            self.filenames[index1], self.filenames[index2]
-        self.encodings[index2], self.encodings[index1] = \
-            self.encodings[index1], self.encodings[index2]
-        self.classes[index2], self.classes[index1] = \
-            self.classes[index1], self.classes[index2]
-        self.analysis_results[index2], self.analysis_results[index1] = \
-            self.analysis_results[index1], self.analysis_results[index2]
+        editor = self.editors.pop(index_from)
+        filename = self.filenames.pop(index_from)
+        encoding = self.encodings.pop(index_from)
+        classes = self.classes.pop(index_from)
+        analysis = self.analysis_results.pop(index_from)
+        
+        self.editors.insert(index_to, editor)
+        self.filenames.insert(index_to, filename)
+        self.encodings.insert(index_to, encoding)
+        self.classes.insert(index_to, classes)
+        self.analysis_results.insert(index_to, analysis)
     
     def close_file(self, index=None):
         """Close current file"""

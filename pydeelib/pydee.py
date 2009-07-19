@@ -23,8 +23,7 @@ APP_PATH = osp.abspath(osp.dirname(__file__))
 STDOUT = sys.stdout
 
 from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
-                         QMessageBox, QMenu, QIcon, QLabel, QCursor, QColor,
-                         QShortcut, QKeySequence)
+                         QMessageBox, QMenu, QIcon, QLabel, QCursor, QColor)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QLibraryInfo, QLocale, QTranslator, QSize, QByteArray,
                           QObject, QVariant)

@@ -42,7 +42,11 @@ class ExternalConsole(PluginWidget):
         self.tabwidget = None
         self.menu_actions = None
         self.dockviewer = None
-        self.shelldict = {}
+        
+        self.shells = []
+        self.filenames = []
+        self.icons = []
+        
         PluginWidget.__init__(self, parent)
         
         layout = QVBoxLayout()
@@ -51,6 +55,8 @@ class ExternalConsole(PluginWidget):
                      self.refresh)
         self.connect(self.tabwidget, SIGNAL("close_tab(int)"),
                      self.tabwidget.removeTab)
+        self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
+                     self.move_tab)
         self.close_button = create_toolbutton(self.tabwidget,
                                           icon=get_icon("fileclose.png"),
                                           triggered=self.close,
@@ -67,6 +73,18 @@ class ExternalConsole(PluginWidget):
             
         # Accepting drops
         self.setAcceptDrops(True)
+        
+    def move_tab(self, index_from, index_to):
+        """
+        Move tab (tabs themselves have already been moved by the tabwidget)
+        """
+        filename = self.filenames.pop(index_from)
+        shell = self.shells.pop(index_from)
+        icon = self.icons.pop(index_from)
+        
+        self.filenames.insert(index_to, filename)
+        self.shells.insert(index_to, shell)
+        self.icons.insert(index_to, icon)
 
     def close(self, index=-1):
         if not self.tabwidget.count():
@@ -75,9 +93,9 @@ class ExternalConsole(PluginWidget):
             index = self.tabwidget.currentIndex()
         self.tabwidget.widget(index).close()
         self.tabwidget.removeTab(index)
-        for key in self.shelldict.keys():
-            if self.shelldict[key] == index:
-                self.shelldict.pop(key)
+        self.filenames.pop(index)
+        self.shells.pop(index)
+        self.icons.pop(index)
         
     def set_docviewer(self, docviewer):
         """Bind docviewer instance to this console"""
@@ -89,7 +107,10 @@ class ExternalConsole(PluginWidget):
         # Note: fname is None <=> Python interpreter
         fname = unicode(fname) if isinstance(fname, QString) else fname
         wdir = unicode(wdir) if isinstance(wdir, QString) else wdir
-        index = self.shelldict.get(fname)
+
+        index = None
+        if fname is not None and fname in self.filenames:
+            index = self.filenames.index(fname)
         if index is not None and CONF.get(self.ID, 'single_tab') \
            and fname is not None:
             old_shell = self.tabwidget.widget(index)
@@ -131,16 +152,19 @@ class ExternalConsole(PluginWidget):
             icon = get_icon('cmdprompt.png')
         if index is None:
             index = self.tabwidget.addTab(shell, name)
+            self.shells.insert(index, shell)
+            self.filenames.insert(index, fname)
+            self.icons.insert(index, icon)
         else:
             self.tabwidget.insertTab(index, shell, name)
-        if fname is not None:
-            self.shelldict[fname] = index
-                
+            self.shells[index] = shell
+            self.filenames[index] = fname
+            self.icons[index] = icon
+        
         self.connect(shell, SIGNAL("started()"),
-                     lambda i=index: self.tabwidget.setTabIcon(i, icon))
+                     lambda sid=id(shell): self.process_started(sid))
         self.connect(shell, SIGNAL("finished()"),
-                     lambda i=index: self.tabwidget.setTabIcon(i,
-                                                  get_icon('terminated.png')))
+                     lambda sid=id(shell): self.process_finished(sid))
         self.find_widget.set_editor(shell.shell)
         self.tabwidget.setTabToolTip(index, fname if wdir is None else wdir)
         self.tabwidget.setCurrentIndex(index)
@@ -151,6 +175,16 @@ class ExternalConsole(PluginWidget):
         # Start process and give focus to console
         shell.start(ask_for_arguments)
         shell.shell.setFocus()
+        
+    def process_started(self, shell_id):
+        for index, shell in enumerate(self.shells):
+            if id(shell) == shell_id:
+                self.tabwidget.setTabIcon(index, self.icons[index])
+        
+    def process_finished(self, shell_id):
+        for index, shell in enumerate(self.shells):
+            if id(shell) == shell_id:
+                self.tabwidget.setTabIcon(index, get_icon('terminated.png'))
         
     def get_widget_title(self):
         """Return widget title"""

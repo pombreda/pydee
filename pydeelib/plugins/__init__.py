@@ -80,7 +80,8 @@ class PluginMixin(object):
         visible = self.dockwidget.isVisible()
         toggle_actions(self.menu_actions, visible)
         toggle_actions(self.toolbar_actions, visible)
-        self.refresh() #XXX Is it a good idea?
+        if visible:
+            self.refresh() #XXX Is it a good idea?
 
     def option_changed(self, option, value):
         """
