@@ -155,8 +155,9 @@ class TabbedEditor(Tabs):
     def close_tabbededitor(self):
         if self.filenames:
             self.close_all_files()
-        self.plugin.unregister_tabbededitor(self)
-        self.emit(SIGNAL('tabbededitor_closed()'))
+        removed = self.plugin.unregister_tabbededitor(self)
+        if removed:
+            self.emit(SIGNAL('tabbededitor_closed()'))
 
     def close_all_files(self):
         """Close all opened scripts"""
@@ -547,6 +548,24 @@ class Editor(PluginWidget):
         self.connect(self.classbrowser, SIGNAL('go_to_line(int)'),
                      self.go_to_line)
         
+        # Opened files listwidget
+        self.openedfileslistwidget = QListWidget(self)
+        self.connect(self.openedfileslistwidget,
+                     SIGNAL('itemActivated(QListWidgetItem*)'),
+                     self.openedfileslistwidget_clicked)
+        
+        # Right panel toolbox
+        self.toolbox = QToolBox(self)
+        self.toolbox.addItem(self.classbrowser, get_icon('class_browser.png'),
+                             translate("ClassBrowser", "Classes and functions"))
+        self.toolbox.addItem(self.openedfileslistwidget,
+                             get_icon('opened_files.png'),
+                             self.tr('Opened files'))
+        #TODO: New toolbox item: template list
+        #TODO: New toolbox item: file metrics (including current line, index)
+        self.connect(self.toolbox, SIGNAL('currentChanged(int)'),
+                     self.refresh_opened_files_list)
+        
         self.tabbededitors = []
         
         # Double splitter
@@ -554,10 +573,14 @@ class Editor(PluginWidget):
         
         cb_splitter = QSplitter(self)
         cb_splitter.addWidget(self.spliteditor)
-        cb_splitter.addWidget(self.classbrowser)
+        cb_splitter.addWidget(self.toolbox)
         cb_splitter.setStretchFactor(0, 3)
         cb_splitter.setStretchFactor(1, 1)
         layout.addWidget(cb_splitter)
+        
+        toolbox_state = CONF.get(self.ID, 'toolbox_panel')
+        self.toolbox_action.setChecked(toolbox_state)
+        self.toolbox.setVisible(toolbox_state)
         
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
@@ -576,6 +599,51 @@ class Editor(PluginWidget):
         self.last_focus_tabbededitor = None
         self.connect(self, SIGNAL("focus_changed()"),
                      self.save_focus_tabbededitor)
+
+    def get_filenames(self):
+        filenames = []
+        for tabbededitor in self.tabbededitors:
+            filenames += tabbededitor.filenames
+        return filenames
+
+    def get_tabbededitor_index(self, filename):
+        for tabbededitor in self.tabbededitors:
+            if filename in tabbededitor.filenames:
+                return tabbededitor, tabbededitor.filenames.index(filename)
+
+    def openedfileslistwidget_clicked(self, item):
+        filename = unicode(item.data(Qt.UserRole).toString())
+        tabbededitor, index = self.get_tabbededitor_index(filename)
+        tabbededitor.editors[index].setFocus()
+        tabbededitor.setCurrentIndex(index)
+
+    def opened_files_list_changed(self):
+        """
+        Opened files list has changed:
+        --> open/close file action
+        --> modification ('*' added to title)
+        --> current edited file has changed
+        """
+        self.refresh_file_dependent_actions()
+        self.refresh_opened_files_list()
+        
+    def refresh_opened_files_list(self):
+        if self.openedfileslistwidget.isHidden():
+            return
+        filenames = self.get_filenames()
+        current_filename = self.get_current_filename()
+        self.openedfileslistwidget.clear()
+        for filename in filenames:
+            tabbededitor, index = self.get_tabbededitor_index(filename)
+            title = tabbededitor.get_full_title(index=index)
+            item = QListWidgetItem(get_filetype_icon(filename),
+                                   title, self.openedfileslistwidget)
+            item.setData(Qt.UserRole, QVariant(filename))
+            if filename == current_filename:
+                font = item.font()
+                font.setBold(True)
+                item.setFont(font)
+            self.openedfileslistwidget.addItem(item)
         
     def __get_focus_tabbededitor(self):
         fwidget = QApplication.focusWidget()
@@ -605,6 +673,8 @@ class Editor(PluginWidget):
     def register_tabbededitor(self, tabbededitor):
         self.tabbededitors.append(tabbededitor)
         self.last_focus_tabbededitor = tabbededitor
+        self.connect(tabbededitor, SIGNAL('opened_files_list_changed()'),
+                     self.opened_files_list_changed)
         
     def unregister_tabbededitor(self, tabbededitor):
         """Removing tabbed editor only if it's not the last remaining"""
@@ -614,6 +684,10 @@ class Editor(PluginWidget):
             focus_widget = self.get_focus_widget()
             if focus_widget is not None:
                 focus_widget.setFocus()
+            return True
+        else:
+            # Tabbededitor was not removed!
+            return False
 
     def get_current_tabbededitor(self):
         if len(self.tabbededitors) == 1:
@@ -809,6 +883,12 @@ class Editor(PluginWidget):
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
+
+        self.toolbox_action = create_action(self,
+            self.tr("Lateral panel"), None, 'toolbox.png',
+            tip=self.tr("Editor lateral panel (class browser, "
+                        "opened file list, ...)"),
+            toggled=self.toggle_toolbox)
                 
         self.file_menu_actions = [self.new_action,
                                   self.open_action,
@@ -826,12 +906,12 @@ class Editor(PluginWidget):
                 self.exec_process_interact_action,self.exec_process_args_action,
                 self.exec_process_debug_action,
                 None, font_action, wrap_action, fold_action, analyze_action,
-                classbrowser_action)
+                classbrowser_action, self.toolbox_action)
         toolbar_actions = [self.new_action, self.open_action, self.save_action,
                 self.save_all_action, None, self.previous_warning_action,
                 self.next_warning_action, classbrowser_action,
-                None, self.exec_action, self.exec_selected_action,
-                self.exec_process_action]
+                self.toolbox_action, None, self.exec_action,
+                self.exec_selected_action, self.exec_process_action]
         self.dock_toolbar_actions = toolbar_actions + \
                 [self.exec_interact_action, self.comment_action,
                  self.uncomment_action, self.indent_action,
@@ -1091,7 +1171,7 @@ class Editor(PluginWidget):
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
-        if hasattr(self, 'tabbededitors'): #XXX Is it still necessary?
+        if hasattr(self, 'tabbededitors'):
             for tabbededitor in self.tabbededitors:
                 for editor in tabbededitor.editors:
                     editor.set_wrap_mode(checked)
@@ -1099,7 +1179,7 @@ class Editor(PluginWidget):
             
     def toggle_code_folding(self, checked):
         """Toggle code folding"""
-        if hasattr(self, 'tabbededitors'): #XXX Is it still necessary?
+        if hasattr(self, 'tabbededitors'):
             for tabbededitor in self.tabbededitors:
                 for editor in tabbededitor.editors:
                     editor.setup_margins(linenumbers=True,
@@ -1111,7 +1191,7 @@ class Editor(PluginWidget):
             
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""
-        if hasattr(self, 'tabbededitors'): #XXX Is it still necessary?
+        if hasattr(self, 'tabbededitors'):
             CONF.set(self.ID, 'code_analysis', checked)
             current_tabbededitor = self.get_current_tabbededitor()
             current_index = current_tabbededitor.currentIndex()
@@ -1129,10 +1209,10 @@ class Editor(PluginWidget):
 
     def toggle_classbrowser(self, checked):
         """Toggle class browser"""
-        if hasattr(self, 'tabwidget'):
+        if hasattr(self, 'tabbededitors'):
             CONF.set(self.ID, 'class_browser', checked)
+            self.classbrowser.setEnabled(checked)
             if checked:
-                self.classbrowser.show()
                 current_tabbededitor = self.get_current_tabbededitor()
                 current_index = current_tabbededitor.currentIndex()
                 for tabbededitor in self.tabbededitors:
@@ -1143,6 +1223,8 @@ class Editor(PluginWidget):
                 # (otherwise, we would show class tree of the last editor
                 #  instead of showing the one of the current editor)
                 current_tabbededitor.update_classbrowser()
-            else:
-                self.classbrowser.hide()
     
+    def toggle_toolbox(self, checked):
+        """Toggle toolbox"""
+        self.toolbox.setVisible(checked)
+        CONF.set(self.ID, 'toolbox_panel', checked)
