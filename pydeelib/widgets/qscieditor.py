@@ -541,8 +541,19 @@ class QsciEditor(QsciBase):
             # Unindent
             correct_indent -= 4
         elif prevtext.endswith(','):
-            prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
-            correct_indent = len(prevtext)-len(prevexpr)
+            rlmap = {")":"(", "]":"[", "}":"{"}
+            for par in rlmap:
+                i_right = prevtext.rfind(par)
+                if i_right != -1:
+                    prevtext = prevtext[:i_right]
+                    i_left = prevtext.rfind(rlmap[par])
+                    if i_left != -1:
+                        prevtext = prevtext[:i_left]
+                    else:
+                        break
+            else:
+                prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
+                correct_indent = len(prevtext)-len(prevexpr)
         if forward:
             if indent == correct_indent or indent > correct_indent:
                 # Force indent
