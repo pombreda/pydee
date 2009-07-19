@@ -18,7 +18,7 @@ from PyQt4.QtCore import SIGNAL
 
 # Local imports
 from pydeelib.config import get_icon
-from pydeelib.qthelpers import translate
+from pydeelib.qthelpers import translate, get_filetype_icon
 from pydeelib.widgets import OneColumnTree
 from pydeelib.widgets.classparser import get_classes
 
@@ -47,6 +47,7 @@ class ClassBrowser(OneColumnTree):
         self.populate_classes()
         self.resizeColumnToContents(0)
         self.expandAll()
+        self.set_title(osp.basename(self.fname))
         return (self.fname, self.classes, self.lines)
 
     def activated(self, item):

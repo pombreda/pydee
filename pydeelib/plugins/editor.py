@@ -12,8 +12,9 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
-                         QSplitter, QToolBar, QAction, QApplication)
-from PyQt4.QtCore import SIGNAL, QStringList, Qt
+                         QSplitter, QToolBar, QAction, QApplication, QToolBox,
+                         QListWidget, QListWidgetItem)
+from PyQt4.QtCore import SIGNAL, QStringList, Qt, QVariant
 
 import os, sys
 import os.path as osp
@@ -25,8 +26,9 @@ STDOUT = sys.stdout
 from pydeelib import encoding
 from pydeelib.config import CONF, get_conf_path, get_icon, get_font, set_font
 from pydeelib.qthelpers import (create_action, add_actions, mimedata2url,
-                                get_filetype_icon, create_toolbutton)
-from pydeelib.widgets.qscieditor import QsciEditor
+                                get_filetype_icon, create_toolbutton,
+                                translate)
+from pydeelib.widgets.qscieditor import QsciEditor, check
 from pydeelib.widgets.tabs import Tabs
 from pydeelib.widgets.findreplace import FindReplace
 from pydeelib.widgets.classbrowser import ClassBrowser
@@ -39,8 +41,10 @@ def is_python_script(fname):
 
 class TabbedEditor(Tabs):
     def __init__(self, parent, actions):
-        Tabs.__init__(self, parent, actions)
-        add_actions(self.menu, self.get_actions())
+        Tabs.__init__(self, parent)
+        self.original_actions = actions
+        self.additional_actions = self.get_actions()
+        self.connect(self.menu, SIGNAL("aboutToShow()"), self.setup_menu)
         
         self.plugin = parent
         self.ID = self.plugin.ID
@@ -59,31 +63,42 @@ class TabbedEditor(Tabs):
         self.encodings = []
         self.editors = []
         self.classes = []
+        self.analysis_results = []
         
         self.plugin.register_tabbededitor(self)
             
         # Accepting drops
         self.setAcceptDrops(True)
 
+    def setup_menu(self):
+        self.menu.clear()
+        if self.editors:
+            actions = self.original_actions
+        else:
+            actions = (self.plugin.new_action, self.plugin.open_action)
+            self.setFocus() # --> Editor.__get_focus_tabbededitor
+        add_actions(self.menu, actions + self.additional_actions)
+        self.close_action.setEnabled( len(self.plugin.tabbededitors) > 1 )
+
     def get_actions(self):
         # Splitting
-        versplit_action = create_action(self, self.tr("Split vertically"),
+        self.versplit_action = create_action(self, self.tr("Split vertically"),
             icon="versplit.png",
             tip=self.tr("Split vertically this editor window"),
-            triggered=lambda: self.split(vertically=True))
-        horsplit_action = create_action(self, self.tr("Split horizontally"),
+            triggered=lambda: self.emit(SIGNAL("split_vertically()")))
+        self.horsplit_action = create_action(self, self.tr("Split horizontally"),
             icon="horsplit.png",
             tip=self.tr("Split horizontally this editor window"),
-            triggered=lambda: self.split(vertically=False))
-        return (None, versplit_action, horsplit_action)
+            triggered=lambda: self.emit(SIGNAL("split_horizontally()")))
+        self.close_action = create_action(self, self.tr("Close this panel"),
+            icon="close_panel.png",
+            triggered=self.close_tabbededitor)
+        return (None, self.versplit_action, self.horsplit_action,
+                self.close_action)
         
-    def split(self, vertically=True):
-        if len(self.filenames) <= 1:
-            return
-        if vertically:
-            self.emit(SIGNAL("split_vertically()"))
-        else:
-            self.emit(SIGNAL("split_horizontally()"))
+    def set_orientation(self, orientation):
+        self.horsplit_action.setEnabled(orientation == Qt.Horizontal)
+        self.versplit_action.setEnabled(orientation == Qt.Vertical)
         
     def get_current_filename(self):
         if self.filenames:
@@ -110,6 +125,8 @@ class TabbedEditor(Tabs):
             self.encodings[index1], self.encodings[index2]
         self.classes[index2], self.classes[index1] = \
             self.classes[index1], self.classes[index2]
+        self.analysis_results[index2], self.analysis_results[index1] = \
+            self.analysis_results[index1], self.analysis_results[index2]
     
     def close_file(self, index=None):
         """Close current file"""
@@ -125,14 +142,21 @@ class TabbedEditor(Tabs):
             self.encodings.pop(index)
             self.editors.pop(index)
             self.classes.pop(index)
+            self.analysis_results.pop(index)
             self.plugin.classbrowser.clear() # Clearing class browser contents
             self.removeTab(index)
-            self.plugin.refresh()
             if not self.filenames:
                 # Tabbed editor is empty: removing it
                 # (if it's not the first tabbed editor)
-                self.plugin.unregister_tabbededitor(self)
+                self.close_tabbededitor()
+            self.emit(SIGNAL('opened_files_list_changed()'))
         return is_ok
+    
+    def close_tabbededitor(self):
+        if self.filenames:
+            self.close_all_files()
+        self.plugin.unregister_tabbededitor(self)
+        self.emit(SIGNAL('tabbededitor_closed()'))
 
     def close_all_files(self):
         """Close all opened scripts"""
@@ -230,7 +254,8 @@ class TabbedEditor(Tabs):
             index = self.currentIndex()
         fname = self.filenames[index]
         if CONF.get(self.ID, 'code_analysis') and is_python_script(fname):
-            self.editors[index].do_code_analysis(fname)
+            results = self.analysis_results[index] = check(fname)
+            self.editors[index].process_code_analysis(results)
         self.__refresh_code_analysis_buttons(index)
             
     def __refresh_code_analysis_buttons(self, index):
@@ -242,10 +267,12 @@ class TabbedEditor(Tabs):
         
     def current_changed(self, index):
         """Tab index has changed"""
-        if self.currentIndex() != -1:
-            self.currentWidget().setFocus()
-        # no need to refresh anymore: when focus changes, editor is refreshed
-#        self.refresh(index)
+        if index != -1 and not self.editors[index].hasFocus():
+            # no need to refresh if editor has focus
+            # (the 'focus_changed()' signal would have already called
+            #  this 'refresh' method)
+            self.refresh(index)
+        self.emit(SIGNAL('opened_files_list_changed()'))
         
     def focus_changed(self):
         """Editor focus has changed"""
@@ -285,6 +312,26 @@ class TabbedEditor(Tabs):
             return osp.basename(filename)
         else:
             return unicode(self.tr("Temporary file"))
+        
+    def __get_state_index(self, state, index):
+        if index is None:
+            index = self.currentIndex()
+        if index == -1:
+            return None, None
+        if state is None:
+            state = self.editors[index].isModified()
+        return state, index
+        
+    def get_full_title(self, state=None, index=None):
+        state, index = self.__get_state_index(state, index)
+        if index is None:
+            return
+        title = self.get_title(self.filenames[index])
+        if state:
+            title += "*"
+        elif title.endswith('*'):
+            title = title[:-1]
+        return title
 
     def modification_changed(self, state=None, index=None):
         """
@@ -292,17 +339,10 @@ class TabbedEditor(Tabs):
         --> change tab title depending on new modification state
         --> enable/disable save/save all actions
         """
-        if index is None:
-            index = self.currentIndex()
-        if index == -1:
+        state, index = self.__get_state_index(state, index)
+        title = self.get_full_title(state, index)
+        if index is None or title is None:
             return
-        if state is None:
-            state = self.editors[index].isModified()
-        title = self.get_title(self.filenames[index])
-        if state:
-            title += "*"
-        elif title.endswith('*'):
-            title = title[:-1]
         self.setTabText(index, title)
         # Toggle save/save all actions state
         self.plugin.save_action.setEnabled(state)
@@ -314,6 +354,8 @@ class TabbedEditor(Tabs):
                     break
         self.plugin.save_all_action.setEnabled(state)
         
+        self.emit(SIGNAL('opened_files_list_changed()'))
+        
     def load(self, filename, goto=0):
         self.filenames.append(filename)
         txt, enc = encoding.read(filename)
@@ -324,11 +366,12 @@ class TabbedEditor(Tabs):
         if ext.startswith('.'):
             ext = ext[1:] # file extension with leading dot
         
-        editor = QsciEditor(self, language=ext,
-                    linenumbers=True,
-                    code_analysis=CONF.get(self.ID, 'code_analysis'),
-                    code_folding=CONF.get(self.ID, 'code_folding'))
-        editor.setup_editor(txt, font=get_font('editor'),
+        editor = QsciEditor(self)
+        editor.set_text(txt)
+        editor.setup_editor(linenumbers=True, language=ext,
+                            code_analysis=CONF.get(self.ID, 'code_analysis'),
+                            code_folding=CONF.get(self.ID, 'code_folding'),
+                            font=get_font('editor'),
                             wrap=CONF.get(self.ID, 'wrap'))
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
                      self.modification_changed)
@@ -338,6 +381,7 @@ class TabbedEditor(Tabs):
         self.editors.append(editor)
 
         self.classes.append( (filename, None, None) )
+        self.analysis_results.append(None)
         
         title = self.get_title(filename)
         index = self.addTab(editor, title)
@@ -357,6 +401,8 @@ class TabbedEditor(Tabs):
         
         if goto > 0:
             editor.highlight_line(goto)
+            
+        self.emit(SIGNAL('opened_files_list_changed()'))
     
     def exec_script_extconsole(self, ask_for_arguments=False,
                                interact=False, debug=False):
@@ -439,25 +485,44 @@ class TabbedEditor(Tabs):
 
 
 class SplitEditor(QSplitter):
-    def __init__(self, parent, actions, orientation=Qt.Vertical):
-        QSplitter.__init__(self, orientation, parent)
+    def __init__(self, parent, actions):
+        QSplitter.__init__(self, parent)
         self.setChildrenCollapsible(False)
         self.plugin = parent
         self.tab_actions = actions
-        tabbededitor = TabbedEditor(self.plugin, actions)
-        self.connect(tabbededitor, SIGNAL("split_vertically()"),
+        self.tabbededitor = TabbedEditor(self.plugin, actions)
+        self.connect(self.tabbededitor, SIGNAL('tabbededitor_closed()'),
+                     self.tabbededitor_closed)
+        self.connect(self.tabbededitor, SIGNAL("split_vertically()"),
                      lambda: self.split(orientation=Qt.Vertical))
-        self.connect(tabbededitor, SIGNAL("split_horizontally()"),
+        self.connect(self.tabbededitor, SIGNAL("split_horizontally()"),
                      lambda: self.split(orientation=Qt.Horizontal))
-        self.addWidget(tabbededitor)
+        self.addWidget(self.tabbededitor)
+        self.spliteditor = None
+        
+    def tabbededitor_closed(self):
+        self.tabbededitor = None
+        if self.spliteditor is None:
+            self.closing()
+        
+    def spliteditor_closed(self):
+        self.spliteditor = None
+        if self.tabbededitor is None:
+            self.closing()
+        
+    def closing(self):
+        self.emit(SIGNAL('spliteditor_closed()'))
+        self.close()
         
     def split(self, orientation=Qt.Vertical):
-        new_spliteditor = SplitEditor(self.plugin, self.tab_actions,
-                                      orientation)
-        self.addWidget(new_spliteditor)
+        self.setOrientation(orientation)
+        self.tabbededitor.set_orientation(orientation)
+        self.spliteditor = SplitEditor(self.plugin, self.tab_actions)
+        self.connect(self.spliteditor, SIGNAL('spliteditor_closed()'),
+                     self.spliteditor_closed)
+        self.addWidget(self.spliteditor)
 
 
-#TODO: Implement editor window horizontal/vertical splitting
 #TODO: Implement multiple editor windows
 #      (editor tab -> context menu -> "Open in a new window")
 class Editor(PluginWidget):
@@ -518,6 +583,8 @@ class Editor(PluginWidget):
             for tabbededitor in self.tabbededitors:
                 if fwidget is tabbededitor.currentWidget():
                     return tabbededitor
+        elif isinstance(fwidget, TabbedEditor):
+            return fwidget
         
     def save_focus_tabbededitor(self):
         tabbededitor = self.__get_focus_tabbededitor()
@@ -543,7 +610,10 @@ class Editor(PluginWidget):
         """Removing tabbed editor only if it's not the last remaining"""
         if len(self.tabbededitors) > 1:
             self.tabbededitors.pop(self.tabbededitors.index(tabbededitor))
-            tabbededitor.close() #XXX: remove widget from splitter
+            tabbededitor.close() # remove widget from splitter
+            focus_widget = self.get_focus_widget()
+            if focus_widget is not None:
+                focus_widget.setFocus()
 
     def get_current_tabbededitor(self):
         if len(self.tabbededitors) == 1:
@@ -565,18 +635,22 @@ class Editor(PluginWidget):
         if tabbededitor is not None:
             return tabbededitor.get_current_filename()
         
+    def get_tabbededitor_for_filename(self, filename):
+        """Return tabbededitor where *filename* is opened"""
+        for tabbededitor in self.tabbededitors:
+            if filename in tabbededitor.filenames:
+                return tabbededitor
+        
     def is_file_opened(self, filename=None):
         if filename is None:
             # Is there any file opened?
             return self.get_current_editor() is not None
         else:
-            for tabbededitor in self.tabbededitors:
-                if filename in tabbededitor.filenames:
-                    return True
+            return self.get_tabbededitor_for_filename(filename)
         
     def set_current_filename(self, filename):
         """Set focus to *filename* if this file has been opened"""
-        tabbededitor = self.get_current_tabbededitor()
+        tabbededitor = self.get_tabbededitor_for_filename(filename)
         if tabbededitor is not None:
             return tabbededitor.set_current_filename(filename)
     
@@ -590,8 +664,7 @@ class Editor(PluginWidget):
     
     def refresh(self):
         """Refresh editor plugin"""
-        #XXX: refresh TabbedEditor instances!!! ???
-        self.refresh_file_dependent_actions()
+        pass
         
     def add_recent_file(self, fname):
         """Add to recent file list"""
@@ -775,7 +848,7 @@ class Editor(PluginWidget):
                 self.indent_action, self.unindent_action)
         self.tab_actions = (self.save_action, self.save_as_action,
                 self.exec_action, self.exec_process_action,
-                workdir_action, None, self.close_action)
+                workdir_action, self.close_action)
         return (source_menu_actions, toolbar_actions)        
         
     def split(self, orientation):
