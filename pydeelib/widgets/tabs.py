@@ -63,7 +63,7 @@ class TabsBase(QTabBar):
         index_from = self.tabAt(self.__drag_start_pos)
         index_to = self.tabAt(event.pos())
         if index_from != index_to:
-            self.emit(SIGNAL("switch_tabs(int,int)"), index_from, index_to)
+            self.emit(SIGNAL("move_tab(int,int)"), index_from, index_to)
             event.acceptProposedAction()
         QTabBar.dropEvent(self, event)
         
@@ -73,7 +73,7 @@ class Tabs(QTabWidget):
     def __init__(self, parent, actions=None):
         QTabWidget.__init__(self, parent)
         tab_bar = TabsBase(self)
-        self.connect(tab_bar, SIGNAL('switch_tabs(int,int)'), self.switch_tabs)
+        self.connect(tab_bar, SIGNAL('move_tab(int,int)'), self.move_tab)
         self.setTabBar(tab_bar)
         self.menu = QMenu(self)
         if actions:
@@ -112,14 +112,16 @@ class Tabs(QTabWidget):
         else:
             QTabWidget.keyPressEvent(self, event)
 
-    def switch_tabs(self, index1, index2):
+    def move_tab(self, index_from, index_to):
         """Switch tabs"""
-        self.emit(SIGNAL('switch_data(int,int)'), index1, index2)
+        self.emit(SIGNAL('move_data(int,int)'), index_from, index_to)
 
-        tip, text = self.tabToolTip(index1), self.tabText(index1)
-        icon, widget = self.tabIcon(index1), self.widget(index1)
-        self.removeTab(index1)
+        tip, text = self.tabToolTip(index_from), self.tabText(index_from)
+        icon, widget = self.tabIcon(index_from), self.widget(index_from)
+        current_widget = self.currentWidget()
         
-        self.insertTab(index2, widget, icon, text)
-        self.setTabToolTip(index2, tip)
-        self.setCurrentIndex(index2)
+        self.removeTab(index_from)
+        self.insertTab(index_to, widget, icon, text)
+        self.setTabToolTip(index_to, tip)
+        
+        self.setCurrentWidget(current_widget)
