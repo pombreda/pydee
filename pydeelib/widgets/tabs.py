@@ -70,7 +70,7 @@ class TabsBase(QTabBar):
         
 class Tabs(QTabWidget):
     """TabWidget with a context-menu"""
-    def __init__(self, parent, actions):
+    def __init__(self, parent, actions=None):
         QTabWidget.__init__(self, parent)
         tab_bar = TabsBase(self)
         self.connect(tab_bar, SIGNAL('switch_tabs(int,int)'), self.switch_tabs)
