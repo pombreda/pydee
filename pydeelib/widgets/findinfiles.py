@@ -487,7 +487,7 @@ class ResultsBrowser(OneColumnTree):
         self.nb = nb
         self.error_flag = error_flag
         self.refresh()
-        if not self.error_flag:
+        if not self.error_flag and self.nb:
             self.restore()
         
     def restore(self):
