@@ -13,6 +13,15 @@
 
 from __future__ import with_statement
 
+try:
+    # PyQt4 4.3.3 on Windows (static DLLs) with py2exe installed:
+    # -> pythoncom must be imported first, otherwise py2exe's boot_com_servers
+    #    will raise an exception ("ImportError: DLL load failed [...]") when
+    #    calling any of the QFileDialog static methods (getOpenFileName, ...)
+    import pythoncom #@UnusedImport
+except ImportError:
+    pass
+
 from PyQt4.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem, QSizePolicy,
                          QComboBox, QRadioButton, QVBoxLayout, QLabel,
                          QFileDialog)
@@ -176,7 +185,7 @@ class SearchThread(QThread):
         return True
 
     def find_files_in_hg_manifest(self):
-        p = Popen(['hg', 'manifest'], stdout=PIPE)
+        p = Popen(['hg', 'manifest'], stdout=PIPE, cwd=self.rootpath)
         self.filenames = []
         hgroot = get_hg_root(self.rootpath)
         for path in p.stdout.read().splitlines():
@@ -186,7 +195,7 @@ class SearchThread(QThread):
             dirname = osp.dirname(path)
             if re.search(self.exclude, dirname+os.sep):
                 continue
-            filename = osp.dirname(path)
+            filename = osp.basename(path)
             if re.search(self.exclude, filename):
                 continue
             if re.search(self.include, filename):
