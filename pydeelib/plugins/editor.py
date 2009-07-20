@@ -1104,6 +1104,10 @@ class Editor(PluginWidget):
                 tabbededitor.load(filename, goto)
                 self.add_recent_file(filename)
                 
+        if goto > 0:
+            editor = self.get_current_editor()
+            editor.highlight_line(goto)
+                
     def close_file(self):
         """Close current file"""
         tabbededitor = self.get_current_tabbededitor()
