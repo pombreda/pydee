@@ -151,6 +151,7 @@ class TabbedEditor(Tabs):
                 # (if it's not the first tabbed editor)
                 self.close_tabbededitor()
             self.emit(SIGNAL('opened_files_list_changed()'))
+            self.emit(SIGNAL('refresh_file_dependent_actions()'))
         return is_ok
     
     def close_tabbededitor(self):
@@ -341,6 +342,10 @@ class TabbedEditor(Tabs):
         --> change tab title depending on new modification state
         --> enable/disable save/save all actions
         """
+        # This must be done before refreshing save/save all actions:
+        # (otherwise Save/Save all actions will always be enabled)
+        self.emit(SIGNAL('opened_files_list_changed()'))
+        # --
         state, index = self.__get_state_index(state, index)
         title = self.get_full_title(state, index)
         if index is None or title is None:
@@ -348,15 +353,7 @@ class TabbedEditor(Tabs):
         self.setTabText(index, title)
         # Toggle save/save all actions state
         self.plugin.save_action.setEnabled(state)
-        if self.count() > 1:
-            state = False
-            for ind in range(self.count()):
-                if self.editors[ind].isModified():
-                    state = True
-                    break
-        self.plugin.save_all_action.setEnabled(state)
-        
-        self.emit(SIGNAL('opened_files_list_changed()'))
+        self.plugin.refresh_save_all_action()
         
     def load(self, filename, goto=0):
         self.filenames.append(filename)
@@ -392,6 +389,7 @@ class TabbedEditor(Tabs):
         
         self.plugin.find_widget.set_editor(editor)
        
+        self.emit(SIGNAL('refresh_file_dependent_actions()'))
         self.modification_changed()
 
         self.analyze_script(index)
@@ -403,8 +401,6 @@ class TabbedEditor(Tabs):
         
         if goto > 0:
             editor.highlight_line(goto)
-            
-        self.emit(SIGNAL('opened_files_list_changed()'))
     
     def exec_script_extconsole(self, ask_for_arguments=False,
                                interact=False, debug=False):
@@ -618,17 +614,13 @@ class Editor(PluginWidget):
         tabbededitor.editors[index].setFocus()
         tabbededitor.setCurrentIndex(index)
 
-    def opened_files_list_changed(self):
+    def refresh_opened_files_list(self):
         """
         Opened files list has changed:
         --> open/close file action
         --> modification ('*' added to title)
         --> current edited file has changed
         """
-        self.refresh_file_dependent_actions()
-        self.refresh_opened_files_list()
-        
-    def refresh_opened_files_list(self):
         if self.openedfileslistwidget.isHidden():
             return
         filenames = self.get_filenames()
@@ -675,7 +667,9 @@ class Editor(PluginWidget):
         self.tabbededitors.append(tabbededitor)
         self.last_focus_tabbededitor = tabbededitor
         self.connect(tabbededitor, SIGNAL('opened_files_list_changed()'),
-                     self.opened_files_list_changed)
+                     self.refresh_opened_files_list)
+        self.connect(tabbededitor, SIGNAL('refresh_file_dependent_actions()'),
+                     self.refresh_file_dependent_actions)
         
     def unregister_tabbededitor(self, tabbededitor):
         """Removing tabbed editor only if it's not the last remaining"""
@@ -736,10 +730,20 @@ class Editor(PluginWidget):
             enable = self.get_current_editor() is not None
             for action in self.file_dependent_actions:
                 action.setEnabled(enable)
+                
+    def refresh_save_all_action(self):
+        state = False
+        for tabbededitor in self.tabbededitors:
+            if tabbededitor.count() > 1:
+                state = state or any([editor.isModified() for editor \
+                                      in tabbededitor.editors])
+        self.save_all_action.setEnabled(state)
     
     def refresh(self):
         """Refresh editor plugin"""
-        pass
+        tabbededitor = self.get_current_tabbededitor()
+        tabbededitor.refresh()
+        self.refresh_save_all_action()
         
     def add_recent_file(self, fname):
         """Add to recent file list"""
