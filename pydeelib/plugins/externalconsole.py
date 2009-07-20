@@ -59,7 +59,7 @@ class ExternalConsole(PluginWidget):
                      self.move_tab)
         self.close_button = create_toolbutton(self.tabwidget,
                                           icon=get_icon("fileclose.png"),
-                                          triggered=self.close,
+                                          triggered=self.close_console,
                                           tip=self.tr("Close current console"))
         self.tabwidget.setCornerWidget(self.close_button)
         layout.addWidget(self.tabwidget)
@@ -86,10 +86,10 @@ class ExternalConsole(PluginWidget):
         self.shells.insert(index_to, shell)
         self.icons.insert(index_to, icon)
 
-    def close(self, index=-1):
+    def close_console(self, index=None):
         if not self.tabwidget.count():
             return
-        if index == -1:
+        if index is None:
             index = self.tabwidget.currentIndex()
         self.tabwidget.widget(index).close()
         self.tabwidget.removeTab(index)
@@ -108,24 +108,24 @@ class ExternalConsole(PluginWidget):
         fname = unicode(fname) if isinstance(fname, QString) else fname
         wdir = unicode(wdir) if isinstance(wdir, QString) else wdir
 
-        index = None
         if fname is not None and fname in self.filenames:
             index = self.filenames.index(fname)
-        if index is not None and CONF.get(self.ID, 'single_tab') \
-           and fname is not None:
-            old_shell = self.tabwidget.widget(index)
-            if old_shell.is_running():
-                answer = QMessageBox.question(self, self.get_widget_title(),
-                    self.tr("%1 is already running in a separate process.\n"
-                            "Do you want to kill the process before starting "
-                            "a new one?").arg(osp.basename(fname)),
-                    QMessageBox.Yes | QMessageBox.Cancel)
-                if answer == QMessageBox.Yes:
-                    old_shell.process.kill()
-                    old_shell.process.waitForFinished()
-                else:
-                    return
-            self.close(index)
+            if CONF.get(self.ID, 'single_tab'):
+                old_shell = self.shells[index]
+                if old_shell.is_running():
+                    answer = QMessageBox.question(self, self.get_widget_title(),
+                        self.tr("%1 is already running in a separate process.\n"
+                                "Do you want to kill the process before starting "
+                                "a new one?").arg(osp.basename(fname)),
+                        QMessageBox.Yes | QMessageBox.Cancel)
+                    if answer == QMessageBox.Yes:
+                        old_shell.process.kill()
+                        old_shell.process.waitForFinished()
+                    else:
+                        return
+                self.close_console(index)
+        else:
+            index = 0
 
         # Creating a new external shell
         if python:
@@ -150,16 +150,13 @@ class ExternalConsole(PluginWidget):
         else:
             name = "Command Window"
             icon = get_icon('cmdprompt.png')
+        self.shells.insert(index, shell)
+        self.filenames.insert(index, fname)
+        self.icons.insert(index, icon)
         if index is None:
             index = self.tabwidget.addTab(shell, name)
-            self.shells.insert(index, shell)
-            self.filenames.insert(index, fname)
-            self.icons.insert(index, icon)
         else:
             self.tabwidget.insertTab(index, shell, name)
-            self.shells[index] = shell
-            self.filenames[index] = fname
-            self.icons[index] = icon
         
         self.connect(shell, SIGNAL("started()"),
                      lambda sid=id(shell): self.process_started(sid))
