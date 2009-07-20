@@ -393,7 +393,7 @@ class QsciEditor(QsciBase):
 #===============================================================================
     def highlight_line(self, line):
         """Highlight line number *line*"""
-        text = unicode(self.text(line-1)).strip()
+        text = unicode(self.text(line-1)).rstrip()
         self.setSelection(line-1, 0, line-1, len(text))
         self.ensureLineVisible(line-1)
 
