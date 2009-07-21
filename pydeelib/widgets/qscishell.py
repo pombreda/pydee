@@ -66,6 +66,8 @@ class QsciShell(QsciBase):
         self.rawhistory, self.history = self.load_history()
         
         # Code completion / calltips
+        self.codecompletion = True
+        self.calltips = True
         self.completion_chars = 0
         self.calltip_index = None
         self.calltip_size = CONF.get('calltips', 'size')
@@ -82,9 +84,6 @@ class QsciShell(QsciBase):
             self.setAutoCompletionSource(QsciScintilla.AcsNone)
         self.connect(self, SIGNAL('userListActivated(int, const QString)'),
                      self.completion_list_selected)
-        
-        # Call-tips
-        self.calltips = True
             
         # Context menu
         self.menu = None
@@ -110,6 +109,10 @@ class QsciShell(QsciBase):
         # Give focus to widget
         self.setFocus()
         
+        
+    def set_codecompletion(self, state):
+        """Set code completion state"""
+        self.codecompletion = state        
         
     def set_calltips(self, state):
         """Set calltips state"""
@@ -727,6 +730,8 @@ class QsciShell(QsciBase):
         
     def show_code_completion(self, text):
         """Display a completion list based on the last token"""
+        if not self.codecompletion:
+            return
         text = unicode(text) # Useful only for ExternalShellBase
         objdir = self.get_dir(text)
         if objdir:

@@ -151,10 +151,13 @@ class Console(PluginWidget):
         calltips_action = create_action(self, self.tr("Balloon tips"),
             toggled=self.toggle_calltips)
         calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
+        codecompletion_action = create_action(self, self.tr("Code completion"),
+            toggled=self.toggle_codecompletion)
+        codecompletion_action.setChecked( CONF.get(self.ID, 'autocompletion') )
         menu_actions = [run_action, environ_action, syspath_action, None,
                         font_action, history_action, wrap_action,
-                        calltips_action, exteditor_action, None,
-                        self.quit_action]
+                        calltips_action, codecompletion_action,
+                        exteditor_action, None, self.quit_action]
         toolbar_actions = []
         
         # Add actions to context menu
@@ -246,6 +249,12 @@ class Console(PluginWidget):
     def toggle_calltips(self, checked):
         """Toggle calltips"""
         self.shell.set_calltips(checked)
+        CONF.set(self.ID, 'calltips', checked)
+            
+    def toggle_codecompletion(self, checked):
+        """Toggle code completion"""
+        self.shell.set_codecompletion(checked)
+        CONF.set(self.ID, 'autocompletion', checked)
 
                 
     #----Drag and drop                    

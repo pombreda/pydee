@@ -220,12 +220,19 @@ class ExternalConsole(PluginWidget):
                             self.tr("Wrap lines"),
                             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
+        calltips_action = create_action(self, self.tr("Balloon tips"),
+                            toggled=self.toggle_calltips)
+        calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
+        codecompletion_action = create_action(self, self.tr("Code completion"),
+                            toggled=self.toggle_codecompletion)
+        codecompletion_action.setChecked( CONF.get(self.ID, 'autocompletion') )
         singletab_action = create_action(self,
                             self.tr("One tab per script"),
                             toggled=self.toggle_singletab)
         singletab_action.setChecked( CONF.get(self.ID, 'single_tab') )
         self.menu_actions = [interpreter_action, run_action, None,
-                             font_action, wrap_action, singletab_action]
+                             font_action, wrap_action, calltips_action,
+                             codecompletion_action, singletab_action]
         if console_action:
             self.menu_actions.insert(1, console_action)
         return (self.menu_actions, None)
@@ -261,9 +268,25 @@ class ExternalConsole(PluginWidget):
         """Toggle wrap mode"""
         if self.tabwidget is None:
             return
-        for index in range(self.tabwidget.count()):
-            self.tabwidget.widget(index).shell.set_wrap_mode(checked)
+        for shell in self.shells:
+            shell.shell.set_wrap_mode(checked)
         CONF.set(self.ID, 'wrap', checked)
+            
+    def toggle_calltips(self, checked):
+        """Toggle calltips"""
+        if self.tabwidget is None:
+            return
+        for shell in self.shells:
+            shell.shell.set_calltips(checked)
+        CONF.set(self.ID, 'calltips', checked)
+            
+    def toggle_codecompletion(self, checked):
+        """Toggle code completion"""
+        if self.tabwidget is None:
+            return
+        for shell in self.shells:
+            shell.shell.set_codecompletion(checked)
+        CONF.set(self.ID, 'autocompletion', checked)
         
     def toggle_singletab(self, checked):
         """Toggle single tab mode"""
