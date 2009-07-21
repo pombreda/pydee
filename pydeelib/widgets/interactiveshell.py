@@ -536,7 +536,8 @@ has the same effect as typing a particular string at the help> prompt.
     
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
-        return getargtxt(objtxt)
+        obj, _valid = self._eval(objtxt)
+        return getargtxt(obj)
     
     def get__doc__(self, objtxt):
         """Get object __doc__"""
