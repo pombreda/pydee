@@ -18,7 +18,7 @@ from PyQt4.QtCore import SIGNAL
 
 # Local imports
 from pydeelib.config import get_icon
-from pydeelib.qthelpers import translate, get_filetype_icon
+from pydeelib.qthelpers import translate
 from pydeelib.widgets import OneColumnTree
 from pydeelib.widgets.classparser import get_classes
 
@@ -30,6 +30,11 @@ class ClassBrowser(OneColumnTree):
         self.fname = None
         self.classes = None
         self.lines = None
+        
+    def clear(self):
+        """Reimplemented Qt method"""
+        self.set_title('')
+        OneColumnTree.clear(self)
         
     def refresh(self, data=None, update=True):
         """Refresh class browser"""
