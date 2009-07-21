@@ -200,14 +200,15 @@ class MainWindow(QMainWindow):
         self.last_window_state = None
         self.last_plugin = None
         
+    def create_toolbar(self, title, object_name, iconsize=24):
+        toolbar = self.addToolBar(title)
+        toolbar.setObjectName(object_name)
+        toolbar.setIconSize( QSize(iconsize, iconsize) )
+        return toolbar
+        
     def setup(self):
         """Setup main window"""
         if not self.light:
-            # Toolbar
-            self.toolbar = self.addToolBar(self.tr("Toolbar"))
-            self.toolbar.setObjectName("MainToolbar")
-            self.toolbar.setIconSize( QSize(24, 24) )
-            
             _text = translate("FindReplace", "Find text")
             self.find_action = create_action(self, _text,"Ctrl+F", 'find.png',
                                              _text, triggered = self.find)
@@ -256,7 +257,9 @@ class MainWindow(QMainWindow):
                                              shortcut="Ctrl+Alt+Shift+M",
                                              triggered=self.maximize_dockwidget)
             self.__update_maximize_action()
-            add_actions(self.toolbar, (self.maximize_action, None))
+            main_toolbar = self.create_toolbar(self.tr("Main toolbar"),
+                                               "main_toolbar")
+            add_actions(main_toolbar, (self.maximize_action, ))
 
             # File menu
             self.file_menu = self.menuBar().addMenu(self.tr("&File"))
@@ -308,8 +311,8 @@ class MainWindow(QMainWindow):
             self.add_dockwidget(self.console)
         
         # Working directory changer widget
-        self.workdir = WorkingDirectory( self, self.init_workdir )
-        self.addToolBar(self.workdir) # new mainwindow toolbar
+        self.workdir = WorkingDirectory(self, self.init_workdir)
+        self.addToolBar(self.workdir)
         self.connect(self.workdir, SIGNAL('redirect_stdio(bool)'),
                      self.redirect_interactiveshell_stdio)
         self.connect(self.console.shell, SIGNAL("refresh()"),
@@ -336,7 +339,18 @@ class MainWindow(QMainWindow):
                          self.redirect_interactiveshell_stdio)
             self.add_dockwidget(self.editor)
             self.add_to_menubar(self.editor, self.tr("&Source"))
-            self.add_to_toolbar(self.editor)
+            file_toolbar = self.create_toolbar(self.tr("File toolbar"),
+                                               "file_toolbar")
+            add_actions(file_toolbar, self.editor.file_toolbar_actions)
+            analysis_toolbar = self.create_toolbar(self.tr("Analysis toolbar"),
+                                                   "analysis_toolbar")
+            add_actions(analysis_toolbar, self.editor.analysis_toolbar_actions)
+            run_toolbar = self.create_toolbar(self.tr("Run toolbar"),
+                                              "run_toolbar")
+            add_actions(run_toolbar, self.editor.run_toolbar_actions)
+            edit_toolbar = self.create_toolbar(self.tr("Edit toolbar"),
+                                               "edit_toolbar")
+            add_actions(edit_toolbar, self.editor.edit_toolbar_actions)
         
             # Seach actions in toolbar
             toolbar_search_actions = [self.find_action, self.replace_action]
@@ -356,14 +370,17 @@ class MainWindow(QMainWindow):
                 add_actions(self.search_menu, (None, self.findinfiles_action))
                 toolbar_search_actions.append(self.findinfiles_action)
                 
-            add_actions(self.toolbar, [None] + toolbar_search_actions)
+            find_toolbar = self.create_toolbar(self.tr("Find toolbar"),
+                                               "find_toolbar")
+            add_actions(find_toolbar, [None] + toolbar_search_actions)
             
             # Workspace
             if self.workspace is not None:
                 self.set_splash(self.tr("Loading workspace widget..."))
                 self.add_dockwidget(self.workspace)
-                self.toolbar.addSeparator()
-                self.add_to_toolbar(self.workspace)
+                ws_toolbar = self.create_toolbar(self.tr("Workspace toolbar"),
+                                                 "ws_toolbar")
+                self.add_to_toolbar(ws_toolbar, self.workspace)
                 self.workspace.set_interpreter(self.console.shell.interpreter)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.workspace.refresh)
@@ -715,11 +732,11 @@ class MainWindow(QMainWindow):
             menu = self.menuBar().addMenu(title)
             add_actions(menu, actions)
 
-    def add_to_toolbar(self, widget):
-        """Add actions to toolbar"""
+    def add_to_toolbar(self, toolbar, widget):
+        """Add widget actions to toolbar"""
         actions = widget.toolbar_actions
         if actions is not None:
-            add_actions(self.toolbar, actions)
+            add_actions(toolbar, actions)
         
     def about(self):
         """About Pydee"""

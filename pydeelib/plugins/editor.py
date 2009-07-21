@@ -532,13 +532,17 @@ class Editor(PluginWidget):
     def __init__(self, parent):
         self.file_dependent_actions = []
         self.dock_toolbar_actions = None
+        self.file_toolbar_actions = None
+        self.analysis_toolbar_actions = None
+        self.run_toolbar_actions = None
+        self.edit_toolbar_actions = None
         PluginWidget.__init__(self, parent)
         
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
         add_actions(self.dock_toolbar, self.dock_toolbar_actions)
         layout.addWidget(self.dock_toolbar)
-                
+        
         # Class browser
         self.classbrowser = ClassBrowser(self)
         self.classbrowser.setVisible( CONF.get(self.ID, 'class_browser') )
@@ -912,15 +916,19 @@ class Editor(PluginWidget):
                 self.exec_process_debug_action,
                 None, font_action, wrap_action, fold_action, analyze_action,
                 classbrowser_action, self.toolbox_action)
-        toolbar_actions = [self.new_action, self.open_action, self.save_action,
-                self.save_all_action, None, self.previous_warning_action,
-                self.next_warning_action, classbrowser_action,
-                self.toolbox_action, None, self.exec_action,
-                self.exec_selected_action, self.exec_process_action]
-        self.dock_toolbar_actions = toolbar_actions + \
-                [self.exec_interact_action, self.comment_action,
-                 self.uncomment_action, self.indent_action,
-                 self.unindent_action]
+        self.file_toolbar_actions = [self.new_action, self.open_action,
+                self.save_action, self.save_all_action]
+        self.analysis_toolbar_actions = [self.previous_warning_action,
+                self.next_warning_action, self.toolbox_action]
+        self.run_toolbar_actions = [self.exec_action,
+                self.exec_selected_action, self.exec_process_action,
+                self.exec_interact_action]
+        self.edit_toolbar_actions = [self.comment_action, self.uncomment_action,
+                self.indent_action, self.unindent_action]
+        self.dock_toolbar_actions = self.file_toolbar_actions + [None] + \
+                                    self.analysis_toolbar_actions + [None] + \
+                                    self.run_toolbar_actions + [None] + \
+                                    self.edit_toolbar_actions
         self.file_dependent_actions = (self.save_action, self.save_as_action,
                 self.save_all_action, self.exec_action,
                 self.exec_interact_action, self.exec_selected_action,
@@ -934,7 +942,7 @@ class Editor(PluginWidget):
         self.tab_actions = (self.save_action, self.save_as_action,
                 self.exec_action, self.exec_process_action,
                 workdir_action, self.close_action)
-        return (source_menu_actions, toolbar_actions)        
+        return (source_menu_actions, self.dock_toolbar_actions)        
         
     def split(self, orientation):
         """Split editor window in two parts"""
