@@ -136,6 +136,7 @@ DEFAULTS = [
               'font/bold' : False,
               'wrap' : True,
               'single_tab' : True,
+              'calltips' : True,
               'autocompletion' : True,
               'autocompletion/case-sensitivity' : True,
               'autocompletion/threshold' : -1,

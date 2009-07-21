@@ -155,37 +155,37 @@
         <translation type="obsolete">Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire dans la base de registre)</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="175"/>
+        <location filename="plugins/console.py" line="178"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="176"/>
+        <location filename="plugins/console.py" line="179"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="218"/>
+        <location filename="plugins/console.py" line="221"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="225"/>
+        <location filename="plugins/console.py" line="228"/>
         <source>History</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="226"/>
+        <location filename="plugins/console.py" line="229"/>
         <source>Maximum entries</source>
         <translation>Nombre maximum d&apos;entrées</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="234"/>
+        <location filename="plugins/console.py" line="237"/>
         <source>External editor</source>
         <translation>Éditeur externe</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="235"/>
+        <location filename="plugins/console.py" line="238"/>
         <source>External editor executable path:</source>
         <translation>Chemin d&apos;accès de l&apos;exécutable :</translation>
     </message>
@@ -208,6 +208,11 @@
         <location filename="plugins/console.py" line="131"/>
         <source>Show sys.path contents...</source>
         <translation>Afficher le contenu de sys.path...</translation>
+    </message>
+    <message>
+        <location filename="plugins/console.py" line="154"/>
+        <source>Code completion</source>
+        <translation>Complétion de code</translation>
     </message>
 </context>
 <context>
@@ -1109,22 +1114,22 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="245"/>
+        <location filename="plugins/externalconsole.py" line="252"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="246"/>
+        <location filename="plugins/externalconsole.py" line="253"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="254"/>
+        <location filename="plugins/externalconsole.py" line="261"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="224"/>
+        <location filename="plugins/externalconsole.py" line="230"/>
         <source>One tab per script</source>
         <translation>Un onglet par script</translation>
     </message>
@@ -1154,6 +1159,16 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <location filename="plugins/externalconsole.py" line="209"/>
         <source>Open a shell window inside Pydee</source>
         <translation>Ouvrir un terminal de commandes dans Pydee</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="223"/>
+        <source>Balloon tips</source>
+        <translation>Info-bulles</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="226"/>
+        <source>Code completion</source>
+        <translation>Complétion de code</translation>
     </message>
 </context>
 <context>
@@ -1754,17 +1769,17 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>InteractiveShell</name>
     <message>
-        <location filename="widgets/qscishell.py" line="181"/>
+        <location filename="widgets/qscishell.py" line="184"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="185"/>
+        <location filename="widgets/qscishell.py" line="188"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="189"/>
+        <location filename="widgets/qscishell.py" line="192"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
@@ -2286,22 +2301,22 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QsciShell</name>
     <message>
-        <location filename="widgets/qscishell.py" line="759"/>
+        <location filename="widgets/qscishell.py" line="764"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="763"/>
+        <location filename="widgets/qscishell.py" line="768"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="767"/>
+        <location filename="widgets/qscishell.py" line="772"/>
         <source>Object `%1` is not callable (i.e. not a function, a method or a class constructor)</source>
         <translation>L&apos;objet `%1` ne peut pas être appelé (ce n&apos;est ni une fonction, ni une méthode, ni une classe)</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="773"/>
+        <location filename="widgets/qscishell.py" line="778"/>
         <source>Documentation</source>
         <translation>Documentation</translation>
     </message>
