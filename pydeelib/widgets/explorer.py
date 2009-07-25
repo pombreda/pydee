@@ -372,6 +372,7 @@ class ExplorerListWidget(QListWidget):
                 return
             try:
                 os.remove(fname)
+                self.parent().emit(SIGNAL("removed(QString)"), fname)
             except EnvironmentError, error:
                 QMessageBox.critical(self,
                     translate('Explorer', "Delete"),
@@ -393,6 +394,8 @@ class ExplorerListWidget(QListWidget):
             if valid and path != fname:
                 try:
                     os.rename(fname, path)
+                    self.parent().emit(SIGNAL("renamed(QString,QString)"),
+                                       fname, path)
                 except EnvironmentError, error:
                     QMessageBox.critical(self,
                         translate('Explorer', "Rename"),

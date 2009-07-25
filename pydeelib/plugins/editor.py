@@ -1136,6 +1136,18 @@ class Editor(PluginWidget):
             editor = self.get_current_editor()
             editor.highlight_line(goto)
                 
+    def removed(self, filename):
+        """File was removed in explorer widget"""
+        filename = osp.abspath(unicode(filename))
+        for tabbededitor in self.tabbededitors:
+            if tabbededitor.set_current_filename(filename):
+                tabbededitor.close_file()
+    
+    def renamed(self, source, dest):
+        """File was renamed in explorer widget"""
+        self.removed(source)
+        self.load(unicode(dest))
+                
     def close_file(self):
         """Close current file"""
         tabbededitor = self.get_current_tabbededitor()
@@ -1156,7 +1168,7 @@ class Editor(PluginWidget):
                           self.tr("Python scripts")+" (*.py ; *.pyw)")
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
             if filename:
-                filename = unicode(filename)
+                filename = osp.normpath(unicode(filename))
                 tabbededitor = self.get_current_tabbededitor()
                 index = tabbededitor.currentIndex()
                 tabbededitor.filenames[index] = filename

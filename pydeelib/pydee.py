@@ -406,6 +406,10 @@ class MainWindow(QMainWindow):
                              self.workdir.parent_directory)
                 self.connect(self.explorer, SIGNAL("edit(QString)"),
                              self.editor.load)
+                self.connect(self.explorer, SIGNAL("removed(QString)"),
+                             self.editor.removed)
+                self.connect(self.explorer, SIGNAL("renamed(QString,QString)"),
+                             self.editor.renamed)
                 self.connect(self.explorer, SIGNAL("open_workspace(QString)"),
                              self.workspace.load)
                 self.connect(self.explorer, SIGNAL("run(QString)"),
