@@ -50,15 +50,16 @@ def create_script(fname):
 def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False):
     """List files and directories"""
     namelist = []
-    dirlist = [osp.pardir]
-    for item in os.listdir(path):
+    dirlist = [unicode(osp.pardir)]
+    for item in os.listdir(unicode(path)):
         if re.search(exclude, item) and not show_all:
             continue
         if osp.isdir(osp.join(path, item)):
             dirlist.append(item)
         elif re.search(include, item) or show_all:
             namelist.append(item)
-    return sorted(dirlist, key=str.lower) + sorted(namelist, key=str.lower)
+    return sorted(dirlist, key=unicode.lower) + \
+           sorted(namelist, key=unicode.lower)
 
 
 class ExplorerListWidget(QListWidget):
@@ -221,7 +222,7 @@ class ExplorerListWidget(QListWidget):
     def refresh(self, new_path=None, clear=False):
         """Refresh widget"""
         if new_path is None:
-            new_path = os.getcwd()
+            new_path = os.getcwdu()
 
         names = listdir(new_path, self.include, self.exclude, self.show_all)
         new_nameset = set(names)
