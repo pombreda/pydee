@@ -42,6 +42,7 @@ def is_python_script(fname):
 class TabbedEditor(Tabs):
     def __init__(self, parent, actions):
         Tabs.__init__(self, parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.original_actions = actions
         self.additional_actions = self.get_actions()
         self.connect(self.menu, SIGNAL("aboutToShow()"), self.setup_menu)
@@ -64,6 +65,8 @@ class TabbedEditor(Tabs):
         self.editors = []
         self.classes = []
         self.analysis_results = []
+        
+        self.already_closed = False
         
         self.plugin.register_tabbededitor(self)
             
@@ -95,6 +98,10 @@ class TabbedEditor(Tabs):
             triggered=self.close_tabbededitor)
         return (None, self.versplit_action, self.horsplit_action,
                 self.close_action)
+        
+    def reset_orientation(self):
+        self.horsplit_action.setEnabled(True)
+        self.versplit_action.setEnabled(True)
         
     def set_orientation(self, orientation):
         self.horsplit_action.setEnabled(orientation == Qt.Horizontal)
@@ -157,9 +164,17 @@ class TabbedEditor(Tabs):
     def close_tabbededitor(self):
         if self.filenames:
             self.close_all_files()
+            if self.already_closed:
+                # All opened files were closed and *self* is not the last
+                # tabbededitor remaining --> *self* was automatically closed
+                return
         removed = self.plugin.unregister_tabbededitor(self)
         if removed:
-            self.emit(SIGNAL('tabbededitor_closed()'))
+            self.close()
+            
+    def close(self):
+        Tabs.close(self)
+        self.already_closed = True # used in self.close_tabbeeditor
 
     def close_all_files(self):
         """Close all opened scripts"""
@@ -485,40 +500,41 @@ class TabbedEditor(Tabs):
 class SplitEditor(QSplitter):
     def __init__(self, parent, actions):
         QSplitter.__init__(self, parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)
         self.plugin = parent
         self.tab_actions = actions
         self.tabbededitor = TabbedEditor(self.plugin, actions)
-        self.connect(self.tabbededitor, SIGNAL('tabbededitor_closed()'),
+        self.connect(self.tabbededitor, SIGNAL("destroyed(QObject*)"),
                      self.tabbededitor_closed)
         self.connect(self.tabbededitor, SIGNAL("split_vertically()"),
                      lambda: self.split(orientation=Qt.Vertical))
         self.connect(self.tabbededitor, SIGNAL("split_horizontally()"),
                      lambda: self.split(orientation=Qt.Horizontal))
         self.addWidget(self.tabbededitor)
-        self.spliteditor = None
         
     def tabbededitor_closed(self):
         self.tabbededitor = None
-        if self.spliteditor is None:
-            self.closing()
+        if self.count() == 1:
+            # tabbededitor just closed was the last widget in this QSplitter
+            self.close()
         
-    def spliteditor_closed(self):
-        self.spliteditor = None
-        if self.tabbededitor is None:
-            self.closing()
-        
-    def closing(self):
-        self.emit(SIGNAL('spliteditor_closed()'))
-        self.close()
+    def spliteditor_closed(self, obj):
+        if self.count() == 1 and self.tabbededitor is None:
+            # spliteditor just closed was the last widget in this QSplitter
+            self.close()
+        elif self.count() == 2 and self.tabbededitor:
+            # back to the initial state: a single tabbededitor instance,
+            # as a single widget in this QSplitter: orientation may be changed
+            self.tabbededitor.reset_orientation()
         
     def split(self, orientation=Qt.Vertical):
         self.setOrientation(orientation)
         self.tabbededitor.set_orientation(orientation)
-        self.spliteditor = SplitEditor(self.plugin, self.tab_actions)
-        self.connect(self.spliteditor, SIGNAL('spliteditor_closed()'),
+        spliteditor = SplitEditor(self.plugin, self.tab_actions)
+        self.addWidget(spliteditor)
+        self.connect(spliteditor, SIGNAL("destroyed(QObject*)"),
                      self.spliteditor_closed)
-        self.addWidget(self.spliteditor)
 
 
 #TODO: Implement multiple editor windows
