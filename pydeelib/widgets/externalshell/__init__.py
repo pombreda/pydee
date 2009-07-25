@@ -203,7 +203,7 @@ class ExternalShellBase(QWidget):
 #    Input/Output
 #===============================================================================
     def transcode(self, bytes):
-        return unicode( QString.fromLocal8Bit(bytes.data()) )
+        return unicode(QString.fromLocal8Bit(bytes.data()), 'utf-8', 'replace')
     
     def get_stdout(self):
         self.process.setReadChannel(QProcess.StandardOutput)
@@ -244,9 +244,9 @@ def test():
     from pydeelib.widgets.externalshell.systemshell import ExternalSystemShell
     app = QApplication(sys.argv)
     import pydeelib
-    shell = ExternalPythonShell(wdir=osp.dirname(pydeelib.__file__),
-                                interact=True)
-#    shell = ExternalSystemShell(wdir=osp.dirname(pydeelib.__file__))
+#    shell = ExternalPythonShell(wdir=osp.dirname(pydeelib.__file__),
+#                                interact=True)
+    shell = ExternalSystemShell(wdir=osp.dirname(pydeelib.__file__))
     shell.shell.set_wrap_mode(True)
     shell.start(False)
     from PyQt4.QtGui import QFont
