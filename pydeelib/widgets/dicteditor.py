@@ -633,9 +633,10 @@ class BaseTableView(QTableView):
         
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
-        self.refresh_menu()
-        self.menu.popup(event.globalPos())
-        event.accept()
+        if self.model.showndata:
+            self.refresh_menu()
+            self.menu.popup(event.globalPos())
+            event.accept()
 
     def toggle_inplace(self, state):
         """Toggle in-place editor option"""
