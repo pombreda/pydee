@@ -60,14 +60,9 @@ class ExternalSystemShell(ExternalShellBase):
         if os.name == 'nt':
             self.process.start('cmd.exe', p_args)
         else:
-            shell = os.environ.get('SHELL')
-            if shell is None:
-                QMessageBox.critical(self, self.tr("Error"),
-                                     self.tr("No shell has been configured"))
-                self.set_running_state(False)
-                return
-            else:
-                self.process.start(shell, p_args)
+            # Using bash:
+            self.process.start('bash', p_args)
+            self.send_to_process("""PS1="\u@\h:\w> "\n""")
             
         running = self.process.waitForStarted()
         self.set_running_state(running)
