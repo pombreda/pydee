@@ -25,7 +25,7 @@ except ImportError:
 from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
                          QLabel, QHBoxLayout, QDrag, QApplication, QMessageBox,
                          QInputDialog, QLineEdit, QMenu, QWidget, QToolButton,
-                         QFileDialog)
+                         QFileDialog, QToolBar)
 from PyQt4.QtCore import Qt, SIGNAL, QMimeData
 
 import os, sys, re
@@ -471,9 +471,6 @@ class ExplorerWidget(QWidget):
                                              valid_types=valid_types,
                                              show_all=show_all, wrap=wrap)        
         
-        hlayout = QHBoxLayout()
-        hlayout.setAlignment(Qt.AlignLeft)
-
         toolbar_action = create_action(self,
                                        translate('Explorer', "Show toolbar"),
                                        toggled=self.toggle_toolbar)
@@ -484,45 +481,43 @@ class ExplorerWidget(QWidget):
         self.listwidget.common_actions += [toolbar_action, icontext_action]
         
         # Setup toolbar
-        self.toolbar_widgets = []
+        self.toolbar = QToolBar(self)
         
-        self.previous_button = create_toolbutton(self,
+        self.previous_action = create_action(self,
                     text=translate('Explorer', "Previous"),
                     icon=get_icon('previous.png'),
                     triggered=lambda: self.emit(SIGNAL("open_previous_dir()")))
-        self.toolbar_widgets.append(self.previous_button)
-        self.previous_button.setEnabled(False)
+        self.toolbar.addAction(self.previous_action)
+        self.previous_action.setEnabled(False)
         
-        self.next_button = create_toolbutton(self,
+        self.next_action = create_action(self,
                     text=translate('Explorer', "Next"),
                     icon=get_icon('next.png'),
                     triggered=lambda: self.emit(SIGNAL("open_next_dir()")))
-        self.toolbar_widgets.append(self.next_button)
-        self.next_button.setEnabled(False)
+        self.toolbar.addAction(self.next_action)
+        self.next_action.setEnabled(False)
         
-        parent_button = create_toolbutton(self,
+        parent_action = create_action(self,
                     text=translate('Explorer', "Parent"),
                     icon=get_icon('up.png'),
                     triggered=lambda: self.emit(SIGNAL("open_parent_dir()")))
-        self.toolbar_widgets.append(parent_button)
+        self.toolbar.addAction(parent_action)
                 
-        refresh_button = create_toolbutton(self,
+        refresh_action = create_action(self,
                     text=translate('Explorer', "Refresh"),
                     icon=get_icon('reload.png'),
                     triggered=lambda: self.listwidget.refresh(clear=True))
-        self.toolbar_widgets.append(refresh_button)
+        self.toolbar.addAction(refresh_action)
 
-        options_button = create_toolbutton(self,
+        options_action = create_action(self,
                     text=translate('Explorer', "Options"),
                     icon=get_icon('tooloptions.png'))
-        self.toolbar_widgets.append(options_button)
-        options_button.setPopupMode(QToolButton.InstantPopup)
+        self.toolbar.addAction(options_action)
+        widget = self.toolbar.widgetForAction(options_action)
+        widget.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         add_actions(menu, self.listwidget.common_actions)
-        options_button.setMenu(menu)
-        
-        for widget in self.toolbar_widgets:
-            hlayout.addWidget(widget)
+        options_action.setMenu(menu)
             
         toolbar_action.setChecked(show_toolbar)
         self.toggle_toolbar(show_toolbar)   
@@ -530,20 +525,20 @@ class ExplorerWidget(QWidget):
         self.toggle_icontext(show_icontext)     
         
         vlayout = QVBoxLayout()
-        vlayout.addLayout(hlayout)
+        vlayout.addWidget(self.toolbar)
         vlayout.addWidget(self.listwidget)
         self.setLayout(vlayout)
         
     def toggle_toolbar(self, state):
         """Toggle toolbar"""
         self.emit(SIGNAL('option_changed'), 'show_toolbar', state)
-        for widget in self.toolbar_widgets:
-            widget.setVisible(state)
+        self.toolbar.setVisible(state)
             
     def toggle_icontext(self, state):
         """Toggle icon text"""
         self.emit(SIGNAL('option_changed'), 'show_icontext', state)
-        for widget in self.toolbar_widgets:
+        for action in self.toolbar.actions():
+            widget = self.toolbar.widgetForAction(action)
             if state:
                 widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
             else:

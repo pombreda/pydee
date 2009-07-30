@@ -393,9 +393,9 @@ class MainWindow(QMainWindow):
                 self.explorer = Explorer(self)
                 self.add_dockwidget(self.explorer)
                 self.connect(self.workdir, SIGNAL("set_previous_enabled(bool)"),
-                             self.explorer.previous_button.setEnabled)
+                             self.explorer.previous_action.setEnabled)
                 self.connect(self.workdir, SIGNAL("set_next_enabled(bool)"),
-                             self.explorer.next_button.setEnabled)
+                             self.explorer.next_action.setEnabled)
                 self.connect(self.explorer, SIGNAL("open_dir(QString)"),
                              self.workdir.chdir)
                 self.connect(self.explorer, SIGNAL("open_previous_dir()"),
