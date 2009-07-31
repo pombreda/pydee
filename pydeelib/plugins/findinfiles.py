@@ -30,6 +30,7 @@ class FindInFiles(FindInFilesWidget, PluginMixin):
     def __init__(self, parent=None):
         supported_encodings = CONF.get(self.ID, 'supported_encodings')
         
+        search_path = CONF.get(self.ID, 'search_path', None)        
         self.search_text_samples = CONF.get(self.ID, 'search_text_samples')
         search_text = CONF.get(self.ID, 'search_text')
         search_text = [txt for txt in search_text \
@@ -42,7 +43,7 @@ class FindInFiles(FindInFilesWidget, PluginMixin):
         exclude = CONF.get(self.ID, 'exclude')
         exclude_regexp = CONF.get(self.ID, 'exclude_regexp')
         FindInFilesWidget.__init__(self, parent,
-                                   search_text, search_text_regexp,
+                                   search_text, search_text_regexp, search_path,
                                    include, include_regexp,
                                    exclude, exclude_regexp, supported_encodings)
         PluginMixin.__init__(self, parent)
@@ -81,14 +82,16 @@ class FindInFiles(FindInFilesWidget, PluginMixin):
         """Perform actions before parent main window is closed"""
         options = self.find_options.get_options(all=True)
         if options is not None:
-            search_text, text_re, include, \
+            search_text, text_re, search_path, include, \
             include_re, exclude, exclude_re = options
             hist_limit = 15
             search_text = search_text[:hist_limit]
+            search_path = search_path[:hist_limit]
             include = include[:hist_limit]
             exclude = exclude[:hist_limit]
             CONF.set(self.ID, 'search_text', search_text)
             CONF.set(self.ID, 'search_text_regexp', text_re)
+            CONF.set(self.ID, 'search_path', search_path)
             CONF.set(self.ID, 'include', include)
             CONF.set(self.ID, 'include_regexp', include_re)
             CONF.set(self.ID, 'exclude', exclude)
