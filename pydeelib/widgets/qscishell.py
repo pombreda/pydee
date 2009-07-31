@@ -271,7 +271,9 @@ class QsciShell(QsciBase):
     def copy(self):
         """Copy text to clipboard... or keyboard interrupt"""
         if self.hasSelectedText():
-            QsciScintilla.copy(self)
+            text = unicode(self.selectedText())
+            text = text.replace('>>> ', '').strip() # removing prompts
+            QApplication.clipboard().setText(text)
         else:
             self.emit(SIGNAL("keyboard_interrupt()"))
 
