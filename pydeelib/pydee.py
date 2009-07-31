@@ -390,6 +390,8 @@ class MainWindow(QMainWindow):
             if CONF.get('explorer', 'enable'):
                 self.explorer = Explorer(self)
                 self.add_dockwidget(self.explorer)
+                valid_types = self.editor.get_valid_types()
+                self.explorer.add_to_valid_types(valid_types)
                 self.connect(self.workdir, SIGNAL("set_previous_enabled(bool)"),
                              self.explorer.previous_action.setEnabled)
                 self.connect(self.workdir, SIGNAL("set_next_enabled(bool)"),

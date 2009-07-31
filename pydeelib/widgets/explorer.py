@@ -461,7 +461,7 @@ class ExplorerListWidget(QListWidget):
 class ExplorerWidget(QWidget):
     """Explorer widget"""
     def __init__(self, parent=None, path=None, include='.',
-                 exclude=r'\.pyc$|^\.', valid_types= ('.py', '.pyw'),
+                 exclude=r'\.pyc$|^\.', valid_types=('.py', '.pyw'),
                  show_all=False, wrap=True,
                  show_toolbar=True, show_icontext=True):
         QWidget.__init__(self, parent)

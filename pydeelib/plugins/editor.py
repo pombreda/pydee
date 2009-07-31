@@ -614,6 +614,35 @@ class Editor(PluginWidget):
         self.last_focus_tabbededitor = None
         self.connect(self, SIGNAL("focus_changed()"),
                      self.save_focus_tabbededitor)
+        
+        self.filetypes = ((self.tr("Python files"), ('.py', '.pyw')),
+                          (self.tr("Pyrex files"), ('.pyx',)),
+                          (self.tr("C files"), ('.c', '.h')),
+                          (self.tr("C++ files"), ('.cc', '.cpp', '.h', '.cxx',
+                                                  '.hpp', '.hh')),
+                          (self.tr("Fortran files"),
+                           ('.f', '.for', '.f90', '.f95', '.f2k')),
+                          (self.tr("Patch and diff files"),
+                           ('.patch', '.diff', '.rej')),
+                          (self.tr("Text files"), ('.txt',)),
+                          (self.tr("Web page files"),
+                           ('.css', '.htm', '.html',)),
+                          (self.tr("Configuration files"),
+                           ('.properties', '.session', '.ini', '.inf',
+                            '.reg', '.cfg')),
+                          (self.tr("All files"), ('.*',)))
+
+    def get_filetype_filters(self):
+        filters = []
+        for title, ftypes in self.filetypes:
+            filters.append("%s (*%s)" % (title, " *".join(ftypes)))
+        return "\n".join(filters)
+
+    def get_valid_types(self):
+        ftype_list = []
+        for _title, ftypes in self.filetypes:
+            ftype_list += list(ftypes)
+        return ftype_list
 
     def get_filenames(self):
         filenames = []
@@ -1093,7 +1122,7 @@ class Editor(PluginWidget):
             self.emit(SIGNAL('redirect_stdio(bool)'), False)
             filenames = QFileDialog.getOpenFileNames(self,
                           self.tr("Open Python script"), basedir,
-                          self.tr("Python scripts")+" (*.py ; *.pyw)")
+                          self.get_filetype_filters())
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
             filenames = list(filenames)
             if len(filenames):
@@ -1168,7 +1197,7 @@ class Editor(PluginWidget):
             self.emit(SIGNAL('redirect_stdio(bool)'), False)
             filename = QFileDialog.getSaveFileName(self,
                           self.tr("Save Python script"), fname,
-                          self.tr("Python scripts")+" (*.py ; *.pyw)")
+                          self.get_filetype_filters())
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
             if filename:
                 filename = osp.normpath(unicode(filename))
