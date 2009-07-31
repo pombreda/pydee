@@ -19,6 +19,13 @@ from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
                         QsciLexerProperties, QsciLexerBatch)
+try:
+    # In some official binary PyQt4 distributions,
+    # the Fortran lexers are not included
+    from PyQt4.Qsci import QsciLexerFortran, QsciLexerFortran77
+except ImportError:
+    QsciLexerFortran = None
+    QsciLexerFortran77 = None
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -72,6 +79,8 @@ class QsciEditor(QsciBase):
     """
     LEXERS = {
               ('py', 'pyw', 'python'): QsciLexerPython,
+              ('f', 'for'): QsciLexerFortran77,
+              ('f90', 'f95', 'f2k'): QsciLexerFortran,
               ('diff', 'patch', 'rej'): QsciLexerDiff,
               'css': QsciLexerCSS,
               ('htm', 'html'): QsciLexerHTML,
@@ -148,8 +157,13 @@ class QsciEditor(QsciBase):
         if language is not None:
             for key in self.LEXERS:
                 if language.lower() in key:
-                    self.setLexer( self.LEXERS[key](self) )
                     self.supported_language = True
+                    lexer_class = self.LEXERS[key]
+                    if lexer_class is not None:
+                        # Fortran lexers are sometimes unavailable:
+                        # the corresponding class is then replaced by None
+                        # (see the import lines at the beginning of the script)
+                        self.setLexer( lexer_class(self) )
                     break
         
         
