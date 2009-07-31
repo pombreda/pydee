@@ -72,7 +72,8 @@ class WorkingDirectory(QToolBar, PluginMixin):
         # Path combo box
         adjust = CONF.get('shell', 'working_dir_adjusttocontents', False)
         self.pathedit = PathComboBox(self, adjust_to_contents=adjust)
-        self.connect(self.pathedit, SIGNAL("open_dir(QString)"), self.chdir)
+        self.connect(self.pathedit, SIGNAL("open_dir(QString)"),
+                     self.pathedit_activated)
         self.pathedit.setMaxCount(CONF.get('shell', 'working_dir_history'))
         wdhistory = self.load_wdhistory( workdir )
         if workdir is None:
@@ -184,4 +185,11 @@ class WorkingDirectory(QToolBar, PluginMixin):
         os.chdir( unicode(directory) )
         self.refresh()
         self.emit(SIGNAL("chdir()"))
+        
+    def pathedit_activated(self, directory):
+        """Path combo box activated"""
+        if self.main is not None:
+            # Give focus to interactive shell
+            self.main.console.shell.setFocus()
+        self.chdir(directory)
 

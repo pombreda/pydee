@@ -94,8 +94,6 @@ class PathComboBox(EditableComboBox):
             if osp.isdir( directory ):
                 self.emit(SIGNAL("open_dir(QString)"), directory)
                 self.set_default_style()
-                if hasattr(self.parent(), 'main'):
-                    if self.parent().main is not None:
-                        self.parent().main.console.shell.setFocus()
+                QComboBox.keyPressEvent(self, event) # Insert item in combo box
         else:
             QComboBox.keyPressEvent(self, event)

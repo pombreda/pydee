@@ -255,8 +255,9 @@ class SearchThread(QThread):
                                 if found>-1:
                                     break
                             self.nb += 1
-            except IOError, msg:
-                self.error_flag = msg
+            except IOError, (_errno, _strerror):
+                self.error_flag = translate("FindInFiles",
+                                  "permission denied errors were encountered")
         self.completed = True
     
     def get_results(self):
@@ -276,13 +277,18 @@ class FindOptions(QWidget):
     """
     Find widget with options
     """
-    def __init__(self, parent, search_text, search_text_regexp,
+    def __init__(self, parent, search_text, search_text_regexp, search_path,
                  include, include_regexp, exclude, exclude_regexp,
                  supported_encodings):
         QWidget.__init__(self, parent)
         
+        if search_path is None:
+            search_path = os.getcwdu()
+        
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
+        if not isinstance(search_path, (list, tuple)):
+            search_path = [search_path]
         if not isinstance(include, (list, tuple)):
             include = [include]
         if not isinstance(exclude, (list, tuple)):
@@ -359,7 +365,7 @@ class FindOptions(QWidget):
                                                  "Directory:"), self)
         self.custom_dir.setChecked(True)
         self.dir_combo = PathComboBox(self)
-        self.dir_combo.addItem(os.getcwdu())
+        self.dir_combo.addItems(search_path)
         self.dir_combo.setToolTip(translate('FindInFiles',
                                     "Search recursively in this directory"))
         self.connect(self.dir_combo, SIGNAL("open_dir(QString)"),
@@ -427,13 +433,16 @@ class FindOptions(QWidget):
             exclude = fnmatch.translate(exclude)
             
         if all:
-            search_text = [str(self.search_text.itemText(index)) \
+            search_text = [unicode(self.search_text.itemText(index)) \
                            for index in range(self.search_text.count())]
-            include = [str(self.include_pattern.itemText(index)) \
+            search_path = [unicode(self.dir_combo.itemText(index)) \
+                           for index in range(self.dir_combo.count())]
+            include = [unicode(self.include_pattern.itemText(index)) \
                        for index in range(self.include_pattern.count())]
-            exclude = [str(self.exclude_pattern.itemText(index)) \
+            exclude = [unicode(self.exclude_pattern.itemText(index)) \
                        for index in range(self.exclude_pattern.count())]
-            return (search_text, text_re, include, include_re,
+            return (search_text, text_re, search_path,
+                    include, include_re,
                     exclude, exclude_re)
         else:
             return (path, python_path, hg_manifest,
@@ -594,7 +603,7 @@ class FindInFilesWidget(QWidget):
     """
     def __init__(self, parent,
                  search_text = r"# ?TODO|# ?FIXME|# ?XXX",
-                 search_text_regexp=True,
+                 search_text_regexp=True, search_path=None,
                  include=".", include_regexp=True,
                  exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_regexp=True,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252")):
@@ -605,7 +614,7 @@ class FindInFilesWidget(QWidget):
                      self.search_complete)
         
         self.find_options = FindOptions(self, search_text, search_text_regexp,
-                                        include, include_regexp,
+                                        search_path, include, include_regexp,
                                         exclude, exclude_regexp,
                                         supported_encodings)
         self.connect(self.find_options, SIGNAL('find()'), self.find)
