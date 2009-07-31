@@ -65,11 +65,11 @@ class SuiteInfoBase:
             if found:
                 cstmt = vars['compound']
                 if cstmt[0] == symbol.funcdef:
-                    name = cstmt[2][1]
-                    self._function_info[name] = FunctionInfo(cstmt)
+                    func_info = FunctionInfo(cstmt)
+                    self._function_info[func_info._name] = func_info
                 elif cstmt[0] == symbol.classdef:
-                    name = cstmt[2][1]
-                    self._class_info[name] = ClassInfo(cstmt)
+                    class_info = ClassInfo(cstmt)
+                    self._class_info[class_info._name] = class_info
 
     def get_name(self):
         return self._name
@@ -102,8 +102,13 @@ class SuiteFuncInfo:
 
 class FunctionInfo(SuiteInfoBase, SuiteFuncInfo):
     def __init__(self, tree = None):
-        self._name = tree[2][1]
-        self._lineno = tree[2][2]
+        index = 2
+        prefix = ''
+        if tree[1][0] == symbol.decorators:
+            index += 1
+            prefix = '@'
+        self._name = prefix + tree[index][1]
+        self._lineno = tree[index][2]
         SuiteInfoBase.__init__(self, tree and tree[-1] or None)
 
 

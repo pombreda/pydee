@@ -16,7 +16,6 @@ STDOUT = sys.stdout
 from pydeelib.plugins import ReadOnlyEditor
 
 #TODO: Add a tabwidget to handle the 3 Pydee history files
-#TODO: [low-priority] add a combo box to select a date from the shown history
 class HistoryLog(ReadOnlyEditor):
     """
     History log widget

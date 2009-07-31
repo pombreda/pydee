@@ -537,8 +537,6 @@ class SplitEditor(QSplitter):
                      self.spliteditor_closed)
 
 
-#TODO: Implement multiple editor windows
-#      (editor tab -> context menu -> "Open in a new window")
 class Editor(PluginWidget):
     """
     Multi-file Editor widget

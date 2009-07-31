@@ -75,12 +75,17 @@ class ClassBrowser(OneColumnTree):
     def populate_methods(self, parent, c_name, methods):
         """Populate methods"""
         for lineno, m_name in methods:
+            decorator = m_name.startswith('@')
+            if decorator:
+                m_name = m_name[1:]
             item = QTreeWidgetItem(parent, [m_name])
             self.lines[item] = lineno
             if m_name.startswith('__'):
                 item.setIcon(0, get_icon('private2.png'))
             elif m_name.startswith('_'):
                 item.setIcon(0, get_icon('private1.png'))
+            elif decorator:
+                item.setIcon(0, get_icon('decorator.png'))
             else:
                 item.setIcon(0, get_icon('method.png'))
 
@@ -90,8 +95,8 @@ if __name__ == '__main__':
     app = QApplication([])
     
     widget = ClassBrowser(None)
-    widget.set_filename(sys.argv[1])
-    widget.refresh()
+    data = (sys.argv[1], None, None)
+    widget.refresh(data)
     widget.show()
     
     sys.exit(app.exec_())
