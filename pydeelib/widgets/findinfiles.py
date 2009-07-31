@@ -505,25 +505,35 @@ class ResultsBrowser(OneColumnTree):
             self.root_item.setExpanded(True)
         
     def refresh(self):
-        nb_files = len(self.results)
+        """
+        Refreshing search results panel
+        """
         title = "'%s' - " % self.search_text
-        if nb_files == 0:
-            text = translate('FindInFiles', 'String not found')
+        if self.results is None:
+            text = translate('FindInFiles', 'Search canceled')
         else:
-            text_matches = translate('FindInFiles', 'matches in')
-            text_files = translate('FindInFiles', 'file')
-            if nb_files > 1:
-                text_files += 's'
-            text = "%d %s %d %s" % (self.nb, text_matches, nb_files, text_files)
-        if self.error_flag:
-            text += ' (' + translate('FindInFiles', 'permission denied errors '
-                                     'were encountered') + ')'
+            nb_files = len(self.results)
+            if nb_files == 0:
+                text = translate('FindInFiles', 'String not found')
+            else:
+                text_matches = translate('FindInFiles', 'matches in')
+                text_files = translate('FindInFiles', 'file')
+                if nb_files > 1:
+                    text_files += 's'
+                text = "%d %s %d %s" % (self.nb, text_matches,
+                                        nb_files, text_files)
+            if self.error_flag:
+                text += ' (' + self.error_flag + ')'
         self.set_title(title+text)
         self.clear()
         self.data = {}
+        
+        if self.results is None: # First search interrupted
+            return
+        
         # Root path
         root_path = None
-        dir_set = set()
+        dir_set = set()        
         for filename in self.results:
             dirname = osp.dirname(filename)
             dir_set.add(dirname)
