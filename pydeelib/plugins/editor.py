@@ -816,7 +816,6 @@ class Editor(PluginWidget):
             self.tr("Run current script in interactive console "
                     "and set focus to shell"),
             triggered=self.exec_script_and_interact)
-        #TODO: implement Paste special to paste & removing leading >>>
         self.exec_selected_action = create_action(self,
             self.tr("Run &selection"), "Ctrl+F9", 'execute_selection.png',
             self.tr("Run selected text in interactive console"
