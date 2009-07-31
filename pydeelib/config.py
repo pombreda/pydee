@@ -182,7 +182,8 @@ DEFAULTS = [
               'valid_filetypes': ['', '.py', '.pyw', '.txt', '.patch',
                                   '.diff', '.rej', '.css', '.htm', '.html',
                                   '.c', '.cpp', '.h', '.properties',
-                                  '.session', '.ini', '.inf', '.reg', '.cfg'],
+                                  '.session', '.ini', '.inf', '.reg', '.cfg',
+                                  'f', 'for', 'f90', 'f95', 'f2k'],
               }),
             ('historylog',
              {

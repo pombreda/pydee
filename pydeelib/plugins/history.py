@@ -15,6 +15,7 @@ STDOUT = sys.stdout
 # Local imports
 from pydeelib.plugins import ReadOnlyEditor
 
+#TODO: External console: add history length option (or move the interactive console option?)
 #TODO: Add a tabwidget to handle the 3 Pydee history files
 class HistoryLog(ReadOnlyEditor):
     """
