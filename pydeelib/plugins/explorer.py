@@ -31,23 +31,22 @@ class Explorer(ExplorerWidget, PluginMixin):
     """File and Directories Explorer DockWidget"""
     ID = 'explorer'
     def __init__(self, parent=None, path=None):
-        valid_types = CONF.get(self.ID, 'valid_filetypes') + \
-                      CONF.get('editor', 'valid_filetypes')
-        include = CONF.get(self.ID, 'include')
-        exclude = CONF.get(self.ID, 'exclude')
-        show_all = CONF.get(self.ID, 'show_all')
-        wrap = CONF.get(self.ID, 'wrap')
-        show_toolbar = CONF.get(self.ID, 'show_toolbar')
-        show_icontext = CONF.get(self.ID, 'show_icontext')
-        
-        ExplorerWidget.__init__(self, parent, path, include, exclude,
-                                valid_types, show_all, wrap,
-                                show_toolbar, show_icontext)
+        ExplorerWidget.__init__(self, parent=parent, path=path,
+                            include=CONF.get(self.ID, 'include'),
+                            exclude=CONF.get(self.ID, 'exclude'),
+                            valid_types=CONF.get(self.ID, 'valid_filetypes'),
+                            show_all=CONF.get(self.ID, 'show_all'),
+                            wrap=CONF.get(self.ID, 'wrap'),
+                            show_toolbar=CONF.get(self.ID, 'show_toolbar'),
+                            show_icontext=CONF.get(self.ID, 'show_icontext'))
         PluginMixin.__init__(self, parent)
 
         self.set_font(get_font(self.ID))
         
         self.connect(self, SIGNAL("open_file(QString)"), self.open_file)
+        
+    def add_to_valid_types(self, valid_types):
+        self.listwidget.valid_types += valid_types
         
     def refresh(self, new_path=None):
         """Refresh explorer widget"""
