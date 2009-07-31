@@ -1132,18 +1132,24 @@ class Editor(PluginWidget):
         if goto > 0:
             editor = self.get_current_editor()
             editor.highlight_line(goto)
-                
-    def removed(self, filename):
-        """File was removed in explorer widget"""
+
+
+    def __close_and_reload(self, filename, new_filename=None):
         filename = osp.abspath(unicode(filename))
         for tabbededitor in self.tabbededitors:
             if tabbededitor.set_current_filename(filename):
                 tabbededitor.close_file()
+                if new_filename is not None:
+                    self.load(unicode(new_filename))
+                
+    def removed(self, filename):
+        """File was removed in explorer widget"""
+        self.__close_and_reload(filename)
     
     def renamed(self, source, dest):
         """File was renamed in explorer widget"""
-        self.removed(source)
-        self.load(unicode(dest))
+        self.__close_and_reload(source, new_filename=dest)
+                
                 
     def close_file(self):
         """Close current file"""
