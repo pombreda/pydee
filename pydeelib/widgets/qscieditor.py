@@ -118,8 +118,6 @@ class QsciEditor(QsciBase):
         # Mark occurences timer
         self.occurences_timer = QTimer(self)
         self.occurences_timer.setSingleShot(True)
-        #TODO: Add attribute for timer interval -> as well as an entry in CONF ('Editor')
-        # self.occurences_timer.setInterval(self.occurences_timeout)
         self.occurences_timer.setInterval(750)
         self.connect(self.occurences_timer, SIGNAL("timeout()"), 
                      self.__mark_occurences)
