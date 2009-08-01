@@ -111,9 +111,13 @@ class TabbedEditor(Tabs):
         if self.filenames:
             return self.filenames[ self.currentIndex() ]
         
-    def set_current_filename(self, filename):
+    def has_filename(self, filename):
         if filename in self.filenames:
-            index = self.filenames.index(filename)
+            return self.filenames.index(filename)
+        
+    def set_current_filename(self, filename):
+        index = self.has_filename(filename)
+        if index is not None:
             self.setCurrentIndex(index)
             self.editors[index].setFocus()
             return True
@@ -1184,8 +1188,9 @@ class Editor(PluginWidget):
     def __close_and_reload(self, filename, new_filename=None):
         filename = osp.abspath(unicode(filename))
         for tabbededitor in self.tabbededitors:
-            if tabbededitor.set_current_filename(filename):
-                tabbededitor.close_file()
+            index = tabbededitor.has_filename(filename)
+            if index is not None:
+                tabbededitor.close_file(index)
                 if new_filename is not None:
                     self.load(unicode(new_filename))
                 
