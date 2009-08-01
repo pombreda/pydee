@@ -261,10 +261,7 @@ class TabbedEditor(Tabs):
         """Update class browser data"""
         if index is None:
             index = self.currentIndex()
-        fname = self.filenames[index]
-        if CONF.get(self.ID, 'class_browser') and is_python_script(fname):
-            refresh = self.plugin.classbrowser.refresh
-            self.classes[index] = refresh(self.classes[index])
+        self.refresh_classbrowser(index, update=True)
     
     def analyze_script(self, index=None):
         """Analyze current script with pyflakes"""
@@ -298,6 +295,21 @@ class TabbedEditor(Tabs):
         if fwidget in self.editors:
             self.refresh(self.editors.index(fwidget))
         
+    def refresh_classbrowser(self, index, update=True):
+        """Refresh class browser panel"""
+        fname = self.filenames[index]
+        classbrowser = self.plugin.classbrowser
+        if CONF.get(self.ID, 'class_browser') and is_python_script(fname) \
+           and classbrowser.isVisible():
+            classbrowser.setEnabled(True)
+            if update:
+                self.classes[index] = classbrowser.refresh(self.classes[index])
+            else:
+                classbrowser.refresh(self.classes[index], update=False)
+        else:
+            classbrowser.setEnabled(False)
+            classbrowser.clear()
+        
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
@@ -308,11 +320,8 @@ class TabbedEditor(Tabs):
             index = self.currentIndex()
             editor = self.editors[index]
             editor.setFocus()
-            fname = self.filenames[index]
-            title += " - "+osp.basename(fname)
-            if CONF.get(self.ID, 'class_browser'):
-                refresh = self.plugin.classbrowser.refresh
-                refresh(self.classes[index], update=False)
+            title += " - "+osp.basename(self.filenames[index])
+            self.refresh_classbrowser(index, update=False)
         else:
             editor = None
         if self.plugin.dockwidget:
@@ -579,7 +588,7 @@ class Editor(PluginWidget):
         #TODO: New toolbox item: template list
         #TODO: New toolbox item: file metrics (including current line, index)
         self.connect(self.toolbox, SIGNAL('currentChanged(int)'),
-                     self.refresh_opened_files_list)
+                     self.toolbox_current_changed)
         
         self.tabbededitors = []
         
@@ -660,6 +669,15 @@ class Editor(PluginWidget):
         tabbededitor, index = self.get_tabbededitor_index(filename)
         tabbededitor.editors[index].setFocus()
         tabbededitor.setCurrentIndex(index)
+        
+    def toolbox_current_changed(self, index):
+        """Toolbox current index has changed"""
+        if self.openedfileslistwidget.isVisible():
+            self.refresh_opened_files_list()
+        elif self.classbrowser.isVisible():
+            # Refreshing class browser
+            tabbededitor = self.get_current_tabbededitor()
+            tabbededitor.refresh()
 
     def refresh_opened_files_list(self):
         """
