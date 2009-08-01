@@ -650,6 +650,8 @@ class Editor(PluginWidget):
                            ('.f', '.for', '.f90', '.f95', '.f2k')),
                           (self.tr("Patch and diff files"),
                            ('.patch', '.diff', '.rej')),
+                          (self.tr("Batch files"),
+                           ('.bat', '.cmd')),
                           (self.tr("Text files"), ('.txt',)),
                           (self.tr("Web page files"),
                            ('.css', '.htm', '.html',)),
@@ -985,10 +987,6 @@ class Editor(PluginWidget):
         analyze_action = create_action(self, self.tr("Code analysis"),
             toggled=self.toggle_code_analysis)
         analyze_action.setChecked( CONF.get(self.ID, 'code_analysis') )
-        classbrowser_action = create_action(self,
-            self.tr("Classes and functions"), None, 'class_browser.png',
-            toggled=self.toggle_classbrowser)
-        classbrowser_action.setChecked( CONF.get(self.ID, 'class_browser') )
         fold_action = create_action(self, self.tr("Code folding"),
             toggled=self.toggle_code_folding)
         fold_action.setChecked( CONF.get(self.ID, 'code_folding') )
@@ -1024,7 +1022,7 @@ class Editor(PluginWidget):
                 self.exec_process_interact_action,self.exec_process_args_action,
                 self.exec_process_debug_action,
                 None, font_action, wrap_action, tab_action, fold_action,
-                analyze_action, classbrowser_action, self.toolbox_action)
+                analyze_action, self.toolbox_action)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action]
         self.analysis_toolbar_actions = [self.previous_warning_action,
@@ -1360,23 +1358,6 @@ class Editor(PluginWidget):
             #  last editor instead of showing the one of the current editor)
             current_tabbededitor.analyze_script()
 
-    def toggle_classbrowser(self, checked):
-        """Toggle class browser"""
-        if hasattr(self, 'tabbededitors'):
-            CONF.set(self.ID, 'class_browser', checked)
-            self.classbrowser.setEnabled(checked)
-            if checked:
-                current_tabbededitor = self.get_current_tabbededitor()
-                current_index = current_tabbededitor.currentIndex()
-                for tabbededitor in self.tabbededitors:
-                    for index in range(tabbededitor.count()):
-                        if index != current_index:
-                            tabbededitor.update_classbrowser(index)
-                # We must update the current editor after the others:
-                # (otherwise, we would show class tree of the last editor
-                #  instead of showing the one of the current editor)
-                current_tabbededitor.update_classbrowser()
-    
     def toggle_toolbox(self, checked):
         """Toggle toolbox"""
         self.toolbox.setVisible(checked)
