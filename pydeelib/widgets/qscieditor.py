@@ -256,12 +256,11 @@ class QsciEditor(QsciBase):
         """
         Set QScintilla widget EOL mode based on *text* EOL characters
         """
-        text = unicode(text)
-        if len(text.split("\r\n", 1)) == 2:
+        if text.find("\r\n") > -1:
             self.setEolMode( QsciScintilla.EolMode(QsciScintilla.EolWindows) )
-        elif len(text.split("\n", 1)) == 2:
+        elif text.find("\n") > -1:
             self.setEolMode( QsciScintilla.EolMode(QsciScintilla.EolUnix) )
-        elif len(text.split("\r", 1)) == 2:
+        elif text.find("\r") > -1:
             self.setEolMode( QsciScintilla.EolMode(QsciScintilla.EolMac) )
         else:
             return None    

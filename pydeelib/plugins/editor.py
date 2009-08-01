@@ -522,6 +522,8 @@ class TabbedEditor(Tabs):
 #TODO: Transform SplitEditor into a real generic splittable editor
 # -> i.e. all QSplitter widgets must be of the same kind
 #    (currently there are tabbededitors and spliteditors at the same level)
+# -> the main issue is that it's not possible to remove a widget from a
+#    QSplitter except by destroying it
 class SplitEditor(QSplitter):
     def __init__(self, parent, actions):
         QSplitter.__init__(self, parent)
