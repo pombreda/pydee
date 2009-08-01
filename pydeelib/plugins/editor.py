@@ -39,6 +39,7 @@ def is_python_script(fname):
     return osp.splitext(fname)[1][1:] in ('py', 'pyw')
 
 
+#TODO: This class clearly needs some code cleaning/refactoring
 class TabbedEditor(Tabs):
     def __init__(self, parent, actions):
         Tabs.__init__(self, parent)
@@ -564,6 +565,7 @@ class SplitEditor(QSplitter):
                      self.spliteditor_closed)
 
 
+#TODO: This class clearly needs some code cleaning/refactoring
 class Editor(PluginWidget):
     """
     Multi-file Editor widget
@@ -993,6 +995,9 @@ class Editor(PluginWidget):
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
+        tab_action = create_action(self, self.tr("Tab always indent"),
+            toggled=self.toggle_tab_mode)
+        tab_action.setChecked( CONF.get(self.ID, 'tab_always_indent') )
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.set_workdir)
@@ -1018,8 +1023,8 @@ class Editor(PluginWidget):
                 self.exec_selected_action, None, self.exec_process_action,
                 self.exec_process_interact_action,self.exec_process_args_action,
                 self.exec_process_debug_action,
-                None, font_action, wrap_action, fold_action, analyze_action,
-                classbrowser_action, self.toolbox_action)
+                None, font_action, wrap_action, tab_action, fold_action,
+                analyze_action, classbrowser_action, self.toolbox_action)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action]
         self.analysis_toolbar_actions = [self.previous_warning_action,
@@ -1312,6 +1317,18 @@ class Editor(PluginWidget):
                 for editor in tabbededitor.editors:
                     editor.set_wrap_mode(checked)
             CONF.set(self.ID, 'wrap', checked)
+            
+    def toggle_tab_mode(self, checked):
+        """
+        Toggle tab mode:
+        checked = tab always indent
+        (otherwise tab indents only when cursor is at the beginning of a line)
+        """
+        if hasattr(self, 'tabbededitors'):
+            for tabbededitor in self.tabbededitors:
+                for editor in tabbededitor.editors:
+                    editor.set_tab_mode(checked)
+            CONF.set(self.ID, 'tab_always_indent', checked)
             
     def toggle_code_folding(self, checked):
         """Toggle code folding"""
