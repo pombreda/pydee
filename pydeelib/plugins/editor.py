@@ -122,7 +122,7 @@ class TabbedEditor(Tabs):
             self.editors[index].setFocus()
             return True
 
-    def move_data(self, index_from, index_to):
+    def move_data(self, index_from, index_to, tabbededitor_to=None):
         """
         Move tab
         In fact tabs have already been moved by the tabwidget
@@ -134,11 +134,23 @@ class TabbedEditor(Tabs):
         classes = self.classes.pop(index_from)
         analysis = self.analysis_results.pop(index_from)
         
-        self.editors.insert(index_to, editor)
-        self.filenames.insert(index_to, filename)
-        self.encodings.insert(index_to, encoding)
-        self.classes.insert(index_to, classes)
-        self.analysis_results.insert(index_to, analysis)
+        if tabbededitor_to is None:
+            tabbededitor_to = self
+        
+        tabbededitor_to.editors.insert(index_to, editor)
+        tabbededitor_to.filenames.insert(index_to, filename)
+        tabbededitor_to.encodings.insert(index_to, encoding)
+        tabbededitor_to.classes.insert(index_to, classes)
+        tabbededitor_to.analysis_results.insert(index_to, analysis)
+        
+        if tabbededitor_to is not self:
+            self.disconnect(editor, SIGNAL('modificationChanged(bool)'),
+                            self.modification_changed)
+            self.disconnect(editor, SIGNAL("focus_in()"), self.focus_changed)
+            self.connect(editor, SIGNAL('modificationChanged(bool)'),
+                         tabbededitor_to.modification_changed)
+            self.connect(editor, SIGNAL("focus_in()"),
+                         tabbededitor_to.focus_changed)            
     
     def close_file(self, index=None):
         """Close current file"""
@@ -286,18 +298,15 @@ class TabbedEditor(Tabs):
         
     def current_changed(self, index):
         """Tab index has changed"""
-        if index != -1 and not self.editors[index].hasFocus():
-            # no need to refresh if editor has focus
-            # (the 'focus_changed()' signal would have already called
-            #  this 'refresh' method)
-            self.refresh(index)
+        if index != -1:
+            self.currentWidget().setFocus()
         self.emit(SIGNAL('opened_files_list_changed()'))
         
     def focus_changed(self):
         """Editor focus has changed"""
         fwidget = QApplication.focusWidget()
         if fwidget in self.editors:
-            self.refresh(self.editors.index(fwidget))
+            self.refresh()
         
     def refresh_classbrowser(self, index, update=True):
         """Refresh class browser panel"""
@@ -324,7 +333,7 @@ class TabbedEditor(Tabs):
             index = self.currentIndex()
             editor = self.editors[index]
             editor.setFocus()
-            title += " - "+osp.basename(self.filenames[index])
+            title += " - " + osp.basename(self.filenames[index])
             self.refresh_classbrowser(index, update=False)
         else:
             editor = None
@@ -402,9 +411,9 @@ class TabbedEditor(Tabs):
                             wrap=CONF.get(self.ID, 'wrap'))
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
                      self.modification_changed)
+        self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
         self.connect(editor, SIGNAL("focus_changed()"),
                      lambda: self.plugin.emit(SIGNAL("focus_changed()")))
-        self.connect(editor, SIGNAL("focus_changed()"), self.focus_changed)
         self.editors.append(editor)
 
         self.classes.append( (filename, None, None) )
@@ -739,6 +748,8 @@ class Editor(PluginWidget):
                      self.refresh_opened_files_list)
         self.connect(tabbededitor, SIGNAL('refresh_file_dependent_actions()'),
                      self.refresh_file_dependent_actions)
+        self.connect(tabbededitor, SIGNAL('move_tab(long,long,int,int)'),
+                     self.move_tabs_between_tabbededitors)
         
     def unregister_tabbededitor(self, tabbededitor):
         """Removing tabbed editor only if it's not the last remaining"""
@@ -752,6 +763,33 @@ class Editor(PluginWidget):
         else:
             # Tabbededitor was not removed!
             return False
+        
+    def __get_tabbededitor_from_id(self, t_id):
+        for tabbededitor in self.tabbededitors:
+            if id(tabbededitor) == t_id:
+                return tabbededitor
+        
+    def move_tabs_between_tabbededitors(self, id_from, id_to,
+                                        index_from, index_to):
+        """
+        Move tab between tabwidgets
+        (see tabbededitor.move_data when moving tabs inside one tabwidget)
+        Tabs haven't been moved yet since tabwidgets don't have any
+        reference towards other tabwidget instances
+        """
+        tw_from = self.__get_tabbededitor_from_id(id_from)
+        tw_to = self.__get_tabbededitor_from_id(id_to)
+
+        tw_from.move_data(index_from, index_to, tw_to)
+
+        tip, text = tw_from.tabToolTip(index_from), tw_from.tabText(index_from)
+        icon, widget = tw_from.tabIcon(index_from), tw_from.widget(index_from)
+        
+        tw_from.removeTab(index_from)
+        tw_to.insertTab(index_to, widget, icon, text)
+        tw_to.setTabToolTip(index_to, tip)
+        
+        tw_to.setCurrentIndex(index_to)
 
     def get_current_tabbededitor(self):
         if len(self.tabbededitors) == 1:
@@ -773,7 +811,7 @@ class Editor(PluginWidget):
         if tabbededitor is not None:
             return tabbededitor.get_current_filename()
         
-    def get_tabbededitor_for_filename(self, filename):
+    def __get_tabbededitor_for_filename(self, filename):
         """Return tabbededitor where *filename* is opened"""
         for tabbededitor in self.tabbededitors:
             if filename in tabbededitor.filenames:
@@ -784,11 +822,11 @@ class Editor(PluginWidget):
             # Is there any file opened?
             return self.get_current_editor() is not None
         else:
-            return self.get_tabbededitor_for_filename(filename)
+            return self.__get_tabbededitor_for_filename(filename)
         
     def set_current_filename(self, filename):
         """Set focus to *filename* if this file has been opened"""
-        tabbededitor = self.get_tabbededitor_for_filename(filename)
+        tabbededitor = self.__get_tabbededitor_for_filename(filename)
         if tabbededitor is not None:
             return tabbededitor.set_current_filename(filename)
     

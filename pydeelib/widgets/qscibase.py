@@ -199,6 +199,7 @@ class QsciBase(QsciScintilla):
     def focusInEvent(self, event):
         """Reimplemented to handle focus"""
         self.emit(SIGNAL("focus_changed()"))
+        self.emit(SIGNAL("focus_in()"))
         QsciScintilla.focusInEvent(self, event)
         
     def focusOutEvent(self, event):

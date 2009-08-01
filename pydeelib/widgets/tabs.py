@@ -24,8 +24,9 @@ STDOUT = sys.stdout
 
 class TabsBase(QTabBar):
     """Tabs base class with drag and drop support"""
-    def __init__(self, parent):
+    def __init__(self, parent, ancestor):
         QTabBar.__init__(self, parent)
+        self.ancestor = ancestor
             
         # Dragging tabs
         self.__drag_start_pos = QPoint()
@@ -44,7 +45,12 @@ class TabsBase(QTabBar):
                 QApplication.startDragDistance():
             drag = QDrag(self)
             mimeData = QMimeData()
+            mimeData.setData("parent-id", QByteArray.number(id(self.ancestor)))
+            mimeData.setData("tabwidget-id",
+                             QByteArray.number(id(self.parentWidget())))
             mimeData.setData("tabbar-id", QByteArray.number(id(self)))
+            mimeData.setData("source-index", 
+                         QByteArray.number(self.tabAt(self.__drag_start_pos)))
             drag.setMimeData(mimeData)
             drag.exec_()
         QTabBar.mouseMoveEvent(self, event)
@@ -53,16 +59,22 @@ class TabsBase(QTabBar):
         """Override Qt method"""
         mimeData = event.mimeData()
         formats = mimeData.formats()
-        if formats.contains("tabbar-id") and \
-           mimeData.data("tabbar-id").toLong()[0] == id(self):
+        if formats.contains("parent-id") and \
+           mimeData.data("parent-id").toLong()[0] == id(self.ancestor):
             event.acceptProposedAction()
         QTabBar.dragEnterEvent(self, event)
     
     def dropEvent(self, event):
         """Override Qt method"""
-        index_from = self.tabAt(self.__drag_start_pos)
+        mimeData = event.mimeData()
+        index_from = mimeData.data("source-index").toInt()[0]
         index_to = self.tabAt(event.pos())
-        if index_from != index_to:
+        if mimeData.data("tabbar-id").toLong()[0] != id(self):
+            tabwidget_from = mimeData.data("tabwidget-id").toLong()[0]
+            self.emit(SIGNAL("move_tab(long,int,int)"), 
+                      tabwidget_from, index_from, index_to)
+            event.acceptProposedAction()
+        elif index_from != index_to:
             self.emit(SIGNAL("move_tab(int,int)"), index_from, index_to)
             event.acceptProposedAction()
         QTabBar.dropEvent(self, event)
@@ -72,8 +84,10 @@ class Tabs(QTabWidget):
     """TabWidget with a context-menu"""
     def __init__(self, parent, actions=None):
         QTabWidget.__init__(self, parent)
-        tab_bar = TabsBase(self)
+        tab_bar = TabsBase(self, parent)
         self.connect(tab_bar, SIGNAL('move_tab(int,int)'), self.move_tab)
+        self.connect(tab_bar, SIGNAL('move_tab(long,int,int)'),
+                     self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
         self.menu = QMenu(self)
         if actions:
@@ -113,7 +127,7 @@ class Tabs(QTabWidget):
             QTabWidget.keyPressEvent(self, event)
 
     def move_tab(self, index_from, index_to):
-        """Switch tabs"""
+        """Move tab inside a tabwidget"""
         self.emit(SIGNAL('move_data(int,int)'), index_from, index_to)
 
         tip, text = self.tabToolTip(index_from), self.tabText(index_from)
@@ -125,3 +139,9 @@ class Tabs(QTabWidget):
         self.setTabToolTip(index_to, tip)
         
         self.setCurrentWidget(current_widget)
+
+    def move_tab_from_another_tabwidget(self, tabwidget_from,
+                                        index_from, index_to):
+        """Move tab from a tabwidget to another"""
+        self.emit(SIGNAL('move_tab(long,long,int,int)'),
+                  tabwidget_from, id(self), index_from, index_to)
