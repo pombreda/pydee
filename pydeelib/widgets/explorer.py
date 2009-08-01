@@ -413,7 +413,7 @@ class ExplorerListWidget(QListWidget):
         datalist = [(translate('Explorer', 'Folder name'), ''),
                     (translate('Explorer', 'Python package'), False),]
         answer = fedit( datalist, title=translate('Explorer', "New folder"),
-                        parent=self, icon=get_icon('pydee.png') )
+                        parent=self, icon=get_icon('pydee.svg') )
         if answer is not None:
             name, pack = answer
             try:
