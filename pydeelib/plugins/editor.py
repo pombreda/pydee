@@ -519,6 +519,9 @@ class TabbedEditor(Tabs):
         event.acceptProposedAction()
 
 
+#TODO: Transform SplitEditor into a real generic splittable editor
+# -> i.e. all QSplitter widgets must be of the same kind
+#    (currently there are tabbededitors and spliteditors at the same level)
 class SplitEditor(QSplitter):
     def __init__(self, parent, actions):
         QSplitter.__init__(self, parent)
@@ -605,11 +608,8 @@ class Editor(PluginWidget):
         
         self.tabbededitors = []
         
-        # Double splitter
-        self.spliteditor = SplitEditor(self, self.tab_actions)
-        
         cb_splitter = QSplitter(self)
-        cb_splitter.addWidget(self.spliteditor)
+        cb_splitter.addWidget(SplitEditor(self, self.tab_actions))
         cb_splitter.addWidget(self.toolbox)
         cb_splitter.setStretchFactor(0, 3)
         cb_splitter.setStretchFactor(1, 1)
@@ -1045,10 +1045,6 @@ class Editor(PluginWidget):
                 self.exec_action, self.exec_process_action,
                 workdir_action, self.close_action)
         return (source_menu_actions, self.dock_toolbar_actions)        
-        
-    def split(self, orientation):
-        """Split editor window in two parts"""
-        self.spliteditor.split(orientation)
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
