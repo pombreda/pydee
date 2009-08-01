@@ -267,6 +267,8 @@ class QsciEditor(QsciBase):
         """
         Set QScintilla widget EOL mode based on *text* EOL characters
         """
+        if isinstance(text, QString):
+            text = unicode(text)
         if text.find("\r\n") > -1:
             self.setEolMode( QsciScintilla.EolMode(QsciScintilla.EolWindows) )
         elif text.find("\n") > -1:
@@ -274,7 +276,7 @@ class QsciEditor(QsciBase):
         elif text.find("\r") > -1:
             self.setEolMode( QsciScintilla.EolMode(QsciScintilla.EolMac) )
         else:
-            return None    
+            return None
         
     def get_line_separator(self):
         """Return line separator based on current EOL mode"""
