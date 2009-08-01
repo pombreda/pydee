@@ -134,6 +134,10 @@ class QsciEditor(QsciBase):
         # Context menu
         self.setup_context_menu()
         
+        # Tab key behavior
+        self.tab_indents = None
+        self.tab_mode = True # see QsciEditor.set_tab_mode
+        
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
                      font=None, wrap=True):
@@ -151,6 +155,13 @@ class QsciEditor(QsciBase):
         self.set_wrap_mode(wrap)
         self.setup_api()
         self.setModified(False)
+        
+    def set_tab_mode(self, enable):
+        """
+        enabled = tab always indent
+        (otherwise tab indents only when cursor is at the beginning of a line)
+        """
+        self.tab_mode = enable
         
     def set_language(self, language):
         self.supported_language = False
@@ -585,11 +596,19 @@ class QsciEditor(QsciBase):
             self.setCursorPosition(line, index)
             self.endUndoAction()
     
+    def __no_char_before_cursor(self):
+        line, index = self.getCursorPosition()
+        self.setSelection(line, 0, line, index)
+        selected_text = unicode(self.selectedText())
+        self.clear_selection()
+        return len(selected_text.strip()) == 0
+    
     def indent(self):
         """Indent current line or selection"""
         if self.hasSelectedText():
             self.add_prefix( " "*4 )
-        elif self.tab_indents:
+        elif self.__no_char_before_cursor() or \
+             (self.tab_indents and self.tab_mode):
             if isinstance(self.lexer(), QsciLexerPython):
                 self.fix_indent(forward=True)
             else:
@@ -601,7 +620,8 @@ class QsciEditor(QsciBase):
         """Unindent current line or selection"""
         if self.hasSelectedText():
             self.remove_prefix( " "*4 )
-        elif self.tab_indents:
+        elif self.__no_char_before_cursor() or \
+             (self.tab_indents and self.tab_mode):
             if isinstance(self.lexer(), QsciLexerPython):
                 self.fix_indent(forward=False)
             else:

@@ -178,6 +178,7 @@ DEFAULTS = [
               'class_browser' : True,
               'toolbox_panel' : True,
               'code_folding' : True,
+              'tab_always_indent' : True,
               'api' : osp.join(APP_PATH, 'python.api'),
               }),
             ('historylog',
