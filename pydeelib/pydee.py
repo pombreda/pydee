@@ -535,13 +535,17 @@ class MainWindow(QMainWindow):
         self.console.shell.setFocus()
         
     def __focus_shell(self):
-        """Return shell widget which has focus, if any"""
+        """Return Python shell widget which has focus, if any"""
         widget = QApplication.focusWidget()
         from pydeelib.widgets.qscishell import QsciShell
-        from pydeelib.widgets.externalshell import ExternalShellBase
-        if isinstance(widget, QsciShell):
+        from pydeelib.widgets.externalshell import ExternalQsciShell
+        from pydeelib.widgets.externalshell.pythonshell import ExternalPythonShell
+        if isinstance(widget, ExternalQsciShell):
+            if isinstance(widget.externalshell, ExternalPythonShell):
+                return widget
+        elif isinstance(widget, QsciShell):
             return widget
-        elif isinstance(widget, ExternalShellBase):
+        elif isinstance(widget, ExternalPythonShell):
             return widget.shell
         
     def plugin_focus_changed(self):
