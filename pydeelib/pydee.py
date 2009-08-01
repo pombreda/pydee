@@ -179,13 +179,14 @@ class MainWindow(QMainWindow):
         if intitle:
             title += " (%s)" % intitle
         self.setWindowTitle(title)
-        self.setWindowIcon(get_icon('pydee.png'))
+        self.setWindowIcon(get_icon('pydee.svg'))
         
         # Showing splash screen
         pixmap = QPixmap(get_image_path('splash.png'), 'png')
         self.splash = QSplashScreen(pixmap)
         font = self.splash.font()
-        font.setPixelSize(11)
+        font.setPixelSize(12)
+        font.setBold(True)
         self.splash.setFont(font)
         if not self.light:
             self.splash.show()
@@ -641,9 +642,8 @@ class MainWindow(QMainWindow):
     def set_splash(self, message):
         """Set splash message"""
         self.splash.show()
-        self.splash.showMessage(message,
-                    Qt.AlignBottom | Qt.AlignRight | Qt.AlignAbsolute,
-                    QColor(Qt.gray))
+        self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter | 
+                                Qt.AlignAbsolute, QColor(Qt.white))
         QApplication.processEvents()
         
     def closeEvent(self, event):
