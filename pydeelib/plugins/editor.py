@@ -46,8 +46,8 @@ class TabbedEditor(Tabs):
         Tabs.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.original_actions = actions
-        self.additional_actions = self.get_actions()
-        self.connect(self.menu, SIGNAL("aboutToShow()"), self.setup_menu)
+        self.additional_actions = self.__get_split_actions()
+        self.connect(self.menu, SIGNAL("aboutToShow()"), self.__setup_menu)
         
         self.plugin = parent
         self.ID = self.plugin.ID
@@ -67,6 +67,9 @@ class TabbedEditor(Tabs):
         self.editors = []
         self.classes = []
         self.analysis_results = []
+        self.lastmodified = []
+        
+        self.__last_modified_flag = False
         
         self.already_closed = False
         
@@ -75,7 +78,8 @@ class TabbedEditor(Tabs):
         # Accepting drops
         self.setAcceptDrops(True)
 
-    def setup_menu(self):
+    def __setup_menu(self):
+        """Setup tab context menu before showing it"""
         self.menu.clear()
         if self.editors:
             actions = self.original_actions
@@ -85,7 +89,10 @@ class TabbedEditor(Tabs):
         add_actions(self.menu, actions + self.additional_actions)
         self.close_action.setEnabled( len(self.plugin.tabbededitors) > 1 )
 
-    def get_actions(self):
+#===============================================================================
+#    Horizontal/Vertical splitting
+#===============================================================================
+    def __get_split_actions(self):
         # Splitting
         self.versplit_action = create_action(self, self.tr("Split vertically"),
             icon="versplit.png",
@@ -109,6 +116,8 @@ class TabbedEditor(Tabs):
         self.horsplit_action.setEnabled(orientation == Qt.Horizontal)
         self.versplit_action.setEnabled(orientation == Qt.Vertical)
         
+        
+#===============================================================================
     def get_current_filename(self):
         if self.filenames:
             return self.filenames[ self.currentIndex() ]
@@ -123,7 +132,9 @@ class TabbedEditor(Tabs):
             self.setCurrentIndex(index)
             self.editors[index].setFocus()
             return True
+        
 
+#===============================================================================
     def move_data(self, index_from, index_to, tabbededitor_to=None):
         """
         Move tab
@@ -135,6 +146,7 @@ class TabbedEditor(Tabs):
         encoding = self.encodings.pop(index_from)
         classes = self.classes.pop(index_from)
         analysis = self.analysis_results.pop(index_from)
+        lastmodified = self.lastmodified.pop(index_from)
         
         if tabbededitor_to is None:
             tabbededitor_to = self
@@ -144,6 +156,7 @@ class TabbedEditor(Tabs):
         tabbededitor_to.encodings.insert(index_to, encoding)
         tabbededitor_to.classes.insert(index_to, classes)
         tabbededitor_to.analysis_results.insert(index_to, analysis)
+        tabbededitor_to.lastmodified.insert(index_to, lastmodified)
         
         if tabbededitor_to is not self:
             self.disconnect(editor, SIGNAL('modificationChanged(bool)'),
@@ -154,6 +167,9 @@ class TabbedEditor(Tabs):
             self.connect(editor, SIGNAL("focus_in()"),
                          tabbededitor_to.focus_changed)            
     
+#===============================================================================
+#    Close file, all files, tabbededitor
+#===============================================================================
     def close_file(self, index=None):
         """Close current file"""
         if index is None:
@@ -169,6 +185,7 @@ class TabbedEditor(Tabs):
             self.editors.pop(index)
             self.classes.pop(index)
             self.analysis_results.pop(index)
+            self.lastmodified.pop(index)
             self.plugin.classbrowser.clear() # Clearing class browser contents
             self.removeTab(index)
             if not self.filenames:
@@ -199,6 +216,9 @@ class TabbedEditor(Tabs):
         while self.close_file():
             pass
         
+#===============================================================================
+#    Save
+#===============================================================================
     def save_if_changed(self, cancelable=False, index=None):
         """Ask user to save file if modified"""
         if index is None:
@@ -226,10 +246,11 @@ class TabbedEditor(Tabs):
                     return False
             elif self.editors[index].isModified():
                 answer = QMessageBox.question(self,
-                    self.plugin.get_widget_title(),
-                    self.tr("<b>%1</b> has been modified."
-                            "<br>Do you want to save "
-                            "changes?").arg(osp.basename(filename)), buttons)
+                            self.plugin.get_widget_title(),
+                            self.tr("<b>%1</b> has been modified."
+                                    "<br>Do you want to save "
+                                    "changes?").arg(osp.basename(filename)),
+                            buttons)
                 if answer == QMessageBox.Yes:
                     if not self.save():
                         return False
@@ -255,13 +276,14 @@ class TabbedEditor(Tabs):
             return True
         txt = unicode(self.editors[index].get_text())
         try:
-            self.encodings[index] = encoding.write(txt,
-                                                   self.filenames[index],
+            filename = self.filenames[index]
+            self.encodings[index] = encoding.write(txt, filename,
                                                    self.encodings[index])
             self.editors[index].setModified(False)
+            self.lastmodified[index] = QFileInfo(filename).lastModified()
             self.modification_changed(index=index)
             self.analyze_script(index)
-            self.update_classbrowser(index)
+            self.__update_classbrowser(index)
             return True
         except EnvironmentError, error:
             QMessageBox.critical(self, self.tr("Save"),
@@ -275,12 +297,9 @@ class TabbedEditor(Tabs):
         for index in range(self.count()):
             self.save(index)
     
-    def update_classbrowser(self, index=None):
-        """Update class browser data"""
-        if index is None:
-            index = self.currentIndex()
-        self.__refresh_classbrowser(index, update=True)
-    
+#===============================================================================
+#    Update UI
+#===============================================================================
     def analyze_script(self, index=None):
         """Analyze current script with pyflakes"""
         if index is None:
@@ -291,6 +310,12 @@ class TabbedEditor(Tabs):
             self.editors[index].process_code_analysis(results)
         self.__refresh_code_analysis_buttons(index)
         
+    def __update_classbrowser(self, index=None):
+        """Update class browser data"""
+        if index is None:
+            index = self.currentIndex()
+        self.__refresh_classbrowser(index, update=True)
+    
     def current_changed(self, index):
         """Tab index has changed"""
         if index != -1:
@@ -339,6 +364,31 @@ class TabbedEditor(Tabs):
         self.editors[index].setReadOnly(read_only)
         self.emit(SIGNAL('readonly_changed(bool)'), read_only)
         
+    def __check_last_modified(self, index):
+        if self.__last_modified_flag:
+            # Avoid infinite loop: when the QMessageBox.question pops, it
+            # gets focus and then give it back to the QsciEditor instance,
+            # triggering a refresh cycle which calls this method
+            return
+        self.__last_modified_flag = True
+        filename = self.filenames[index]
+        lastm = QFileInfo(filename).lastModified()
+        if lastm.toString().compare(self.lastmodified[index].toString()):
+            if self.editors[index].isModified():
+                answer = QMessageBox.question(self,
+                    self.plugin.get_widget_title(),
+                    self.tr("<b>%1</b> has been modified outside Pydee."
+                            "<br>Do you want to reload it and loose all your "
+                            "changes?").arg(osp.basename(filename)),
+                    QMessageBox.Yes | QMessageBox.No)
+                if answer == QMessageBox.Yes:
+                    self.reload(index)
+                else:
+                    self.lastmodified[index] = lastm
+            else:
+                self.reload(index)
+        self.__last_modified_flag = False
+        
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
@@ -354,6 +404,7 @@ class TabbedEditor(Tabs):
             self.__refresh_code_analysis_buttons(index)
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
+            self.__check_last_modified(index)
         else:
             editor = None
         if self.plugin.dockwidget:
@@ -411,10 +462,25 @@ class TabbedEditor(Tabs):
         self.plugin.save_action.setEnabled(state)
         self.plugin.refresh_save_all_action()
         
+#===============================================================================
+#    Load, reload
+#===============================================================================
+    def reload(self, index):
+        filename = self.filenames[index]
+        txt, enc = encoding.read(filename)
+        self.encodings[index] = enc
+        self.lastmodified[index] = QFileInfo(filename).lastModified()
+        editor = self.editors[index]
+        line, index = editor.getCursorPosition()
+        editor.set_text(txt)
+        editor.setModified(False)
+        editor.setCursorPosition(line, index)
+        
     def load(self, filename, goto=0):
         self.filenames.append(filename)
         txt, enc = encoding.read(filename)
         self.encodings.append(enc)
+        self.lastmodified.append(QFileInfo(filename).lastModified())
         
         # Editor widget creation
         ext = osp.splitext(filename)[1]
@@ -453,7 +519,7 @@ class TabbedEditor(Tabs):
         self.modification_changed()
 
         self.analyze_script(index)
-        self.update_classbrowser(index)
+        self.__update_classbrowser(index)
         
         self.setCurrentIndex(index)
         
@@ -462,6 +528,9 @@ class TabbedEditor(Tabs):
         if goto > 0:
             editor.highlight_line(goto)
     
+#===============================================================================
+#    Run
+#===============================================================================
     def exec_script_extconsole(self, ask_for_arguments=False,
                                interact=False, debug=False):
         """Run current script in another process"""
@@ -520,6 +589,9 @@ class TabbedEditor(Tabs):
         self.interactive_console.shell.execute_lines(lines)
         self.interactive_console.shell.setFocus()
         
+#===============================================================================
+#    Drag and drop
+#===============================================================================
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
@@ -587,6 +659,9 @@ class SplitEditor(QSplitter):
                      self.spliteditor_closed)
 
 
+#===============================================================================
+# Status bar widgets
+#===============================================================================
 class ReadWriteStatus(QWidget):
     def __init__(self, parent, statusbar):
         QWidget.__init__(self, parent)
