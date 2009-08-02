@@ -26,7 +26,7 @@ from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
                          QLabel, QHBoxLayout, QDrag, QApplication, QMessageBox,
                          QInputDialog, QLineEdit, QMenu, QWidget, QToolButton,
                          QFileDialog, QToolBar)
-from PyQt4.QtCore import Qt, SIGNAL, QMimeData
+from PyQt4.QtCore import Qt, SIGNAL, QMimeData, QSize
 
 import os, sys, re
 import os.path as osp
@@ -37,7 +37,7 @@ STDOUT = sys.stdout
 # Local imports
 from pydeelib.widgets.formlayout import fedit
 from pydeelib.qthelpers import (get_std_icon, create_action, add_actions,
-                                translate, get_filetype_icon, create_toolbutton)
+                                translate, get_filetype_icon)
 from pydeelib import encoding
 from pydeelib.config import get_icon
 
@@ -482,6 +482,7 @@ class ExplorerWidget(QWidget):
         
         # Setup toolbar
         self.toolbar = QToolBar(self)
+        self.toolbar.setIconSize(QSize(16, 16))
         
         self.previous_action = create_action(self,
                     text=translate('Explorer', "Previous"),
