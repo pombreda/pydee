@@ -40,7 +40,6 @@ def is_python_script(fname):
     return osp.splitext(fname)[1][1:] in ('py', 'pyw')
 
 
-#TODO: This class clearly needs some code cleaning/refactoring
 class TabbedEditor(Tabs):
     def __init__(self, parent, actions):
         Tabs.__init__(self, parent)
