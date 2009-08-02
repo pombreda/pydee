@@ -45,7 +45,8 @@ class Explorer(ExplorerWidget, PluginMixin):
         
         self.connect(self, SIGNAL("open_file(QString)"), self.open_file)
         
-    def add_to_valid_types(self, valid_types):
+    def set_editor_valid_types(self, valid_types):
+        self.editor_valid_types = valid_types
         self.listwidget.valid_types += valid_types
         
     def refresh(self, new_path=None):
@@ -82,7 +83,7 @@ class Explorer(ExplorerWidget, PluginMixin):
         Redirect to the right widget (txt -> editor, ws -> workspace, ...)"""
         fname = unicode(fname)
         ext = osp.splitext(fname)[1]
-        if ext in CONF.get('editor', 'valid_filetypes'):
+        if ext in self.editor_valid_types:
             self.emit(SIGNAL("edit(QString)"), fname)
         elif ext == '.ws':
             self.emit(SIGNAL("open_workspace(QString)"), fname)
