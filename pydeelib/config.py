@@ -115,7 +115,7 @@ DEFAULTS = [
             ('shell',
              {
               'shortcut': "Ctrl+Shift+C",
-              'working_dir_history' : 10,
+              'working_dir_history' : 30,
               'working_dir_adjusttocontents' : False,
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,

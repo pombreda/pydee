@@ -25,7 +25,7 @@ except ImportError:
 from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
                          QLabel, QHBoxLayout, QDrag, QApplication, QMessageBox,
                          QInputDialog, QLineEdit, QMenu, QWidget, QToolButton,
-                         QFileDialog, QToolBar)
+                         QFileDialog, QToolBar, QSplitter, QTreeWidgetItem)
 from PyQt4.QtCore import Qt, SIGNAL, QMimeData, QSize
 
 import os, sys, re
@@ -35,6 +35,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
+from pydeelib.widgets import OneColumnTree
 from pydeelib.widgets.formlayout import fedit
 from pydeelib.qthelpers import (get_std_icon, create_action, add_actions,
                                 translate, get_filetype_icon)
@@ -47,7 +48,8 @@ def create_script(fname):
     text = os.linesep.join(["# -*- coding: utf-8 -*-", "", ""])
     encoding.write(unicode(text), fname, 'utf-8')
 
-def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False):
+def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
+            folders_only=False):
     """List files and directories"""
     namelist = []
     dirlist = [unicode(osp.pardir)]
@@ -56,20 +58,165 @@ def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False):
             continue
         if osp.isdir(osp.join(path, item)):
             dirlist.append(item)
+        elif folders_only:
+            continue
         elif re.search(include, item) or show_all:
             namelist.append(item)
     return sorted(dirlist, key=unicode.lower) + \
            sorted(namelist, key=unicode.lower)
 
+def abspardir(path):
+    """Return absolute parent dir"""
+    return osp.abspath(osp.join(path, os.pardir))
+
+def has_subdirectories(path, include, exclude, show_all):
+    try:
+        # > 1 because of '..'
+        return len( listdir(path, include, exclude,
+                            show_all, folders_only=True) ) > 1
+    except (IOError, OSError):
+        return False
+    
+def is_drive_path(path):
+    path = osp.abspath(path)
+    return osp.normpath(osp.join(path, osp.pardir)) == path
+
+
+class ExplorerTreeWidget(OneColumnTree):
+    def __init__(self, parent):
+        OneColumnTree.__init__(self, parent)
+        self.parent_widget = parent
+        self.folders = set()
+        self.root_item = None
+        self.root_path = None
+        self.last_folder = None
+        self.last_item = None
+        self.data = None
+        self.set_title(translate('Explorer', 'Folders'))
+        self.connect(self, SIGNAL('itemClicked(QTreeWidgetItem*,int)'),
+                     self.activated)
+        self.connect(self, SIGNAL('itemExpanded(QTreeWidgetItem*)'),
+                     self.item_expanded)
+        
+    def setup(self, include='.', exclude=r'\.pyc$|^\.', show_all=False):
+        self.include = include
+        self.exclude = exclude
+        self.show_all = show_all
+        
+    def activated(self):
+        itemdata = self.data.get(self.currentItem())
+        if itemdata is not None:
+            self.parent_widget.emit(SIGNAL("open_dir(QString)"), itemdata)
+        
+    def item_expanded(self, item):
+        if not item.childCount():
+            # A non-populated item was just expanded
+            folder = self.data[item]
+            for path in listdir(folder, self.include, self.exclude,
+                                self.show_all, folders_only=True):
+                if path == osp.pardir:
+                    continue
+                self.create_dir_item(osp.join(folder, path), item)
+            self.after_refresh()
+            self.scrollToItem(item)
+        
+    def set_folder(self, folder):
+        folder = osp.abspath(unicode(folder))
+        self.last_folder = folder
+        self.folders.add(folder)
+#        clear = False
+#        if not osp.commonprefix(list(self.folders)) or len(self.folders) == 1:
+#            self.folders = set([folder])
+#            clear = True
+        if not osp.commonprefix(list(self.folders)):
+            self.folders = set([folder])
+        clear = True
+        for path in listdir(folder, self.include, self.exclude,
+                            self.show_all, folders_only=True):
+            self.folders.add(osp.abspath(path))
+        self.refresh(clear=clear)
+        self.after_refresh()
+        self.last_item.setSelected(True)
+        self.scrollToItem(self.last_item)
+        
+    def after_refresh(self):
+        self.expandAll()
+        for item, path in self.data.iteritems():
+            if not item.childCount()and has_subdirectories(path, self.include,
+                                                           self.exclude,
+                                                           self.show_all):
+                item.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
+                self.collapseItem(item)
+            if path == self.last_folder:
+                self.last_item = item
+        self.resizeColumnToContents(0)
+                
+    def create_dir_item(self, dirname, parent):
+        if dirname != self.root_path:
+            displayed_name = osp.basename(dirname)
+        else:
+            displayed_name = dirname
+        item = QTreeWidgetItem(parent, [displayed_name])
+        if is_drive_path(dirname):
+            icon = 'DriveHDIcon'
+        else:
+            icon = 'DirClosedIcon'
+        item.setIcon(0, get_std_icon(icon))
+        self.data[item] = dirname
+        return item
+        
+    def refresh(self, clear=True):
+        if clear:
+            self.clear()
+            self.data = {}
+        self.root_path = osp.commonprefix(list(self.folders))
+        self.folders.add(self.root_path)
+        # Populating tree: directories
+        dirs = {}
+        for dirname in sorted(list(self.folders)):
+            if dirname == self.root_path:
+                parent = self
+            else:
+                parent_dirname = abspardir(dirname)
+                parent = dirs.get(parent_dirname)
+                if parent is None:
+                    # This is related to directories which contain single
+                    # nested subdirectories
+                    items_to_create = []
+                    while dirs.get(parent_dirname) is None:
+                        items_to_create.append(parent_dirname)
+                        parent_dirname = abspardir(parent_dirname)
+                    items_to_create.reverse()
+                    for item_dir in items_to_create:
+                        item_parent = dirs[abspardir(item_dir)]
+                        dirs[item_dir] = self.create_dir_item(item_dir, item_parent)
+                    parent_dirname = abspardir(dirname)
+                    parent = dirs[parent_dirname]
+            dirs[dirname] = self.create_dir_item(dirname, parent)
+        self.root_item = dirs[self.root_path]
+#        # Populating tree: files
+#        for filename in sorted(self.results.keys()):
+#            parent_item = dirs[osp.dirname(filename)]
+#            file_item = QTreeWidgetItem(parent_item, [osp.basename(filename)])
+#            file_item.setIcon(0, get_filetype_icon(filename))
+#            for lineno, colno, line in self.results[filename]:
+#                item = QTreeWidgetItem(file_item,
+#                           ["%d (%d): %s" % (lineno, colno, line.rstrip())])
+#                item.setIcon(0, get_icon('arrow.png'))
+#                self.data[item] = (filename, lineno)
+        
 
 class ExplorerListWidget(QListWidget):
     """File and Directories Explorer Widget
     get_filetype_icon(fname): fn which returns a QIcon for file extension"""
-    def __init__(self, parent=None, path=None, include='.',
-                 exclude=r'\.pyc$|^\.', valid_types= ('.py', '.pyw'),
-                 show_all=False, wrap=True):
+    def __init__(self, parent):
         QListWidget.__init__(self, parent)
+        self.parent_widget = parent
         
+    def setup(self, treewidget=None, path=None,
+              include='.', exclude=r'\.pyc$|^\.',
+              valid_types= ('.py', '.pyw'), show_all=False, wrap=True):
+        self.treewidget = treewidget
         self.include = include
         self.exclude = exclude
         self.valid_types = valid_types
@@ -92,7 +239,6 @@ class ExplorerListWidget(QListWidget):
         self.menu = QMenu(self)
         self.common_actions = self.setup_common_actions()
         
-        
     #---- Context menu
     def setup_common_actions(self):
         """Setup context menu common actions"""
@@ -107,13 +253,13 @@ class ExplorerListWidget(QListWidget):
                                    translate('Explorer', "Show all files"),
                                    toggled=self.toggle_all)
         all_action.setChecked(self.show_all)
-        self.toggle_all(self.show_all)
+        self.toggle_all(self.show_all, refresh=False)
         # Wrap
         wrap_action = create_action(self,
                                     translate('Explorer', "Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
         wrap_action.setChecked(self.wrap)
-        self.toggle_wrap_mode(self.wrap)
+        self.toggle_wrap_mode(self.wrap, refresh=False)
         
         return [filters_action, all_action, None, wrap_action]
         
@@ -132,23 +278,28 @@ class ExplorerListWidget(QListWidget):
                 import fnmatch
                 self.include = fnmatch.translate(self.include)
                 self.exclude = fnmatch.translate(self.exclude)
-            self.parent().emit(SIGNAL('option_changed'),
-                               'include', self.include)
-            self.parent().emit(SIGNAL('option_changed'),
-                               'exclude', self.exclude)
+            self.parent_widget.emit(SIGNAL('option_changed'),
+                                     'include', self.include)
+            self.parent_widget.emit(SIGNAL('option_changed'),
+                                     'exclude', self.exclude)
+            self.treewidget.include = self.include
+            self.treewidget.exclude = self.exclude
             self.refresh()
         
-    def toggle_wrap_mode(self, checked):
+    def toggle_wrap_mode(self, checked, refresh=True):
         """Toggle wrap mode"""
-        self.parent().emit(SIGNAL('option_changed'), 'wrap', checked)
+        self.parent_widget.emit(SIGNAL('option_changed'), 'wrap', checked)
         self.wrap = checked
-        self.refresh(clear=True)
+        if refresh:
+            self.refresh(clear=True)
         
-    def toggle_all(self, checked):
+    def toggle_all(self, checked, refresh=True):
         """Toggle all files mode"""
-        self.parent().emit(SIGNAL('option_changed'), 'show_all', checked)
+        self.parent_widget.emit(SIGNAL('option_changed'), 'show_all', checked)
         self.show_all = checked
-        self.refresh(clear=True)
+        self.treewidget.show_all = checked
+        if refresh:
+            self.refresh(clear=True)
         
     def update_menu(self):
         """Update option menu"""
@@ -255,6 +406,7 @@ class ExplorerListWidget(QListWidget):
                     self.insertItem(row, item)
             self.nameset = new_nameset
         
+        self.treewidget.set_folder(new_path)
         
     #---- Events
     def contextMenuEvent(self, event):
@@ -327,7 +479,7 @@ class ExplorerListWidget(QListWidget):
         fname = self.get_filename()
         if fname:
             if osp.isdir(osp.join(self.path, fname)):
-                self.parent().emit(SIGNAL("open_dir(QString)"), fname)
+                self.parent_widget.emit(SIGNAL("open_dir(QString)"), fname)
                 self.refresh()
             else:
                 self.open(fname)
@@ -337,7 +489,7 @@ class ExplorerListWidget(QListWidget):
         fname = unicode(fname)
         ext = osp.splitext(fname)[1]
         if ext in self.valid_types:
-            self.parent().emit(SIGNAL("open_file(QString)"), fname)
+            self.parent_widget.emit(SIGNAL("open_file(QString)"), fname)
         else:
             self.startfile(fname)
         
@@ -354,11 +506,11 @@ class ExplorerListWidget(QListWidget):
         else:
             emit = True
         if emit:
-            self.parent().emit(SIGNAL("edit(QString)"), fname)
+            self.parent_widget.emit(SIGNAL("edit(QString)"), fname)
         
     def run(self):
         """Run Python script"""
-        self.parent().emit(SIGNAL("run(QString)"), self.get_filename())
+        self.parent_widget.emit(SIGNAL("run(QString)"), self.get_filename())
             
     def delete(self):
         """Delete selected item"""
@@ -372,7 +524,7 @@ class ExplorerListWidget(QListWidget):
                 return
             try:
                 os.remove(fname)
-                self.parent().emit(SIGNAL("removed(QString)"), fname)
+                self.parent_widget.emit(SIGNAL("removed(QString)"), fname)
             except EnvironmentError, error:
                 QMessageBox.critical(self,
                     translate('Explorer', "Delete"),
@@ -394,8 +546,8 @@ class ExplorerListWidget(QListWidget):
             if valid and path != fname:
                 try:
                     os.rename(fname, path)
-                    self.parent().emit(SIGNAL("renamed(QString,QString)"),
-                                       fname, path)
+                    self.parent_widget.emit(SIGNAL("renamed(QString,QString)"),
+                                             fname, path)
                 except EnvironmentError, error:
                     QMessageBox.critical(self,
                         translate('Explorer', "Rename"),
@@ -466,10 +618,14 @@ class ExplorerWidget(QWidget):
                  show_toolbar=True, show_icontext=True):
         QWidget.__init__(self, parent)
         
-        self.listwidget = ExplorerListWidget(parent=self, path=path,
-                                             include=include, exclude=exclude,
-                                             valid_types=valid_types,
-                                             show_all=show_all, wrap=wrap)        
+        self.treewidget = ExplorerTreeWidget(self)
+        self.treewidget.setup(include=include, exclude=exclude,
+                              show_all=show_all)
+        self.listwidget = ExplorerListWidget(self)
+        self.listwidget.setup(treewidget=self.treewidget, path=path,
+                              include=include, exclude=exclude,
+                              valid_types=valid_types, show_all=show_all,
+                              wrap=wrap)
         
         toolbar_action = create_action(self,
                                        translate('Explorer', "Show toolbar"),
@@ -527,7 +683,12 @@ class ExplorerWidget(QWidget):
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.toolbar)
-        vlayout.addWidget(self.listwidget)
+        splitter = QSplitter(self)
+        splitter.addWidget(self.treewidget)
+        splitter.addWidget(self.listwidget)
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 2)
+        vlayout.addWidget(splitter)
         self.setLayout(vlayout)
         
     def toggle_toolbar(self, state):
