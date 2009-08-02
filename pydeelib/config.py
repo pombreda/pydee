@@ -75,7 +75,7 @@ DEFAULTS = [
               }),
             ('window',
              {
-              'size' : (1260, 780),
+              'size' : (1260, 700),
               'is_maximized' : False,
               'position' : (10, 10),
               'state' : STATE1,
