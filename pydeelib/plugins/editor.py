@@ -13,8 +13,9 @@
 
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
                          QSplitter, QToolBar, QAction, QApplication, QToolBox,
-                         QListWidget, QListWidgetItem)
-from PyQt4.QtCore import SIGNAL, QStringList, Qt, QVariant
+                         QListWidget, QListWidgetItem, QLabel, QWidget,
+                         QHBoxLayout)
+from PyQt4.QtCore import SIGNAL, QStringList, Qt, QVariant, QFileInfo
 
 import os, sys
 import os.path as osp
@@ -278,7 +279,7 @@ class TabbedEditor(Tabs):
         """Update class browser data"""
         if index is None:
             index = self.currentIndex()
-        self.refresh_classbrowser(index, update=True)
+        self.__refresh_classbrowser(index, update=True)
     
     def analyze_script(self, index=None):
         """Analyze current script with pyflakes"""
@@ -289,18 +290,13 @@ class TabbedEditor(Tabs):
             results = self.analysis_results[index] = check(fname)
             self.editors[index].process_code_analysis(results)
         self.__refresh_code_analysis_buttons(index)
-            
-    def __refresh_code_analysis_buttons(self, index):
-        """Refresh previous/next warning toolbar buttons state"""
-        if index >= 0:
-            state = len(self.editors[index].marker_lines) and \
-                    CONF.get(self.ID, 'code_analysis')
-            self.plugin.set_warning_actions_state(state)
         
     def current_changed(self, index):
         """Tab index has changed"""
         if index != -1:
             self.currentWidget().setFocus()
+        else:
+            self.emit(SIGNAL('reset_statusbar()'))
         self.emit(SIGNAL('opened_files_list_changed()'))
         
     def focus_changed(self):
@@ -309,7 +305,7 @@ class TabbedEditor(Tabs):
         if fwidget in self.editors:
             self.refresh()
         
-    def refresh_classbrowser(self, index, update=True):
+    def __refresh_classbrowser(self, index, update=True):
         """Refresh class browser panel"""
         fname = self.filenames[index]
         classbrowser = self.plugin.classbrowser
@@ -323,30 +319,50 @@ class TabbedEditor(Tabs):
         else:
             classbrowser.setEnabled(False)
             classbrowser.clear()
+            
+    def __refresh_code_analysis_buttons(self, index):
+        """Refresh previous/next warning toolbar buttons state"""
+        state = len(self.editors[index].marker_lines) and \
+                CONF.get(self.ID, 'code_analysis')
+        self.plugin.set_warning_actions_state(state)
+        
+    def __refresh_statusbar(self, index):
+        """Refreshing statusbar widgets"""
+        encoding = self.encodings[index]
+        self.emit(SIGNAL('encoding_changed(QString)'), encoding)
+        # Refresh cursor position status:
+        line, index = self.editors[index].getCursorPosition()
+        self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
+        
+    def __refresh_readonly(self, index):
+        read_only = not QFileInfo(self.filenames[index]).isWritable()
+        self.editors[index].setReadOnly(read_only)
+        self.emit(SIGNAL('readonly_changed(bool)'), read_only)
         
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
             index = self.currentIndex()
         # Set current editor
-        title = self.plugin.get_widget_title()
+        plugin_title = self.plugin.get_widget_title()
         if self.count():
             index = self.currentIndex()
             editor = self.editors[index]
             editor.setFocus()
-            title += " - " + osp.basename(self.filenames[index])
-            self.refresh_classbrowser(index, update=False)
+            plugin_title += " - " + osp.basename(self.filenames[index])
+            self.__refresh_classbrowser(index, update=False)
+            self.__refresh_code_analysis_buttons(index)
+            self.__refresh_statusbar(index)
+            self.__refresh_readonly(index)
         else:
             editor = None
         if self.plugin.dockwidget:
-            self.plugin.dockwidget.setWindowTitle(title)
+            self.plugin.dockwidget.setWindowTitle(plugin_title)
         # Update the modification-state-dependent parameters
         self.modification_changed()
         # Update FindReplace binding
         self.plugin.find_widget.set_editor(editor, refresh=False)
-        # Update code analysis buttons
-        self.__refresh_code_analysis_buttons(index)
-        
+                
     def get_title(self, filename):
         """Return tab title"""
         if filename != self.plugin.file_path:
@@ -372,6 +388,8 @@ class TabbedEditor(Tabs):
             title += "*"
         elif title.endswith('*'):
             title = title[:-1]
+        if self.editors[index].isReadOnly():
+            title = '(' + title + ')'
         return title
 
     def modification_changed(self, state=None, index=None):
@@ -410,6 +428,10 @@ class TabbedEditor(Tabs):
                             code_folding=CONF.get(self.ID, 'code_folding'),
                             font=get_font('editor'),
                             wrap=CONF.get(self.ID, 'wrap'))
+        self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
+                     lambda line, index:
+                     self.emit(SIGNAL('cursorPositionChanged(int,int)'),
+                               line, index))
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
                      self.modification_changed)
         self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
@@ -565,6 +587,84 @@ class SplitEditor(QSplitter):
                      self.spliteditor_closed)
 
 
+class ReadWriteStatus(QWidget):
+    def __init__(self, parent, statusbar):
+        QWidget.__init__(self, parent)
+        
+        font = get_font('editor')
+        font.setPointSize(self.font().pointSize())
+        font.setBold(True)
+        
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(QLabel(translate("Editor", "Permissions:")))
+        self.readwrite = QLabel()
+        self.readwrite.setFont(font)
+        layout.addWidget(self.readwrite)
+        layout.addSpacing(10)
+        self.setLayout(layout)
+        
+        statusbar.addPermanentWidget(self)
+        self.hide()
+        
+    def readonly_changed(self, readonly):
+        readwrite = "R" if readonly else "RW"
+        self.readwrite.setText(readwrite.ljust(3))
+        self.show()
+
+class EncodingStatus(QWidget):
+    def __init__(self, parent, statusbar):
+        QWidget.__init__(self, parent)
+        
+        font = get_font('editor')
+        font.setPointSize(self.font().pointSize())
+        font.setBold(True)
+        
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(QLabel(translate("Editor", "Encoding:")))
+        self.encoding = QLabel()
+        self.encoding.setFont(font)
+        layout.addWidget(self.encoding)
+        layout.addSpacing(10)
+        self.setLayout(layout)
+        
+        statusbar.addPermanentWidget(self)
+        self.hide()
+        
+    def encoding_changed(self, encoding):
+        self.encoding.setText(str(encoding).upper().ljust(15))
+        self.show()
+
+class CursorPositionStatus(QWidget):
+    def __init__(self, parent, statusbar):
+        QWidget.__init__(self, parent)
+        
+        font = get_font('editor')
+        font.setPointSize(self.font().pointSize())
+        font.setBold(True)
+        
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(QLabel(translate("Editor", "Line:")))
+        self.line = QLabel()
+        self.line.setFont(font)
+        layout.addWidget(self.line)
+        layout.addWidget(QLabel(translate("Editor", "Column:")))
+        self.column = QLabel()
+        self.column.setFont(font)
+        layout.addWidget(self.column)
+        self.setLayout(layout)
+        
+        statusbar.addPermanentWidget(self)
+        self.hide()
+        
+    def cursor_position_changed(self, line, index):
+        self.line.setText("%-6d" % (line+1))
+        self.column.setText("%-4d" % (index+1))
+        self.show()
+        
+
 #TODO: This class clearly needs some code cleaning/refactoring
 class Editor(PluginWidget):
     """
@@ -580,6 +680,11 @@ class Editor(PluginWidget):
         self.run_toolbar_actions = None
         self.edit_toolbar_actions = None
         PluginWidget.__init__(self, parent)
+        
+        statusbar = self.main.statusBar()
+        self.readwrite_status = ReadWriteStatus(self, statusbar)
+        self.encoding_status = EncodingStatus(self, statusbar)
+        self.cursorpos_status = CursorPositionStatus(self, statusbar)
         
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -747,9 +852,25 @@ class Editor(PluginWidget):
         """
         return self.get_current_editor()
         
+    def __reset_statusbar(self):
+        self.encoding_status.hide()
+        self.cursorpos_status.hide()
+        
     def register_tabbededitor(self, tabbededitor):
         self.tabbededitors.append(tabbededitor)
         self.last_focus_tabbededitor = tabbededitor
+        self.connect(tabbededitor, SIGNAL('reset_statusbar()'),
+                     self.readwrite_status.hide)
+        self.connect(tabbededitor, SIGNAL('reset_statusbar()'),
+                     self.encoding_status.hide)
+        self.connect(tabbededitor, SIGNAL('reset_statusbar()'),
+                     self.cursorpos_status.hide)
+        self.connect(tabbededitor, SIGNAL('readonly_changed(bool)'),
+                     self.readwrite_status.readonly_changed)
+        self.connect(tabbededitor, SIGNAL('encoding_changed(QString)'),
+                     self.encoding_status.encoding_changed)
+        self.connect(tabbededitor, SIGNAL('cursorPositionChanged(int,int)'),
+                     self.cursorpos_status.cursor_position_changed)
         self.connect(tabbededitor, SIGNAL('opened_files_list_changed()'),
                      self.refresh_opened_files_list)
         self.connect(tabbededitor, SIGNAL('refresh_file_dependent_actions()'),
@@ -874,7 +995,8 @@ class Editor(PluginWidget):
             self.dock_toolbar.show()
         else:
             self.dock_toolbar.hide()
-        self.refresh()
+        if enable:
+            self.refresh()
 
     def set_actions(self):
         """Setup actions"""
