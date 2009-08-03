@@ -19,14 +19,56 @@ from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
 # Local imports
 from pydeelib.qthelpers import create_toolbutton
 from pydeelib.config import get_icon
+from pydeelib.widgets.qscishell import QsciShell
 from pydeelib.widgets.externalshell import startup
 from pydeelib.widgets.externalshell.globalsexplorer import GlobalsExplorer
 from pydeelib.widgets.externalshell.monitor import communicate
 from pydeelib.widgets.externalshell import ExternalShellBase
 
 
+class ExtPyQsciShell(QsciShell):
+    def __init__(self, parent, history_filename, max_history_entries=100,
+                 debug=False, profile=False, externalshell=None):
+        QsciShell.__init__(self, parent, history_filename,
+                           max_history_entries, debug, profile)
+        # ExternalShellBase instance:
+        self.externalshell = externalshell
+        
+    #------ Code completion / Calltips
+    def ask_monitor(self, command):
+        sock = self.externalshell.monitor_socket
+        if sock is None:
+            return
+        return communicate(sock, command, pickle_try=True)
+            
+    def get_dir(self, objtxt):
+        """Return dir(object)"""
+        return self.ask_monitor("dir(%s)" % objtxt)
+            
+    def iscallable(self, objtxt):
+        """Is object callable?"""
+        return self.ask_monitor("callable(%s)" % objtxt)
+    
+    def get_arglist(self, objtxt):
+        """Get func/method argument list"""
+        return self.ask_monitor("getargtxt(%s)" % objtxt)
+            
+    def get__doc__(self, objtxt):
+        """Get object __doc__"""
+        return self.ask_monitor("%s.__doc__" % objtxt)
+    
+    def get_doc(self, objtxt):
+        """Get object documentation"""
+        return self.ask_monitor("getdoc(%s)" % objtxt)
+    
+    def get_source(self, objtxt):
+        """Get object source"""
+        return self.ask_monitor("getsource(%s)" % objtxt)
+
+
 class ExternalPythonShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
+    SHELL_CLASS = ExtPyQsciShell
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
                  interact=False, debug=False, path=[]):
         ExternalShellBase.__init__(self, parent, wdir,

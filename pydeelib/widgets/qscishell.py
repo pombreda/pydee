@@ -32,13 +32,14 @@ from pydeelib.qthelpers import (translate, keybinding, create_action,
 from pydeelib.widgets.qscibase import QsciBase
 from pydeelib.widgets.shellhelpers import get_error_match
 
+HISTORY_FILENAMES = []
 
 class QsciShell(QsciBase):
     """
     Shell based on QScintilla
     """
     INITHISTORY = ['# -*- coding: utf-8 -*-',
-                   '# *** Pydee v%s -- History log ***' % __version__, '',]
+                   '# *** Pydee v%s -- History log ***' % __version__,]
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
     def __init__(self, parent, history_filename, max_history_entries=100,
@@ -55,13 +56,12 @@ class QsciShell(QsciBase):
         self.docviewer = None
         
         # History
-        self.separator_flag = None
         self.max_history_entries = max_history_entries
         self.histidx = None
         self.hist_wholeline = False
         assert isinstance(history_filename, (str, unicode))
         self.history_filename = history_filename
-        self.rawhistory, self.history = self.load_history()
+        self.history = self.load_history()
         
         # Code completion / calltips
         self.codecompletion = True
@@ -569,8 +569,7 @@ class QsciShell(QsciBase):
             rawhistory = self.INITHISTORY
         history = [line for line in rawhistory \
                    if line and not line.startswith('#')]
-        self.separator_flag = True # When the first entry will be written in
-                            # history file, the separator will be append first
+
         # Truncating history to X entries:
         while len(history) >= self.max_history_entries:
             del history[0]
@@ -579,7 +578,7 @@ class QsciShell(QsciBase):
             del rawhistory[0]
         # Saving truncated history:
         encoding.writelines(rawhistory, self.history_filename)
-        return rawhistory, history
+        return history
         
     def add_to_history(self, command):
         """Add command to history"""
@@ -593,12 +592,16 @@ class QsciShell(QsciBase):
             return
         self.history.append(command)
         text = os.linesep + command
-        if self.separator_flag:
+        
+        # When the first entry will be written in history file,
+        # the separator will be append first:
+        if self.history_filename not in HISTORY_FILENAMES:
+            HISTORY_FILENAMES.append(self.history_filename)
             text = self.SEPARATOR + text
-            self.separator_flag = False
-            self.rawhistory.append(self.SEPARATOR[2:])
-        self.rawhistory.append(command)
+            
         encoding.write(text, self.history_filename, mode='ab')
+        self.emit(SIGNAL('append_to_history(QString,QString)'),
+                  self.history_filename, text)
         
     def browse_history(self, backward):
         """Browse history"""

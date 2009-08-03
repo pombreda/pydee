@@ -135,7 +135,7 @@ class PluginWidget(QWidget, PluginMixin):
 class ReadOnlyEditor(PluginWidget):
     """
     Read-only editor plugin widget
-    (see examples of children classes in history.py and docviewer.py)
+    (see example of child class in docviewer.py)
     """
     def __init__(self, parent):
         PluginWidget.__init__(self, parent)

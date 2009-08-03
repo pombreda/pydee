@@ -41,7 +41,8 @@ class ExternalConsole(PluginWidget):
         self.commands = commands
         self.tabwidget = None
         self.menu_actions = None
-        self.dockviewer = None
+        self.docviewer = None
+        self.historylog = None
         
         self.shells = []
         self.filenames = []
@@ -97,6 +98,10 @@ class ExternalConsole(PluginWidget):
         self.shells.pop(index)
         self.icons.pop(index)
         
+    def set_historylog(self, historylog):
+        """Bind historylog instance to this console"""
+        self.historylog = historylog
+        
     def set_docviewer(self, docviewer):
         """Bind docviewer instance to this console"""
         self.docviewer = docviewer
@@ -136,6 +141,9 @@ class ExternalConsole(PluginWidget):
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
         shell.shell.set_docviewer(self.docviewer)
+        self.historylog.add_history(shell.shell.history_filename)
+        self.connect(shell.shell, SIGNAL('append_to_history(QString,QString)'),
+                     self.historylog.append_to_history)
         self.connect(shell.shell, SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
         self.connect(shell.shell, SIGNAL("focus_changed()"),

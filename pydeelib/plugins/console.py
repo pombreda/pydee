@@ -77,6 +77,12 @@ class Console(PluginWidget):
         # Accepting drops
         self.setAcceptDrops(True)
         
+    def set_historylog(self, historylog):
+        """Bind historylog instance to this console"""
+        historylog.add_history(self.shell.history_filename)
+        self.connect(self.shell, SIGNAL('append_to_history(QString,QString)'),
+                     historylog.append_to_history)
+        
     def set_docviewer(self, docviewer):
         """Bind docviewer instance to this console"""
         self.shell.docviewer = docviewer
