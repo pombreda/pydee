@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see pydeelib/__init__.py for details)
 
-"""Interactive shell widget : QsciShell + Interpreter"""
+"""Interactive shell widget : QsciPythonShell + Interpreter"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
@@ -40,7 +40,7 @@ from pydeelib.encoding import transcode
 from pydeelib.config import CONF, get_icon, get_conf_path
 try:
     from PyQt4.Qsci import QsciScintilla
-    from pydeelib.widgets.qscishell import QsciShell
+    from pydeelib.widgets.qscishell import QsciPythonShell
 except ImportError, e:
     raise ImportError, str(e) + \
         "\npydeelib's code editor features are based on QScintilla2\n" + \
@@ -73,7 +73,7 @@ def create_banner(moreinfo, message=''):
             moreinfo+'\n' + message + '\n'
 
 
-#TODO: Outside QsciShell: replace most of 'insert_text' occurences by 'write'
+#TODO: Outside QsciPythonShell: replace most of 'insert_text' occurences by 'write'
 
 #TODO: Prepare code for IPython integration:
 #    - implement the 'pop_completion' method like in qt_console_widget.py
@@ -91,15 +91,15 @@ class IOHandler(object):
         pass
 
 
-class InteractiveShell(QsciShell):
-    """Shell base widget: link between QsciShell and Interpreter"""
+class InteractiveShell(QsciPythonShell):
+    """Shell base widget: link between QsciPythonShell and Interpreter"""
     p1 = ">>> "
     p2 = "... "
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None, profile=False):
-        QsciShell.__init__(self, parent, get_conf_path('.history_ic.py'),
-                           CONF.get('historylog', 'max_entries'),
-                           debug, profile)
+        QsciPythonShell.__init__(self, parent, get_conf_path('.history_ic.py'),
+                                 CONF.get('historylog', 'max_entries'),
+                                 debug, profile)
         
         # Capture all interactive input/output 
         self.initial_stdout = sys.stdout
@@ -190,8 +190,8 @@ class InteractiveShell(QsciShell):
 
     #----- Menus, actions, ...
     def setup_context_menu(self):
-        """Reimplement QsciShell method"""
-        QsciShell.setup_context_menu(self)
+        """Reimplement QsciPythonShell method"""
+        QsciPythonShell.setup_context_menu(self)
         clear_line_action = create_action(self,
                            self.tr("Clear line"),
                            QKeySequence("Escape"),
@@ -319,8 +319,8 @@ has the same effect as typing a particular string at the help> prompt.
         self.input_loop.exit()
 
     def flush(self, error=False, prompt=False):
-        """Reimplement QsciShell method"""
-        QsciShell.flush(self, error=error, prompt=prompt)
+        """Reimplement QsciPythonShell method"""
+        QsciPythonShell.flush(self, error=error, prompt=prompt)
         if self.interrupted:
             self.interrupted = False
             raise KeyboardInterrupt

@@ -19,18 +19,15 @@ from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
 # Local imports
 from pydeelib.qthelpers import create_toolbutton
 from pydeelib.config import get_icon
-from pydeelib.widgets.qscishell import QsciShell
+from pydeelib.widgets.qscishell import QsciPythonShell
 from pydeelib.widgets.externalshell import startup
 from pydeelib.widgets.externalshell.globalsexplorer import GlobalsExplorer
 from pydeelib.widgets.externalshell.monitor import communicate
 from pydeelib.widgets.externalshell import ExternalShellBase
 
 
-class ExtPyQsciShell(QsciShell):
-    def __init__(self, parent, history_filename, max_history_entries=100,
-                 debug=False, profile=False, externalshell=None):
-        QsciShell.__init__(self, parent, history_filename,
-                           max_history_entries, debug, profile)
+class ExtPyQsciShell(QsciPythonShell):
+    def set_externalshell(self, externalshell):
         # ExternalShellBase instance:
         self.externalshell = externalshell
         
@@ -73,6 +70,8 @@ class ExternalPythonShell(ExternalShellBase):
                  interact=False, debug=False, path=[]):
         ExternalShellBase.__init__(self, parent, wdir,
                                    history_filename='.history_ec.py')
+        
+        self.shell.set_externalshell(self)
 
         self.toggle_globals_explorer(False)
         self.interact_check.setChecked(interact)

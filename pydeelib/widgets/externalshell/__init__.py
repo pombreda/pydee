@@ -27,10 +27,10 @@ from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer
 from pydeelib.encoding import transcode
 from pydeelib.qthelpers import create_toolbutton
 from pydeelib.config import get_icon, get_conf_path
-from pydeelib.widgets.qscishell import QsciShell
 from pydeelib.widgets.externalshell.monitor import communicate
 
 
+#TODO: code refactoring/cleaning (together with systemshell.py and pythonshell.py)
 class ExternalShellBase(QWidget):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = None
@@ -41,8 +41,7 @@ class ExternalShellBase(QWidget):
         self.wdir = wdir if osp.isdir(wdir) else None
         self.arguments = ""
         
-        self.shell = self.SHELL_CLASS(parent, get_conf_path(history_filename),
-                                      externalshell=self)
+        self.shell = self.SHELL_CLASS(parent, get_conf_path(history_filename))
         self.connect(self.shell, SIGNAL("execute(QString)"),
                      self.send_to_process)
         self.connect(self.shell, SIGNAL("keyboard_interrupt()"),

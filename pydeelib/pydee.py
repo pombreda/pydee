@@ -538,12 +538,10 @@ class MainWindow(QMainWindow):
     def __focus_shell(self):
         """Return Python shell widget which has focus, if any"""
         widget = QApplication.focusWidget()
-        from pydeelib.widgets.qscishell import QsciShell
-        from pydeelib.widgets.externalshell.systemshell import ExtSysQsciShell
+        from pydeelib.widgets.qscishell import QsciPythonShell
         from pydeelib.widgets.externalshell.pythonshell import ExternalPythonShell
-        if isinstance(widget, QsciShell):
-            if not isinstance(widget, ExtSysQsciShell):
-                return widget
+        if isinstance(widget, QsciPythonShell):
+            return widget
         elif isinstance(widget, ExternalPythonShell):
             return widget.shell
         
@@ -579,11 +577,11 @@ class MainWindow(QMainWindow):
         
     def __focus_widget_properties(self):
         widget = QApplication.focusWidget()
-        from pydeelib.widgets.qscishell import QsciShell
+        from pydeelib.widgets.qscishell import QsciShellBase
         from pydeelib.widgets.qscibase import QsciBase
         scintilla_properties = None
         if isinstance(widget, QsciBase):
-            console = isinstance(widget, QsciShell)
+            console = isinstance(widget, QsciShellBase)
             not_readonly = not widget.isReadOnly()
             readwrite_editor = not_readonly and not console
             scintilla_properties = (console, not_readonly, readwrite_editor)
@@ -788,7 +786,7 @@ class MainWindow(QMainWindow):
         console, extconsole, editor, docviewer or historylog"""
         widget = QApplication.focusWidget()
         from pydeelib.widgets.qscieditor import QsciEditor
-        from pydeelib.widgets.qscishell import QsciShell
+        from pydeelib.widgets.qscishell import QsciShellBase
         from pydeelib.widgets.qscibase import QsciBase
         if not isinstance(widget, QsciBase):
             return
@@ -798,7 +796,7 @@ class MainWindow(QMainWindow):
             plugin = self.docviewer
         elif isinstance(widget, QsciEditor) and widget.isReadOnly():
             plugin = self.historylog
-        elif isinstance(widget, QsciShell):
+        elif isinstance(widget, QsciShellBase):
             plugin = self.extconsole
         else:
             plugin = self.editor

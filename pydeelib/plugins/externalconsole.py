@@ -140,7 +140,8 @@ class ExternalConsole(PluginWidget):
             shell = ExternalSystemShell(self, wdir)
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
-        shell.shell.set_docviewer(self.docviewer)
+        if python:
+            shell.shell.set_docviewer(self.docviewer)
         self.historylog.add_history(shell.shell.history_filename)
         self.connect(shell.shell, SIGNAL('append_to_history(QString,QString)'),
                      self.historylog.append_to_history)
