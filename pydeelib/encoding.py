@@ -144,22 +144,22 @@ def to_unicode(string):
     return string
     
 
-def write(text, filename, encoding='utf-8'):
+def write(text, filename, encoding='utf-8', mode='wb'):
     """
     Write 'text' to file ('filename') assuming 'encoding'
     Return (eventually new) encoding
     """
     text, encoding = encode(text, encoding)
-    with open(filename, 'wb') as textfile:
+    with open(filename, mode) as textfile:
         textfile.write(text)
     return encoding
 
-def writelines(lines, filename, encoding='utf-8'):
+def writelines(lines, filename, encoding='utf-8', mode='wb'):
     """
     Write 'lines' to file ('filename') assuming 'encoding'
     Return (eventually new) encoding
     """
-    return write(os.linesep.join(lines), filename, encoding)
+    return write(os.linesep.join(lines), filename, encoding, mode)
 
 def read(filename, encoding='utf-8'):
     """

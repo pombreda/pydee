@@ -25,7 +25,7 @@ class ExternalSystemShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     def __init__(self, parent=None, wdir=None):
         ExternalShellBase.__init__(self, parent, wdir,
-                                   history_filename='.history_extcons')
+                                   history_filename='.history_ec')
 
     def get_icon(self):
         return get_icon('cmdprompt.png')

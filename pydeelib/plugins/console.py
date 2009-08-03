@@ -101,7 +101,6 @@ class Console(PluginWidget):
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        self.shell.save_history()
         return True
     
     def quit(self):

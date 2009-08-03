@@ -191,8 +191,6 @@ class ExternalShellBase(QWidget):
         raise NotImplementedError
     
     def finished(self, exit_code, exit_status):
-        # Saving console history:
-        self.shell.save_history()
         if self.is_closing:
             return
         self.set_running_state(False)

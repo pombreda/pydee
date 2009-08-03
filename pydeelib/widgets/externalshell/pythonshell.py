@@ -30,7 +30,7 @@ class ExternalPythonShell(ExternalShellBase):
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
                  interact=False, debug=False, path=[]):
         ExternalShellBase.__init__(self, parent, wdir,
-                                   history_filename = '.history_extcons.py')
+                                   history_filename='.history_ec.py')
 
         self.toggle_globals_explorer(False)
         self.interact_check.setChecked(interact)
