@@ -428,18 +428,18 @@ class MainWindow(QMainWindow):
             # History log widget
             if CONF.get('historylog', 'enable'):
                 self.set_splash(self.tr("Loading history widget..."))
-                self.historylog = HistoryLog( self )
+                self.historylog = HistoryLog(self)
                 self.connect(self.historylog, SIGNAL('focus_changed()'),
                              self.plugin_focus_changed)
                 self.add_dockwidget(self.historylog)
-                self.historylog.set_rawhistory(self.console.shell.rawhistory)
+                self.console.set_historylog(self.historylog)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.historylog.refresh)
         
             # Doc viewer widget
             if CONF.get('docviewer', 'enable'):
                 self.set_splash(self.tr("Loading docviewer widget..."))
-                self.docviewer = DocViewer( self )
+                self.docviewer = DocViewer(self)
                 self.connect(self.docviewer, SIGNAL('focus_changed()'),
                              self.plugin_focus_changed)
                 self.add_dockwidget(self.docviewer)
@@ -462,6 +462,7 @@ class MainWindow(QMainWindow):
             # External console menu
             self.extconsole = ExternalConsole(self, self.commands)
             self.extconsole.set_docviewer(self.docviewer)
+            self.extconsole.set_historylog(self.historylog)
             self.connect(self.extconsole, SIGNAL("edit_goto(QString,int)"),
                          self.editor.load)
             self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
@@ -538,13 +539,11 @@ class MainWindow(QMainWindow):
         """Return Python shell widget which has focus, if any"""
         widget = QApplication.focusWidget()
         from pydeelib.widgets.qscishell import QsciShell
-        from pydeelib.widgets.externalshell import ExternalQsciShell
+        from pydeelib.widgets.externalshell.systemshell import ExtSysQsciShell
         from pydeelib.widgets.externalshell.pythonshell import ExternalPythonShell
-        if isinstance(widget, ExternalQsciShell):
-            if isinstance(widget.externalshell, ExternalPythonShell):
+        if isinstance(widget, QsciShell):
+            if not isinstance(widget, ExtSysQsciShell):
                 return widget
-        elif isinstance(widget, QsciShell):
-            return widget
         elif isinstance(widget, ExternalPythonShell):
             return widget.shell
         
@@ -788,16 +787,17 @@ class MainWindow(QMainWindow):
         """Return editor plugin which has focus:
         console, extconsole, editor, docviewer or historylog"""
         widget = QApplication.focusWidget()
+        from pydeelib.widgets.qscieditor import QsciEditor
         from pydeelib.widgets.qscishell import QsciShell
         from pydeelib.widgets.qscibase import QsciBase
         if not isinstance(widget, QsciBase):
             return
         if widget is self.console.shell:
             plugin = self.console
-        elif widget is self.historylog.editor:
-            plugin = self.historylog
         elif widget is self.docviewer.editor:
             plugin = self.docviewer
+        elif isinstance(widget, QsciEditor) and widget.isReadOnly():
+            plugin = self.historylog
         elif isinstance(widget, QsciShell):
             plugin = self.extconsole
         else:

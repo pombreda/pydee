@@ -21,7 +21,7 @@ from pydeelib.config import CONF, get_conf_path, get_icon
 from pydeelib.qthelpers import create_toolbutton
 from pydeelib.widgets.comboboxes import EditableComboBox
 from pydeelib.plugins import ReadOnlyEditor
-from pydeelib.widgets.externalshell import ExternalQsciShell
+from pydeelib.widgets.externalshell.pythonshell import ExtPyQsciShell
 
 
 class DocComboBox(EditableComboBox):
@@ -175,7 +175,7 @@ class DocViewer(ReadOnlyEditor):
         """Show help"""
         if self.shell is None:
             return
-        if isinstance(self.shell, ExternalQsciShell):
+        if isinstance(self.shell, ExtPyQsciShell):
             if not self.shell.externalshell.is_running():
                 # Binded external shell was stopped:
                 # binding DocViewer to interactive console instead

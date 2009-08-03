@@ -6,7 +6,7 @@
 
 """External System Shell widget: execute terminal in a separate process"""
 
-import sys, os
+import sys, os, time
 
 # Debug
 STDOUT = sys.stdout
@@ -16,13 +16,29 @@ from PyQt4.QtGui import QMessageBox
 from PyQt4.QtCore import QProcess, SIGNAL, QString
 
 # Local imports
-from pydeelib.encoding import transcode
+from pydeelib import __version__, encoding
 from pydeelib.config import get_icon
 from pydeelib.widgets.externalshell import ExternalShellBase
+from pydeelib.widgets.qscishell import QsciShell
 
+
+class ExtSysQsciShell(QsciShell):
+    COM = 'rem' if os.name == 'nt' else '#'
+    INITHISTORY = ['%s *** Pydee v%s -- History log ***' % (COM, __version__),
+                   COM,]
+    SEPARATOR = '%s%s ---(%s)---' % (os.linesep*2, COM, time.ctime())
+    
+    def __init__(self, parent, history_filename, max_history_entries=100,
+                 debug=False, profile=False, externalshell=None):
+        QsciShell.__init__(self, parent, history_filename,
+                           max_history_entries, debug, profile)
+        # ExternalShellBase instance:
+        self.externalshell = externalshell
+        
 
 class ExternalSystemShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
+    SHELL_CLASS = ExtSysQsciShell
     def __init__(self, parent=None, wdir=None):
         ExternalShellBase.__init__(self, parent, wdir,
                                    history_filename='.history_ec')
@@ -80,7 +96,7 @@ class ExternalSystemShell(ExternalShellBase):
 #===============================================================================
     def transcode(self, bytes):
         if os.name == 'nt':
-            return transcode(str(bytes.data()), 'cp850')
+            return encoding.transcode(str(bytes.data()), 'cp850')
         else:
             return ExternalShellBase.transcode(self, bytes)
     

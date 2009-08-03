@@ -31,48 +31,9 @@ from pydeelib.widgets.qscishell import QsciShell
 from pydeelib.widgets.externalshell.monitor import communicate
 
 
-class ExternalQsciShell(QsciShell):
-    def __init__(self, parent, history_filename, max_history_entries=100,
-                 debug=False, profile=False, externalshell=None):
-        QsciShell.__init__(self, parent, history_filename,
-                           max_history_entries, debug, profile)
-        # ExternalShellBase instance:
-        self.externalshell = externalshell
-        
-    #------ Code completion / Calltips
-    def ask_monitor(self, command):
-        sock = self.externalshell.monitor_socket
-        if sock is None:
-            return
-        return communicate(sock, command, pickle_try=True)
-            
-    def get_dir(self, objtxt):
-        """Return dir(object)"""
-        return self.ask_monitor("dir(%s)" % objtxt)
-            
-    def iscallable(self, objtxt):
-        """Is object callable?"""
-        return self.ask_monitor("callable(%s)" % objtxt)
-    
-    def get_arglist(self, objtxt):
-        """Get func/method argument list"""
-        return self.ask_monitor("getargtxt(%s)" % objtxt)
-            
-    def get__doc__(self, objtxt):
-        """Get object __doc__"""
-        return self.ask_monitor("%s.__doc__" % objtxt)
-    
-    def get_doc(self, objtxt):
-        """Get object documentation"""
-        return self.ask_monitor("getdoc(%s)" % objtxt)
-    
-    def get_source(self, objtxt):
-        """Get object source"""
-        return self.ask_monitor("getsource(%s)" % objtxt)
-
-
 class ExternalShellBase(QWidget):
     """External Shell widget: execute Python script in a separate process"""
+    SHELL_CLASS = None
     def __init__(self, parent=None, wdir=None, history_filename=None):
         QWidget.__init__(self, parent)
         if wdir is None:
@@ -80,8 +41,8 @@ class ExternalShellBase(QWidget):
         self.wdir = wdir if osp.isdir(wdir) else None
         self.arguments = ""
         
-        self.shell = ExternalQsciShell(parent, get_conf_path(history_filename),
-                                       externalshell=self)
+        self.shell = self.SHELL_CLASS(parent, get_conf_path(history_filename),
+                                      externalshell=self)
         self.connect(self.shell, SIGNAL("execute(QString)"),
                      self.send_to_process)
         self.connect(self.shell, SIGNAL("keyboard_interrupt()"),
