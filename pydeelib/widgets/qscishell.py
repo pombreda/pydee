@@ -940,6 +940,7 @@ class QsciPythonShell(QsciShellBase):
         self.show_completion_list(os.listdir(cwd), cwd)
 
     # Methods implemented in child class:
+    # (e.g. InteractiveShell)
     def get_dir(self, objtxt):
         """Return dir(object)"""
         raise NotImplementedError

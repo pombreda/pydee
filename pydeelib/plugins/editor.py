@@ -307,7 +307,11 @@ class TabbedEditor(Tabs):
         if CONF.get(self.ID, 'code_analysis') and is_python_script(fname):
             results = self.analysis_results[index] = check(fname)
             self.editors[index].process_code_analysis(results)
+            self.emit(SIGNAL('analysis_results_changed()'))
         self.__refresh_code_analysis_buttons(index)
+        
+    def get_analysis_results(self):
+        return self.analysis_results[self.currentIndex()]
         
     def __update_classbrowser(self, index=None):
         """Update class browser data"""
@@ -617,7 +621,7 @@ class TabbedEditor(Tabs):
 # -> i.e. all QSplitter widgets must be of the same kind
 #    (currently there are tabbededitors and spliteditors at the same level)
 # -> the main issue is that it's not possible to remove a widget from a
-#    QSplitter except by destroying it
+#    QSplitter except by destroying it -> it's not possible to change parenting
 class SplitEditor(QSplitter):
     def __init__(self, parent, actions):
         QSplitter.__init__(self, parent)
@@ -777,6 +781,13 @@ class Editor(PluginWidget):
                      SIGNAL('itemActivated(QListWidgetItem*)'),
                      self.openedfileslistwidget_clicked)
         
+        # Analysis results listwidget
+        self.analysislistwidget = QListWidget(self)
+        self.analysislistwidget.setWordWrap(True)
+        self.connect(self.analysislistwidget,
+                     SIGNAL('itemActivated(QListWidgetItem*)'),
+                     self.analysislistwidget_clicked)
+        
         # Right panel toolbox
         self.toolbox = QToolBox(self)
         self.toolbox.addItem(self.classbrowser, get_icon('class_browser.png'),
@@ -784,6 +795,9 @@ class Editor(PluginWidget):
         self.toolbox.addItem(self.openedfileslistwidget,
                              get_icon('opened_files.png'),
                              self.tr('Opened files'))
+        self.toolbox.addItem(self.analysislistwidget,
+                             get_icon('analysis_results.png'),
+                             self.tr('Code analysis'))
         #TODO: New toolbox item: template list
         #TODO: New toolbox item: file metrics (including current line, index)
         self.connect(self.toolbox, SIGNAL('currentChanged(int)'),
@@ -838,6 +852,67 @@ class Editor(PluginWidget):
                            ('.properties', '.session', '.ini', '.inf',
                             '.reg', '.cfg')),
                           (self.tr("All files"), ('.*',)))
+        
+        
+    #------ Toolboxes
+    def toolbox_current_changed(self, index):
+        """Toolbox current index has changed"""
+        if self.openedfileslistwidget.isVisible():
+            self.refresh_openedfileslistwidget()
+        elif self.classbrowser.isVisible():
+            # Refreshing class browser
+            tabbededitor = self.get_current_tabbededitor()
+            tabbededitor.refresh()
+        elif self.analysislistwidget.isVisible():
+            self.refresh_analysislistwidget()
+
+    def openedfileslistwidget_clicked(self, item):
+        filename = unicode(item.data(Qt.UserRole).toString())
+        tabbededitor, index = self.get_tabbededitor_index(filename)
+        tabbededitor.editors[index].setFocus()
+        tabbededitor.setCurrentIndex(index)
+        
+    def analysislistwidget_clicked(self, item):
+        line, _ok = item.data(Qt.UserRole).toInt()
+        self.get_current_editor().highlight_line(line+1)
+    
+    def refresh_analysislistwidget(self):
+        if self.analysislistwidget.isHidden():
+            return
+        tabbededitor = self.get_current_tabbededitor()
+        check_results = tabbededitor.get_analysis_results()
+        self.analysislistwidget.clear()
+        if check_results:
+            for message, line0, _error in check_results:
+                item = QListWidgetItem(get_icon('warning.png'),
+                                       message.capitalize(),
+                                       self.analysislistwidget)
+                item.setData(Qt.UserRole, QVariant(line0-1))
+
+    def refresh_openedfileslistwidget(self):
+        """
+        Opened files list has changed:
+        --> open/close file action
+        --> modification ('*' added to title)
+        --> current edited file has changed
+        """
+        if self.openedfileslistwidget.isHidden():
+            return
+        filenames = self.get_filenames()
+        current_filename = self.get_current_filename()
+        self.openedfileslistwidget.clear()
+        for filename in filenames:
+            tabbededitor, index = self.get_tabbededitor_index(filename)
+            title = tabbededitor.get_full_title(index=index)
+            item = QListWidgetItem(get_filetype_icon(filename),
+                                   title, self.openedfileslistwidget)
+            item.setData(Qt.UserRole, QVariant(filename))
+            if filename == current_filename:
+                font = item.font()
+                font.setBold(True)
+                item.setFont(font)
+            self.openedfileslistwidget.addItem(item)
+        
 
     def get_filetype_filters(self):
         filters = []
@@ -861,45 +936,6 @@ class Editor(PluginWidget):
         for tabbededitor in self.tabbededitors:
             if filename in tabbededitor.filenames:
                 return tabbededitor, tabbededitor.filenames.index(filename)
-
-    def openedfileslistwidget_clicked(self, item):
-        filename = unicode(item.data(Qt.UserRole).toString())
-        tabbededitor, index = self.get_tabbededitor_index(filename)
-        tabbededitor.editors[index].setFocus()
-        tabbededitor.setCurrentIndex(index)
-        
-    def toolbox_current_changed(self, index):
-        """Toolbox current index has changed"""
-        if self.openedfileslistwidget.isVisible():
-            self.refresh_opened_files_list()
-        elif self.classbrowser.isVisible():
-            # Refreshing class browser
-            tabbededitor = self.get_current_tabbededitor()
-            tabbededitor.refresh()
-
-    def refresh_opened_files_list(self):
-        """
-        Opened files list has changed:
-        --> open/close file action
-        --> modification ('*' added to title)
-        --> current edited file has changed
-        """
-        if self.openedfileslistwidget.isHidden():
-            return
-        filenames = self.get_filenames()
-        current_filename = self.get_current_filename()
-        self.openedfileslistwidget.clear()
-        for filename in filenames:
-            tabbededitor, index = self.get_tabbededitor_index(filename)
-            title = tabbededitor.get_full_title(index=index)
-            item = QListWidgetItem(get_filetype_icon(filename),
-                                   title, self.openedfileslistwidget)
-            item.setData(Qt.UserRole, QVariant(filename))
-            if filename == current_filename:
-                font = item.font()
-                font.setBold(True)
-                item.setFont(font)
-            self.openedfileslistwidget.addItem(item)
         
     def __get_focus_tabbededitor(self):
         fwidget = QApplication.focusWidget()
@@ -946,7 +982,11 @@ class Editor(PluginWidget):
         self.connect(tabbededitor, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursorpos_status.cursor_position_changed)
         self.connect(tabbededitor, SIGNAL('opened_files_list_changed()'),
-                     self.refresh_opened_files_list)
+                     self.refresh_openedfileslistwidget)
+        self.connect(tabbededitor, SIGNAL('analysis_results_changed()'),
+                     self.refresh_analysislistwidget)
+        self.connect(tabbededitor, SIGNAL('currentChanged(int)'),
+                     self.refresh_analysislistwidget)
         self.connect(tabbededitor, SIGNAL('refresh_file_dependent_actions()'),
                      self.refresh_file_dependent_actions)
         self.connect(tabbededitor, SIGNAL('move_tab(long,long,int,int)'),
