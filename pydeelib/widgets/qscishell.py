@@ -32,15 +32,16 @@ from pydeelib.qthelpers import (translate, keybinding, create_action,
 from pydeelib.widgets.qscibase import QsciBase
 from pydeelib.widgets.shellhelpers import get_error_match
 
+
 HISTORY_FILENAMES = []
 
-class QsciShell(QsciBase):
+
+class QsciShellBase(QsciBase):
     """
     Shell based on QScintilla
     """
-    INITHISTORY = ['# -*- coding: utf-8 -*-',
-                   '# *** Pydee v%s -- History log ***' % __version__,]
-    SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    INITHISTORY = None
+    SEPARATOR = None
     
     def __init__(self, parent, history_filename, max_history_entries=100,
                  debug=False, profile=False):
@@ -53,8 +54,6 @@ class QsciShell(QsciBase):
         self.current_prompt_pos = None
         self.new_input_line = True
         
-        self.docviewer = None
-        
         # History
         self.max_history_entries = max_history_entries
         self.histidx = None
@@ -63,26 +62,6 @@ class QsciShell(QsciBase):
         self.history_filename = history_filename
         self.history = self.load_history()
         
-        # Code completion / calltips
-        self.codecompletion = True
-        self.calltips = True
-        self.completion_chars = 0
-        self.calltip_index = None
-        self.calltip_size = CONF.get('calltips', 'size')
-        self.calltip_font = get_font('calltips')
-        self.setAutoCompletionThreshold( \
-            CONF.get('external_shell', 'autocompletion/threshold') )
-        self.setAutoCompletionCaseSensitivity( \
-            CONF.get('external_shell', 'autocompletion/case-sensitivity') )
-        self.setAutoCompletionShowSingle( \
-            CONF.get('external_shell', 'autocompletion/select-single') )
-        if CONF.get('external_shell', 'autocompletion/from-document'):
-            self.setAutoCompletionSource(QsciScintilla.AcsDocument)
-        else:
-            self.setAutoCompletionSource(QsciScintilla.AcsNone)
-        self.connect(self, SIGNAL('userListActivated(int, const QString)'),
-                     self.completion_list_selected)
-            
         # Context menu
         self.menu = None
         self.setup_context_menu()
@@ -97,25 +76,11 @@ class QsciShell(QsciBase):
         self.__buffer = []
         self.__timestamp = 0.0
         
-        # Allow raw_input support:
-        self.input_loop = None
-        self.input_mode = False
-        
         # Mouse cursor
         self.__cursor_changed = False
 
         # Give focus to widget
         self.setFocus()
-        
-        
-    def set_codecompletion(self, state):
-        """Set code completion state"""
-        self.codecompletion = state        
-        
-    def set_calltips(self, state):
-        """Set calltips state"""
-        self.calltips = state
-            
                 
     def setup_scintilla(self):
         """Reimplement QsciBase method"""
@@ -373,30 +338,11 @@ class QsciShell(QsciBase):
             event.accept()
             
         elif key == Qt.Key_Backspace:
+            self._key_backspace(line, index)
             event.accept()
-            if self.hasSelectedText():
-                self.check_selection()
-                self.removeSelectedText()
-            elif self.current_prompt_pos == (line, index):
-                # Avoid deleting prompt
-                return
-            elif self.is_cursor_on_last_line():
-                self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
-                if self.isListActive():
-                    self.completion_chars -= 1
             
         elif key == Qt.Key_Tab:
-            if self.isListActive():
-                self.SendScintilla(QsciScintilla.SCI_TAB)
-            elif self.is_cursor_on_last_line():
-                buf = self.get_current_line_to_cursor()
-                empty_line = not buf.strip()
-                if empty_line:
-                    self.SendScintilla(QsciScintilla.SCI_TAB)
-                elif buf.endswith('.'):
-                    self.show_code_completion(self.get_last_obj())
-                elif buf[-1] in ['"', "'"]:
-                    self.show_file_completion()
+            self._key_tab()
             event.accept()
 
         elif key == Qt.Key_Left:
@@ -431,17 +377,11 @@ class QsciShell(QsciBase):
                     self.SendScintilla(QsciScintilla.SCI_CHARRIGHT)
 
         elif (key == Qt.Key_Home) or ((key == Qt.Key_Up) and ctrl):
-            if self.isListActive():
-                self.SendScintilla(QsciScintilla.SCI_VCHOME)
-            elif self.is_cursor_on_last_line():
-                self.setCursorPosition(*self.current_prompt_pos)
+            self._key_home()
             event.accept()
 
         elif (key == Qt.Key_End) or ((key == Qt.Key_Down) and ctrl):
-            if self.isListActive():
-                self.SendScintilla(QsciScintilla.SCI_LINEEND)
-            elif self.is_cursor_on_last_line():
-                self.SendScintilla(QsciScintilla.SCI_LINEEND)
+            self._key_end()
             event.accept()
 
         elif key == Qt.Key_Up:
@@ -465,20 +405,15 @@ class QsciShell(QsciBase):
             event.accept()
             
         elif key == Qt.Key_PageUp:
-            if self.isListActive() or self.isCallTipActive():
-                self.SendScintilla(QsciScintilla.SCI_PAGEUP)
+            self._key_pageup()
             event.accept()
             
         elif key == Qt.Key_PageDown:
-            if self.isListActive() or self.isCallTipActive():
-                self.SendScintilla(QsciScintilla.SCI_PAGEDOWN)
+            self._key_pagedown()
             event.accept()
 
         elif key == Qt.Key_Escape:
-            if self.isListActive() or self.isCallTipActive():
-                self.SendScintilla(QsciScintilla.SCI_CANCEL)
-            else:
-                self.clear_line()
+            self._key_escape()
             event.accept()
                 
         elif key == Qt.Key_V and ctrl:
@@ -498,29 +433,15 @@ class QsciShell(QsciBase):
             event.accept()
                 
         elif key == Qt.Key_Question and not self.hasSelectedText():
-            if self.get_current_line_to_cursor():
-                self.show_docstring(self.get_last_obj())
-                _, self.calltip_index = self.getCursorPosition()
-            self.insert_text(text)
-            # In case calltip and completion are shown at the same time:
-            if self.isListActive():
-                self.completion_chars += 1
+            self._key_question(text)
             event.accept()
             
         elif key == Qt.Key_ParenLeft and not self.hasSelectedText():
-            self.cancelList()
-            if self.get_current_line_to_cursor():
-                self.show_docstring(self.get_last_obj(), call=True)
-                _, self.calltip_index = self.getCursorPosition()
-            self.insert_text(text)
+            self._key_parenleft(text)
             event.accept()
             
         elif key == Qt.Key_Period and not self.hasSelectedText():
-            # Enable auto-completion only if last token isn't a float
-            self.insert_text(text)
-            last_obj = self.get_last_obj()
-            if last_obj and not last_obj[-1].isdigit():
-                self.show_code_completion(last_obj)
+            self._key_period(text)
             event.accept()
 
         elif ((key == Qt.Key_Plus) and ctrl) \
@@ -535,8 +456,7 @@ class QsciShell(QsciBase):
         elif text.length():
             self.hist_wholeline = False
             QsciScintilla.keyPressEvent(self, event)
-            if self.isListActive():
-                self.completion_chars += 1
+            self._key_other()
             event.accept()
                 
         else:
@@ -555,7 +475,32 @@ class QsciShell(QsciBase):
                     QToolTip.hideText()
             except (IndexError, TypeError):
                 QToolTip.hideText()
-        
+            
+                
+    #------ Key handlers
+    def _key_other(self):
+        raise NotImplementedError
+    def _key_backspace(self):
+        raise NotImplementedError
+    def _key_tab(self):
+        raise NotImplementedError
+    def _key_home(self):
+        raise NotImplementedError
+    def _key_end(self):
+        raise NotImplementedError
+    def _key_pageup(self):
+        raise NotImplementedError
+    def _key_pagedown(self):
+        raise NotImplementedError
+    def _key_escape(self):
+        raise NotImplementedError
+    def _key_question(self, text):
+        raise NotImplementedError
+    def _key_parenleft(self, text):
+        raise NotImplementedError
+    def _key_period(self, text):
+        raise NotImplementedError
+
         
     #------ History Management
     def load_history(self):
@@ -678,126 +623,8 @@ class QsciShell(QsciBase):
         self.repaint()
         # Clear input buffer:
         self.new_input_line = True
-    
-  
-    #------ Code Completion / Calltips
-    def completion_list_selected(self, userlist_id, seltxt):
-        """
-        Private slot to handle the selection from the completion list
-        userlist_id: ID of the user list (should be 1) (integer)
-        seltxt: selected text (QString)
-        """
-        if userlist_id == 1:
-            cline, cindex = self.getCursorPosition()
-            self.setSelection(cline, cindex-self.completion_chars+1,
-                              cline, cindex)
-            self.removeSelectedText()
-            seltxt = unicode(seltxt)
-            self.insert_text(seltxt)
-            self.completion_chars = 0
-
-    def show_completion_list(self, completions, text):
-        """Private method to display the possible completions"""
-        if len(completions) == 0:
-            return
-        if len(completions) > 1:
-            self.showUserList(1, QStringList(sorted(completions)))
-            self.completion_chars = 1
-        else:
-            txt = completions[0]
-            if text != "":
-                txt = txt.replace(text, "")
-            self.insert_text(txt)
-            self.completion_chars = 0
-
-    def show_file_completion(self):
-        """Display a completion list for files and directories"""
-        cwd = os.getcwdu()
-        self.show_completion_list(os.listdir(cwd), cwd)
-
-    # Methods implemented in child class:
-    def get_dir(self, objtxt):
-        """Return dir(object)"""
-        raise NotImplementedError
-    def iscallable(self, objtxt):
-        """Is object callable?"""
-        raise NotImplementedError
-    def get_arglist(self, objtxt):
-        """Get func/method argument list"""
-        raise NotImplementedError
-    def get__doc__(self, objtxt):
-        """Get object __doc__"""
-        raise NotImplementedError
-    def get_doc(self, objtxt):
-        """Get object documentation"""
-        raise NotImplementedError
-    def get_source(self, objtxt):
-        """Get object source"""
-        raise NotImplementedError
-        
-    def show_code_completion(self, text):
-        """Display a completion list based on the last token"""
-        if not self.codecompletion:
-            return
-        text = unicode(text) # Useful only for ExternalShellBase
-        objdir = self.get_dir(text)
-        if objdir:
-            self.show_completion_list(objdir, 'dir(%s)' % text) 
-    
-    def show_docstring(self, text, call=False):
-        """Show docstring or arguments"""
-        if not self.calltips:
-            return
-        
-        text = unicode(text) # Useful only for ExternalShellBase
-        done = False
-        size, font = self.calltip_size, self.calltip_font
-        if (self.docviewer is not None) and \
-           (self.docviewer.dockwidget.isVisible()):
-            # DocViewer widget exists and is visible
-            self.docviewer.refresh(text)
-            self.setFocus() # if docviewer was not at top level, raising it to
-                            # top will automatically give it focus because of
-                            # the visibility_changed signal, so we must give
-                            # focus back to shell
-            if call:
-                # Display argument list if this is function call
-                iscallable = self.iscallable(text)
-                if iscallable is not None: # Useful only for ExternalShellBase
-                    if iscallable:
-                        arglist = self.get_arglist(text)
-                        if arglist:
-                            done = True
-                            self.show_calltip(self.tr("Arguments"),
-                                              arglist, size, font, '#129625')
-                    else:
-                        done = True
-                        self.show_calltip(self.tr("Warning"),
-                                          self.tr("Object `%1` is not callable"
-                                                  " (i.e. not a function, "
-                                                  "a method or a class "
-                                                  "constructor)").arg(text),
-                                          size, font, color='#FF0000')
-        if not done:
-            doc = self.get__doc__(text)
-            if doc is None: # Useful only for ExternalShellBase
-                return
-            self.show_calltip(self.tr("Documentation"), doc, size, font)
         
         
-    #------ Miscellanous
-    def get_last_obj(self, last=False):
-        """
-        Return the last valid object on the current line
-        """
-        return getobj(self.get_current_line_to_cursor(), last=last)
-        
-    def set_docviewer(self, docviewer):
-        """Set DocViewer DockWidget reference"""
-        self.docviewer = docviewer
-        self.docviewer.set_shell(self)
-
-
     #------ Utilities
     def getpointy(self, cursor=True, end=False, prompt=False):
         """Return point y of cursor, end or prompt"""
@@ -934,3 +761,332 @@ class QsciShell(QsciBase):
             event.accept()
         else:
             event.ignore()
+
+
+class QsciPythonShell(QsciShellBase):
+    """
+    Python shell based on QScintilla
+    """
+    INITHISTORY = ['# -*- coding: utf-8 -*-',
+                   '# *** Pydee v%s -- History log ***' % __version__,]
+    SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    
+    def __init__(self, parent, history_filename, max_history_entries=100,
+                 debug=False, profile=False):
+        QsciShellBase.__init__(self, parent, history_filename,
+                               max_history_entries, debug, profile)
+        
+        self.docviewer = None
+        
+        # Code completion / calltips
+        self.codecompletion = True
+        self.calltips = True
+        self.completion_chars = 0
+        self.calltip_index = None
+        self.calltip_size = CONF.get('calltips', 'size')
+        self.calltip_font = get_font('calltips')
+        self.setAutoCompletionThreshold( \
+            CONF.get('external_shell', 'autocompletion/threshold') )
+        self.setAutoCompletionCaseSensitivity( \
+            CONF.get('external_shell', 'autocompletion/case-sensitivity') )
+        self.setAutoCompletionShowSingle( \
+            CONF.get('external_shell', 'autocompletion/select-single') )
+        if CONF.get('external_shell', 'autocompletion/from-document'):
+            self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+        else:
+            self.setAutoCompletionSource(QsciScintilla.AcsNone)
+        self.connect(self, SIGNAL('userListActivated(int, const QString)'),
+                     self.completion_list_selected)
+            
+        # Allow raw_input support:
+        self.input_loop = None
+        self.input_mode = False
+        
+        
+    def set_codecompletion(self, state):
+        """Set code completion state"""
+        self.codecompletion = state        
+        
+    def set_calltips(self, state):
+        """Set calltips state"""
+        self.calltips = state
+            
+                
+    #------ Key handlers
+    def _key_other(self):
+        """1 character key"""
+        if self.isListActive():
+            self.completion_chars += 1                
+                
+    def _key_backspace(self, line, index):
+        """Action for Backspace key"""
+        if self.hasSelectedText():
+            self.check_selection()
+            self.removeSelectedText()
+        elif self.current_prompt_pos == (line, index):
+            # Avoid deleting prompt
+            return
+        elif self.is_cursor_on_last_line():
+            self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
+            if self.isListActive():
+                self.completion_chars -= 1
+                
+    def _key_tab(self):
+        """Action for TAB key"""
+        if self.isListActive():
+            self.SendScintilla(QsciScintilla.SCI_TAB)
+        elif self.is_cursor_on_last_line():
+            buf = self.get_current_line_to_cursor()
+            empty_line = not buf.strip()
+            if empty_line:
+                self.SendScintilla(QsciScintilla.SCI_TAB)
+            elif buf.endswith('.'):
+                self.show_code_completion(self.get_last_obj())
+            elif buf[-1] in ['"', "'"]:
+                self.show_file_completion()
+                
+    def _key_home(self):
+        """Action for Home key"""
+        if self.isListActive():
+            self.SendScintilla(QsciScintilla.SCI_VCHOME)
+        elif self.is_cursor_on_last_line():
+            self.setCursorPosition(*self.current_prompt_pos)
+                
+    def _key_end(self):
+        """Action for End key"""
+        if self.isListActive():
+            self.SendScintilla(QsciScintilla.SCI_LINEEND)
+        elif self.is_cursor_on_last_line():
+            self.SendScintilla(QsciScintilla.SCI_LINEEND)
+                
+    def _key_pageup(self):
+        """Action for PageUp key"""
+        if self.isListActive() or self.isCallTipActive():
+            self.SendScintilla(QsciScintilla.SCI_PAGEUP)
+    
+    def _key_pagedown(self):
+        """Action for PageDown key"""
+        if self.isListActive() or self.isCallTipActive():
+            self.SendScintilla(QsciScintilla.SCI_PAGEDOWN)
+                
+    def _key_escape(self):
+        """Action for ESCAPE key"""
+        if self.isListActive() or self.isCallTipActive():
+            self.SendScintilla(QsciScintilla.SCI_CANCEL)
+        else:
+            self.clear_line()
+                
+    def _key_question(self, text):
+        """Action for '?'"""
+        if self.get_current_line_to_cursor():
+            self.show_docstring(self.get_last_obj())
+            _, self.calltip_index = self.getCursorPosition()
+        self.insert_text(text)
+        # In case calltip and completion are shown at the same time:
+        if self.isListActive():
+            self.completion_chars += 1
+                
+    def _key_parenleft(self, text):
+        """Action for '('"""
+        self.cancelList()
+        if self.get_current_line_to_cursor():
+            self.show_docstring(self.get_last_obj(), call=True)
+            _, self.calltip_index = self.getCursorPosition()
+        self.insert_text(text)
+        
+    def _key_period(self, text):
+        """Action for '.'"""
+        # Enable auto-completion only if last token isn't a float
+        self.insert_text(text)
+        last_obj = self.get_last_obj()
+        if last_obj and not last_obj[-1].isdigit():
+            self.show_code_completion(last_obj)
+
+    
+  
+    #------ Code Completion / Calltips
+    def completion_list_selected(self, userlist_id, seltxt):
+        """
+        Private slot to handle the selection from the completion list
+        userlist_id: ID of the user list (should be 1) (integer)
+        seltxt: selected text (QString)
+        """
+        if userlist_id == 1:
+            cline, cindex = self.getCursorPosition()
+            self.setSelection(cline, cindex-self.completion_chars+1,
+                              cline, cindex)
+            self.removeSelectedText()
+            seltxt = unicode(seltxt)
+            self.insert_text(seltxt)
+            self.completion_chars = 0
+
+    def show_completion_list(self, completions, text):
+        """Private method to display the possible completions"""
+        if len(completions) == 0:
+            return
+        if len(completions) > 1:
+            self.showUserList(1, QStringList(sorted(completions)))
+            self.completion_chars = 1
+        else:
+            txt = completions[0]
+            if text != "":
+                txt = txt.replace(text, "")
+            self.insert_text(txt)
+            self.completion_chars = 0
+
+    def show_file_completion(self):
+        """Display a completion list for files and directories"""
+        cwd = os.getcwdu()
+        self.show_completion_list(os.listdir(cwd), cwd)
+
+    # Methods implemented in child class:
+    def get_dir(self, objtxt):
+        """Return dir(object)"""
+        raise NotImplementedError
+    def iscallable(self, objtxt):
+        """Is object callable?"""
+        raise NotImplementedError
+    def get_arglist(self, objtxt):
+        """Get func/method argument list"""
+        raise NotImplementedError
+    def get__doc__(self, objtxt):
+        """Get object __doc__"""
+        raise NotImplementedError
+    def get_doc(self, objtxt):
+        """Get object documentation"""
+        raise NotImplementedError
+    def get_source(self, objtxt):
+        """Get object source"""
+        raise NotImplementedError
+        
+    def show_code_completion(self, text):
+        """Display a completion list based on the last token"""
+        if not self.codecompletion:
+            return
+        text = unicode(text) # Useful only for ExternalShellBase
+        objdir = self.get_dir(text)
+        if objdir:
+            self.show_completion_list(objdir, 'dir(%s)' % text) 
+    
+    def show_docstring(self, text, call=False):
+        """Show docstring or arguments"""
+        if not self.calltips:
+            return
+        
+        text = unicode(text) # Useful only for ExternalShellBase
+        done = False
+        size, font = self.calltip_size, self.calltip_font
+        if (self.docviewer is not None) and \
+           (self.docviewer.dockwidget.isVisible()):
+            # DocViewer widget exists and is visible
+            self.docviewer.refresh(text)
+            self.setFocus() # if docviewer was not at top level, raising it to
+                            # top will automatically give it focus because of
+                            # the visibility_changed signal, so we must give
+                            # focus back to shell
+            if call:
+                # Display argument list if this is function call
+                iscallable = self.iscallable(text)
+                if iscallable is not None: # Useful only for ExternalShellBase
+                    if iscallable:
+                        arglist = self.get_arglist(text)
+                        if arglist:
+                            done = True
+                            self.show_calltip(self.tr("Arguments"),
+                                              arglist, size, font, '#129625')
+                    else:
+                        done = True
+                        self.show_calltip(self.tr("Warning"),
+                                          self.tr("Object `%1` is not callable"
+                                                  " (i.e. not a function, "
+                                                  "a method or a class "
+                                                  "constructor)").arg(text),
+                                          size, font, color='#FF0000')
+        if not done:
+            doc = self.get__doc__(text)
+            if doc is None: # Useful only for ExternalShellBase
+                return
+            self.show_calltip(self.tr("Documentation"), doc, size, font)
+        
+        
+    #------ Miscellanous
+    def get_last_obj(self, last=False):
+        """
+        Return the last valid object on the current line
+        """
+        return getobj(self.get_current_line_to_cursor(), last=last)
+        
+    def set_docviewer(self, docviewer):
+        """Set DocViewer DockWidget reference"""
+        self.docviewer = docviewer
+        self.docviewer.set_shell(self)
+
+
+class QsciTerminal(QsciShellBase):
+    """
+    Terminal based on QScintilla
+    """
+    COM = 'rem' if os.name == 'nt' else '#'
+    INITHISTORY = ['%s *** Pydee v%s -- History log ***' % (COM, __version__),
+                   COM,]
+    SEPARATOR = '%s%s ---(%s)---' % (os.linesep*2, COM, time.ctime())
+    
+    def __init__(self, parent, history_filename, max_history_entries=100,
+                 debug=False, profile=False):
+        QsciShellBase.__init__(self, parent, history_filename,
+                               max_history_entries, debug, profile)
+        
+    #------ Key handlers
+    def _key_other(self):
+        """1 character key"""
+        pass
+                
+    def _key_backspace(self, line, index):
+        """Action for Backspace key"""
+        if self.hasSelectedText():
+            self.check_selection()
+            self.removeSelectedText()
+        elif self.current_prompt_pos == (line, index):
+            # Avoid deleting prompt
+            return
+        elif self.is_cursor_on_last_line():
+            self.SendScintilla(QsciScintilla.SCI_DELETEBACK)
+                
+    def _key_tab(self):
+        """Action for TAB key"""
+        if self.is_cursor_on_last_line():
+            self.SendScintilla(QsciScintilla.SCI_TAB)
+                
+    def _key_home(self):
+        """Action for Home key"""
+        if self.is_cursor_on_last_line():
+            self.setCursorPosition(*self.current_prompt_pos)
+                
+    def _key_end(self):
+        """Action for End key"""
+        if self.is_cursor_on_last_line():
+            self.SendScintilla(QsciScintilla.SCI_LINEEND)
+                
+    def _key_pageup(self):
+        """Action for PageUp key"""
+        pass
+    
+    def _key_pagedown(self):
+        """Action for PageDown key"""
+        pass
+                
+    def _key_escape(self):
+        """Action for ESCAPE key"""
+        self.clear_line()
+                
+    def _key_question(self, text):
+        """Action for '?'"""
+        self.insert_text(text)
+                
+    def _key_parenleft(self, text):
+        """Action for '('"""
+        self.insert_text(text)
+        
+    def _key_period(self, text):
+        """Action for '.'"""
+        self.insert_text(text)

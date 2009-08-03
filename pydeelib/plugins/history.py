@@ -75,7 +75,7 @@ class HistoryLog(PluginWidget):
     def add_history(self, filename):
         """
         Add new history tab
-        Slot for SIGNAL('add_history(QString)') emitted by QsciShell
+        Slot for SIGNAL('add_history(QString)') emitted by shell instance
         """
         filename = unicode(filename)
         if filename in self.filenames:
@@ -112,7 +112,7 @@ class HistoryLog(PluginWidget):
         """
         Append an entry to history filename
         Slot for SIGNAL('append_to_history(QString,QString)')
-        emitted by QsciShell
+        emitted by shell instance
         """
         filename, command = unicode(filename), unicode(command)
         index = self.filenames.index(filename)
