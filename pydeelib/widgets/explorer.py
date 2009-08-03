@@ -23,9 +23,9 @@ except ImportError:
     pass
 
 from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
-                         QLabel, QHBoxLayout, QDrag, QApplication, QMessageBox,
-                         QInputDialog, QLineEdit, QMenu, QWidget, QToolButton,
-                         QFileDialog, QToolBar, QSplitter, QTreeWidgetItem)
+                         QLabel, QHBoxLayout, QDrag, QMessageBox, QInputDialog,
+                         QLineEdit, QMenu, QWidget, QToolButton, QFileDialog,
+                         QToolBar, QSplitter, QTreeWidgetItem)
 from PyQt4.QtCore import Qt, SIGNAL, QMimeData, QSize
 
 import os, sys, re
@@ -211,6 +211,7 @@ class ExplorerListWidget(QListWidget):
     get_filetype_icon(fname): fn which returns a QIcon for file extension"""
     def __init__(self, parent):
         QListWidget.__init__(self, parent)
+        self.setResizeMode(QListWidget.Adjust)
         self.parent_widget = parent
         
     def setup(self, treewidget=None, path=None,
@@ -413,12 +414,6 @@ class ExplorerListWidget(QListWidget):
         """Override Qt method"""
         self.update_menu()
         self.menu.popup(event.globalPos())
-        
-    def resizeEvent(self, event):
-        """Reimplement Qt Method"""
-        self.reset()
-        QApplication.processEvents()
-        event.ignore()
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
@@ -752,6 +747,7 @@ class Test(QDialog):
                      lambda: self.explorer.listwidget.refresh('..'))
 
 if __name__ == "__main__":
+    from PyQt4.QtGui import QApplication
     QApplication([])
     test = Test()
     test.exec_()
