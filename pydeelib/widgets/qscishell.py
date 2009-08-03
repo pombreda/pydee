@@ -37,12 +37,9 @@ class QsciShell(QsciBase):
     """
     Shell based on QScintilla
     """
-    inithistory = [
-                   '# -*- coding: utf-8 -*-',
-                   '# *** Pydee v%s -- History log ***' % __version__,
-                   '',
-                   ]
-    separator = '%s# ---(%s)---' % (os.linesep, time.ctime())
+    INITHISTORY = ['# -*- coding: utf-8 -*-',
+                   '# *** Pydee v%s -- History log ***' % __version__, '',]
+    SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
     def __init__(self, parent, history_filename, max_history_entries=100,
                  debug=False, profile=False):
@@ -58,6 +55,7 @@ class QsciShell(QsciBase):
         self.docviewer = None
         
         # History
+        self.separator_flag = None
         self.max_history_entries = max_history_entries
         self.histidx = None
         self.hist_wholeline = False
@@ -564,21 +562,24 @@ class QsciShell(QsciBase):
         """Load history from a .py file in user home directory"""
         if osp.isfile(self.history_filename):
             rawhistory, _ = encoding.readlines(self.history_filename)
-            rawhistory = [line.replace('\n','') for line in rawhistory]
-            if rawhistory[1] != self.inithistory[1]:
-                rawhistory = self.inithistory
+            rawhistory = [line.replace('\n', '') for line in rawhistory]
+            if rawhistory[1] != self.INITHISTORY[1]:
+                rawhistory = self.INITHISTORY
         else:
-            rawhistory = self.inithistory
+            rawhistory = self.INITHISTORY
         history = [line for line in rawhistory \
                    if line and not line.startswith('#')]
-        rawhistory.append(self.separator)
+        self.separator_flag = True # When the first entry will be written in
+                            # history file, the separator will be append first
+        # Truncating history to X entries:
+        while len(history) >= self.max_history_entries:
+            del history[0]
+            while rawhistory[0].startswith('#'):
+                del rawhistory[0]
+            del rawhistory[0]
+        # Saving truncated history:
+        encoding.writelines(rawhistory, self.history_filename)
         return rawhistory, history
-    
-    def save_history(self):
-        """Save history to a .py file in user home directory"""
-        if self.rawhistory[-1] == self.separator:
-            self.rawhistory.remove(self.separator)
-        encoding.writelines(self.rawhistory, self.history_filename)
         
     def add_to_history(self, command):
         """Add command to history"""
@@ -588,15 +589,16 @@ class QsciShell(QsciBase):
         if command.endswith('\n'):
             command = command[:-1]
         self.histidx = None
-        while len(self.history) >= self.max_history_entries:
-            del self.history[0]
-            while self.rawhistory[0].startswith('#'):
-                del self.rawhistory[0]
-            del self.rawhistory[0]
         if len(self.history)>0 and self.history[-1] == command:
             return
         self.history.append(command)
+        text = os.linesep + command
+        if self.separator_flag:
+            text = self.SEPARATOR + text
+            self.separator_flag = False
+            self.rawhistory.append(self.SEPARATOR[2:])
         self.rawhistory.append(command)
+        encoding.write(text, self.history_filename, mode='ab')
         
     def browse_history(self, backward):
         """Browse history"""

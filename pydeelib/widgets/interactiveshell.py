@@ -97,7 +97,7 @@ class InteractiveShell(QsciShell):
     p2 = "... "
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None, profile=False):
-        QsciShell.__init__(self, parent, get_conf_path('.history.py'),
+        QsciShell.__init__(self, parent, get_conf_path('.history_ic.py'),
                            CONF.get('historylog', 'max_entries'),
                            debug, profile)
         
