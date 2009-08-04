@@ -98,7 +98,6 @@ class InteractiveShell(QsciPythonShell):
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None, profile=False):
         QsciPythonShell.__init__(self, parent, get_conf_path('.history_ic.py'),
-                                 CONF.get('historylog', 'max_entries'),
                                  debug, profile)
         
         # Capture all interactive input/output 

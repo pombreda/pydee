@@ -43,8 +43,7 @@ class QsciShellBase(QsciBase):
     INITHISTORY = None
     SEPARATOR = None
     
-    def __init__(self, parent, history_filename, max_history_entries=100,
-                 debug=False, profile=False):
+    def __init__(self, parent, history_filename, debug=False, profile=False):
         """
         parent : specifies the parent widget
         """
@@ -55,7 +54,6 @@ class QsciShellBase(QsciBase):
         self.new_input_line = True
         
         # History
-        self.max_history_entries = max_history_entries
         self.histidx = None
         self.hist_wholeline = False
         assert isinstance(history_filename, (str, unicode))
@@ -516,7 +514,7 @@ class QsciShellBase(QsciBase):
                    if line and not line.startswith('#')]
 
         # Truncating history to X entries:
-        while len(history) >= self.max_history_entries:
+        while len(history) >= CONF.get('historylog', 'max_entries'):
             del history[0]
             while rawhistory[0].startswith('#'):
                 del rawhistory[0]
@@ -771,10 +769,8 @@ class QsciPythonShell(QsciShellBase):
                    '# *** Pydee v%s -- History log ***' % __version__,]
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
-    def __init__(self, parent, history_filename, max_history_entries=100,
-                 debug=False, profile=False):
-        QsciShellBase.__init__(self, parent, history_filename,
-                               max_history_entries, debug, profile)
+    def __init__(self, parent, history_filename, debug=False, profile=False):
+        QsciShellBase.__init__(self, parent, history_filename, debug, profile)
         
         self.docviewer = None
         
@@ -783,16 +779,6 @@ class QsciPythonShell(QsciShellBase):
         self.calltips = True
         self.completion_chars = 0
         self.calltip_index = None
-        self.setAutoCompletionThreshold( \
-            CONF.get('external_shell', 'autocompletion/threshold') )
-        self.setAutoCompletionCaseSensitivity( \
-            CONF.get('external_shell', 'autocompletion/case-sensitivity') )
-        self.setAutoCompletionShowSingle( \
-            CONF.get('external_shell', 'autocompletion/select-single') )
-        if CONF.get('external_shell', 'autocompletion/from-document'):
-            self.setAutoCompletionSource(QsciScintilla.AcsDocument)
-        else:
-            self.setAutoCompletionSource(QsciScintilla.AcsNone)
         self.connect(self, SIGNAL('userListActivated(int, const QString)'),
                      self.completion_list_selected)
             
@@ -1029,10 +1015,8 @@ class QsciTerminal(QsciShellBase):
                    COM,]
     SEPARATOR = '%s%s ---(%s)---' % (os.linesep*2, COM, time.ctime())
     
-    def __init__(self, parent, history_filename, max_history_entries=100,
-                 debug=False, profile=False):
-        QsciShellBase.__init__(self, parent, history_filename,
-                               max_history_entries, debug, profile)
+    def __init__(self, parent, history_filename, debug=False, profile=False):
+        QsciShellBase.__init__(self, parent, history_filename, debug, profile)
         
     #------ Key handlers
     def _key_other(self):

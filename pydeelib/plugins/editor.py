@@ -1206,10 +1206,13 @@ class Editor(PluginWidget):
         # ----------------------------------------------------------------------
         
         font_action = create_action(self, self.tr("&Font..."), None,
-            'font.png', self.tr("Set editor font style"),
+            'font.png', self.tr("Set text and margin font style"),
             triggered=self.change_font)
         analyze_action = create_action(self, self.tr("Code analysis"),
-            toggled=self.toggle_code_analysis)
+            toggled=self.toggle_code_analysis,
+            tip=self.tr("If enabled, Python source code will be analyzed, "
+                        "lines containing errors or warnings will be "
+                        "highlighted"))
         analyze_action.setChecked( CONF.get(self.ID, 'code_analysis') )
         fold_action = create_action(self, self.tr("Code folding"),
             toggled=self.toggle_code_folding)
@@ -1218,7 +1221,10 @@ class Editor(PluginWidget):
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
         tab_action = create_action(self, self.tr("Tab always indent"),
-            toggled=self.toggle_tab_mode)
+            toggled=self.toggle_tab_mode,
+            tip=self.tr("If enabled, pressing Tab will always indent, "
+                        "even when the cursor is not at the beginning "
+                        "of a line"))
         tab_action.setChecked( CONF.get(self.ID, 'tab_always_indent') )
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
