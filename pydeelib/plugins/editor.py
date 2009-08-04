@@ -865,9 +865,9 @@ class Editor(PluginWidget):
         self.analysislistwidget.clear()
         self.analysislistwidget.setEnabled(state and check_results is not None)
         if state and check_results:
-            for message, line0, _error in check_results:
-                item = QListWidgetItem(get_icon('warning.png'),
-                                       message.capitalize(),
+            for message, line0, error in check_results:
+                icon = get_icon('error.png' if error else 'warning.png')
+                item = QListWidgetItem(icon, message.capitalize(),
                                        self.analysislistwidget)
                 item.setData(Qt.UserRole, QVariant(line0-1))
     
