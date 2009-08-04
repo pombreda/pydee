@@ -120,21 +120,21 @@ class ExplorerTreeWidget(OneColumnTree):
             self.after_refresh()
             self.scrollToItem(item)
         
+    def __add_subfolders(self, folder):
+        for path in listdir(folder, self.include, self.exclude,
+                            self.show_all, folders_only=True):
+            self.folders.add(osp.abspath(osp.join(folder, path)))
+        
     def set_folder(self, folder):
         folder = osp.abspath(unicode(folder))
         self.last_folder = folder
         self.folders.add(folder)
-#        clear = False
-#        if not osp.commonprefix(list(self.folders)) or len(self.folders) == 1:
-#            self.folders = set([folder])
-#            clear = True
         if not osp.commonprefix(list(self.folders)):
             self.folders = set([folder])
-        clear = True
-        for path in listdir(folder, self.include, self.exclude,
-                            self.show_all, folders_only=True):
-            self.folders.add(osp.abspath(path))
-        self.refresh(clear=clear)
+        self.__add_subfolders(folder)
+        if not is_drive_path(folder):
+            self.__add_subfolders(osp.join(folder, os.pardir))
+        self.refresh(clear=True)
         self.after_refresh()
         self.last_item.setSelected(True)
         self.scrollToItem(self.last_item)
