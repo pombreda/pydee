@@ -6,7 +6,8 @@
 
 """Editor widgets"""
 
-from PyQt4.QtGui import QVBoxLayout, QFontDialog, QInputDialog
+from PyQt4.QtGui import (QVBoxLayout, QFontDialog, QInputDialog, QToolButton,
+                         QMenu)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os.path as osp
@@ -18,14 +19,13 @@ STDOUT = sys.stdout
 # Local imports
 from pydeelib import encoding
 from pydeelib.config import CONF, get_font, get_icon, set_font
-from pydeelib.qthelpers import create_action
+from pydeelib.qthelpers import create_action, create_toolbutton, add_actions
 from pydeelib.widgets.tabs import Tabs
 from pydeelib.widgets.qscieditor import QsciEditor
 from pydeelib.widgets.findreplace import FindReplace
 from pydeelib.plugins import PluginWidget
 
-#TODO: External console: add history length option (or move the interactive console option?)
-#TODO: Add a tabwidget to handle the 3 Pydee history files
+
 class HistoryLog(PluginWidget):
     """
     History log widget
@@ -52,6 +52,15 @@ class HistoryLog(PluginWidget):
         self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
                      self.move_tab)
         layout.addWidget(self.tabwidget)
+
+        # Menu as corner widget
+        options_button = create_toolbutton(self, text=self.tr("Options"),
+                                           icon=get_icon('tooloptions.png'))
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        menu = QMenu(self)
+        add_actions(menu, self.menu_actions)
+        options_button.setMenu(menu)
+        self.tabwidget.setCornerWidget(options_button)
         
         # Find/replace widget
         self.find_widget = FindReplace(self)
