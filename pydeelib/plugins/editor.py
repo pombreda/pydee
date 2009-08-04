@@ -46,7 +46,7 @@ class TabInfo(object):
         self.encoding = encoding
         self.editor = editor
         self.classes = (filename, None, None)
-        self.analysis_results = None
+        self.analysis_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
 
 class EditorTabWidget(Tabs):
@@ -174,13 +174,14 @@ class EditorTabWidget(Tabs):
         is_ok = self.save_if_changed(cancelable=True, index=index)
         if is_ok:
             self.data.pop(index)
-            self.plugin.classbrowser.clear() # Clearing class browser contents
             self.removeTab(index)
             if not self.data:
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
                 self.close_editortabwidget()
             self.emit(SIGNAL('opened_files_list_changed()'))
+            self.emit(SIGNAL('refresh_analysis_results()'))
+            self.__refresh_classbrowser()
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
         return is_ok
     
@@ -270,7 +271,7 @@ class EditorTabWidget(Tabs):
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
             self.modification_changed(index=index)
             self.analyze_script(index)
-            self.__update_classbrowser(index)
+            self.__refresh_classbrowser(index)
             return True
         except EnvironmentError, error:
             QMessageBox.critical(self, self.tr("Save"),
@@ -296,18 +297,12 @@ class EditorTabWidget(Tabs):
         if CONF.get(self.ID, 'code_analysis') and is_python_script(fname):
             finfo.analysis_results = check(fname)
             finfo.editor.process_code_analysis(finfo.analysis_results)
-            self.emit(SIGNAL('analysis_results_changed()'))
-        self.__refresh_code_analysis_buttons(index)
+        self.emit(SIGNAL('refresh_analysis_results()'))
         
     def get_analysis_results(self):
-        return self.data[self.currentIndex()].analysis_results
+        if self.data:
+            return self.data[self.currentIndex()].analysis_results
         
-    def __update_classbrowser(self, index=None):
-        """Update class browser data"""
-        if index is None:
-            index = self.currentIndex()
-        self.__refresh_classbrowser(index, update=True)
-    
     def current_changed(self, index):
         """Tab index has changed"""
         if index != -1:
@@ -323,27 +318,25 @@ class EditorTabWidget(Tabs):
             if fwidget is finfo.editor:
                 self.refresh()
         
-    def __refresh_classbrowser(self, index, update=True):
+    def __refresh_classbrowser(self, index=None, update=True):
         """Refresh class browser panel"""
-        finfo = self.data[index]
+        if index is None:
+            index = self.currentIndex()
+        enable = False
         classbrowser = self.plugin.classbrowser
-        if CONF.get(self.ID, 'class_browser') \
-           and is_python_script(finfo.filename) and classbrowser.isVisible():
-            classbrowser.setEnabled(True)
-            if update:
-                finfo.classes = classbrowser.refresh(finfo.classes)
-            else:
-                classbrowser.refresh(finfo.classes, update=False)
-        else:
+        if self.data:
+            finfo = self.data[index]
+            if CONF.get(self.ID, 'class_browser') \
+               and is_python_script(finfo.filename) and classbrowser.isVisible():
+                enable = True
+                classbrowser.setEnabled(True)
+                classes = classbrowser.refresh(finfo.classes, update=update)
+                if update:
+                    finfo.classes = classes
+        if not enable:
             classbrowser.setEnabled(False)
             classbrowser.clear()
             
-    def __refresh_code_analysis_buttons(self, index):
-        """Refresh previous/next warning toolbar buttons state"""
-        state = len(self.data[index].editor.marker_lines) and \
-                CONF.get(self.ID, 'code_analysis')
-        self.plugin.set_warning_actions_state(state)
-        
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
         finfo = self.data[index]
@@ -396,7 +389,7 @@ class EditorTabWidget(Tabs):
             editor.setFocus()
             plugin_title += " - " + osp.basename(finfo.filename)
             self.__refresh_classbrowser(index, update=False)
-            self.__refresh_code_analysis_buttons(index)
+            self.emit(SIGNAL('refresh_analysis_results()'))
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_last_modified(index)
@@ -505,7 +498,7 @@ class EditorTabWidget(Tabs):
         self.modification_changed()
 
         self.analyze_script(index)
-        self.__update_classbrowser(index)
+        self.__refresh_classbrowser(index)
         
         self.setCurrentIndex(index)
         
@@ -853,24 +846,38 @@ class Editor(PluginWidget):
         editortabwidget, index = self.get_editortabwidget_index(filename)
         editortabwidget.data[index].editor.setFocus()
         editortabwidget.setCurrentIndex(index)
-        
+    
     def analysislistwidget_clicked(self, item):
         line, _ok = item.data(Qt.UserRole).toInt()
         self.get_current_editor().highlight_line(line+1)
     
     def refresh_analysislistwidget(self):
-        if self.analysislistwidget.isHidden():
-            return
+        """Refresh analysislistwidget *and* analysis navigation buttons"""
         editortabwidget = self.get_current_editortabwidget()
         check_results = editortabwidget.get_analysis_results()
+        state = CONF.get(self.ID, 'code_analysis') \
+                and check_results is not None and len(check_results)
+        self.previous_warning_action.setEnabled(state)
+        self.next_warning_action.setEnabled(state)
+        if self.analysislistwidget.isHidden():
+            return
         self.analysislistwidget.clear()
-        if check_results:
+        self.analysislistwidget.setEnabled(state and check_results is not None)
+        if state and check_results:
             for message, line0, _error in check_results:
                 item = QListWidgetItem(get_icon('warning.png'),
                                        message.capitalize(),
                                        self.analysislistwidget)
                 item.setData(Qt.UserRole, QVariant(line0-1))
-
+    
+    def go_to_next_warning(self):
+        editor = self.get_current_editor()
+        editor.go_to_next_warning()
+    
+    def go_to_previous_warning(self):
+        editor = self.get_current_editor()
+        editor.go_to_previous_warning()
+            
     def refresh_openedfileslistwidget(self):
         """
         Opened files list has changed:
@@ -968,9 +975,7 @@ class Editor(PluginWidget):
                      self.cursorpos_status.cursor_position_changed)
         self.connect(editortabwidget, SIGNAL('opened_files_list_changed()'),
                      self.refresh_openedfileslistwidget)
-        self.connect(editortabwidget, SIGNAL('analysis_results_changed()'),
-                     self.refresh_analysislistwidget)
-        self.connect(editortabwidget, SIGNAL('currentChanged(int)'),
+        self.connect(editortabwidget, SIGNAL('refresh_analysis_results()'),
                      self.refresh_analysislistwidget)
         self.connect(editortabwidget,
                      SIGNAL('refresh_file_dependent_actions()'),
@@ -1367,19 +1372,6 @@ class Editor(PluginWidget):
             text = os.linesep.join(default)
             encoding.write(unicode(text), fname, 'utf-8')
             self.load(fname)
-            
-    def set_warning_actions_state(self, state):
-        """Refresh previous/next warning toolbar buttons state"""
-        self.previous_warning_action.setEnabled(state)
-        self.next_warning_action.setEnabled(state)
-    
-    def go_to_next_warning(self):
-        editor = self.get_current_editor()
-        editor.go_to_next_warning()
-    
-    def go_to_previous_warning(self):
-        editor = self.get_current_editor()
-        editor.go_to_previous_warning()
             
     def close_all_files(self):
         """Close all opened scripts"""
