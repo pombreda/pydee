@@ -40,6 +40,15 @@ def is_python_script(fname):
     return osp.splitext(fname)[1][1:] in ('py', 'pyw')
 
 
+class TabInfo(object):
+    def __init__(self, filename, encoding, editor):
+        self.filename = filename
+        self.encoding = encoding
+        self.editor = editor
+        self.classes = (filename, None, None)
+        self.analysis_results = None
+        self.lastmodified = QFileInfo(filename).lastModified()
+
 class EditorTabWidget(Tabs):
     def __init__(self, parent, actions):
         Tabs.__init__(self, parent)
@@ -61,12 +70,7 @@ class EditorTabWidget(Tabs):
         self.setCornerWidget(self.close_button)
         self.connect(self, SIGNAL('currentChanged(int)'), self.current_changed)
         
-        self.filenames = []
-        self.encodings = []
-        self.editors = []
-        self.classes = []
-        self.analysis_results = []
-        self.lastmodified = []
+        self.data = []
         
         self.__last_modified_flag = False
         
@@ -80,7 +84,7 @@ class EditorTabWidget(Tabs):
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
         self.menu.clear()
-        if self.editors:
+        if self.data:
             actions = self.original_actions
         else:
             actions = (self.plugin.new_action, self.plugin.open_action)
@@ -118,18 +122,19 @@ class EditorTabWidget(Tabs):
         
 #===============================================================================
     def get_current_filename(self):
-        if self.filenames:
-            return self.filenames[ self.currentIndex() ]
+        if self.data:
+            return self.data[self.currentIndex()].filename
         
     def has_filename(self, filename):
-        if filename in self.filenames:
-            return self.filenames.index(filename)
+        for index, finfo in enumerate(self.data):
+            if filename == finfo.filename:
+                return index
         
     def set_current_filename(self, filename):
         index = self.has_filename(filename)
         if index is not None:
             self.setCurrentIndex(index)
-            self.editors[index].setFocus()
+            self.data[index].editor.setFocus()
             return True
         
 
@@ -138,32 +143,21 @@ class EditorTabWidget(Tabs):
         """
         Move tab
         In fact tabs have already been moved by the tabwidget
-        but we have to move the self.editors/fnames elements too
+        but we have to move the self.data elements too
         """
-        editor = self.editors.pop(index_from)
-        filename = self.filenames.pop(index_from)
-        encoding = self.encodings.pop(index_from)
-        classes = self.classes.pop(index_from)
-        analysis = self.analysis_results.pop(index_from)
-        lastmodified = self.lastmodified.pop(index_from)
-        
+        finfo = self.data.pop(index_from)
         if editortabwidget_to is None:
-            editortabwidget_to = self
-        
-        editortabwidget_to.editors.insert(index_to, editor)
-        editortabwidget_to.filenames.insert(index_to, filename)
-        editortabwidget_to.encodings.insert(index_to, encoding)
-        editortabwidget_to.classes.insert(index_to, classes)
-        editortabwidget_to.analysis_results.insert(index_to, analysis)
-        editortabwidget_to.lastmodified.insert(index_to, lastmodified)
+            editortabwidget_to = self        
+        editortabwidget_to.data.insert(index_to, finfo)
         
         if editortabwidget_to is not self:
-            self.disconnect(editor, SIGNAL('modificationChanged(bool)'),
+            self.disconnect(finfo.editor, SIGNAL('modificationChanged(bool)'),
                             self.modification_changed)
-            self.disconnect(editor, SIGNAL("focus_in()"), self.focus_changed)
-            self.connect(editor, SIGNAL('modificationChanged(bool)'),
+            self.disconnect(finfo.editor, SIGNAL("focus_in()"),
+                            self.focus_changed)
+            self.connect(finfo.editor, SIGNAL('modificationChanged(bool)'),
                          editortabwidget_to.modification_changed)
-            self.connect(editor, SIGNAL("focus_in()"),
+            self.connect(finfo.editor, SIGNAL("focus_in()"),
                          editortabwidget_to.focus_changed)            
     
 #===============================================================================
@@ -179,15 +173,10 @@ class EditorTabWidget(Tabs):
                 return
         is_ok = self.save_if_changed(cancelable=True, index=index)
         if is_ok:
-            self.filenames.pop(index)
-            self.encodings.pop(index)
-            self.editors.pop(index)
-            self.classes.pop(index)
-            self.analysis_results.pop(index)
-            self.lastmodified.pop(index)
+            self.data.pop(index)
             self.plugin.classbrowser.clear() # Clearing class browser contents
             self.removeTab(index)
-            if not self.filenames:
+            if not self.data:
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
                 self.close_editortabwidget()
@@ -196,7 +185,7 @@ class EditorTabWidget(Tabs):
         return is_ok
     
     def close_editortabwidget(self):
-        if self.filenames:
+        if self.data:
             self.close_all_files()
             if self.already_closed:
                 # All opened files were closed and *self* is not the last
@@ -229,7 +218,7 @@ class EditorTabWidget(Tabs):
             buttons |= QMessageBox.Cancel
         unsaved_nb = 0
         for index in indexes:
-            if self.editors[index].isModified():
+            if self.data[index].editor.isModified():
                 unsaved_nb += 1
         if not unsaved_nb:
             # No file to save
@@ -239,16 +228,16 @@ class EditorTabWidget(Tabs):
         yes_all = False
         for index in indexes:
             self.setCurrentIndex(index)
-            filename = self.filenames[index]
-            if filename == self.plugin.file_path or yes_all:
+            finfo = self.data[index]
+            if finfo.filename == self.plugin.file_path or yes_all:
                 if not self.save():
                     return False
-            elif self.editors[index].isModified():
+            elif finfo.editor.isModified():
                 answer = QMessageBox.question(self,
                             self.plugin.get_widget_title(),
                             self.tr("<b>%1</b> has been modified."
-                                    "<br>Do you want to save "
-                                    "changes?").arg(osp.basename(filename)),
+                                    "<br>Do you want to save changes?") \
+                                    .arg(osp.basename(finfo.filename)),
                             buttons)
                 if answer == QMessageBox.Yes:
                     if not self.save():
@@ -271,24 +260,23 @@ class EditorTabWidget(Tabs):
                 return
             index = self.currentIndex()
             
-        if not self.editors[index].isModified() and not force:
+        finfo = self.data[index]
+        if not finfo.editor.isModified() and not force:
             return True
-        txt = unicode(self.editors[index].get_text())
+        txt = unicode(finfo.editor.get_text())
         try:
-            filename = self.filenames[index]
-            self.encodings[index] = encoding.write(txt, filename,
-                                                   self.encodings[index])
-            self.editors[index].setModified(False)
-            self.lastmodified[index] = QFileInfo(filename).lastModified()
+            finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
+            finfo.editor.setModified(False)
+            finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
             self.modification_changed(index=index)
             self.analyze_script(index)
             self.__update_classbrowser(index)
             return True
         except EnvironmentError, error:
             QMessageBox.critical(self, self.tr("Save"),
-            self.tr("<b>Unable to save script '%1'</b>"
-                    "<br><br>Error message:<br>%2") \
-            .arg(osp.basename(self.filenames[index])).arg(str(error)))
+                            self.tr("<b>Unable to save script '%1'</b>"
+                                    "<br><br>Error message:<br>%2") \
+                            .arg(osp.basename(finfo.filename)).arg(str(error)))
             return False
         
     def save_all(self):
@@ -303,15 +291,16 @@ class EditorTabWidget(Tabs):
         """Analyze current script with pyflakes"""
         if index is None:
             index = self.currentIndex()
-        fname = self.filenames[index]
+        finfo = self.data[index]
+        fname = finfo.filename
         if CONF.get(self.ID, 'code_analysis') and is_python_script(fname):
-            results = self.analysis_results[index] = check(fname)
-            self.editors[index].process_code_analysis(results)
+            finfo.analysis_results = check(fname)
+            finfo.editor.process_code_analysis(finfo.analysis_results)
             self.emit(SIGNAL('analysis_results_changed()'))
         self.__refresh_code_analysis_buttons(index)
         
     def get_analysis_results(self):
-        return self.analysis_results[self.currentIndex()]
+        return self.data[self.currentIndex()].analysis_results
         
     def __update_classbrowser(self, index=None):
         """Update class browser data"""
@@ -330,41 +319,43 @@ class EditorTabWidget(Tabs):
     def focus_changed(self):
         """Editor focus has changed"""
         fwidget = QApplication.focusWidget()
-        if fwidget in self.editors:
-            self.refresh()
+        for finfo in self.data:
+            if fwidget is finfo.editor:
+                self.refresh()
         
     def __refresh_classbrowser(self, index, update=True):
         """Refresh class browser panel"""
-        fname = self.filenames[index]
+        finfo = self.data[index]
         classbrowser = self.plugin.classbrowser
-        if CONF.get(self.ID, 'class_browser') and is_python_script(fname) \
-           and classbrowser.isVisible():
+        if CONF.get(self.ID, 'class_browser') \
+           and is_python_script(finfo.filename) and classbrowser.isVisible():
             classbrowser.setEnabled(True)
             if update:
-                self.classes[index] = classbrowser.refresh(self.classes[index])
+                finfo.classes = classbrowser.refresh(finfo.classes)
             else:
-                classbrowser.refresh(self.classes[index], update=False)
+                classbrowser.refresh(finfo.classes, update=False)
         else:
             classbrowser.setEnabled(False)
             classbrowser.clear()
             
     def __refresh_code_analysis_buttons(self, index):
         """Refresh previous/next warning toolbar buttons state"""
-        state = len(self.editors[index].marker_lines) and \
+        state = len(self.data[index].editor.marker_lines) and \
                 CONF.get(self.ID, 'code_analysis')
         self.plugin.set_warning_actions_state(state)
         
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
-        encoding = self.encodings[index]
-        self.emit(SIGNAL('encoding_changed(QString)'), encoding)
+        finfo = self.data[index]
+        self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
         # Refresh cursor position status:
-        line, index = self.editors[index].getCursorPosition()
+        line, index = finfo.editor.getCursorPosition()
         self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
         
     def __refresh_readonly(self, index):
-        read_only = not QFileInfo(self.filenames[index]).isWritable()
-        self.editors[index].setReadOnly(read_only)
+        finfo = self.data[index]
+        read_only = not QFileInfo(finfo.filename).isWritable()
+        finfo.editor.setReadOnly(read_only)
         self.emit(SIGNAL('readonly_changed(bool)'), read_only)
         
     def __check_last_modified(self, index):
@@ -373,21 +364,21 @@ class EditorTabWidget(Tabs):
             # gets focus and then give it back to the QsciEditor instance,
             # triggering a refresh cycle which calls this method
             return
+        finfo = self.data[index]
         self.__last_modified_flag = True
-        filename = self.filenames[index]
-        lastm = QFileInfo(filename).lastModified()
-        if lastm.toString().compare(self.lastmodified[index].toString()):
-            if self.editors[index].isModified():
+        lastm = QFileInfo(finfo.filename).lastModified()
+        if lastm.toString().compare(finfo.lastmodified.toString()):
+            if finfo.editor.isModified():
                 answer = QMessageBox.question(self,
                     self.plugin.get_widget_title(),
                     self.tr("<b>%1</b> has been modified outside Pydee."
                             "<br>Do you want to reload it and loose all your "
-                            "changes?").arg(osp.basename(filename)),
+                            "changes?").arg(osp.basename(finfo.filename)),
                     QMessageBox.Yes | QMessageBox.No)
                 if answer == QMessageBox.Yes:
                     self.reload(index)
                 else:
-                    self.lastmodified[index] = lastm
+                    finfo.lastmodified = lastm
             else:
                 self.reload(index)
         self.__last_modified_flag = False
@@ -400,9 +391,10 @@ class EditorTabWidget(Tabs):
         plugin_title = self.plugin.get_widget_title()
         if self.count():
             index = self.currentIndex()
-            editor = self.editors[index]
+            finfo = self.data[index]
+            editor = finfo.editor
             editor.setFocus()
-            plugin_title += " - " + osp.basename(self.filenames[index])
+            plugin_title += " - " + osp.basename(finfo.filename)
             self.__refresh_classbrowser(index, update=False)
             self.__refresh_code_analysis_buttons(index)
             self.__refresh_statusbar(index)
@@ -430,19 +422,20 @@ class EditorTabWidget(Tabs):
         if index == -1:
             return None, None
         if state is None:
-            state = self.editors[index].isModified()
+            state = self.data[index].editor.isModified()
         return state, index
         
     def get_full_title(self, state=None, index=None):
         state, index = self.__get_state_index(state, index)
         if index is None:
             return
-        title = self.get_title(self.filenames[index])
+        finfo = self.data[index]
+        title = self.get_title(finfo.filename)
         if state:
             title += "*"
         elif title.endswith('*'):
             title = title[:-1]
-        if self.editors[index].isReadOnly():
+        if finfo.editor.isReadOnly():
             title = '(' + title + ')'
         return title
 
@@ -469,28 +462,22 @@ class EditorTabWidget(Tabs):
 #    Load, reload
 #===============================================================================
     def reload(self, index):
-        filename = self.filenames[index]
-        txt, enc = encoding.read(filename)
-        self.encodings[index] = enc
-        self.lastmodified[index] = QFileInfo(filename).lastModified()
-        editor = self.editors[index]
-        line, index = editor.getCursorPosition()
-        editor.set_text(txt)
-        editor.setModified(False)
-        editor.setCursorPosition(line, index)
+        finfo = self.data[index]
+        txt, finfo.encoding = encoding.read(finfo.filename)
+        finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
+        line, index = finfo.editor.getCursorPosition()
+        finfo.editor.set_text(txt)
+        finfo.editor.setModified(False)
+        finfo.editor.setCursorPosition(line, index)
         
     def load(self, filename, goto=0):
-        self.filenames.append(filename)
         txt, enc = encoding.read(filename)
-        self.encodings.append(enc)
-        self.lastmodified.append(QFileInfo(filename).lastModified())
-        
-        # Editor widget creation
         ext = osp.splitext(filename)[1]
         if ext.startswith('.'):
             ext = ext[1:] # file extension with leading dot
         
         editor = QsciEditor(self)
+        self.data.append( TabInfo(filename, enc, editor) )
         editor.set_text(txt)
         editor.setup_editor(linenumbers=True, language=ext,
                             code_analysis=CONF.get(self.ID, 'code_analysis'),
@@ -506,11 +493,7 @@ class EditorTabWidget(Tabs):
         self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
         self.connect(editor, SIGNAL("focus_changed()"),
                      lambda: self.plugin.emit(SIGNAL("focus_changed()")))
-        self.editors.append(editor)
 
-        self.classes.append( (filename, None, None) )
-        self.analysis_results.append(None)
-        
         title = self.get_title(filename)
         index = self.addTab(editor, title)
         self.setTabToolTip(index, filename)
@@ -530,7 +513,7 @@ class EditorTabWidget(Tabs):
         
         if goto > 0:
             editor.highlight_line(goto)
-    
+                
 #===============================================================================
 #    Run
 #===============================================================================
@@ -538,8 +521,8 @@ class EditorTabWidget(Tabs):
                                interact=False, debug=False):
         """Run current script in another process"""
         if self.save():
-            index = self.currentIndex()
-            fname = osp.abspath(self.filenames[index])
+            finfo = self.data[self.currentIndex()]
+            fname = osp.abspath(finfo.filename)
             wdir = osp.dirname(fname)
             self.plugin.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool)'),
                              fname, wdir, ask_for_arguments, interact, debug)
@@ -548,21 +531,20 @@ class EditorTabWidget(Tabs):
                 # raised in top-level and so focus will be given to the
                 # current external shell automatically
                 # (see PluginWidget.visibility_changed method)
-                self.editors[index].setFocus()
+                finfo.editor.setFocus()
     
     def exec_script(self, set_focus=False):
         """Run current script"""
         if self.save():
-            index = self.currentIndex()
-            self.interactive_console.run_script(self.filenames[index],
-                                                silent=True,
+            finfo = self.data[self.currentIndex()]
+            self.interactive_console.run_script(finfo.filename, silent=True,
                                                 set_focus=set_focus)
             if not set_focus:
                 # If interactive console dockwidget is hidden, it will be
                 # raised in top-level and so focus will be given to the
                 # interactive shell automatically
                 # (see PluginWidget.visibility_changed method)
-                self.editors[index].setFocus()
+                finfo.editor.setFocus()
         
     def exec_selected_text(self):
         """Run selected text in current script and set focus to shell"""
@@ -869,7 +851,7 @@ class Editor(PluginWidget):
     def openedfileslistwidget_clicked(self, item):
         filename = unicode(item.data(Qt.UserRole).toString())
         editortabwidget, index = self.get_editortabwidget_index(filename)
-        editortabwidget.editors[index].setFocus()
+        editortabwidget.data[index].editor.setFocus()
         editortabwidget.setCurrentIndex(index)
         
     def analysislistwidget_clicked(self, item):
@@ -929,14 +911,16 @@ class Editor(PluginWidget):
     def get_filenames(self):
         filenames = []
         for editortabwidget in self.editortabwidgets:
-            filenames += editortabwidget.filenames
+            filenames += [finfo.filename for finfo in editortabwidget.data]
         return filenames
 
     def get_editortabwidget_index(self, filename):
         for editortabwidget in self.editortabwidgets:
-            if filename in editortabwidget.filenames:
-                return (editortabwidget,
-                        editortabwidget.filenames.index(filename))
+            index = editortabwidget.has_filename(filename)
+            if index is not None:
+                return (editortabwidget, index)
+        else:
+            return (None, None)
         
     def __get_focus_editortabwidget(self):
         fwidget = QApplication.focusWidget()
@@ -1055,22 +1039,17 @@ class Editor(PluginWidget):
         if editortabwidget is not None:
             return editortabwidget.get_current_filename()
         
-    def __get_editortabwidget_for_filename(self, filename):
-        """Return editortabwidget where *filename* is opened"""
-        for editortabwidget in self.editortabwidgets:
-            if filename in editortabwidget.filenames:
-                return editortabwidget
-        
     def is_file_opened(self, filename=None):
         if filename is None:
             # Is there any file opened?
             return self.get_current_editor() is not None
         else:
-            return self.__get_editortabwidget_for_filename(filename)
+            editortabwidget, _index = self.get_editortabwidget_index(filename)
+            return editortabwidget
         
     def set_current_filename(self, filename):
         """Set focus to *filename* if this file has been opened"""
-        editortabwidget = self.__get_editortabwidget_for_filename(filename)
+        editortabwidget, _index = self.get_editortabwidget_index(filename)
         if editortabwidget is not None:
             return editortabwidget.set_current_filename(filename)
     
@@ -1086,8 +1065,8 @@ class Editor(PluginWidget):
         state = False
         for editortabwidget in self.editortabwidgets:
             if editortabwidget.count() > 1:
-                state = state or any([editor.isModified() for editor \
-                                      in editortabwidget.editors])
+                state = state or any([finfo.editor.isModified() for finfo \
+                                      in editortabwidget.data])
         self.save_all_action.setEnabled(state)
     
     def refresh(self):
@@ -1294,7 +1273,7 @@ class Editor(PluginWidget):
         """Perform actions before parent main window is closed"""
         filenames = []
         for editortabwidget in self.editortabwidgets:
-            filenames += editortabwidget.filenames
+            filenames += [finfo.filename for finfo in editortabwidget.data]
         CONF.set(self.ID, 'filenames', filenames)
         CONF.set(self.ID, 'current_filename', self.get_current_filename())
         CONF.set(self.ID, 'recent_files', self.recent_files)
@@ -1543,16 +1522,16 @@ class Editor(PluginWidget):
                                           self.tr("Select a new font"))
         if valid:
             for editortabwidget in self.editortabwidgets:
-                for editor in editortabwidget.editors:
-                    editor.set_font(font)
+                for finfo in editortabwidget.data:
+                    finfo.editor.set_font(font)
             set_font(font, self.ID)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         if hasattr(self, 'editortabwidgets'):
             for editortabwidget in self.editortabwidgets:
-                for editor in editortabwidget.editors:
-                    editor.set_wrap_mode(checked)
+                for finfo in editortabwidget.data:
+                    finfo.editor.set_wrap_mode(checked)
             CONF.set(self.ID, 'wrap', checked)
             
     def toggle_tab_mode(self, checked):
@@ -1563,20 +1542,20 @@ class Editor(PluginWidget):
         """
         if hasattr(self, 'editortabwidgets'):
             for editortabwidget in self.editortabwidgets:
-                for editor in editortabwidget.editors:
-                    editor.set_tab_mode(checked)
+                for finfo in editortabwidget.data:
+                    finfo.editor.set_tab_mode(checked)
             CONF.set(self.ID, 'tab_always_indent', checked)
             
     def toggle_code_folding(self, checked):
         """Toggle code folding"""
         if hasattr(self, 'editortabwidgets'):
             for editortabwidget in self.editortabwidgets:
-                for editor in editortabwidget.editors:
-                    editor.setup_margins(linenumbers=True,
+                for finfo in editortabwidget.data:
+                    finfo.editor.setup_margins(linenumbers=True,
                               code_folding=checked,
                               code_analysis=CONF.get(self.ID, 'code_analysis'))
                     if not checked:
-                        editor.unfold_all()
+                        finfo.editor.unfold_all()
             CONF.set(self.ID, 'code_folding', checked)
             
     def toggle_code_analysis(self, checked):
@@ -1586,8 +1565,8 @@ class Editor(PluginWidget):
             current_editortabwidget = self.get_current_editortabwidget()
             current_index = current_editortabwidget.currentIndex()
             for editortabwidget in self.editortabwidgets:
-                for index, editor in enumerate(editortabwidget.editors):
-                    editor.setup_margins(linenumbers=True,
+                for index, finfo in enumerate(editortabwidget.data):
+                    finfo.editor.setup_margins(linenumbers=True,
                               code_analysis=checked,
                               code_folding=CONF.get(self.ID, 'code_folding'))
                     if index != current_index:
