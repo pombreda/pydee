@@ -97,6 +97,12 @@ class ExplorerTreeWidget(OneColumnTree):
                      self.activated)
         self.connect(self, SIGNAL('itemExpanded(QTreeWidgetItem*)'),
                      self.item_expanded)
+        self.connect(self, SIGNAL('itemCollapsed(QTreeWidgetItem*)'),
+                     self.item_collapsed)
+        self.connect(self, SIGNAL('currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)'),
+                     self.current_item_changed)
+        self.connect(self, SIGNAL('itemSelectionChanged()'),
+                     self.item_selection_changed)
         
     def setup(self, include='.', exclude=r'\.pyc$|^\.', show_all=False):
         self.include = include
@@ -107,8 +113,20 @@ class ExplorerTreeWidget(OneColumnTree):
         itemdata = self.data.get(self.currentItem())
         if itemdata is not None:
             self.parent_widget.emit(SIGNAL("open_dir(QString)"), itemdata)
+            
+    def item_selection_changed(self):
+        items = self.selectedItems()
+        if len(items):
+            items[0].setIcon(0, get_std_icon('DirOpenIcon'))
+            
+    def current_item_changed(self, current_item, previous_item):
+        if current_item is not None:
+            current_item.setIcon(0, get_std_icon('DirOpenIcon'))
+        if previous_item is not None:
+            previous_item.setIcon(0, get_std_icon('DirClosedIcon'))
         
     def item_expanded(self, item):
+        item.setIcon(0, get_std_icon('DirOpenIcon'))
         if not item.childCount():
             # A non-populated item was just expanded
             folder = self.data[item]
@@ -119,6 +137,9 @@ class ExplorerTreeWidget(OneColumnTree):
                 self.create_dir_item(osp.join(folder, path), item)
             self.after_refresh()
             self.scrollToItem(item)
+            
+    def item_collapsed(self, item):
+        item.setIcon(0, get_std_icon('DirClosedIcon'))
         
     def __add_subfolders(self, folder):
         for path in listdir(folder, self.include, self.exclude,
