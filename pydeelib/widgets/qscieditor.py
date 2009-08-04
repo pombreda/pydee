@@ -116,10 +116,6 @@ class QsciEditor(QsciBase):
                                                'png'))
         self.warning = self.markerDefine(QPixmap(get_image_path('warning.png'),
                                                  'png'))
-
-        self.margin_font = get_font('editor', 'margin')
-        self.calltip_size = CONF.get('calltips', 'size')
-        self.calltip_font = get_font('calltips')
             
         # Scintilla Python API
         self.api = None
@@ -203,7 +199,10 @@ class QsciEditor(QsciBase):
 
     def setup_margins(self, linenumbers=True,
                       code_analysis=False, code_folding=False):
-        """Set margin font and width"""
+        """
+        Setup margin settings
+        (except font, now set in self.set_font)
+        """
         for i_margin in range(5):
             # Reset margin settings
             self.setMarginWidth(i_margin, 0)
@@ -213,7 +212,6 @@ class QsciEditor(QsciBase):
         if linenumbers:
             # 1: Line numbers margin
             self.setMarginLineNumbers(1, True)
-            self.setMarginsFont(self.margin_font)
             self.update_line_numbers_margin()
             if code_analysis:
                 # 2: Errors/warnings margin
@@ -376,6 +374,7 @@ class QsciEditor(QsciBase):
         else:
             self.lexer().setFont(font)
             self.setLexer(self.lexer())
+        self.setMarginsFont(font)
         
     def set_text(self, text):
         """Set the text of the editor"""
@@ -471,10 +470,9 @@ class QsciEditor(QsciBase):
     def __show_code_analysis_results(self, line):
         """Show warning/error messages"""
         if line in self.marker_lines:
-            size, font = self.calltip_size, self.calltip_font
             msglist = [ msg for msg, _error in self.marker_lines[line] ]
             self.show_calltip(self.tr("Code analysis"), msglist,
-                              size, font, color='#129625', at_line=line)
+                              color='#129625', at_line=line)
     
     def __margin_clicked(self, margin, line, modifier):
         """Margin was clicked, that's for sure!"""

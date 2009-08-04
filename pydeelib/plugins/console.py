@@ -158,7 +158,8 @@ class Console(PluginWidget):
         calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
         codecompletion_action = create_action(self, self.tr("Code completion"),
             toggled=self.toggle_codecompletion)
-        codecompletion_action.setChecked( CONF.get(self.ID, 'autocompletion') )
+        codecompletion_action.setChecked( CONF.get(self.ID,
+                                                   'autocompletion/enabled') )
         menu_actions = [run_action, environ_action, syspath_action, None,
                         font_action, history_action, wrap_action,
                         calltips_action, codecompletion_action,
@@ -242,9 +243,9 @@ class Console(PluginWidget):
         path, valid = QInputDialog.getText(self, self.tr('External editor'),
                           self.tr('External editor executable path:'),
                           QLineEdit.Normal,
-                          CONF.get(self.ID, 'external_editor'))
+                          CONF.get(self.ID, 'external_editor/path'))
         if valid:
-            CONF.set(self.ID, 'external_editor', unicode(path))
+            CONF.set(self.ID, 'external_editor/path', unicode(path))
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
@@ -259,7 +260,7 @@ class Console(PluginWidget):
     def toggle_codecompletion(self, checked):
         """Toggle code completion"""
         self.shell.set_codecompletion(checked)
-        CONF.set(self.ID, 'autocompletion', checked)
+        CONF.set(self.ID, 'autocompletion/enabled', checked)
 
                 
     #----Drag and drop                    

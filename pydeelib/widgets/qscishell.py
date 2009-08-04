@@ -25,7 +25,7 @@ STDERR = sys.stderr
 
 # Local import
 from pydeelib import __version__, encoding
-from pydeelib.config import CONF, get_icon, get_font
+from pydeelib.config import CONF, get_icon
 from pydeelib.dochelpers import getobj
 from pydeelib.qthelpers import (translate, keybinding, create_action,
                                  add_actions, restore_keyevent)
@@ -783,8 +783,6 @@ class QsciPythonShell(QsciShellBase):
         self.calltips = True
         self.completion_chars = 0
         self.calltip_index = None
-        self.calltip_size = CONF.get('calltips', 'size')
-        self.calltip_font = get_font('calltips')
         self.setAutoCompletionThreshold( \
             CONF.get('external_shell', 'autocompletion/threshold') )
         self.setAutoCompletionCaseSensitivity( \
@@ -976,7 +974,6 @@ class QsciPythonShell(QsciShellBase):
         
         text = unicode(text) # Useful only for ExternalShellBase
         done = False
-        size, font = self.calltip_size, self.calltip_font
         if (self.docviewer is not None) and \
            (self.docviewer.dockwidget.isVisible()):
             # DocViewer widget exists and is visible
@@ -994,7 +991,7 @@ class QsciPythonShell(QsciShellBase):
                         if arglist:
                             done = True
                             self.show_calltip(self.tr("Arguments"),
-                                              arglist, size, font, '#129625')
+                                              arglist, '#129625')
                     else:
                         done = True
                         self.show_calltip(self.tr("Warning"),
@@ -1002,12 +999,12 @@ class QsciPythonShell(QsciShellBase):
                                                   " (i.e. not a function, "
                                                   "a method or a class "
                                                   "constructor)").arg(text),
-                                          size, font, color='#FF0000')
+                                          color='#FF0000')
         if not done:
             doc = self.get__doc__(text)
             if doc is None: # Useful only for ExternalShellBase
                 return
-            self.show_calltip(self.tr("Documentation"), doc, size, font)
+            self.show_calltip(self.tr("Documentation"), doc)
         
         
     #------ Miscellanous

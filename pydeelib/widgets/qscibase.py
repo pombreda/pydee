@@ -12,9 +12,12 @@
 # pylint: disable-msg=R0201
 
 import sys, re
-from PyQt4.QtGui import QFont, QToolTip
+from PyQt4.QtGui import QToolTip
 from PyQt4.QtCore import QPoint, SIGNAL, QString, QRegExp, Qt
 from PyQt4.Qsci import QsciScintilla
+
+# Local imports
+from pydeelib.config import CONF, get_font
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -44,6 +47,10 @@ class QsciBase(QsciScintilla):
         # Enable brace matching
         self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
         self.setMatchedBraceBackgroundColor(Qt.yellow)
+        
+        # Calltips
+        self.calltip_size = CONF.get('scintilla', 'calltips/size')
+        self.calltip_font = get_font('scintilla', 'calltips')
         
     def remove_margins(self):
         """Suppressing Scintilla margins"""
@@ -166,25 +173,24 @@ class QsciBase(QsciScintilla):
         self.setSelection(line, index, line, index)
 
 
-    def show_calltip(self, title, text, tipsize=600, font=None,
-                     color='#2D62FF', at_line=None):
+    def show_calltip(self, title, text, color='#2D62FF', at_line=None):
         """
         Show calltip
         This is here because QScintilla does not implement well calltips
         """
         if text is None or len(text)==0:
             return
-        if font is None:
-            font = QFont()
-        weight = 'bold' if font.bold() else 'normal'
-        format1 = '<div style=\'font-size: %spt; color: %s\'>' % (font.pointSize(), color)
-        format2 = '<hr><div style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (font.family(), font.pointSize(), weight)
+        weight = 'bold' if self.calltip_font.bold() else 'normal'
+        size = self.calltip_font.pointSize()
+        family = self.calltip_font.family()
+        format1 = '<div style=\'font-size: %spt; color: %s\'>' % (size, color)
+        format2 = '<hr><div style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (family, size, weight)
         if isinstance(text, list):
             text = "\n    ".join(text)
         else:
             text = text.replace('\n', '<br>')
-        if len(text) > tipsize:
-            text = text[:tipsize] + " ..."
+        if len(text) > self.calltip_size:
+            text = text[:self.calltip_size] + " ..."
         tiptext = format1 + ('<b>%s</b></div>' % title) \
                   + format2 + text + "</div>"
         # Showing tooltip at cursor position:
