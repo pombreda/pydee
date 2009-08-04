@@ -234,7 +234,8 @@ class ExternalConsole(PluginWidget):
         calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
         codecompletion_action = create_action(self, self.tr("Code completion"),
                             toggled=self.toggle_codecompletion)
-        codecompletion_action.setChecked( CONF.get(self.ID, 'autocompletion') )
+        codecompletion_action.setChecked( CONF.get(self.ID,
+                                                   'autocompletion/enabled') )
         singletab_action = create_action(self,
                             self.tr("One tab per script"),
                             toggled=self.toggle_singletab)
@@ -295,7 +296,7 @@ class ExternalConsole(PluginWidget):
             return
         for shell in self.shells:
             shell.shell.set_codecompletion(checked)
-        CONF.set(self.ID, 'autocompletion', checked)
+        CONF.set(self.ID, 'autocompletion/enabled', checked)
         
     def toggle_singletab(self, checked):
         """Toggle single tab mode"""

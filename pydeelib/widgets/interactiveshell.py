@@ -238,7 +238,7 @@ class InteractiveShell(QsciPythonShell):
     def external_editor(self, filename, goto=-1):
         """Edit in an external editor
         Recommended: SciTE (e.g. to go to line where an error did occur)"""
-        editor_path = CONF.get('shell', 'external_editor')
+        editor_path = CONF.get('shell', 'external_editor/path')
         goto_option = CONF.get('shell', 'external_editor/gotoline')
         try:
             if goto > 0 and goto_option:

@@ -503,19 +503,19 @@ class MainWindow(QMainWindow):
             add_module_dependent_bookmarks(self, help_menu, self.BOOKMARKS)
                 
         # Window set-up
-        section = 'lightwindow' if self.light else 'window'
-        width, height = CONF.get(section, 'size')
+        prefix = ('lightwindow' if self.light else 'window') + '/'
+        width, height = CONF.get('main', prefix+'size')
         self.resize( QSize(width, height) )
         self.window_size = self.size()
-        posx, posy = CONF.get(section, 'position')
+        posx, posy = CONF.get('main', prefix+'position')
         self.move( QPoint(posx, posy) )
         
         if not self.light:
             # Window layout
-            hexstate = CONF.get(section, 'state')
+            hexstate = CONF.get('main', prefix+'state')
             self.restoreState( QByteArray().fromHex(hexstate) )
             # Is maximized?
-            if CONF.get(section, 'is_maximized'):
+            if CONF.get('main', prefix+'is_maximized'):
                 self.setWindowState(Qt.WindowMaximized)
             
         self.splash.hide()
@@ -666,15 +666,15 @@ class MainWindow(QMainWindow):
             return True
         encoding.writelines(self.path, self.pydee_path) # Saving path
         size = self.window_size
-        section = 'lightwindow' if self.light else 'window'
-        CONF.set(section, 'size', (size.width(), size.height()))
-        CONF.set(section, 'is_maximized', self.isMaximized())
+        prefix = ('lightwindow' if self.light else 'window') + '/'
+        CONF.set('main', prefix+'size', (size.width(), size.height()))
+        CONF.set('main', prefix+'is_maximized', self.isMaximized())
         pos = self.pos()
-        CONF.set(section, 'position', (pos.x(), pos.y()))
+        CONF.set('main', prefix+'position', (pos.x(), pos.y()))
         if not self.light:
             qba = self.saveState()
-            CONF.set(section, 'state', str(qba.toHex()))
-            CONF.set(section, 'statusbar',
+            CONF.set('main', prefix+'state', str(qba.toHex()))
+            CONF.set('main', prefix+'statusbar',
                       not self.statusBar().isHidden())
         for widget in self.widgetlist:
             if not widget.closing(cancelable):

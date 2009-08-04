@@ -72,18 +72,12 @@ DEFAULTS = [
             ('main',
              {
               'translation': True,
-              }),
-            ('window',
-             {
-              'size' : (1260, 700),
-              'is_maximized' : False,
-              'position' : (10, 10),
-              'state' : STATE1,
-              }),
-            ('lightwindow',
-             {
-              'size' : (650, 400),
-              'position' : (30, 30),
+              'window/size' : (1260, 700),
+              'window/is_maximized' : False,
+              'window/position' : (10, 10),
+              'window/state' : STATE1,
+              'lightwindow/size' : (650, 400),
+              'lightwindow/position' : (30, 30),
               }),
             ('scintilla',
              {
@@ -111,6 +105,10 @@ DEFAULTS = [
               'prompt_style/bold' : True,
               'prompt_style/italic' : False,
               'prompt_style/underline' : False,
+              'calltips/font/family' : MONOSPACE,
+              'calltips/font/size' : SMALL,
+              'calltips/font/bold' : False,
+              'calltips/size' : 600,
               }),
             ('shell',
              {
@@ -123,12 +121,12 @@ DEFAULTS = [
               'wrap' : False,
               'wrapflag' : True,
               'calltips' : True,
-              'autocompletion' : True,
+              'autocompletion/enabled' : True,
               'autocompletion/case-sensitivity' : True,
               'autocompletion/threshold' : -1,
               'autocompletion/select-single' : True,
               'autocompletion/from-document' : False,
-              'external_editor' : 'SciTE',
+              'external_editor/path' : 'SciTE',
               'external_editor/gotoline' : '-goto:',
               }),
             ('external_shell',
@@ -140,7 +138,7 @@ DEFAULTS = [
               'wrap' : False,
               'single_tab' : True,
               'calltips' : True,
-              'autocompletion' : True,
+              'autocompletion/enabled' : True,
               'autocompletion/case-sensitivity' : True,
               'autocompletion/threshold' : -1,
               'autocompletion/select-single' : True,
@@ -156,22 +154,12 @@ DEFAULTS = [
               'minmax': True,
               'collvalue': False,
               }),
-            ('calltips',
-             {
-              'font/family' : MONOSPACE,
-              'font/size' : SMALL,
-              'font/bold' : False,
-              'size' : 600,
-              }),
             ('editor',
              {
               'shortcut': "Ctrl+Shift+E",
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
               'font/bold' : False,
-              'margin/font/family' : MONOSPACE,
-              'margin/font/size' : MEDIUM,
-              'margin/font/bold' : False,
               'wrap' : False,
               'wrapflag' : True,
               'code_analysis' : True,
@@ -189,9 +177,6 @@ DEFAULTS = [
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
               'font/bold' : False,
-              'margin/font/family' : MONOSPACE,
-              'margin/font/size' : SMALL,
-              'margin/font/bold' : True,
               'wrap' : True,
               }),
             ('docviewer',
@@ -277,7 +262,7 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-CONF = UserConfig('pydee', DEFAULTS, version='0.4.24', load=(not DEV))
+CONF = UserConfig('pydee', DEFAULTS, version='1.0.0', load=(not DEV))
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""
