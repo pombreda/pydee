@@ -292,12 +292,13 @@ class EditorTabWidget(Tabs):
         """Analyze current script with pyflakes"""
         if index is None:
             index = self.currentIndex()
-        finfo = self.data[index]
-        fname = finfo.filename
-        if CONF.get(self.ID, 'code_analysis') and is_python_script(fname):
-            finfo.analysis_results = check(fname)
-            finfo.editor.process_code_analysis(finfo.analysis_results)
-        self.emit(SIGNAL('refresh_analysis_results()'))
+        if self.data:
+            finfo = self.data[index]
+            fname = finfo.filename
+            if CONF.get(self.ID, 'code_analysis') and is_python_script(fname):
+                finfo.analysis_results = check(fname)
+                finfo.editor.process_code_analysis(finfo.analysis_results)
+            self.emit(SIGNAL('refresh_analysis_results()'))
         
     def get_analysis_results(self):
         if self.data:
