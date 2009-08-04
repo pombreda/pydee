@@ -141,10 +141,6 @@ class Console(PluginWidget):
                             self.tr("&Font..."), None,
                             'font.png', self.tr("Set shell font style"),
                             triggered=self.change_font)
-        history_action = create_action(self,
-                            self.tr("History..."), None,
-                            'history.png', self.tr("Set history max entries"),
-                            triggered=self.change_history_depth)
         exteditor_action = create_action(self,
                             self.tr("External editor path..."), None, None,
                             self.tr("Set external editor executable path"),
@@ -160,10 +156,10 @@ class Console(PluginWidget):
             toggled=self.toggle_codecompletion)
         codecompletion_action.setChecked( CONF.get(self.ID,
                                                    'autocompletion/enabled') )
-        menu_actions = [run_action, environ_action, syspath_action, None,
-                        font_action, history_action, wrap_action,
-                        calltips_action, codecompletion_action,
-                        exteditor_action, None, self.quit_action]
+        menu_actions = [run_action, environ_action, syspath_action,
+                        None, font_action, wrap_action, calltips_action,
+                        codecompletion_action, exteditor_action,
+                        None, self.quit_action]
         toolbar_actions = []
         
         # Add actions to context menu
@@ -229,15 +225,6 @@ class Console(PluginWidget):
             self.shell.set_font(font)
             set_font(font, self.ID)
 
-    def change_history_depth(self):
-        "Change history max entries"""
-        depth, valid = QInputDialog.getInteger(self, self.tr('History'),
-                           self.tr('Maximum entries'),
-                           CONF.get('historylog', 'max_entries'), 10, 10000)
-        if valid:
-            CONF.set('historylog', 'max_entries', depth)
-            self.shell.max_history_entries = depth
-        
     def change_exteditor(self):
         """Change external editor path"""
         path, valid = QInputDialog.getText(self, self.tr('External editor'),

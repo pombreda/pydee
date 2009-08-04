@@ -15,10 +15,11 @@ STDERR = sys.stderr
 
 from PyQt4.QtGui import QApplication, QMessageBox, QCheckBox, QSplitter
 from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
+from PyQt4.Qsci import QsciScintilla
 
 # Local imports
 from pydeelib.qthelpers import create_toolbutton
-from pydeelib.config import get_icon
+from pydeelib.config import CONF, get_icon
 from pydeelib.widgets.qscishell import QsciPythonShell
 from pydeelib.widgets.externalshell import startup
 from pydeelib.widgets.externalshell.globalsexplorer import GlobalsExplorer
@@ -27,6 +28,20 @@ from pydeelib.widgets.externalshell import ExternalShellBase
 
 
 class ExtPyQsciShell(QsciPythonShell):
+    def __init__(self, parent, history_filename, debug=False, profile=False):
+        QsciPythonShell.__init__(self, parent, history_filename, debug, profile)
+        # Code completion / calltips
+        self.setAutoCompletionThreshold( \
+            CONF.get('external_shell', 'autocompletion/threshold') )
+        self.setAutoCompletionCaseSensitivity( \
+            CONF.get('external_shell', 'autocompletion/case-sensitivity') )
+        self.setAutoCompletionShowSingle( \
+            CONF.get('external_shell', 'autocompletion/select-single') )
+        if CONF.get('external_shell', 'autocompletion/from-document'):
+            self.setAutoCompletionSource(QsciScintilla.AcsDocument)
+        else:
+            self.setAutoCompletionSource(QsciScintilla.AcsNone)
+    
     def set_externalshell(self, externalshell):
         # ExternalShellBase instance:
         self.externalshell = externalshell

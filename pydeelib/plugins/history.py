@@ -6,7 +6,7 @@
 
 """Editor widgets"""
 
-from PyQt4.QtGui import QVBoxLayout, QFontDialog
+from PyQt4.QtGui import QVBoxLayout, QFontDialog, QInputDialog
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os.path as osp
@@ -133,14 +133,27 @@ class HistoryLog(PluginWidget):
         
     def set_actions(self):
         """Setup actions"""
+        history_action = create_action(self, self.tr("History..."),
+                                       None, 'history.png',
+                                       self.tr("Set history maximum entries"),
+                                       triggered=self.change_history_depth)
         font_action = create_action(self, self.tr("&Font..."), None,
                                     'font.png', self.tr("Set shell font style"),
                                     triggered=self.change_font)
         wrap_action = create_action(self, self.tr("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
-        self.menu_actions = [font_action, wrap_action]
+        self.menu_actions = [history_action, font_action, wrap_action]
         return (self.menu_actions, None)
+        
+    def change_history_depth(self):
+        "Change history max entries"""
+        depth, valid = QInputDialog.getInteger(self, self.tr('History'),
+                                       self.tr('Maximum entries'),
+                                       CONF.get(self.ID, 'max_entries'),
+                                       10, 10000)
+        if valid:
+            CONF.set(self.ID, 'max_entries', depth)
         
     def change_font(self):
         """Change console font"""
