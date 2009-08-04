@@ -40,7 +40,7 @@ def is_python_script(fname):
     return osp.splitext(fname)[1][1:] in ('py', 'pyw')
 
 
-class TabbedEditor(Tabs):
+class EditorTabWidget(Tabs):
     def __init__(self, parent, actions):
         Tabs.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -72,7 +72,7 @@ class TabbedEditor(Tabs):
         
         self.already_closed = False
         
-        self.plugin.register_tabbededitor(self)
+        self.plugin.register_editortabwidget(self)
             
         # Accepting drops
         self.setAcceptDrops(True)
@@ -84,26 +84,26 @@ class TabbedEditor(Tabs):
             actions = self.original_actions
         else:
             actions = (self.plugin.new_action, self.plugin.open_action)
-            self.setFocus() # --> Editor.__get_focus_tabbededitor
+            self.setFocus() # --> Editor.__get_focus_editortabwidget
         add_actions(self.menu, actions + self.additional_actions)
-        self.close_action.setEnabled( len(self.plugin.tabbededitors) > 1 )
+        self.close_action.setEnabled( len(self.plugin.editortabwidgets) > 1 )
 
 #===============================================================================
 #    Horizontal/Vertical splitting
 #===============================================================================
     def __get_split_actions(self):
         # Splitting
-        self.versplit_action = create_action(self, self.tr("Split vertically"),
-            icon="versplit.png",
-            tip=self.tr("Split vertically this editor window"),
-            triggered=lambda: self.emit(SIGNAL("split_vertically()")))
-        self.horsplit_action = create_action(self, self.tr("Split horizontally"),
-            icon="horsplit.png",
-            tip=self.tr("Split horizontally this editor window"),
-            triggered=lambda: self.emit(SIGNAL("split_horizontally()")))
-        self.close_action = create_action(self, self.tr("Close this panel"),
-            icon="close_panel.png",
-            triggered=self.close_tabbededitor)
+        self.versplit_action = create_action(self,
+                    self.tr("Split vertically"), icon="versplit.png",
+                    tip=self.tr("Split vertically this editor window"),
+                    triggered=lambda: self.emit(SIGNAL("split_vertically()")))
+        self.horsplit_action = create_action(self,
+                    self.tr("Split horizontally"), icon="horsplit.png",
+                    tip=self.tr("Split horizontally this editor window"),
+                    triggered=lambda: self.emit(SIGNAL("split_horizontally()")))
+        self.close_action = create_action(self,
+                    self.tr("Close this panel"), icon="close_panel.png",
+                    triggered=self.close_editortabwidget)
         return (None, self.versplit_action, self.horsplit_action,
                 self.close_action)
         
@@ -134,7 +134,7 @@ class TabbedEditor(Tabs):
         
 
 #===============================================================================
-    def move_data(self, index_from, index_to, tabbededitor_to=None):
+    def move_data(self, index_from, index_to, editortabwidget_to=None):
         """
         Move tab
         In fact tabs have already been moved by the tabwidget
@@ -147,27 +147,27 @@ class TabbedEditor(Tabs):
         analysis = self.analysis_results.pop(index_from)
         lastmodified = self.lastmodified.pop(index_from)
         
-        if tabbededitor_to is None:
-            tabbededitor_to = self
+        if editortabwidget_to is None:
+            editortabwidget_to = self
         
-        tabbededitor_to.editors.insert(index_to, editor)
-        tabbededitor_to.filenames.insert(index_to, filename)
-        tabbededitor_to.encodings.insert(index_to, encoding)
-        tabbededitor_to.classes.insert(index_to, classes)
-        tabbededitor_to.analysis_results.insert(index_to, analysis)
-        tabbededitor_to.lastmodified.insert(index_to, lastmodified)
+        editortabwidget_to.editors.insert(index_to, editor)
+        editortabwidget_to.filenames.insert(index_to, filename)
+        editortabwidget_to.encodings.insert(index_to, encoding)
+        editortabwidget_to.classes.insert(index_to, classes)
+        editortabwidget_to.analysis_results.insert(index_to, analysis)
+        editortabwidget_to.lastmodified.insert(index_to, lastmodified)
         
-        if tabbededitor_to is not self:
+        if editortabwidget_to is not self:
             self.disconnect(editor, SIGNAL('modificationChanged(bool)'),
                             self.modification_changed)
             self.disconnect(editor, SIGNAL("focus_in()"), self.focus_changed)
             self.connect(editor, SIGNAL('modificationChanged(bool)'),
-                         tabbededitor_to.modification_changed)
+                         editortabwidget_to.modification_changed)
             self.connect(editor, SIGNAL("focus_in()"),
-                         tabbededitor_to.focus_changed)            
+                         editortabwidget_to.focus_changed)            
     
 #===============================================================================
-#    Close file, all files, tabbededitor
+#    Close file, all files, editortabwidget
 #===============================================================================
     def close_file(self, index=None):
         """Close current file"""
@@ -188,21 +188,21 @@ class TabbedEditor(Tabs):
             self.plugin.classbrowser.clear() # Clearing class browser contents
             self.removeTab(index)
             if not self.filenames:
-                # Tabbed editor is empty: removing it
-                # (if it's not the first tabbed editor)
-                self.close_tabbededitor()
+                # editortabwidget is empty: removing it
+                # (if it's not the first editortabwidget)
+                self.close_editortabwidget()
             self.emit(SIGNAL('opened_files_list_changed()'))
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
         return is_ok
     
-    def close_tabbededitor(self):
+    def close_editortabwidget(self):
         if self.filenames:
             self.close_all_files()
             if self.already_closed:
                 # All opened files were closed and *self* is not the last
-                # tabbededitor remaining --> *self* was automatically closed
+                # editortabwidget remaining --> *self* was automatically closed
                 return
-        removed = self.plugin.unregister_tabbededitor(self)
+        removed = self.plugin.unregister_editortabwidget(self)
         if removed:
             self.close()
             
@@ -617,49 +617,49 @@ class TabbedEditor(Tabs):
         event.acceptProposedAction()
 
 
-#TODO: Transform SplitEditor into a real generic splittable editor
+#TODO: Transform EditorSplitter into a real generic splittable editor
 # -> i.e. all QSplitter widgets must be of the same kind
-#    (currently there are tabbededitors and spliteditors at the same level)
+#    (currently there are editortabwidgets and editorsplitters at the same level)
 # -> the main issue is that it's not possible to remove a widget from a
 #    QSplitter except by destroying it -> it's not possible to change parenting
-class SplitEditor(QSplitter):
+class EditorSplitter(QSplitter):
     def __init__(self, parent, actions):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)
         self.plugin = parent
         self.tab_actions = actions
-        self.tabbededitor = TabbedEditor(self.plugin, actions)
-        self.connect(self.tabbededitor, SIGNAL("destroyed(QObject*)"),
-                     self.tabbededitor_closed)
-        self.connect(self.tabbededitor, SIGNAL("split_vertically()"),
+        self.editortabwidget = EditorTabWidget(self.plugin, actions)
+        self.connect(self.editortabwidget, SIGNAL("destroyed(QObject*)"),
+                     self.editortabwidget_closed)
+        self.connect(self.editortabwidget, SIGNAL("split_vertically()"),
                      lambda: self.split(orientation=Qt.Vertical))
-        self.connect(self.tabbededitor, SIGNAL("split_horizontally()"),
+        self.connect(self.editortabwidget, SIGNAL("split_horizontally()"),
                      lambda: self.split(orientation=Qt.Horizontal))
-        self.addWidget(self.tabbededitor)
+        self.addWidget(self.editortabwidget)
         
-    def tabbededitor_closed(self):
-        self.tabbededitor = None
+    def editortabwidget_closed(self):
+        self.editortabwidget = None
         if self.count() == 1:
-            # tabbededitor just closed was the last widget in this QSplitter
+            # editortabwidget just closed was the last widget in this QSplitter
             self.close()
         
-    def spliteditor_closed(self, obj):
-        if self.count() == 1 and self.tabbededitor is None:
-            # spliteditor just closed was the last widget in this QSplitter
+    def editorsplitter_closed(self, obj):
+        if self.count() == 1 and self.editortabwidget is None:
+            # editorsplitter just closed was the last widget in this QSplitter
             self.close()
-        elif self.count() == 2 and self.tabbededitor:
-            # back to the initial state: a single tabbededitor instance,
+        elif self.count() == 2 and self.editortabwidget:
+            # back to the initial state: a single editortabwidget instance,
             # as a single widget in this QSplitter: orientation may be changed
-            self.tabbededitor.reset_orientation()
+            self.editortabwidget.reset_orientation()
         
     def split(self, orientation=Qt.Vertical):
         self.setOrientation(orientation)
-        self.tabbededitor.set_orientation(orientation)
-        spliteditor = SplitEditor(self.plugin, self.tab_actions)
-        self.addWidget(spliteditor)
-        self.connect(spliteditor, SIGNAL("destroyed(QObject*)"),
-                     self.spliteditor_closed)
+        self.editortabwidget.set_orientation(orientation)
+        editorsplitter = EditorSplitter(self.plugin, self.tab_actions)
+        self.addWidget(editorsplitter)
+        self.connect(editorsplitter, SIGNAL("destroyed(QObject*)"),
+                     self.editorsplitter_closed)
 
 
 #===============================================================================
@@ -803,10 +803,10 @@ class Editor(PluginWidget):
         self.connect(self.toolbox, SIGNAL('currentChanged(int)'),
                      self.toolbox_current_changed)
         
-        self.tabbededitors = []
+        self.editortabwidgets = []
         
         cb_splitter = QSplitter(self)
-        cb_splitter.addWidget(SplitEditor(self, self.tab_actions))
+        cb_splitter.addWidget(EditorSplitter(self, self.tab_actions))
         cb_splitter.addWidget(self.toolbox)
         cb_splitter.setStretchFactor(0, 3)
         cb_splitter.setStretchFactor(1, 1)
@@ -830,9 +830,9 @@ class Editor(PluginWidget):
         else:
             self.load_temp_file()
         
-        self.last_focus_tabbededitor = None
+        self.last_focus_editortabwidget = None
         self.connect(self, SIGNAL("focus_changed()"),
-                     self.save_focus_tabbededitor)
+                     self.save_focus_editortabwidget)
         
         self.filetypes = ((self.tr("Python files"), ('.py', '.pyw')),
                           (self.tr("Pyrex files"), ('.pyx',)),
@@ -861,16 +861,16 @@ class Editor(PluginWidget):
             self.refresh_openedfileslistwidget()
         elif self.classbrowser.isVisible():
             # Refreshing class browser
-            tabbededitor = self.get_current_tabbededitor()
-            tabbededitor.refresh()
+            editortabwidget = self.get_current_editortabwidget()
+            editortabwidget.refresh()
         elif self.analysislistwidget.isVisible():
             self.refresh_analysislistwidget()
 
     def openedfileslistwidget_clicked(self, item):
         filename = unicode(item.data(Qt.UserRole).toString())
-        tabbededitor, index = self.get_tabbededitor_index(filename)
-        tabbededitor.editors[index].setFocus()
-        tabbededitor.setCurrentIndex(index)
+        editortabwidget, index = self.get_editortabwidget_index(filename)
+        editortabwidget.editors[index].setFocus()
+        editortabwidget.setCurrentIndex(index)
         
     def analysislistwidget_clicked(self, item):
         line, _ok = item.data(Qt.UserRole).toInt()
@@ -879,8 +879,8 @@ class Editor(PluginWidget):
     def refresh_analysislistwidget(self):
         if self.analysislistwidget.isHidden():
             return
-        tabbededitor = self.get_current_tabbededitor()
-        check_results = tabbededitor.get_analysis_results()
+        editortabwidget = self.get_current_editortabwidget()
+        check_results = editortabwidget.get_analysis_results()
         self.analysislistwidget.clear()
         if check_results:
             for message, line0, _error in check_results:
@@ -902,8 +902,8 @@ class Editor(PluginWidget):
         current_filename = self.get_current_filename()
         self.openedfileslistwidget.clear()
         for filename in filenames:
-            tabbededitor, index = self.get_tabbededitor_index(filename)
-            title = tabbededitor.get_full_title(index=index)
+            editortabwidget, index = self.get_editortabwidget_index(filename)
+            title = editortabwidget.get_full_title(index=index)
             item = QListWidgetItem(get_filetype_icon(filename),
                                    title, self.openedfileslistwidget)
             item.setData(Qt.UserRole, QVariant(filename))
@@ -928,28 +928,29 @@ class Editor(PluginWidget):
 
     def get_filenames(self):
         filenames = []
-        for tabbededitor in self.tabbededitors:
-            filenames += tabbededitor.filenames
+        for editortabwidget in self.editortabwidgets:
+            filenames += editortabwidget.filenames
         return filenames
 
-    def get_tabbededitor_index(self, filename):
-        for tabbededitor in self.tabbededitors:
-            if filename in tabbededitor.filenames:
-                return tabbededitor, tabbededitor.filenames.index(filename)
+    def get_editortabwidget_index(self, filename):
+        for editortabwidget in self.editortabwidgets:
+            if filename in editortabwidget.filenames:
+                return (editortabwidget,
+                        editortabwidget.filenames.index(filename))
         
-    def __get_focus_tabbededitor(self):
+    def __get_focus_editortabwidget(self):
         fwidget = QApplication.focusWidget()
         if isinstance(fwidget, QsciEditor):
-            for tabbededitor in self.tabbededitors:
-                if fwidget is tabbededitor.currentWidget():
-                    return tabbededitor
-        elif isinstance(fwidget, TabbedEditor):
+            for editortabwidget in self.editortabwidgets:
+                if fwidget is editortabwidget.currentWidget():
+                    return editortabwidget
+        elif isinstance(fwidget, EditorTabWidget):
             return fwidget
         
-    def save_focus_tabbededitor(self):
-        tabbededitor = self.__get_focus_tabbededitor()
-        if tabbededitor is not None:
-            self.last_focus_tabbededitor = tabbededitor
+    def save_focus_editortabwidget(self):
+        editortabwidget = self.__get_focus_editortabwidget()
+        if editortabwidget is not None:
+            self.last_focus_editortabwidget = editortabwidget
             
     def get_widget_title(self):
         """Return widget title"""
@@ -966,37 +967,39 @@ class Editor(PluginWidget):
         self.encoding_status.hide()
         self.cursorpos_status.hide()
         
-    def register_tabbededitor(self, tabbededitor):
-        self.tabbededitors.append(tabbededitor)
-        self.last_focus_tabbededitor = tabbededitor
-        self.connect(tabbededitor, SIGNAL('reset_statusbar()'),
+    def register_editortabwidget(self, editortabwidget):
+        self.editortabwidgets.append(editortabwidget)
+        self.last_focus_editortabwidget = editortabwidget
+        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
                      self.readwrite_status.hide)
-        self.connect(tabbededitor, SIGNAL('reset_statusbar()'),
+        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
                      self.encoding_status.hide)
-        self.connect(tabbededitor, SIGNAL('reset_statusbar()'),
+        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
                      self.cursorpos_status.hide)
-        self.connect(tabbededitor, SIGNAL('readonly_changed(bool)'),
+        self.connect(editortabwidget, SIGNAL('readonly_changed(bool)'),
                      self.readwrite_status.readonly_changed)
-        self.connect(tabbededitor, SIGNAL('encoding_changed(QString)'),
+        self.connect(editortabwidget, SIGNAL('encoding_changed(QString)'),
                      self.encoding_status.encoding_changed)
-        self.connect(tabbededitor, SIGNAL('cursorPositionChanged(int,int)'),
+        self.connect(editortabwidget, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursorpos_status.cursor_position_changed)
-        self.connect(tabbededitor, SIGNAL('opened_files_list_changed()'),
+        self.connect(editortabwidget, SIGNAL('opened_files_list_changed()'),
                      self.refresh_openedfileslistwidget)
-        self.connect(tabbededitor, SIGNAL('analysis_results_changed()'),
+        self.connect(editortabwidget, SIGNAL('analysis_results_changed()'),
                      self.refresh_analysislistwidget)
-        self.connect(tabbededitor, SIGNAL('currentChanged(int)'),
+        self.connect(editortabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh_analysislistwidget)
-        self.connect(tabbededitor, SIGNAL('refresh_file_dependent_actions()'),
+        self.connect(editortabwidget,
+                     SIGNAL('refresh_file_dependent_actions()'),
                      self.refresh_file_dependent_actions)
-        self.connect(tabbededitor, SIGNAL('move_tab(long,long,int,int)'),
-                     self.move_tabs_between_tabbededitors)
+        self.connect(editortabwidget, SIGNAL('move_tab(long,long,int,int)'),
+                     self.move_tabs_between_editortabwidgets)
         
-    def unregister_tabbededitor(self, tabbededitor):
-        """Removing tabbed editor only if it's not the last remaining"""
-        if len(self.tabbededitors) > 1:
-            self.tabbededitors.pop(self.tabbededitors.index(tabbededitor))
-            tabbededitor.close() # remove widget from splitter
+    def unregister_editortabwidget(self, editortabwidget):
+        """Removing editortabwidget only if it's not the last remaining"""
+        if len(self.editortabwidgets) > 1:
+            index = self.editortabwidgets.index(editortabwidget)
+            self.editortabwidgets.pop(index)
+            editortabwidget.close() # remove widget from splitter
             focus_widget = self.get_focus_widget()
             if focus_widget is not None:
                 focus_widget.setFocus()
@@ -1005,21 +1008,21 @@ class Editor(PluginWidget):
             # Tabbededitor was not removed!
             return False
         
-    def __get_tabbededitor_from_id(self, t_id):
-        for tabbededitor in self.tabbededitors:
-            if id(tabbededitor) == t_id:
-                return tabbededitor
+    def __get_editortabwidget_from_id(self, t_id):
+        for editortabwidget in self.editortabwidgets:
+            if id(editortabwidget) == t_id:
+                return editortabwidget
         
-    def move_tabs_between_tabbededitors(self, id_from, id_to,
+    def move_tabs_between_editortabwidgets(self, id_from, id_to,
                                         index_from, index_to):
         """
         Move tab between tabwidgets
-        (see tabbededitor.move_data when moving tabs inside one tabwidget)
+        (see editortabwidget.move_data when moving tabs inside one tabwidget)
         Tabs haven't been moved yet since tabwidgets don't have any
         reference towards other tabwidget instances
         """
-        tw_from = self.__get_tabbededitor_from_id(id_from)
-        tw_to = self.__get_tabbededitor_from_id(id_to)
+        tw_from = self.__get_editortabwidget_from_id(id_from)
+        tw_to = self.__get_editortabwidget_from_id(id_to)
 
         tw_from.move_data(index_from, index_to, tw_to)
 
@@ -1032,44 +1035,44 @@ class Editor(PluginWidget):
         
         tw_to.setCurrentIndex(index_to)
 
-    def get_current_tabbededitor(self):
-        if len(self.tabbededitors) == 1:
-            return self.tabbededitors[0]
+    def get_current_editortabwidget(self):
+        if len(self.editortabwidgets) == 1:
+            return self.editortabwidgets[0]
         else:
-            tabbededitor = self.__get_focus_tabbededitor()
-            if tabbededitor is None:
-                return self.last_focus_tabbededitor
+            editortabwidget = self.__get_focus_editortabwidget()
+            if editortabwidget is None:
+                return self.last_focus_editortabwidget
             else:
-                return tabbededitor
+                return editortabwidget
         
     def get_current_editor(self):
-        tabbededitor = self.get_current_tabbededitor()
-        if tabbededitor is not None:
-            return tabbededitor.currentWidget()
+        editortabwidget = self.get_current_editortabwidget()
+        if editortabwidget is not None:
+            return editortabwidget.currentWidget()
         
     def get_current_filename(self):
-        tabbededitor = self.get_current_tabbededitor()
-        if tabbededitor is not None:
-            return tabbededitor.get_current_filename()
+        editortabwidget = self.get_current_editortabwidget()
+        if editortabwidget is not None:
+            return editortabwidget.get_current_filename()
         
-    def __get_tabbededitor_for_filename(self, filename):
-        """Return tabbededitor where *filename* is opened"""
-        for tabbededitor in self.tabbededitors:
-            if filename in tabbededitor.filenames:
-                return tabbededitor
+    def __get_editortabwidget_for_filename(self, filename):
+        """Return editortabwidget where *filename* is opened"""
+        for editortabwidget in self.editortabwidgets:
+            if filename in editortabwidget.filenames:
+                return editortabwidget
         
     def is_file_opened(self, filename=None):
         if filename is None:
             # Is there any file opened?
             return self.get_current_editor() is not None
         else:
-            return self.__get_tabbededitor_for_filename(filename)
+            return self.__get_editortabwidget_for_filename(filename)
         
     def set_current_filename(self, filename):
         """Set focus to *filename* if this file has been opened"""
-        tabbededitor = self.__get_tabbededitor_for_filename(filename)
-        if tabbededitor is not None:
-            return tabbededitor.set_current_filename(filename)
+        editortabwidget = self.__get_editortabwidget_for_filename(filename)
+        if editortabwidget is not None:
+            return editortabwidget.set_current_filename(filename)
     
     def refresh_file_dependent_actions(self):
         """Enable/disable file dependent actions
@@ -1081,16 +1084,16 @@ class Editor(PluginWidget):
                 
     def refresh_save_all_action(self):
         state = False
-        for tabbededitor in self.tabbededitors:
-            if tabbededitor.count() > 1:
+        for editortabwidget in self.editortabwidgets:
+            if editortabwidget.count() > 1:
                 state = state or any([editor.isModified() for editor \
-                                      in tabbededitor.editors])
+                                      in editortabwidget.editors])
         self.save_all_action.setEnabled(state)
     
     def refresh(self):
         """Refresh editor plugin"""
-        tabbededitor = self.get_current_tabbededitor()
-        tabbededitor.refresh()
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.refresh()
         self.refresh_save_all_action()
         
     def add_recent_file(self, fname):
@@ -1290,14 +1293,14 @@ class Editor(PluginWidget):
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         filenames = []
-        for tabbededitor in self.tabbededitors:
-            filenames += tabbededitor.filenames
+        for editortabwidget in self.editortabwidgets:
+            filenames += editortabwidget.filenames
         CONF.set(self.ID, 'filenames', filenames)
         CONF.set(self.ID, 'current_filename', self.get_current_filename())
         CONF.set(self.ID, 'recent_files', self.recent_files)
         is_ok = True
-        for tabbededitor in self.tabbededitors:
-            is_ok = is_ok and tabbededitor.save_if_changed(cancelable)
+        for editortabwidget in self.editortabwidgets:
+            is_ok = is_ok and editortabwidget.save_if_changed(cancelable)
             if not is_ok and cancelable:
                 break
         return is_ok
@@ -1401,8 +1404,8 @@ class Editor(PluginWidget):
             
     def close_all_files(self):
         """Close all opened scripts"""
-        for tabbededitor in self.tabbededitors:
-            tabbededitor.close_all_files()
+        for editortabwidget in self.editortabwidgets:
+            editortabwidget.close_all_files()
         
     def load(self, filenames=None, goto=0):
         """Load a text file"""
@@ -1442,17 +1445,17 @@ class Editor(PluginWidget):
                          for fname in list(filenames)]
             
         for filename in filenames:
-            for tabbededitor in self.tabbededitors:
+            for editortabwidget in self.editortabwidgets:
                 # -- Do not open an already opened file
-                if tabbededitor.set_current_filename(filename):
+                if editortabwidget.set_current_filename(filename):
                     break
             else:
                 # -- Not a valid filename:
                 if not osp.isfile(filename):
                     continue
                 # --
-                tabbededitor = self.get_current_tabbededitor()
-                tabbededitor.load(filename, goto)
+                editortabwidget = self.get_current_editortabwidget()
+                editortabwidget.load(filename, goto)
                 self.add_recent_file(filename)
                 
         if goto > 0:
@@ -1462,10 +1465,10 @@ class Editor(PluginWidget):
 
     def __close_and_reload(self, filename, new_filename=None):
         filename = osp.abspath(unicode(filename))
-        for tabbededitor in self.tabbededitors:
-            index = tabbededitor.has_filename(filename)
+        for editortabwidget in self.editortabwidgets:
+            index = editortabwidget.has_filename(filename)
             if index is not None:
-                tabbededitor.close_file(index)
+                editortabwidget.close_file(index)
                 if new_filename is not None:
                     self.load(unicode(new_filename))
                 
@@ -1480,13 +1483,13 @@ class Editor(PluginWidget):
                 
     def close_file(self):
         """Close current file"""
-        tabbededitor = self.get_current_tabbededitor()
-        tabbededitor.close_file()
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.close_file()
                 
     def save(self, index=None, force=False):
         """Save file"""
-        tabbededitor = self.get_current_tabbededitor()
-        tabbededitor.save(index=index, force=force)
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.save(index=index, force=force)
                 
     def save_as(self):
         """Save *as* the currently edited file"""
@@ -1499,9 +1502,9 @@ class Editor(PluginWidget):
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
             if filename:
                 filename = osp.normpath(unicode(filename))
-                tabbededitor = self.get_current_tabbededitor()
-                index = tabbededitor.currentIndex()
-                tabbededitor.filenames[index] = filename
+                editortabwidget = self.get_current_editortabwidget()
+                index = editortabwidget.currentIndex()
+                editortabwidget.filenames[index] = filename
             else:
                 return False
             self.save(force=True)
@@ -1510,20 +1513,20 @@ class Editor(PluginWidget):
         
     def save_all(self):
         """Save all opened files"""
-        for tabbededitor in self.tabbededitors:
-            tabbededitor.save_all()
+        for editortabwidget in self.editortabwidgets:
+            editortabwidget.save_all()
     
     def exec_script_extconsole(self, ask_for_arguments=False,
                                interact=False, debug=False):
         """Run current script in another process"""
-        tabbededitor = self.get_current_tabbededitor()
-        tabbededitor.exec_script_extconsole(ask_for_arguments=ask_for_arguments,
-                                            interact=interact, debug=debug)
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.exec_script_extconsole( \
+            ask_for_arguments=ask_for_arguments, interact=interact, debug=debug)
     
     def exec_script(self, set_focus=False):
         """Run current script"""
-        tabbededitor = self.get_current_tabbededitor()
-        tabbededitor.exec_script(set_focus=set_focus)
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.exec_script(set_focus=set_focus)
     
     def exec_script_and_interact(self):
         """Run current script and set focus to shell"""
@@ -1531,24 +1534,24 @@ class Editor(PluginWidget):
         
     def exec_selected_text(self):
         """Run selected text in current script and set focus to shell"""
-        tabbededitor = self.get_current_tabbededitor()
-        tabbededitor.exec_selected_text()
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.exec_selected_text()
         
     def change_font(self):
         """Change editor font"""
         font, valid = QFontDialog.getFont(get_font(self.ID), self,
                                           self.tr("Select a new font"))
         if valid:
-            for tabbededitor in self.tabbededitors:
-                for editor in tabbededitor.editors:
+            for editortabwidget in self.editortabwidgets:
+                for editor in editortabwidget.editors:
                     editor.set_font(font)
             set_font(font, self.ID)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
-        if hasattr(self, 'tabbededitors'):
-            for tabbededitor in self.tabbededitors:
-                for editor in tabbededitor.editors:
+        if hasattr(self, 'editortabwidgets'):
+            for editortabwidget in self.editortabwidgets:
+                for editor in editortabwidget.editors:
                     editor.set_wrap_mode(checked)
             CONF.set(self.ID, 'wrap', checked)
             
@@ -1558,17 +1561,17 @@ class Editor(PluginWidget):
         checked = tab always indent
         (otherwise tab indents only when cursor is at the beginning of a line)
         """
-        if hasattr(self, 'tabbededitors'):
-            for tabbededitor in self.tabbededitors:
-                for editor in tabbededitor.editors:
+        if hasattr(self, 'editortabwidgets'):
+            for editortabwidget in self.editortabwidgets:
+                for editor in editortabwidget.editors:
                     editor.set_tab_mode(checked)
             CONF.set(self.ID, 'tab_always_indent', checked)
             
     def toggle_code_folding(self, checked):
         """Toggle code folding"""
-        if hasattr(self, 'tabbededitors'):
-            for tabbededitor in self.tabbededitors:
-                for editor in tabbededitor.editors:
+        if hasattr(self, 'editortabwidgets'):
+            for editortabwidget in self.editortabwidgets:
+                for editor in editortabwidget.editors:
                     editor.setup_margins(linenumbers=True,
                               code_folding=checked,
                               code_analysis=CONF.get(self.ID, 'code_analysis'))
@@ -1578,21 +1581,21 @@ class Editor(PluginWidget):
             
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""
-        if hasattr(self, 'tabbededitors'):
+        if hasattr(self, 'editortabwidgets'):
             CONF.set(self.ID, 'code_analysis', checked)
-            current_tabbededitor = self.get_current_tabbededitor()
-            current_index = current_tabbededitor.currentIndex()
-            for tabbededitor in self.tabbededitors:
-                for index, editor in enumerate(tabbededitor.editors):
+            current_editortabwidget = self.get_current_editortabwidget()
+            current_index = current_editortabwidget.currentIndex()
+            for editortabwidget in self.editortabwidgets:
+                for index, editor in enumerate(editortabwidget.editors):
                     editor.setup_margins(linenumbers=True,
                               code_analysis=checked,
                               code_folding=CONF.get(self.ID, 'code_folding'))
                     if index != current_index:
-                        tabbededitor.analyze_script(index)
+                        editortabwidget.analyze_script(index)
             # We must update the current editor after the others:
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
-            current_tabbededitor.analyze_script()
+            current_editortabwidget.analyze_script()
 
     def toggle_toolbox(self, checked):
         """Toggle toolbox"""
