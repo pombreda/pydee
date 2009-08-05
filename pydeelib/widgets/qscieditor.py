@@ -109,6 +109,8 @@ class QsciEditor(QsciBase):
                            self.OCCURENCE_INDICATOR,
                            0x4400FF)
 
+        self.supported_language = None
+
         # Mark errors, warnings, ...
         self.markers = []
         self.marker_lines = {}

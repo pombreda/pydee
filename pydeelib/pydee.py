@@ -42,6 +42,7 @@ from pydeelib.plugins.workspace import Workspace
 from pydeelib.plugins.explorer import Explorer
 from pydeelib.plugins.externalconsole import ExternalConsole
 from pydeelib.plugins.findinfiles import FindInFiles
+from pydeelib.plugins.pylintgui import Pylint
 from pydeelib.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate, get_filetype_icon,
                                  add_module_dependent_bookmarks, add_bookmark)
@@ -326,7 +327,7 @@ class MainWindow(QMainWindow):
                          self.send_to_statusbar)
 
             # Editor widget
-            self.set_splash(self.tr("Loading editor widget..."))
+            self.set_splash(self.tr("Loading editor plugin..."))
             self.editor = Editor( self )
             self.connect(self.editor, SIGNAL('focus_changed()'),
                          self.plugin_focus_changed)
@@ -378,7 +379,7 @@ class MainWindow(QMainWindow):
             
             # Workspace
             if self.workspace is not None:
-                self.set_splash(self.tr("Loading workspace widget..."))
+                self.set_splash(self.tr("Loading workspace plugin..."))
                 self.add_dockwidget(self.workspace)
                 ws_toolbar = self.create_toolbar(self.tr("Workspace toolbar"),
                                                  "ws_toolbar")
@@ -427,7 +428,7 @@ class MainWindow(QMainWindow):
 
             # History log widget
             if CONF.get('historylog', 'enable'):
-                self.set_splash(self.tr("Loading history widget..."))
+                self.set_splash(self.tr("Loading history plugin..."))
                 self.historylog = HistoryLog(self)
                 self.connect(self.historylog, SIGNAL('focus_changed()'),
                              self.plugin_focus_changed)
@@ -438,12 +439,22 @@ class MainWindow(QMainWindow):
         
             # Doc viewer widget
             if CONF.get('docviewer', 'enable'):
-                self.set_splash(self.tr("Loading docviewer widget..."))
+                self.set_splash(self.tr("Loading docviewer plugin..."))
                 self.docviewer = DocViewer(self)
                 self.connect(self.docviewer, SIGNAL('focus_changed()'),
                              self.plugin_focus_changed)
                 self.add_dockwidget(self.docviewer)
                 self.console.set_docviewer(self.docviewer)
+                
+            # Pylint
+            if CONF.get('pylint', 'enable'):
+                self.set_splash(self.tr("Loading pylint plugin..."))
+                self.pylint = Pylint(self)
+                self.connect(self.editor, SIGNAL('run_pylint(QString)'),
+                             self.pylint.analyze)
+                self.connect(self.pylint, SIGNAL("edit_goto(QString,int)"),
+                             self.editor.load)
+                self.add_dockwidget(self.pylint)
         
         if not self.light:
             # Console menu
