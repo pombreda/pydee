@@ -729,6 +729,7 @@ class Editor(PluginWidget):
     file_path = get_conf_path('.temp.py')
     def __init__(self, parent):
         self.file_dependent_actions = []
+        self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
         self.file_toolbar_actions = None
         self.analysis_toolbar_actions = None
@@ -887,6 +888,13 @@ class Editor(PluginWidget):
         --> modification ('*' added to title)
         --> current edited file has changed
         """
+        # Refresh Python file dependent actions:
+        fname = self.get_current_filename()
+        if fname:
+            enable = osp.splitext(fname)[1] in ('.py', '.pyw')
+            for action in self.pythonfile_dependent_actions:
+                action.setEnabled(enable)
+        # Refresh openedfileslistwidget:
         if self.openedfileslistwidget.isHidden():
             return
         filenames = self.get_filenames()
@@ -1272,16 +1280,19 @@ class Editor(PluginWidget):
                                     self.analysis_toolbar_actions + [None] + \
                                     self.run_toolbar_actions + [None] + \
                                     self.edit_toolbar_actions
-        self.file_dependent_actions = (self.save_action, self.save_as_action,
-                self.save_all_action, self.exec_action,
+        self.pythonfile_dependent_actions = (self.exec_action, pylint_action,
                 self.exec_interact_action, self.exec_selected_action,
                 self.exec_process_action, self.exec_process_interact_action,
                 self.exec_process_args_action, self.exec_process_debug_action,
-                workdir_action, self.close_action, self.close_all_action,
                 self.previous_warning_action, self.next_warning_action,
                 self.blockcomment_action, self.unblockcomment_action,
-                self.comment_action, self.uncomment_action,
-                self.indent_action, self.unindent_action)
+                )
+        self.file_dependent_actions = self.pythonfile_dependent_actions + \
+                (self.save_action, self.save_as_action,
+                 self.save_all_action, workdir_action, self.close_action,
+                 self.close_all_action,
+                 self.comment_action, self.uncomment_action,
+                 self.indent_action, self.unindent_action)
         self.tab_actions = (self.save_action, self.save_as_action,
                 self.exec_action, self.exec_process_action,
                 workdir_action, self.close_action)

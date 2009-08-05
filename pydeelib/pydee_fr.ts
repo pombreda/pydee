@@ -2551,37 +2551,37 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Résultats pour </translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="73"/>
+        <location filename="widgets/pylintgui.py" line="74"/>
         <source>Convention</source>
         <translation>Convention</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="75"/>
+        <location filename="widgets/pylintgui.py" line="76"/>
         <source>Refactor</source>
         <translation>Factorisation</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="77"/>
+        <location filename="widgets/pylintgui.py" line="78"/>
         <source>Warning</source>
         <translation>Avertissement</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="228"/>
+        <location filename="widgets/pylintgui.py" line="253"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
         <location filename="widgets/pylintgui.py" line="118"/>
         <source>Start</source>
-        <translation>Démarrer</translation>
+        <translation type="obsolete">Démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="121"/>
+        <location filename="widgets/pylintgui.py" line="146"/>
         <source>Stop</source>
         <translation>Arrêter</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="123"/>
+        <location filename="widgets/pylintgui.py" line="148"/>
         <source>Stop current analysis</source>
         <translation>Arrêter l&apos;analyse en cours</translation>
     </message>
@@ -2591,12 +2591,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation type="obsolete">Merci d&apos;installer au préalable &lt;b&gt;Pylint&lt;/b&gt; :</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="229"/>
+        <location filename="widgets/pylintgui.py" line="254"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="291"/>
+        <location filename="widgets/pylintgui.py" line="323"/>
         <source>Source code has not been rated yet.</source>
         <translation>Le code source n&apos;a pas encore été analysé.</translation>
     </message>
@@ -2606,17 +2606,17 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation type="obsolete">Le code source a été noté </translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="307"/>
+        <location filename="widgets/pylintgui.py" line="339"/>
         <source>previous run:</source>
         <translation>analyse précédente :</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="156"/>
+        <location filename="widgets/pylintgui.py" line="181"/>
         <source>Please install &lt;b&gt;pylint&lt;/b&gt;:</source>
         <translation>Merci d&apos;installer au préalable &lt;b&gt;pylint&lt;/b&gt; :</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="304"/>
+        <location filename="widgets/pylintgui.py" line="336"/>
         <source>Global evaluation:</source>
         <translation>Évaluation globale :</translation>
     </message>
@@ -2659,6 +2659,16 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <location filename="plugins/pylintgui.py" line="83"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="142"/>
+        <source>Analyze</source>
+        <translation>Analyser</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="143"/>
+        <source>Run analysis</source>
+        <translation>Analyser le code source</translation>
     </message>
 </context>
 <context>
