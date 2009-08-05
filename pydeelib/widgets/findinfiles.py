@@ -35,6 +35,7 @@ from subprocess import Popen, PIPE
 STDOUT = sys.stdout
 
 # Local imports
+from pydeelib.environ import is_program_installed
 from pydeelib.qthelpers import (get_std_icon, create_toolbutton, translate,
                                 get_filetype_icon)
 from pydeelib.config import get_icon
@@ -47,12 +48,7 @@ def abspardir(path):
     return osp.abspath(osp.join(path, os.pardir))
 
 def is_hg_installed():
-    fname = 'hg.exe' if os.name == 'nt' else 'hg'
-    for path in os.environ["PATH"].split(os.pathsep):
-        if osp.isfile(osp.join(path, fname)):
-            return True
-    else:
-        return False
+    return is_program_installed('hg.exe' if os.name == 'nt' else 'hg')
 
 def get_hg_root(path):
     previous_path = path

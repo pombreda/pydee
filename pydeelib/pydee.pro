@@ -9,6 +9,7 @@ SOURCES	     += plugins/externalconsole.py
 SOURCES	     += plugins/figure.py
 SOURCES	     += plugins/findinfiles.py
 SOURCES	     += plugins/history.py
+SOURCES	     += plugins/pylintgui.py
 SOURCES	     += plugins/workdir.py
 SOURCES	     += plugins/workspace.py
 
@@ -26,6 +27,7 @@ SOURCES	     += widgets/findreplace.py
 SOURCES      += widgets/importwizard.py
 SOURCES	     += widgets/interactiveshell.py
 SOURCES	     += widgets/pathmanager.py
+SOURCES	     += widgets/pylintgui.py
 SOURCES	     += widgets/qscieditor.py
 SOURCES	     += widgets/qscishell.py
 SOURCES	     += widgets/texteditor.py

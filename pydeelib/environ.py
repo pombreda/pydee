@@ -11,10 +11,19 @@ Environment variable utilities
 from PyQt4.QtGui import QDialog, QMessageBox, QApplication
 
 import os
+import os.path as osp
 
 # Local imports
 from pydeelib.widgets.dicteditor import DictEditor
 from pydeelib.qthelpers import translate
+
+def is_program_installed(basename):
+    """Return True if program is installed and present in PATH"""
+    for path in os.environ["PATH"].split(os.pathsep):
+        if osp.isfile(osp.join(path, basename)):
+            return True
+    else:
+        return False
 
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""

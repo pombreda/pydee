@@ -33,6 +33,7 @@ from pydeelib.widgets.qscieditor import QsciEditor, check
 from pydeelib.widgets.tabs import Tabs
 from pydeelib.widgets.findreplace import FindReplace
 from pydeelib.widgets.classbrowser import ClassBrowser
+from pydeelib.widgets.pylintgui import is_pylint_installed
 from pydeelib.plugins import PluginWidget
 
 
@@ -1205,14 +1206,19 @@ class Editor(PluginWidget):
             window_context=False)
         # ----------------------------------------------------------------------
         
+        pylint_action = create_action(self, self.tr("Run pylint code analysis"),
+                                      "F7", triggered=self.run_pylint)
+        pylint_action.setEnabled(is_pylint_installed())
+        
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set text and margin font style"),
             triggered=self.change_font)
-        analyze_action = create_action(self, self.tr("Code analysis"),
+        analyze_action = create_action(self,
+            self.tr("Code analysis (pyflakes)"),
             toggled=self.toggle_code_analysis,
-            tip=self.tr("If enabled, Python source code will be analyzed, "
-                        "lines containing errors or warnings will be "
-                        "highlighted"))
+            tip=self.tr("If enabled, Python source code will be analyzed "
+                        "using <b>pyflakes</b>, lines containing errors or "
+                        "warnings will be highlighted"))
         analyze_action.setChecked( CONF.get(self.ID, 'code_analysis') )
         fold_action = create_action(self, self.tr("Code folding"),
             toggled=self.toggle_code_folding)
@@ -1250,7 +1256,7 @@ class Editor(PluginWidget):
                 None, self.exec_action, self.exec_interact_action,
                 self.exec_selected_action, None, self.exec_process_action,
                 self.exec_process_interact_action,self.exec_process_args_action,
-                self.exec_process_debug_action,
+                self.exec_process_debug_action, None, pylint_action,
                 None, font_action, wrap_action, tab_action, fold_action,
                 analyze_action, self.toolbox_action)
         self.file_toolbar_actions = [self.new_action, self.open_action,
@@ -1335,6 +1341,11 @@ class Editor(PluginWidget):
         editor = self.get_current_editor()
         if editor is not None:
             editor.unblockcomment()
+            
+    def run_pylint(self):
+        """Run pylint code analysis"""
+        fname = self.get_current_filename()
+        self.emit(SIGNAL('run_pylint(QString)'), fname)
         
     def set_workdir(self):
         """Set working directory as current script directory"""

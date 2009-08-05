@@ -447,12 +447,12 @@
 <context>
     <name>EditableComboBox</name>
     <message>
-        <location filename="widgets/comboboxes.py" line="34"/>
+        <location filename="widgets/comboboxes.py" line="36"/>
         <source>Press enter to validate this entry</source>
         <translation>Appuyer sur Entrée pour valider cette saisie</translation>
     </message>
     <message>
-        <location filename="widgets/comboboxes.py" line="37"/>
+        <location filename="widgets/comboboxes.py" line="39"/>
         <source>This entry is incorrect</source>
         <translation>Cette saisie n&apos;est pas correcte</translation>
     </message>
@@ -460,17 +460,17 @@
 <context>
     <name>Editor</name>
     <message>
-        <location filename="plugins/editor.py" line="1108"/>
+        <location filename="plugins/editor.py" line="1109"/>
         <source>Open...</source>
         <translation>Ouvrir...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1117"/>
+        <location filename="plugins/editor.py" line="1118"/>
         <source>Save as...</source>
         <translation>Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1208"/>
+        <location filename="plugins/editor.py" line="1213"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
@@ -480,57 +480,57 @@
         <translation type="obsolete">Modifier la police d&apos;écriture de l&apos;éditeur</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1402"/>
+        <location filename="plugins/editor.py" line="1413"/>
         <source>Open Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1373"/>
+        <location filename="plugins/editor.py" line="1384"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1478"/>
+        <location filename="plugins/editor.py" line="1489"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1521"/>
+        <location filename="plugins/editor.py" line="1532"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1220"/>
+        <location filename="plugins/editor.py" line="1226"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1354"/>
+        <location filename="plugins/editor.py" line="1365"/>
         <source>This temporary script file is located here:</source>
         <translation>Ce script temporaire est sauvegardé ici :</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1352"/>
+        <location filename="plugins/editor.py" line="1363"/>
         <source>Pydee Editor</source>
         <translation>Éditeur de Pydee</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1111"/>
+        <location filename="plugins/editor.py" line="1112"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1105"/>
+        <location filename="plugins/editor.py" line="1106"/>
         <source>New...</source>
         <translation>Nouveau...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1106"/>
+        <location filename="plugins/editor.py" line="1107"/>
         <source>Create a new Python script</source>
         <translation>Créer un nouveau script Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1120"/>
+        <location filename="plugins/editor.py" line="1121"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
@@ -540,17 +540,17 @@
         <translation type="obsolete">Fermer le script en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1123"/>
+        <location filename="plugins/editor.py" line="1124"/>
         <source>Close all</source>
         <translation>Fermer tout</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1366"/>
+        <location filename="plugins/editor.py" line="1377"/>
         <source>untitled</source>
         <translation>sanstitre</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1372"/>
+        <location filename="plugins/editor.py" line="1383"/>
         <source>New Python script</source>
         <translation>Nouveau script Python</translation>
     </message>
@@ -560,57 +560,57 @@
         <translation type="obsolete">Fichier temporaire</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1229"/>
+        <location filename="plugins/editor.py" line="1235"/>
         <source>Set working directory</source>
         <translation>Changer le répertoire de travail</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1230"/>
+        <location filename="plugins/editor.py" line="1236"/>
         <source>Change working directory to current script directory</source>
         <translation>Choisir le répertoire du script en cours d&apos;édition comme répertoire de travail</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1178"/>
+        <location filename="plugins/editor.py" line="1179"/>
         <source>Comment</source>
         <translation>Commenter</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1179"/>
+        <location filename="plugins/editor.py" line="1180"/>
         <source>Comment current line or selection</source>
         <translation>Commenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1181"/>
+        <location filename="plugins/editor.py" line="1182"/>
         <source>Uncomment</source>
         <translation>Décommenter</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1183"/>
+        <location filename="plugins/editor.py" line="1184"/>
         <source>Uncomment current line or selection</source>
         <translation>Décommenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="951"/>
+        <location filename="plugins/editor.py" line="952"/>
         <source>Editor</source>
         <translation>Éditeur</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1199"/>
+        <location filename="plugins/editor.py" line="1200"/>
         <source>Indent</source>
         <translation>Indenter</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1200"/>
+        <location filename="plugins/editor.py" line="1201"/>
         <source>Indent current line or selection</source>
         <translation>Indenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1202"/>
+        <location filename="plugins/editor.py" line="1203"/>
         <source>Unindent</source>
         <translation>Désindenter</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1204"/>
+        <location filename="plugins/editor.py" line="1205"/>
         <source>Unindent current line or selection</source>
         <translation>Désindenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
@@ -620,59 +620,59 @@
         <translation type="obsolete">&lt;b&gt;Impossible d&apos;enregistrer le script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1129"/>
+        <location filename="plugins/editor.py" line="1130"/>
         <source>Run current script in interactive console</source>
         <translation>Exécuter le script en cours d&apos;édition dans la console interactive</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1132"/>
+        <location filename="plugins/editor.py" line="1133"/>
         <source>Run and &amp;interact</source>
         <translation>Exécuter et &amp;interagir</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1134"/>
+        <location filename="plugins/editor.py" line="1135"/>
         <source>Run current script in interactive console and set focus to shell</source>
         <translation>Exécuter le script en cours d&apos;édition dans la console interactive et placer cette dernière en premier plan</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1139"/>
+        <location filename="plugins/editor.py" line="1140"/>
         <source>Run selected text in interactive console and set focus to shell</source>
         <translation>Exécuter la sélection dans la console interactive et placer cette dernière en premier plan</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1154"/>
+        <location filename="plugins/editor.py" line="1155"/>
         <source>Run with arguments</source>
         <translation>Exécuter avec des arguments</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1128"/>
+        <location filename="plugins/editor.py" line="1129"/>
         <source>&amp;Run in interactive console</source>
         <translation>&amp;Exécuter dans la console interactive</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1142"/>
+        <location filename="plugins/editor.py" line="1143"/>
         <source>Run in e&amp;xternal console</source>
         <translation>Exécuter dans la console e&amp;xterne</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1137"/>
+        <location filename="plugins/editor.py" line="1138"/>
         <source>Run &amp;selection</source>
         <translation>Exécuter la &amp;sélection</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1144"/>
+        <location filename="plugins/editor.py" line="1145"/>
         <source>Run current script in external console
 (external console is executed in a separate process)</source>
         <translation>Exécuter le script en cours d&apos;édition dans la console externe
 (la console externe est exécutée dans un processus séparé)</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1147"/>
+        <location filename="plugins/editor.py" line="1148"/>
         <source>Run and interact</source>
         <translation>Exécuter et interagir</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1151"/>
+        <location filename="plugins/editor.py" line="1152"/>
         <source>Run current script in external console and interact 
 with Python interpreter when program has finished
 (external console is executed in a separate process)</source>
@@ -681,86 +681,86 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
 (la console externe est exécutée dans un processus séparé)</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1158"/>
+        <location filename="plugins/editor.py" line="1159"/>
         <source>Run current script in external console specifying command line arguments
 (external console is executed in a separate process)</source>
         <translation>Exécuter le script en cours d&apos;édition dans la console externe en spécifiant des arguments
 (la console externe est exécutée dans un processus séparé)</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1162"/>
+        <location filename="plugins/editor.py" line="1163"/>
         <source>Debug</source>
         <translation>Déboguer</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1165"/>
+        <location filename="plugins/editor.py" line="1166"/>
         <source>Debug current script in external console
 (external console is executed in a separate process)</source>
         <translation>Déboguer le script en cours d&apos;édition dans la console externe
 (la console externe est exécutée dans un processus séparé)</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1186"/>
+        <location filename="plugins/editor.py" line="1187"/>
         <source>Add block comment</source>
         <translation>Ajouter un bloc de commentaires</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1187"/>
+        <location filename="plugins/editor.py" line="1188"/>
         <source>Add block comment around current line or selection</source>
         <translation>Ajouter un bloc de commentaires autour de la sélection ou de la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1190"/>
+        <location filename="plugins/editor.py" line="1191"/>
         <source>Remove block comment</source>
         <translation>Supprimer un bloc de commentaires</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1192"/>
+        <location filename="plugins/editor.py" line="1193"/>
         <source>Remove comment block around current line or selection</source>
         <translation>Supprimer le bloc de commentaires autour de la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1211"/>
+        <location filename="plugins/editor.py" line="777"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1217"/>
+        <location filename="plugins/editor.py" line="1223"/>
         <source>Code folding</source>
         <translation>Repliement de code</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1109"/>
+        <location filename="plugins/editor.py" line="1110"/>
         <source>Open text file</source>
         <translation>Ouvrir un fichier texte</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1112"/>
+        <location filename="plugins/editor.py" line="1113"/>
         <source>Save current file</source>
         <translation>Enregistrer le fichier en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1114"/>
+        <location filename="plugins/editor.py" line="1115"/>
         <source>Save all</source>
         <translation>Enregistrer tout</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1115"/>
+        <location filename="plugins/editor.py" line="1116"/>
         <source>Save all opened files</source>
         <translation>Enregistrer tous les fichiers ouverts</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1118"/>
+        <location filename="plugins/editor.py" line="1119"/>
         <source>Save current file as...</source>
         <translation>Enregistrer le fichier en cours d&apos;édition sous un autre nom...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1121"/>
+        <location filename="plugins/editor.py" line="1122"/>
         <source>Close current file</source>
         <translation>Fermer le fichier en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1125"/>
+        <location filename="plugins/editor.py" line="1126"/>
         <source>Close all opened files</source>
         <translation>Fermer tous les fichiers ouverts</translation>
     </message>
@@ -775,22 +775,22 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation type="obsolete">Classes et fonctions</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1170"/>
+        <location filename="plugins/editor.py" line="1171"/>
         <source>Previous warning/error</source>
         <translation>Avertissement suivant</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1171"/>
+        <location filename="plugins/editor.py" line="1172"/>
         <source>Go to previous code analysis warning/error</source>
         <translation>Afficher le message d&apos;avertissement ou d&apos;erreur suivant</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1174"/>
+        <location filename="plugins/editor.py" line="1175"/>
         <source>Next warning/error</source>
         <translation>Avertissement précédent</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1175"/>
+        <location filename="plugins/editor.py" line="1176"/>
         <source>Go to next code analysis warning/error</source>
         <translation>Afficher le message d&apos;avertissement ou d&apos;erreur précédent</translation>
     </message>
@@ -805,170 +805,185 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Changer la police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="773"/>
+        <location filename="plugins/editor.py" line="774"/>
         <source>Opened files</source>
         <translation>Fichiers ouverts</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1234"/>
+        <location filename="plugins/editor.py" line="1240"/>
         <source>Lateral panel</source>
         <translation>Panneau latéral</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1236"/>
+        <location filename="plugins/editor.py" line="1242"/>
         <source>Editor lateral panel (class browser, opened file list, ...)</source>
         <translation>Panneau latéral de l&apos;éditeur (explorateur de classes, liste des fichiers ouverts, ...)</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="813"/>
+        <location filename="plugins/editor.py" line="814"/>
         <source>Python files</source>
         <translation>Fichier Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="814"/>
+        <location filename="plugins/editor.py" line="815"/>
         <source>Pyrex files</source>
         <translation>Fichiers Pyrex</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="815"/>
+        <location filename="plugins/editor.py" line="816"/>
         <source>C files</source>
         <translation>Fichiers C</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="816"/>
+        <location filename="plugins/editor.py" line="817"/>
         <source>C++ files</source>
         <translation>Fichiers C++</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="818"/>
+        <location filename="plugins/editor.py" line="819"/>
         <source>Fortran files</source>
         <translation>Fichiers Fortran</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="820"/>
+        <location filename="plugins/editor.py" line="821"/>
         <source>Patch and diff files</source>
         <translation>Fichiers patch et diff</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="824"/>
+        <location filename="plugins/editor.py" line="825"/>
         <source>Text files</source>
         <translation>Fichiers texte</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="825"/>
+        <location filename="plugins/editor.py" line="826"/>
         <source>Web page files</source>
         <translation>Fichiers web</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="827"/>
+        <location filename="plugins/editor.py" line="828"/>
         <source>Configuration files</source>
         <translation>Configurations</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="830"/>
+        <location filename="plugins/editor.py" line="831"/>
         <source>All files</source>
         <translation>Tous les fichiers</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1223"/>
+        <location filename="plugins/editor.py" line="1229"/>
         <source>Tab always indent</source>
         <translation>Indentation avec Tab à toute position</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="654"/>
+        <location filename="plugins/editor.py" line="655"/>
         <source>Permissions:</source>
         <translation>Droits d&apos;accès :</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="679"/>
+        <location filename="plugins/editor.py" line="680"/>
         <source>Encoding:</source>
         <translation>Encodage :</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="703"/>
+        <location filename="plugins/editor.py" line="704"/>
         <source>Line:</source>
         <translation>Ligne :</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="707"/>
+        <location filename="plugins/editor.py" line="708"/>
         <source>Column:</source>
         <translation>Colonne :</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="822"/>
+        <location filename="plugins/editor.py" line="823"/>
         <source>Batch files</source>
         <translation>Fichiers Batch</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1209"/>
+        <location filename="plugins/editor.py" line="1214"/>
         <source>Set text and margin font style</source>
         <translation>Changer la police d&apos;écriture du texte et de la marge</translation>
     </message>
     <message>
         <location filename="plugins/editor.py" line="1215"/>
         <source>If enabled, Python source code will be analyzed, lines containing errors or warnings will be highlighted</source>
-        <translation>Si l&apos;option est activée, le code source Python sera analysé et les lignes contenant des erreurs seront indiquées</translation>
+        <translation type="obsolete">Si l&apos;option est activée, le code source Python sera analysé et les lignes contenant des erreurs seront indiquées</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1227"/>
+        <location filename="plugins/editor.py" line="1233"/>
         <source>If enabled, pressing Tab will always indent, even when the cursor is not at the beginning of a line</source>
         <translation>Si l&apos;option est activée, presser la touche Tab indentera toujours la ligne en cours d&apos;édition, quelle que soit la position du curseur</translation>
+    </message>
+    <message>
+        <location filename="plugins/editor.py" line="1209"/>
+        <source>Run pylint code analysis</source>
+        <translation>Analyser le code source avec pylint</translation>
+    </message>
+    <message>
+        <location filename="plugins/editor.py" line="1217"/>
+        <source>Code analysis (pyflakes)</source>
+        <translation>Analyse de code (pyflakes)</translation>
+    </message>
+    <message>
+        <location filename="plugins/editor.py" line="1221"/>
+        <source>If enabled, Python source code will be analyzed using &lt;b&gt;pyflakes&lt;/b&gt;, lines containing errors or warnings will be highlighted</source>
+        <translation>Si l&apos;option est activée, le code source Python sera analysé avec &lt;b&gt;pyflakes&lt;/b&gt; et les lignes contenant des erreurs seront indiquées</translation>
     </message>
 </context>
 <context>
     <name>EditorTabWidget</name>
     <message>
-        <location filename="plugins/editor.py" line="69"/>
+        <location filename="plugins/editor.py" line="70"/>
         <source>Close current script</source>
         <translation>Fermer le script en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="101"/>
+        <location filename="plugins/editor.py" line="102"/>
         <source>Split vertically</source>
         <translation>Séparation verticale</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="102"/>
+        <location filename="plugins/editor.py" line="103"/>
         <source>Split vertically this editor window</source>
         <translation>Séparer en deux verticalement cette fenêtre d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="105"/>
+        <location filename="plugins/editor.py" line="106"/>
         <source>Split horizontally</source>
         <translation>Séparation horizontale</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="106"/>
+        <location filename="plugins/editor.py" line="107"/>
         <source>Split horizontally this editor window</source>
         <translation>Séparer en deux horizontalement cette fenêtre d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="109"/>
+        <location filename="plugins/editor.py" line="110"/>
         <source>Close this panel</source>
         <translation>Fermer ce panneau</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="241"/>
+        <location filename="plugins/editor.py" line="242"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been modified.&lt;br&gt;Do you want to save changes?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; a été modifié.&lt;br&gt;Souhaitez-vous enregistrer ces changements ?</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="277"/>
+        <location filename="plugins/editor.py" line="278"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="280"/>
+        <location filename="plugins/editor.py" line="281"/>
         <source>&lt;b&gt;Unable to save script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="370"/>
+        <location filename="plugins/editor.py" line="371"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been modified outside Pydee.&lt;br&gt;Do you want to reload it and loose all your changes?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; a été modifié en dehors de Pydee.&lt;br&gt;Souhaitez-vous le recharger et perdre ainsi vos modifications ?</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="411"/>
+        <location filename="plugins/editor.py" line="412"/>
         <source>Temporary file</source>
         <translation>Fichier temporaire</translation>
     </message>
@@ -1557,77 +1572,77 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Recherche dans des fichiers</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="302"/>
+        <location filename="widgets/findinfiles.py" line="298"/>
         <source>Search pattern</source>
         <translation>Expression recherchée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="303"/>
+        <location filename="widgets/findinfiles.py" line="299"/>
         <source>Search text:</source>
         <translation>Texte recherché :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="339"/>
+        <location filename="widgets/findinfiles.py" line="335"/>
         <source>Regular expression</source>
         <translation>Expression régulière</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="310"/>
+        <location filename="widgets/findinfiles.py" line="306"/>
         <source>Search</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="313"/>
+        <location filename="widgets/findinfiles.py" line="309"/>
         <source>Start search</source>
         <translation>Démarrer la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="318"/>
+        <location filename="widgets/findinfiles.py" line="314"/>
         <source>Stop search</source>
         <translation>Arrêter la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="327"/>
+        <location filename="widgets/findinfiles.py" line="323"/>
         <source>Included filenames pattern</source>
         <translation>Expression des noms de fichier à inclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="333"/>
+        <location filename="widgets/findinfiles.py" line="329"/>
         <source>Include:</source>
         <translation>Inclure :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="336"/>
+        <location filename="widgets/findinfiles.py" line="332"/>
         <source>Excluded filenames pattern</source>
         <translation>Expression des noms de fichier à exclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="342"/>
+        <location filename="widgets/findinfiles.py" line="338"/>
         <source>Exclude:</source>
         <translation>Exclure :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="352"/>
+        <location filename="widgets/findinfiles.py" line="348"/>
         <source>Search in:</source>
         <translation>Rechercher dans :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="365"/>
+        <location filename="widgets/findinfiles.py" line="361"/>
         <source>Directory:</source>
         <translation>Répertoire :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="370"/>
+        <location filename="widgets/findinfiles.py" line="366"/>
         <source>Search recursively in this directory</source>
         <translation>Rechercher de manière récursive dans ce répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="379"/>
+        <location filename="widgets/findinfiles.py" line="375"/>
         <source>Browse a search directory</source>
         <translation>Sélectionner un répertoire de recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="455"/>
+        <location filename="widgets/findinfiles.py" line="451"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
@@ -1637,27 +1652,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Résultats: %1 correspondances trouvées dans %2 fichiers</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="626"/>
+        <location filename="widgets/findinfiles.py" line="622"/>
         <source>Collapse all</source>
         <translation>Replier tout</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="629"/>
+        <location filename="widgets/findinfiles.py" line="625"/>
         <source>Expand all</source>
         <translation>Déplier tout</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="359"/>
+        <location filename="widgets/findinfiles.py" line="355"/>
         <source>Hg repository</source>
         <translation>Dépôt Mercurial</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="362"/>
+        <location filename="widgets/findinfiles.py" line="358"/>
         <source>Search in current directory hg repository</source>
         <translation>Rechercher dans le dépôt Mercurial du répertoire courant</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="633"/>
+        <location filename="widgets/findinfiles.py" line="629"/>
         <source>Restore original tree layout</source>
         <translation>Restaurer l&apos;organisation initiale de l&apos;arbre des résultats</translation>
     </message>
@@ -1667,42 +1682,42 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">&apos;%1&apos; - %2 correspondances trouvées dans %3 files</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="529"/>
+        <location filename="widgets/findinfiles.py" line="525"/>
         <source>matches in</source>
         <translation>correspondances trouvées dans</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="530"/>
+        <location filename="widgets/findinfiles.py" line="526"/>
         <source>file</source>
         <translation>fichier</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="527"/>
+        <location filename="widgets/findinfiles.py" line="523"/>
         <source>String not found</source>
         <translation>Chaîne de caractères non trouvée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="354"/>
+        <location filename="widgets/findinfiles.py" line="350"/>
         <source>PYTHONPATH</source>
         <translation>PYTHONPATH</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="357"/>
+        <location filename="widgets/findinfiles.py" line="353"/>
         <source>Search in all directories listed in sys.path which are outside the Python installation directory</source>
         <translation>Rechercher dans tous les répertoires listés dans sys.path qui sont situés en dehors du répertoire d&apos;installation de Python</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="261"/>
+        <location filename="widgets/findinfiles.py" line="257"/>
         <source>permission denied errors were encountered</source>
         <translation>des erreurs d&apos;autorisation d&apos;accès ont été rencontrées</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="315"/>
+        <location filename="widgets/findinfiles.py" line="311"/>
         <source>Stop</source>
         <translation>Arrêter</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="523"/>
+        <location filename="widgets/findinfiles.py" line="519"/>
         <source>Search canceled</source>
         <translation>Recherche annulée</translation>
     </message>
@@ -1735,12 +1750,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Remplacer tout</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="215"/>
+        <location filename="pydee.py" line="216"/>
         <source>Find text</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="218"/>
+        <location filename="pydee.py" line="219"/>
         <source>Replace text</source>
         <translation>Remplacer</translation>
     </message>
@@ -2121,77 +2136,77 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Barre d&apos;outils</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="267"/>
+        <location filename="pydee.py" line="268"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="282"/>
+        <location filename="pydee.py" line="283"/>
         <source>&amp;Edit</source>
         <translation>&amp;Édition</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="475"/>
+        <location filename="pydee.py" line="486"/>
         <source>&amp;View</source>
         <translation>&amp;Affichage</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="292"/>
+        <location filename="pydee.py" line="293"/>
         <source>Welcome to Pydee!</source>
         <translation>Bienvenue dans Pydee !</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="296"/>
+        <location filename="pydee.py" line="297"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
         <location filename="pydee.py" line="329"/>
         <source>Loading editor widget...</source>
-        <translation>Chargement de l&apos;éditeur...</translation>
+        <translation type="obsolete">Chargement de l&apos;éditeur...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="343"/>
+        <location filename="pydee.py" line="344"/>
         <source>&amp;Source</source>
         <translation>&amp;Source</translation>
     </message>
     <message>
         <location filename="pydee.py" line="381"/>
         <source>Loading workspace widget...</source>
-        <translation>Chargement de l&apos;espace de travail...</translation>
+        <translation type="obsolete">Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
         <location filename="pydee.py" line="430"/>
         <source>Loading history widget...</source>
-        <translation>Chargement de l&apos;historique...</translation>
+        <translation type="obsolete">Chargement de l&apos;historique...</translation>
     </message>
     <message>
         <location filename="pydee.py" line="441"/>
         <source>Loading docviewer widget...</source>
-        <translation>Chargement de l&apos;aide...</translation>
+        <translation type="obsolete">Chargement de l&apos;aide...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="482"/>
+        <location filename="pydee.py" line="493"/>
         <source>About %1...</source>
         <translation>À propos de %1...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="757"/>
+        <location filename="pydee.py" line="768"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="844"/>
+        <location filename="pydee.py" line="855"/>
         <source>Restart Python interpreter</source>
         <translation>Redémarrer l&apos;interpréteur Python</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="453"/>
+        <location filename="pydee.py" line="464"/>
         <source>Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another</source>
         <translation>Démarrer un nouvel interpréteur Python : les objets de la session en cours seront supprimés, à l&apos;exception des données de l&apos;espace du travail qui pourront être conservées</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="845"/>
+        <location filename="pydee.py" line="856"/>
         <source>Python interpreter will be restarted: all the objects created during this session will be lost (that includes imported modules which will have to be imported again).
 
 Do you want to continue?</source>
@@ -2200,22 +2215,22 @@ Do you want to continue?</source>
 Souhaitez-vous continuer ?</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="851"/>
+        <location filename="pydee.py" line="862"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="852"/>
+        <location filename="pydee.py" line="863"/>
         <source>Do you want to keep workspace data available?</source>
         <translation>Souhaitez-vous conserver les données de l&apos;espace de travail ?</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="193"/>
+        <location filename="pydee.py" line="194"/>
         <source>Initializing...</source>
         <translation>Initialisation...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="776"/>
+        <location filename="pydee.py" line="787"/>
         <source>&lt;b&gt;%1&lt;/b&gt; v %2
             &lt;br&gt;PYthon Development EnvironmEnt
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
@@ -2253,134 +2268,159 @@ Souhaitez-vous continuer ?</translation>
             &lt;p&gt;Python %3, Qt %4, PyQt %5%6 sous %7</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="222"/>
+        <location filename="pydee.py" line="223"/>
         <source>&amp;Find in files</source>
         <translation>Rechercher dans des &amp;fichiers</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="225"/>
+        <location filename="pydee.py" line="226"/>
         <source>Search text in multiple files</source>
         <translation>Rechercher une chaîne de caractères dans plusieurs fichiers à la fois</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="286"/>
+        <location filename="pydee.py" line="287"/>
         <source>&amp;Search</source>
         <translation>&amp;Recherche</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="155"/>
+        <location filename="pydee.py" line="156"/>
         <source>Path manager...</source>
         <translation>Gestionnaire de chemins d&apos;accès...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="158"/>
+        <location filename="pydee.py" line="159"/>
         <source>Open Pydee path manager</source>
         <translation>Ouvre le gestionnaire de chemin d&apos;accès de Pydee</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="490"/>
+        <location filename="pydee.py" line="501"/>
         <source>Python documentation</source>
         <translation>Documentation Python</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="499"/>
+        <location filename="pydee.py" line="510"/>
         <source>Qt Assistant</source>
         <translation>Qt Assistant (documentation Qt)</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="124"/>
+        <location filename="pydee.py" line="125"/>
         <source>PyQt4 Reference Guide</source>
         <translation>Guide de référence de PyQt4</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="127"/>
+        <location filename="pydee.py" line="128"/>
         <source>PyQt4 API Reference</source>
         <translation>Documentation de l&apos;API de PyQt4</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="129"/>
+        <location filename="pydee.py" line="130"/>
         <source>Python(x,y)</source>
         <translation>Python(x,y)</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="131"/>
+        <location filename="pydee.py" line="132"/>
         <source>Numpy and Scipy documentation</source>
         <translation>Documentation Numpy et Scipy</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="134"/>
+        <location filename="pydee.py" line="135"/>
         <source>Matplotlib documentation</source>
         <translation>Documentation Matplotlib</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="270"/>
+        <location filename="pydee.py" line="271"/>
         <source>Current user environment variables...</source>
         <translation>Variables d&apos;environnement de l&apos;utilisateur...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="274"/>
+        <location filename="pydee.py" line="275"/>
         <source>Show and edit current user environment variables in Windows registry (i.e. for all sessions)</source>
         <translation>Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire directement dans la base de registre)</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="487"/>
+        <location filename="pydee.py" line="498"/>
         <source>Pydee documentation</source>
         <translation>Documentation Pydee</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="700"/>
+        <location filename="pydee.py" line="711"/>
         <source>Maximize current plugin</source>
         <translation>Agrandir la fenêtre courante</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="702"/>
+        <location filename="pydee.py" line="713"/>
         <source>Maximize current plugin to fit the whole application window</source>
         <translation>Agrandir la fenêtre courante sur toute la surface de la fenêtre principale</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="705"/>
+        <location filename="pydee.py" line="716"/>
         <source>Restore current plugin</source>
         <translation>Réduire la fenêtre courante</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="707"/>
+        <location filename="pydee.py" line="718"/>
         <source>Restore current plugin to its original size and position within the application window</source>
         <translation>Réduire la fenêtre courante à sa taille et position d&apos;origine au sein de la fenêtre principale</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="262"/>
+        <location filename="pydee.py" line="263"/>
         <source>Main toolbar</source>
         <translation>Barre d&apos;outil principale</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="344"/>
+        <location filename="pydee.py" line="345"/>
         <source>File toolbar</source>
         <translation>Barre d&apos;outil fichiers</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="347"/>
+        <location filename="pydee.py" line="348"/>
         <source>Analysis toolbar</source>
         <translation>Barre d&apos;outil analyse</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="350"/>
+        <location filename="pydee.py" line="351"/>
         <source>Run toolbar</source>
         <translation>Barre d&apos;outil exécution</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="353"/>
+        <location filename="pydee.py" line="354"/>
         <source>Edit toolbar</source>
         <translation>Barre d&apos;outil édition</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="375"/>
+        <location filename="pydee.py" line="376"/>
         <source>Find toolbar</source>
         <translation>Barre d&apos;outil recherche</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="383"/>
+        <location filename="pydee.py" line="384"/>
         <source>Workspace toolbar</source>
         <translation>Barre d&apos;outil espace de travail</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="330"/>
+        <source>Loading editor plugin...</source>
+        <translation>Chargement de l&apos;éditeur...</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="382"/>
+        <source>Loading workspace plugin...</source>
+        <translation>Chargement de l&apos;espace de travail...</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="431"/>
+        <source>Loading history plugin...</source>
+        <translation>Chargement du journal d&apos;historique...</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="442"/>
+        <source>Loading docviewer plugin...</source>
+        <translation>Chargement du visualiseur d&apos;aide...</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="451"/>
+        <source>Loading pylint plugin...</source>
+        <translation>Chargement de l&apos;extension pylint...</translation>
     </message>
 </context>
 <context>
@@ -2412,12 +2452,12 @@ Souhaitez-vous continuer ?</translation>
 <context>
     <name>PathComboBox</name>
     <message>
-        <location filename="widgets/comboboxes.py" line="81"/>
+        <location filename="widgets/comboboxes.py" line="97"/>
         <source>Press enter to validate this path</source>
         <translation>Appuyez sur Entrée pour valider ce chemin d&apos;accès</translation>
     </message>
     <message>
-        <location filename="widgets/comboboxes.py" line="86"/>
+        <location filename="widgets/comboboxes.py" line="102"/>
         <source>This path is incorrect.
 Enter a correct directory path.
 Then press enter to validate</source>
@@ -2504,9 +2544,127 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
     </message>
 </context>
 <context>
+    <name>Pylint</name>
+    <message>
+        <location filename="widgets/pylintgui.py" line="69"/>
+        <source>Results for </source>
+        <translation>Résultats pour </translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="73"/>
+        <source>Convention</source>
+        <translation>Convention</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="75"/>
+        <source>Refactor</source>
+        <translation>Factorisation</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="77"/>
+        <source>Warning</source>
+        <translation>Avertissement</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="228"/>
+        <source>Error</source>
+        <translation>Erreur</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="118"/>
+        <source>Start</source>
+        <translation>Démarrer</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="121"/>
+        <source>Stop</source>
+        <translation>Arrêter</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="123"/>
+        <source>Stop current analysis</source>
+        <translation>Arrêter l&apos;analyse en cours</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="150"/>
+        <source>Please install &lt;b&gt;Pylint&lt;/b&gt;:</source>
+        <translation type="obsolete">Merci d&apos;installer au préalable &lt;b&gt;Pylint&lt;/b&gt; :</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="229"/>
+        <source>Process failed to start</source>
+        <translation>Le processus n&apos;a pas pu démarrer</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="291"/>
+        <source>Source code has not been rated yet.</source>
+        <translation>Le code source n&apos;a pas encore été analysé.</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="293"/>
+        <source>Source code has been rated at </source>
+        <translation type="obsolete">Le code source a été noté </translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="307"/>
+        <source>previous run:</source>
+        <translation>analyse précédente :</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="156"/>
+        <source>Please install &lt;b&gt;pylint&lt;/b&gt;:</source>
+        <translation>Merci d&apos;installer au préalable &lt;b&gt;pylint&lt;/b&gt; :</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="304"/>
+        <source>Global evaluation:</source>
+        <translation>Évaluation globale :</translation>
+    </message>
+    <message>
+        <location filename="plugins/pylintgui.py" line="46"/>
+        <source>Pylint</source>
+        <translation>Pylint</translation>
+    </message>
+    <message>
+        <location filename="plugins/pylintgui.py" line="56"/>
+        <source>History...</source>
+        <translation>Historique...</translation>
+    </message>
+    <message>
+        <location filename="plugins/pylintgui.py" line="58"/>
+        <source>Set history maximum entries</source>
+        <translation>Modifier le nombre d&apos;entrées maximum de l&apos;historique</translation>
+    </message>
+    <message>
+        <location filename="plugins/pylintgui.py" line="60"/>
+        <source>&amp;Font...</source>
+        <translation>&amp;Police...</translation>
+    </message>
+    <message>
+        <location filename="plugins/pylintgui.py" line="62"/>
+        <source>Set font style</source>
+        <translation>Changer la police d&apos;écriture</translation>
+    </message>
+    <message>
+        <location filename="plugins/pylintgui.py" line="69"/>
+        <source>History</source>
+        <translation>Historique</translation>
+    </message>
+    <message>
+        <location filename="plugins/pylintgui.py" line="70"/>
+        <source>Maximum entries</source>
+        <translation>Nombre maximum d&apos;entrées</translation>
+    </message>
+    <message>
+        <location filename="plugins/pylintgui.py" line="83"/>
+        <source>Select a new font</source>
+        <translation>Sélectionner une police d&apos;écriture</translation>
+    </message>
+</context>
+<context>
     <name>QsciEditor</name>
     <message>
-        <location filename="widgets/qscieditor.py" line="474"/>
+        <location filename="widgets/qscieditor.py" line="476"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
@@ -2583,37 +2741,37 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/qscieditor.py" line="698"/>
+        <location filename="widgets/qscieditor.py" line="700"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="702"/>
+        <location filename="widgets/qscieditor.py" line="704"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="706"/>
+        <location filename="widgets/qscieditor.py" line="708"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="710"/>
+        <location filename="widgets/qscieditor.py" line="712"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="714"/>
+        <location filename="widgets/qscieditor.py" line="716"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="718"/>
+        <location filename="widgets/qscieditor.py" line="720"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="723"/>
+        <location filename="widgets/qscieditor.py" line="725"/>
         <source>Select all</source>
         <translation>Sélectionner tout</translation>
     </message>
@@ -2687,7 +2845,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>WinUserEnvDialog</name>
     <message>
-        <location filename="environ.py" line="99"/>
+        <location filename="environ.py" line="108"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
@@ -2707,12 +2865,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation type="obsolete">Si vous acceptez les changements effectués, cela modifiera les variables d&apos;environnement de l&apos;utilisateur courant directement &lt;b&gt;dans la base de registre Windows&lt;/b&gt;. Utilisez cette fonctionnalité avec précautions et à vos risques et périls.&lt;br&gt;&lt;br&gt;Notez que pour que les changements effectués prennent effet, il sera nécessaire de redémarrer le processus parent de cette application (redémarrez simplement Pydee si vous l&apos;avez exécuté à partir d&apos;un raccourci Windows, sinon redémarrez toute application ayant servie à exécuter Pydee : &lt;i&gt;Python(x,y) Home&lt;/i&gt; ou un invité de commandes par exemple).</translation>
     </message>
     <message>
-        <location filename="environ.py" line="89"/>
+        <location filename="environ.py" line="98"/>
         <source>Module &lt;b&gt;pywin32 was not found&lt;/b&gt;.&lt;br&gt;Please restart this Windows &lt;i&gt;session&lt;/i&gt; (not the computer) for changes to take effect.</source>
         <translation>Le module &lt;b&gt;pywin32 n&apos;est pas installé&lt;/b&gt;.&lt;br&gt;Merci de redémarrer la &lt;i&gt;session&lt;/i&gt; en cours (et non l&apos;ordinateur) pour que les changements effectués prennent effet.</translation>
     </message>
     <message>
-        <location filename="environ.py" line="109"/>
+        <location filename="environ.py" line="118"/>
         <source>If you accept changes, this will modify the current user environment variables directly &lt;b&gt;in Windows registry&lt;/b&gt;. Use it with precautions, at your own risks.&lt;br&gt;&lt;br&gt;Note that for changes to take effect, you will need to restart the parent process of this application (simply restart Pydee if you have executed it from a Windows shortcut, otherwise restart any application from which you may have executed it, like &lt;i&gt;Python(x,y) Home&lt;/i&gt; for example)</source>
         <translation>Si vous acceptez les changements effectués, cela modifiera les variables d&apos;environnement de l&apos;utilisateur courant directement &lt;b&gt;dans la base de registre Windows&lt;/b&gt;. Utilisez cette fonctionnalité avec précautions et à vos risques et périls.&lt;br&gt;&lt;br&gt;Notez que pour que les changements effectués prennent effet, il sera nécessaire de redémarrer le processus parent de cette application (redémarrez simplement Pydee si vous l&apos;avez exécuté à partir d&apos;un raccourci Windows, sinon redémarrez toute application ayant servie à exécuter Pydee : &lt;i&gt;Python(x,y) Home&lt;/i&gt; ou un invité de commandes par exemple).</translation>
     </message>
