@@ -8,7 +8,7 @@
 Pydee
 """
 
-import sys, os, platform, re, webbrowser
+import sys, os, platform, re, webbrowser, imp
 import os.path as osp
 
 # Force Python to search modules in the current directory first:
@@ -255,15 +255,30 @@ class MainWindow(QMainWindow):
 
         namespace = None
         if not self.light:
+            maintoolbar_actions = []
+            main_toolbar = self.create_toolbar(self.tr("Main toolbar"),
+                                               "main_toolbar")
             # Maximize current plugin
             self.maximize_action = create_action(self, '',
                                              shortcut="Ctrl+Alt+Shift+M",
                                              triggered=self.maximize_dockwidget)
             self.__update_maximize_action()
-            main_toolbar = self.create_toolbar(self.tr("Main toolbar"),
-                                               "main_toolbar")
-            add_actions(main_toolbar, (self.maximize_action, ))
-
+            maintoolbar_actions.append(self.maximize_action)
+            # Python(x,y) launcher
+            self.xy_action = create_action(self, self.tr("Run Python(x,y) "
+                                                         "launcher"),
+                                           icon=get_icon('pythonxy.png'),
+                                           triggered=self.run_xyhome)
+            maintoolbar_actions.append(self.xy_action)
+            try:
+                imp.find_module('xy')
+            except ImportError:
+                self.xy_action.setDisabled(True)
+                self.xy_action.setToolTip(self.xy_action.toolTip() + \
+                                          '\nPlease install Python(x,y) to '
+                                          'enable this feature')
+            add_actions(main_toolbar, maintoolbar_actions)
+            
             # File menu
             self.file_menu = self.menuBar().addMenu(self.tr("&File"))
             if WinUserEnvDialog is not None:
@@ -484,7 +499,8 @@ class MainWindow(QMainWindow):
             # View menu
             self.view_menu = self.createPopupMenu()
             self.view_menu.setTitle(self.tr("&View"))
-            add_actions(self.view_menu, (None, self.maximize_action))
+            add_actions(self.view_menu, (None, self.maximize_action,
+                                         self.xy_action))
             self.menuBar().addMenu(self.view_menu)
         
             # ? menu
@@ -741,6 +757,12 @@ class MainWindow(QMainWindow):
             self.last_window_state = None
             self.last_plugin.get_focus_widget().setFocus()
         self.__update_maximize_action()
+    
+    def run_xyhome(self):
+        import subprocess
+        from xy import xyhome
+        command = [sys.executable, '"'+xyhome.__file__+'"']
+        subprocess.Popen(" ".join(command) )
     
     def add_to_menubar(self, widget, title=None):
         """Add menu and actions to menubar"""
