@@ -24,7 +24,7 @@ except ImportError:
 
 from PyQt4.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem, QMessageBox,
                          QVBoxLayout, QLabel)
-from PyQt4.QtCore import SIGNAL, Qt, QProcess, QByteArray, QString
+from PyQt4.QtCore import SIGNAL, QProcess, QByteArray, QString
 
 import sys, os, time, cPickle
 import os.path as osp
@@ -105,7 +105,7 @@ class ResultsTree(OneColumnTree):
                     parent = modules.get(modname)
                     if parent is None:
                         item = QTreeWidgetItem(title_item, [module])
-                        item.setIcon(0, get_icon('python.png'))
+                        item.setIcon(0, get_icon('py.png'))
                         modules[modname] = item
                         parent = item
                 else:
@@ -187,6 +187,7 @@ class PylintWidget(QWidget):
     def analyze(self, filename):
         if not is_pylint_installed():
             return
+        self.kill_if_running()
         index, _data = self.get_data(filename)
         if index is None:
             self.filecombo.addItem(filename)
@@ -310,9 +311,14 @@ class PylintWidget(QWidget):
         self.set_data(filename, (time.localtime(), rate, previous, results))
         self.show_data()
         
-    def show_data(self):
+    def kill_if_running(self):
         if self.process is not None:
-            self.process.kill()
+            if self.process.state() == QProcess.Running:
+                self.process.kill()
+                self.process.waitForFinished()
+        
+    def show_data(self):
+        self.kill_if_running()
         filename = unicode(self.filecombo.currentText())
         if not filename:
             return
