@@ -78,16 +78,16 @@ class QsciEditor(QsciBase):
     QScintilla Base Editor Widget
     """
     LEXERS = {
-              ('py', 'pyw', 'python'): QsciLexerPython,
-              ('f', 'for'): QsciLexerFortran77,
-              ('f90', 'f95', 'f2k'): QsciLexerFortran,
-              ('diff', 'patch', 'rej'): QsciLexerDiff,
-              'css': QsciLexerCSS,
-              ('htm', 'html'): QsciLexerHTML,
-              ('c', 'cpp', 'h'): QsciLexerCPP,
-              ('bat', 'cmd', 'nt'): QsciLexerBatch,
+              ('py', 'pyw', 'python'): (QsciLexerPython, '#'),
+              ('f', 'for'): (QsciLexerFortran77, 'c'),
+              ('f90', 'f95', 'f2k'): (QsciLexerFortran, '!'),
+              ('diff', 'patch', 'rej'): (QsciLexerDiff, ''),
+              'css': (QsciLexerCSS, '#'),
+              ('htm', 'html'): (QsciLexerHTML, ''),
+              ('c', 'cpp', 'h'): (QsciLexerCPP, '//'),
+              ('bat', 'cmd', 'nt'): (QsciLexerBatch, 'rem '),
               ('properties', 'session', 'ini', 'inf', 'reg', 'url',
-               'cfg', 'cnf', 'aut', 'iss'): QsciLexerProperties,
+               'cfg', 'cnf', 'aut', 'iss'): (QsciLexerProperties, '#'),
               }
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'h')
     OCCURENCE_INDICATOR = QsciScintilla.INDIC_CONTAINER
@@ -110,6 +110,7 @@ class QsciEditor(QsciBase):
                            0x4400FF)
 
         self.supported_language = None
+        self.comment_string = None
 
         # Mark errors, warnings, ...
         self.markers = []
@@ -163,11 +164,13 @@ class QsciEditor(QsciBase):
         
     def set_language(self, language):
         self.supported_language = False
+        self.comment_string = ''
         if language is not None:
             for key in self.LEXERS:
                 if language.lower() in key:
                     self.supported_language = True
-                    lexer_class = self.LEXERS[key]
+                    lexer_class, comment_string = self.LEXERS[key]
+                    self.comment_string = comment_string
                     if lexer_class is not None:
                         # Fortran lexers are sometimes unavailable:
                         # the corresponding class is then replaced by None
@@ -631,15 +634,16 @@ class QsciEditor(QsciBase):
             
     def comment(self):
         """Comment current line or selection"""
-        self.add_prefix( '#' )
+        self.add_prefix(self.comment_string)
 
     def uncomment(self):
         """Uncomment current line or selection"""
-        self.remove_prefix( '#' )
+        self.remove_prefix(self.comment_string)
     
     def blockcomment(self):
         """Block comment current line or selection"""
-        comline = '#' + '='*79 + self.get_line_separator()
+        comline = self.comment_string + '='*(80-len(self.comment_string)) \
+                  + self.get_line_separator()
         if self.hasSelectedText():
             line_from, _index_from, line_to, _index_to = self.getSelection()
             lines = range(line_from, line_to+1)
