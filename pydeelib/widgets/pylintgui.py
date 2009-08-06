@@ -88,7 +88,7 @@ class ResultsTree(OneColumnTree):
                 title_item.setDisabled(True)
             modules = {}
             for module, lineno, message in messages:
-                basename = osp.basename(self.filename)
+                basename = osp.splitext(osp.basename(self.filename))[0]
                 if not module.startswith(basename):
                     # Pylint bug
                     i_base = module.find(basename)
