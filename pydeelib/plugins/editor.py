@@ -42,6 +42,7 @@ def is_python_script(fname):
 
 
 class TabInfo(object):
+    """File properties"""
     def __init__(self, filename, encoding, editor):
         self.filename = filename
         self.encoding = encoding
@@ -51,6 +52,7 @@ class TabInfo(object):
         self.lastmodified = QFileInfo(filename).lastModified()
 
 class EditorTabWidget(Tabs):
+    """Editor tabwidget"""
     def __init__(self, parent, actions):
         Tabs.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -93,9 +95,8 @@ class EditorTabWidget(Tabs):
         add_actions(self.menu, actions + self.additional_actions)
         self.close_action.setEnabled( len(self.plugin.editortabwidgets) > 1 )
 
-#===============================================================================
-#    Horizontal/Vertical splitting
-#===============================================================================
+
+    #------ Hor/Ver splitting
     def __get_split_actions(self):
         # Splitting
         self.versplit_action = create_action(self,
@@ -120,8 +121,8 @@ class EditorTabWidget(Tabs):
         self.horsplit_action.setEnabled(orientation == Qt.Horizontal)
         self.versplit_action.setEnabled(orientation == Qt.Vertical)
         
-        
-#===============================================================================
+    
+    #------ Accessors
     def get_current_filename(self):
         if self.data:
             return self.data[self.currentIndex()].filename
@@ -137,9 +138,9 @@ class EditorTabWidget(Tabs):
             self.setCurrentIndex(index)
             self.data[index].editor.setFocus()
             return True
-        
 
-#===============================================================================
+        
+    #------ Tabs drag'n drop
     def move_data(self, index_from, index_to, editortabwidget_to=None):
         """
         Move tab
@@ -161,9 +162,8 @@ class EditorTabWidget(Tabs):
             self.connect(finfo.editor, SIGNAL("focus_in()"),
                          editortabwidget_to.focus_changed)            
     
-#===============================================================================
-#    Close file, all files, editortabwidget
-#===============================================================================
+    
+    #------ Close file, tabwidget...
     def close_file(self, index=None):
         """Close current file"""
         if index is None:
@@ -206,9 +206,8 @@ class EditorTabWidget(Tabs):
         while self.close_file():
             pass
         
-#===============================================================================
-#    Save
-#===============================================================================
+
+    #------ Save
     def save_if_changed(self, cancelable=False, index=None):
         """Ask user to save file if modified"""
         if index is None:
@@ -286,9 +285,8 @@ class EditorTabWidget(Tabs):
         for index in range(self.count()):
             self.save(index)
     
-#===============================================================================
-#    Update UI
-#===============================================================================
+
+    #------ Update UI
     def analyze_script(self, index=None):
         """Analyze current script with pyflakes"""
         if index is None:
@@ -453,9 +451,8 @@ class EditorTabWidget(Tabs):
         self.plugin.save_action.setEnabled(state)
         self.plugin.refresh_save_all_action()
         
-#===============================================================================
-#    Load, reload
-#===============================================================================
+
+    #------ Load, reload
     def reload(self, index):
         finfo = self.data[index]
         txt, finfo.encoding = encoding.read(finfo.filename)
@@ -509,9 +506,8 @@ class EditorTabWidget(Tabs):
         if goto > 0:
             editor.highlight_line(goto)
                 
-#===============================================================================
-#    Run
-#===============================================================================
+
+    #------ Run
     def exec_script_extconsole(self, ask_for_arguments=False,
                                interact=False, debug=False):
         """Run current script in another process"""
@@ -569,9 +565,8 @@ class EditorTabWidget(Tabs):
         self.interactive_console.shell.execute_lines(lines)
         self.interactive_console.shell.setFocus()
         
-#===============================================================================
-#    Drag and drop
-#===============================================================================
+
+    #------ Drag and drop
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
@@ -720,7 +715,6 @@ class CursorPositionStatus(QWidget):
         self.show()
         
 
-#TODO: This class clearly needs some code cleaning/refactoring
 class Editor(PluginWidget):
     """
     Multi-file Editor widget
@@ -806,7 +800,7 @@ class Editor(PluginWidget):
             self.load(filenames)
             self.set_current_filename(CONF.get(self.ID, 'current_filename', ''))
         else:
-            self.load_temp_file()
+            self.__load_temp_file()
         
         self.last_focus_editortabwidget = None
         self.connect(self, SIGNAL("focus_changed()"),
@@ -830,129 +824,9 @@ class Editor(PluginWidget):
                            ('.properties', '.session', '.ini', '.inf',
                             '.reg', '.cfg')),
                           (self.tr("All files"), ('.*',)))
-        
-        
-    #------ Toolboxes
-    def toolbox_current_changed(self, index):
-        """Toolbox current index has changed"""
-        if self.openedfileslistwidget.isVisible():
-            self.refresh_openedfileslistwidget()
-        elif self.classbrowser.isVisible():
-            # Refreshing class browser
-            editortabwidget = self.get_current_editortabwidget()
-            editortabwidget.refresh()
-        elif self.analysislistwidget.isVisible():
-            self.refresh_analysislistwidget()
-
-    def openedfileslistwidget_clicked(self, item):
-        filename = unicode(item.data(Qt.UserRole).toString())
-        editortabwidget, index = self.get_editortabwidget_index(filename)
-        editortabwidget.data[index].editor.setFocus()
-        editortabwidget.setCurrentIndex(index)
-    
-    def analysislistwidget_clicked(self, item):
-        line, _ok = item.data(Qt.UserRole).toInt()
-        self.get_current_editor().highlight_line(line+1)
-    
-    def refresh_analysislistwidget(self):
-        """Refresh analysislistwidget *and* analysis navigation buttons"""
-        editortabwidget = self.get_current_editortabwidget()
-        check_results = editortabwidget.get_analysis_results()
-        state = CONF.get(self.ID, 'code_analysis') \
-                and check_results is not None and len(check_results)
-        self.previous_warning_action.setEnabled(state)
-        self.next_warning_action.setEnabled(state)
-        if self.analysislistwidget.isHidden():
-            return
-        self.analysislistwidget.clear()
-        self.analysislistwidget.setEnabled(state and check_results is not None)
-        if state and check_results:
-            for message, line0, error in check_results:
-                icon = get_icon('error.png' if error else 'warning.png')
-                item = QListWidgetItem(icon, message[:1].upper() + message[1:],
-                                       self.analysislistwidget)
-                item.setData(Qt.UserRole, QVariant(line0-1))
-    
-    def go_to_next_warning(self):
-        editor = self.get_current_editor()
-        editor.go_to_next_warning()
-    
-    def go_to_previous_warning(self):
-        editor = self.get_current_editor()
-        editor.go_to_previous_warning()
             
-    def refresh_openedfileslistwidget(self):
-        """
-        Opened files list has changed:
-        --> open/close file action
-        --> modification ('*' added to title)
-        --> current edited file has changed
-        """
-        # Refresh Python file dependent actions:
-        fname = self.get_current_filename()
-        if fname:
-            enable = osp.splitext(fname)[1] in ('.py', '.pyw')
-            for action in self.pythonfile_dependent_actions:
-                action.setEnabled(enable)
-        # Refresh openedfileslistwidget:
-        if self.openedfileslistwidget.isHidden():
-            return
-        filenames = self.get_filenames()
-        current_filename = self.get_current_filename()
-        self.openedfileslistwidget.clear()
-        for filename in filenames:
-            editortabwidget, index = self.get_editortabwidget_index(filename)
-            title = editortabwidget.get_full_title(index=index)
-            item = QListWidgetItem(get_filetype_icon(filename),
-                                   title, self.openedfileslistwidget)
-            item.setData(Qt.UserRole, QVariant(filename))
-            if filename == current_filename:
-                font = item.font()
-                font.setBold(True)
-                item.setFont(font)
-            self.openedfileslistwidget.addItem(item)
-        
-
-    def get_filetype_filters(self):
-        filters = []
-        for title, ftypes in self.filetypes:
-            filters.append("%s (*%s)" % (title, " *".join(ftypes)))
-        return "\n".join(filters)
-
-    def get_valid_types(self):
-        ftype_list = []
-        for _title, ftypes in self.filetypes:
-            ftype_list += list(ftypes)
-        return ftype_list
-
-    def get_filenames(self):
-        filenames = []
-        for editortabwidget in self.editortabwidgets:
-            filenames += [finfo.filename for finfo in editortabwidget.data]
-        return filenames
-
-    def get_editortabwidget_index(self, filename):
-        for editortabwidget in self.editortabwidgets:
-            index = editortabwidget.has_filename(filename)
-            if index is not None:
-                return (editortabwidget, index)
-        else:
-            return (None, None)
-        
-    def __get_focus_editortabwidget(self):
-        fwidget = QApplication.focusWidget()
-        if isinstance(fwidget, QsciEditor):
-            for editortabwidget in self.editortabwidgets:
-                if fwidget is editortabwidget.currentWidget():
-                    return editortabwidget
-        elif isinstance(fwidget, EditorTabWidget):
-            return fwidget
-        
-    def save_focus_editortabwidget(self):
-        editortabwidget = self.__get_focus_editortabwidget()
-        if editortabwidget is not None:
-            self.last_focus_editortabwidget = editortabwidget
             
+    #------ Plugin API
     def get_widget_title(self):
         """Return widget title"""
         return self.tr('Editor')
@@ -963,141 +837,6 @@ class Editor(PluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.get_current_editor()
-        
-    def __reset_statusbar(self):
-        self.encoding_status.hide()
-        self.cursorpos_status.hide()
-        
-    def register_editortabwidget(self, editortabwidget):
-        self.editortabwidgets.append(editortabwidget)
-        self.last_focus_editortabwidget = editortabwidget
-        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
-                     self.readwrite_status.hide)
-        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
-                     self.encoding_status.hide)
-        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
-                     self.cursorpos_status.hide)
-        self.connect(editortabwidget, SIGNAL('readonly_changed(bool)'),
-                     self.readwrite_status.readonly_changed)
-        self.connect(editortabwidget, SIGNAL('encoding_changed(QString)'),
-                     self.encoding_status.encoding_changed)
-        self.connect(editortabwidget, SIGNAL('cursorPositionChanged(int,int)'),
-                     self.cursorpos_status.cursor_position_changed)
-        self.connect(editortabwidget, SIGNAL('opened_files_list_changed()'),
-                     self.refresh_openedfileslistwidget)
-        self.connect(editortabwidget, SIGNAL('refresh_analysis_results()'),
-                     self.refresh_analysislistwidget)
-        self.connect(editortabwidget,
-                     SIGNAL('refresh_file_dependent_actions()'),
-                     self.refresh_file_dependent_actions)
-        self.connect(editortabwidget, SIGNAL('move_tab(long,long,int,int)'),
-                     self.move_tabs_between_editortabwidgets)
-        
-    def unregister_editortabwidget(self, editortabwidget):
-        """Removing editortabwidget only if it's not the last remaining"""
-        if len(self.editortabwidgets) > 1:
-            index = self.editortabwidgets.index(editortabwidget)
-            self.editortabwidgets.pop(index)
-            editortabwidget.close() # remove widget from splitter
-            focus_widget = self.get_focus_widget()
-            if focus_widget is not None:
-                focus_widget.setFocus()
-            return True
-        else:
-            # Tabbededitor was not removed!
-            return False
-        
-    def __get_editortabwidget_from_id(self, t_id):
-        for editortabwidget in self.editortabwidgets:
-            if id(editortabwidget) == t_id:
-                return editortabwidget
-        
-    def move_tabs_between_editortabwidgets(self, id_from, id_to,
-                                        index_from, index_to):
-        """
-        Move tab between tabwidgets
-        (see editortabwidget.move_data when moving tabs inside one tabwidget)
-        Tabs haven't been moved yet since tabwidgets don't have any
-        reference towards other tabwidget instances
-        """
-        tw_from = self.__get_editortabwidget_from_id(id_from)
-        tw_to = self.__get_editortabwidget_from_id(id_to)
-
-        tw_from.move_data(index_from, index_to, tw_to)
-
-        tip, text = tw_from.tabToolTip(index_from), tw_from.tabText(index_from)
-        icon, widget = tw_from.tabIcon(index_from), tw_from.widget(index_from)
-        
-        tw_from.removeTab(index_from)
-        tw_to.insertTab(index_to, widget, icon, text)
-        tw_to.setTabToolTip(index_to, tip)
-        
-        tw_to.setCurrentIndex(index_to)
-
-    def get_current_editortabwidget(self):
-        if len(self.editortabwidgets) == 1:
-            return self.editortabwidgets[0]
-        else:
-            editortabwidget = self.__get_focus_editortabwidget()
-            if editortabwidget is None:
-                return self.last_focus_editortabwidget
-            else:
-                return editortabwidget
-        
-    def get_current_editor(self):
-        editortabwidget = self.get_current_editortabwidget()
-        if editortabwidget is not None:
-            return editortabwidget.currentWidget()
-        
-    def get_current_filename(self):
-        editortabwidget = self.get_current_editortabwidget()
-        if editortabwidget is not None:
-            return editortabwidget.get_current_filename()
-        
-    def is_file_opened(self, filename=None):
-        if filename is None:
-            # Is there any file opened?
-            return self.get_current_editor() is not None
-        else:
-            editortabwidget, _index = self.get_editortabwidget_index(filename)
-            return editortabwidget
-        
-    def set_current_filename(self, filename):
-        """Set focus to *filename* if this file has been opened"""
-        editortabwidget, _index = self.get_editortabwidget_index(filename)
-        if editortabwidget is not None:
-            return editortabwidget.set_current_filename(filename)
-    
-    def refresh_file_dependent_actions(self):
-        """Enable/disable file dependent actions
-        (only if dockwidget is visible)"""
-        if self.dockwidget and self.dockwidget.isVisible():
-            enable = self.get_current_editor() is not None
-            for action in self.file_dependent_actions:
-                action.setEnabled(enable)
-                
-    def refresh_save_all_action(self):
-        state = False
-        for editortabwidget in self.editortabwidgets:
-            if editortabwidget.count() > 1:
-                state = state or any([finfo.editor.isModified() for finfo \
-                                      in editortabwidget.data])
-        self.save_all_action.setEnabled(state)
-    
-    def refresh(self):
-        """Refresh editor plugin"""
-        editortabwidget = self.get_current_editortabwidget()
-        editortabwidget.refresh()
-        self.refresh_save_all_action()
-        
-    def add_recent_file(self, fname):
-        """Add to recent file list"""
-        if fname is None:
-            return
-        if not fname in self.recent_files:
-            self.recent_files.insert(0, fname)
-            if len(self.recent_files) > 9:
-                self.recent_files.pop(-1)
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
@@ -1108,6 +847,27 @@ class Editor(PluginWidget):
             self.dock_toolbar.hide()
         if enable:
             self.refresh()
+    
+    def refresh(self):
+        """Refresh editor plugin"""
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.refresh()
+        self.refresh_save_all_action()
+        
+    def closing(self, cancelable=False):
+        """Perform actions before parent main window is closed"""
+        filenames = []
+        for editortabwidget in self.editortabwidgets:
+            filenames += [finfo.filename for finfo in editortabwidget.data]
+        CONF.set(self.ID, 'filenames', filenames)
+        CONF.set(self.ID, 'current_filename', self.get_current_filename())
+        CONF.set(self.ID, 'recent_files', self.recent_files)
+        is_ok = True
+        for editortabwidget in self.editortabwidgets:
+            is_ok = is_ok and editortabwidget.save_if_changed(cancelable)
+            if not is_ok and cancelable:
+                break
+        return is_ok
 
     def set_actions(self):
         """Setup actions"""
@@ -1242,7 +1002,7 @@ class Editor(PluginWidget):
         tab_action.setChecked( CONF.get(self.ID, 'tab_always_indent') )
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
-            triggered=self.set_workdir)
+            triggered=self.__set_workdir)
 
         self.toolbox_action = create_action(self,
             self.tr("Lateral panel"), None, 'toolbox.png',
@@ -1298,74 +1058,249 @@ class Editor(PluginWidget):
                 workdir_action, self.close_action)
         return (source_menu_actions, self.dock_toolbar_actions)        
         
-    def closing(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
+        
+    #------ Focus tabwidget
+    def __get_focus_editortabwidget(self):
+        fwidget = QApplication.focusWidget()
+        if isinstance(fwidget, QsciEditor):
+            for editortabwidget in self.editortabwidgets:
+                if fwidget is editortabwidget.currentWidget():
+                    return editortabwidget
+        elif isinstance(fwidget, EditorTabWidget):
+            return fwidget
+        
+    def save_focus_editortabwidget(self):
+        editortabwidget = self.__get_focus_editortabwidget()
+        if editortabwidget is not None:
+            self.last_focus_editortabwidget = editortabwidget
+    
+        
+    #------ Handling editortabwidgets
+    def register_editortabwidget(self, editortabwidget):
+        self.editortabwidgets.append(editortabwidget)
+        self.last_focus_editortabwidget = editortabwidget
+        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
+                     self.readwrite_status.hide)
+        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
+                     self.encoding_status.hide)
+        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
+                     self.cursorpos_status.hide)
+        self.connect(editortabwidget, SIGNAL('readonly_changed(bool)'),
+                     self.readwrite_status.readonly_changed)
+        self.connect(editortabwidget, SIGNAL('encoding_changed(QString)'),
+                     self.encoding_status.encoding_changed)
+        self.connect(editortabwidget, SIGNAL('cursorPositionChanged(int,int)'),
+                     self.cursorpos_status.cursor_position_changed)
+        self.connect(editortabwidget, SIGNAL('opened_files_list_changed()'),
+                     self.refresh_openedfileslistwidget)
+        self.connect(editortabwidget, SIGNAL('refresh_analysis_results()'),
+                     self.refresh_analysislistwidget)
+        self.connect(editortabwidget,
+                     SIGNAL('refresh_file_dependent_actions()'),
+                     self.refresh_file_dependent_actions)
+        self.connect(editortabwidget, SIGNAL('move_tab(long,long,int,int)'),
+                     self.move_tabs_between_editortabwidgets)
+        
+    def unregister_editortabwidget(self, editortabwidget):
+        """Removing editortabwidget only if it's not the last remaining"""
+        if len(self.editortabwidgets) > 1:
+            index = self.editortabwidgets.index(editortabwidget)
+            self.editortabwidgets.pop(index)
+            editortabwidget.close() # remove widget from splitter
+            focus_widget = self.get_focus_widget()
+            if focus_widget is not None:
+                focus_widget.setFocus()
+            return True
+        else:
+            # Tabbededitor was not removed!
+            return False
+        
+    def __get_editortabwidget_from_id(self, t_id):
+        for editortabwidget in self.editortabwidgets:
+            if id(editortabwidget) == t_id:
+                return editortabwidget
+        
+    def move_tabs_between_editortabwidgets(self, id_from, id_to,
+                                        index_from, index_to):
+        """
+        Move tab between tabwidgets
+        (see editortabwidget.move_data when moving tabs inside one tabwidget)
+        Tabs haven't been moved yet since tabwidgets don't have any
+        reference towards other tabwidget instances
+        """
+        tw_from = self.__get_editortabwidget_from_id(id_from)
+        tw_to = self.__get_editortabwidget_from_id(id_to)
+
+        tw_from.move_data(index_from, index_to, tw_to)
+
+        tip, text = tw_from.tabToolTip(index_from), tw_from.tabText(index_from)
+        icon, widget = tw_from.tabIcon(index_from), tw_from.widget(index_from)
+        
+        tw_from.removeTab(index_from)
+        tw_to.insertTab(index_to, widget, icon, text)
+        tw_to.setTabToolTip(index_to, tip)
+        
+        tw_to.setCurrentIndex(index_to)
+        
+        
+    #------ Accessors
+    def get_filetype_filters(self):
+        filters = []
+        for title, ftypes in self.filetypes:
+            filters.append("%s (*%s)" % (title, " *".join(ftypes)))
+        return "\n".join(filters)
+
+    def get_valid_types(self):
+        ftype_list = []
+        for _title, ftypes in self.filetypes:
+            ftype_list += list(ftypes)
+        return ftype_list
+
+    def get_filenames(self):
         filenames = []
         for editortabwidget in self.editortabwidgets:
             filenames += [finfo.filename for finfo in editortabwidget.data]
-        CONF.set(self.ID, 'filenames', filenames)
-        CONF.set(self.ID, 'current_filename', self.get_current_filename())
-        CONF.set(self.ID, 'recent_files', self.recent_files)
-        is_ok = True
+        return filenames
+
+    def get_editortabwidget_index(self, filename):
         for editortabwidget in self.editortabwidgets:
-            is_ok = is_ok and editortabwidget.save_if_changed(cancelable)
-            if not is_ok and cancelable:
-                break
-        return is_ok
-    
-    def go_to_line(self, lineno):
-        """Go to line lineno and highlight it"""
-        self.get_current_editor().highlight_line(lineno)
-    
-    def indent(self):
-        """Indent current line or selection"""
-        editor = self.get_current_editor()
-        if editor is not None:
-            editor.indent()
+            index = editortabwidget.has_filename(filename)
+            if index is not None:
+                return (editortabwidget, index)
+        else:
+            return (None, None)
 
-    def unindent(self):
-        """Unindent current line or selection"""
-        editor = self.get_current_editor()
-        if editor is not None:
-            editor.unindent()
+    def get_current_editortabwidget(self):
+        if len(self.editortabwidgets) == 1:
+            return self.editortabwidgets[0]
+        else:
+            editortabwidget = self.__get_focus_editortabwidget()
+            if editortabwidget is None:
+                return self.last_focus_editortabwidget
+            else:
+                return editortabwidget
+        
+    def get_current_editor(self):
+        editortabwidget = self.get_current_editortabwidget()
+        if editortabwidget is not None:
+            return editortabwidget.currentWidget()
+        
+    def get_current_filename(self):
+        editortabwidget = self.get_current_editortabwidget()
+        if editortabwidget is not None:
+            return editortabwidget.get_current_filename()
+        
+    def is_file_opened(self, filename=None):
+        if filename is None:
+            # Is there any file opened?
+            return self.get_current_editor() is not None
+        else:
+            editortabwidget, _index = self.get_editortabwidget_index(filename)
+            return editortabwidget
+        
+    def set_current_filename(self, filename):
+        """Set focus to *filename* if this file has been opened"""
+        editortabwidget, _index = self.get_editortabwidget_index(filename)
+        if editortabwidget is not None:
+            return editortabwidget.set_current_filename(filename)
     
-    def comment(self):
-        """Comment current line or selection"""
-        editor = self.get_current_editor()
-        if editor is not None:
-            editor.comment()
-
-    def uncomment(self):
-        """Uncomment current line or selection"""
-        editor = self.get_current_editor()
-        if editor is not None:
-            editor.uncomment()
     
-    def blockcomment(self):
-        """Block comment current line or selection"""
-        editor = self.get_current_editor()
-        if editor is not None:
-            editor.blockcomment()
-
-    def unblockcomment(self):
-        """Un-block comment current line or selection"""
-        editor = self.get_current_editor()
-        if editor is not None:
-            editor.unblockcomment()
+    #------ Refresh methods
+    def refresh_file_dependent_actions(self):
+        """Enable/disable file dependent actions
+        (only if dockwidget is visible)"""
+        if self.dockwidget and self.dockwidget.isVisible():
+            enable = self.get_current_editor() is not None
+            for action in self.file_dependent_actions:
+                action.setEnabled(enable)
+                
+    def refresh_save_all_action(self):
+        state = False
+        for editortabwidget in self.editortabwidgets:
+            if editortabwidget.count() > 1:
+                state = state or any([finfo.editor.isModified() for finfo \
+                                      in editortabwidget.data])
+        self.save_all_action.setEnabled(state)
             
-    def run_pylint(self):
-        """Run pylint code analysis"""
+    def refresh_analysislistwidget(self):
+        """Refresh analysislistwidget *and* analysis navigation buttons"""
+        editortabwidget = self.get_current_editortabwidget()
+        check_results = editortabwidget.get_analysis_results()
+        state = CONF.get(self.ID, 'code_analysis') \
+                and check_results is not None and len(check_results)
+        self.previous_warning_action.setEnabled(state)
+        self.next_warning_action.setEnabled(state)
+        if self.analysislistwidget.isHidden():
+            return
+        self.analysislistwidget.clear()
+        self.analysislistwidget.setEnabled(state and check_results is not None)
+        if state and check_results:
+            for message, line0, error in check_results:
+                icon = get_icon('error.png' if error else 'warning.png')
+                item = QListWidgetItem(icon, message[:1].upper() + message[1:],
+                                       self.analysislistwidget)
+                item.setData(Qt.UserRole, QVariant(line0-1))
+            
+    def refresh_openedfileslistwidget(self):
+        if self.openedfileslistwidget.isHidden():
+            return
+        filenames = self.get_filenames()
+        current_filename = self.get_current_filename()
+        self.openedfileslistwidget.clear()
+        for filename in filenames:
+            editortabwidget, index = self.get_editortabwidget_index(filename)
+            title = editortabwidget.get_full_title(index=index)
+            item = QListWidgetItem(get_filetype_icon(filename),
+                                   title, self.openedfileslistwidget)
+            item.setData(Qt.UserRole, QVariant(filename))
+            if filename == current_filename:
+                font = item.font()
+                font.setBold(True)
+                item.setFont(font)
+            self.openedfileslistwidget.addItem(item)
+    
+    
+    #------ Slots
+    def toolbox_current_changed(self, index):
+        """Toolbox current index has changed"""
+        if self.openedfileslistwidget.isVisible():
+            self.refresh_openedfileslistwidget()
+        elif self.classbrowser.isVisible():
+            # Refreshing class browser
+            editortabwidget = self.get_current_editortabwidget()
+            editortabwidget.refresh()
+        elif self.analysislistwidget.isVisible():
+            self.refresh_analysislistwidget()
+
+    def openedfileslistwidget_clicked(self, item):
+        filename = unicode(item.data(Qt.UserRole).toString())
+        editortabwidget, index = self.get_editortabwidget_index(filename)
+        editortabwidget.data[index].editor.setFocus()
+        editortabwidget.setCurrentIndex(index)
+    
+    def analysislistwidget_clicked(self, item):
+        line, _ok = item.data(Qt.UserRole).toInt()
+        self.get_current_editor().highlight_line(line+1)
+    
+    def opened_files_list_changed(self):
+        """
+        Opened files list has changed:
+        --> open/close file action
+        --> modification ('*' added to title)
+        --> current edited file has changed
+        """
+        # Refresh Python file dependent actions:
         fname = self.get_current_filename()
-        self.emit(SIGNAL('run_pylint(QString)'), fname)
+        if fname:
+            enable = osp.splitext(fname)[1] in ('.py', '.pyw')
+            for action in self.pythonfile_dependent_actions:
+                action.setEnabled(enable)
+        # Refresh openedfileslistwidget:
+        self.refresh_openedfileslistwidget()
         
-    def set_workdir(self):
-        """Set working directory as current script directory"""
-        fname = self.get_current_filename()
-        if fname is not None:
-            directory = osp.dirname(osp.abspath(fname))
-            self.emit(SIGNAL("open_dir(QString)"), directory)
-        
-    def load_temp_file(self):
+                
+    #------ File I/O
+    def __load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
         if not osp.isfile(self.file_path):
             # Creating temporary file
@@ -1382,6 +1317,22 @@ class Editor(PluginWidget):
             text = "\r\n".join([unicode(qstr) for qstr in default])
             encoding.write(unicode(text), self.file_path, 'utf-8')
         self.load(self.file_path)
+
+    def __set_workdir(self):
+        """Set current script directory as working directory"""
+        fname = self.get_current_filename()
+        if fname is not None:
+            directory = osp.dirname(osp.abspath(fname))
+            self.emit(SIGNAL("open_dir(QString)"), directory)
+                
+    def __add_recent_file(self, fname):
+        """Add to recent file list"""
+        if fname is None:
+            return
+        if not fname in self.recent_files:
+            self.recent_files.insert(0, fname)
+            if len(self.recent_files) > 9:
+                self.recent_files.pop(-1)
     
     def new(self):
         """Create a new Python script"""
@@ -1401,11 +1352,6 @@ class Editor(PluginWidget):
             text = os.linesep.join(default)
             encoding.write(unicode(text), fname, 'utf-8')
             self.load(fname)
-            
-    def close_all_files(self):
-        """Close all opened scripts"""
-        for editortabwidget in self.editortabwidgets:
-            editortabwidget.close_all_files()
         
     def load(self, filenames=None, goto=0):
         """Load a text file"""
@@ -1456,35 +1402,21 @@ class Editor(PluginWidget):
                 # --
                 editortabwidget = self.get_current_editortabwidget()
                 editortabwidget.load(filename, goto)
-                self.add_recent_file(filename)
+                self.__add_recent_file(filename)
                 
         if goto > 0:
             editor = self.get_current_editor()
             editor.highlight_line(goto)
 
-
-    def __close_and_reload(self, filename, new_filename=None):
-        filename = osp.abspath(unicode(filename))
-        for editortabwidget in self.editortabwidgets:
-            index = editortabwidget.has_filename(filename)
-            if index is not None:
-                editortabwidget.close_file(index)
-                if new_filename is not None:
-                    self.load(unicode(new_filename))
-                
-    def removed(self, filename):
-        """File was removed in explorer widget"""
-        self.__close_and_reload(filename)
-    
-    def renamed(self, source, dest):
-        """File was renamed in explorer widget"""
-        self.__close_and_reload(source, new_filename=dest)
-                
-                
     def close_file(self):
         """Close current file"""
         editortabwidget = self.get_current_editortabwidget()
         editortabwidget.close_file()
+            
+    def close_all_files(self):
+        """Close all opened scripts"""
+        for editortabwidget in self.editortabwidgets:
+            editortabwidget.close_all_files()
                 
     def save(self, index=None, force=False):
         """Save file"""
@@ -1516,6 +1448,82 @@ class Editor(PluginWidget):
         for editortabwidget in self.editortabwidgets:
             editortabwidget.save_all()
     
+    
+    #------ Explorer widget
+    def __close_and_reload(self, filename, new_filename=None):
+        filename = osp.abspath(unicode(filename))
+        for editortabwidget in self.editortabwidgets:
+            index = editortabwidget.has_filename(filename)
+            if index is not None:
+                editortabwidget.close_file(index)
+                if new_filename is not None:
+                    self.load(unicode(new_filename))
+                
+    def removed(self, filename):
+        """File was removed in explorer widget"""
+        self.__close_and_reload(filename)
+    
+    def renamed(self, source, dest):
+        """File was renamed in explorer widget"""
+        self.__close_and_reload(source, new_filename=dest)
+        
+    
+    #------ Source code
+    def go_to_line(self, lineno):
+        """Go to line lineno and highlight it"""
+        self.get_current_editor().highlight_line(lineno)
+    
+    def indent(self):
+        """Indent current line or selection"""
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.indent()
+
+    def unindent(self):
+        """Unindent current line or selection"""
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.unindent()
+    
+    def comment(self):
+        """Comment current line or selection"""
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.comment()
+
+    def uncomment(self):
+        """Uncomment current line or selection"""
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.uncomment()
+    
+    def blockcomment(self):
+        """Block comment current line or selection"""
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.blockcomment()
+
+    def unblockcomment(self):
+        """Un-block comment current line or selection"""
+        editor = self.get_current_editor()
+        if editor is not None:
+            editor.unblockcomment()
+    
+    def go_to_next_warning(self):
+        editor = self.get_current_editor()
+        editor.go_to_next_warning()
+    
+    def go_to_previous_warning(self):
+        editor = self.get_current_editor()
+        editor.go_to_previous_warning()
+            
+    def run_pylint(self):
+        """Run pylint code analysis"""
+        fname = self.get_current_filename()
+        self.emit(SIGNAL('run_pylint(QString)'), fname)
+        
+        
+    #------ Run Python script
     def exec_script_extconsole(self, ask_for_arguments=False,
                                interact=False, debug=False):
         """Run current script in another process"""
@@ -1537,6 +1545,8 @@ class Editor(PluginWidget):
         editortabwidget = self.get_current_editortabwidget()
         editortabwidget.exec_selected_text()
         
+        
+    #------ Options
     def change_font(self):
         """Change editor font"""
         font, valid = QFontDialog.getFont(get_font(self.ID), self,
