@@ -985,7 +985,7 @@ class Editor(PluginWidget):
             self.tr("Code analysis (pyflakes)"),
             toggled=self.toggle_code_analysis,
             tip=self.tr("If enabled, Python source code will be analyzed "
-                        "using <b>pyflakes</b>, lines containing errors or "
+                        "using pyflakes, lines containing errors or "
                         "warnings will be highlighted"))
         analyze_action.setChecked( CONF.get(self.ID, 'code_analysis') )
         fold_action = create_action(self, self.tr("Code folding"),
