@@ -583,10 +583,13 @@ class BaseTableView(QTableView):
         self.refresh_plot_entries(index)
         
     def refresh_plot_entries(self, index):
-        value = self.delegate.get_value(index)
-        condition_plot = isinstance(value, ndarray) and len(value) != 0 \
-                         and len(value.shape) <= 2
-        condition_imshow = condition_plot and min(value.shape) > 2
+        if index.isValid():
+            value = self.delegate.get_value(index)
+            condition_plot = isinstance(value, ndarray) and len(value) != 0 \
+                             and len(value.shape) <= 2
+            condition_imshow = condition_plot and min(value.shape) > 2
+        else:
+            condition_plot = condition_imshow = False
         self.plot_action.setVisible(condition_plot)
         self.imshow_action.setVisible(condition_imshow)
         
