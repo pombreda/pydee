@@ -430,10 +430,10 @@ class MainWindow(QMainWindow):
                 self.connect(self.explorer, SIGNAL("open_workspace(QString)"),
                              self.workspace.load)
                 self.connect(self.explorer, SIGNAL("run(QString)"),
-                             lambda filename: \
-                             self.console.run_script(filename=filename,
-                                                     silent=True,
-                                                     set_focus=True))
+                             lambda fname: \
+                             self.open_external_console(unicode(fname),
+                                                osp.dirname(unicode(fname)),
+                                                False, False, False))
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.explorer.refresh)
                 self.connect(self.workdir, SIGNAL("chdir()"),
