@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>Interactive Console &mdash; Pydee v1.0 beta documentation</title>
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -20,8 +20,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Pydee v1.0 beta documentation" href="index.html" />
-    <link rel="next" title="Workspace" href="workspace.html" />
-    <link rel="prev" title="Global shortcuts" href="shortcuts.html" /> 
+    <link rel="next" title="Documentation viewer" href="docviewer.html" />
+    <link rel="prev" title="Command line options" href="arguments.html" /> 
   </head>
   <body>
     <div class="related">
@@ -31,14 +31,52 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="workspace.html" title="Workspace"
+          <a href="docviewer.html" title="Documentation viewer"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="shortcuts.html" title="Global shortcuts"
+          <a href="arguments.html" title="Command line options"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">Pydee v1.0 beta documentation</a> &raquo;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Interactive Console</a><ul>
+<li><a class="reference external" href="#the-thread-safe-issue">The thread safe issue</a></li>
+<li><a class="reference external" href="#special-commands">Special commands</a></li>
+<li><a class="reference external" href="#the-workspace">The Workspace</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="arguments.html"
+                                  title="previous chapter">Command line options</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="docviewer.html"
+                                  title="next chapter">Documentation viewer</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/console.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -49,16 +87,18 @@
 <h1>Interactive Console<a class="headerlink" href="#interactive-console" title="Permalink to this headline">¶</a></h1>
 <p>The interactive console is a Python interpreter executed in the <em>same thread</em>
 as Pydee&#8217;s graphical user interface, providing unique features such as
-<tt class="docutils literal"><span class="pre">matplotlib</span></tt> figures integration or MATLAB-like workspace.</p>
+<tt class="docutils literal"><span class="pre">matplotlib</span></tt> figures integration or MATLAB-like Workspace.</p>
 <img alt="_images/intconsole.png" src="_images/intconsole.png" />
-<div class="section" id="related-plugins">
-<h2>Related plugins<a class="headerlink" href="#related-plugins" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference external" href="workspace.html"><em>Workspace</em></a>
-<a class="reference external" href="docviewer.html"><em>Documentation viewer</em></a>
-<a class="reference external" href="historylog.html"><em>History log</em></a>
-<a class="reference external" href="editor.html"><em>Editor</em></a>
-<a class="reference external" href="explorer.html"><em>Explorer</em></a></p>
-</div>
+<dl class="docutils">
+<dt>Related plugins:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="docviewer.html"><em>Documentation viewer</em></a></li>
+<li><a class="reference external" href="historylog.html"><em>History log</em></a></li>
+<li><a class="reference external" href="editor.html"><em>Editor</em></a></li>
+<li><a class="reference external" href="explorer.html"><em>Explorer</em></a></li>
+</ul>
+</dd>
+</dl>
 <div class="section" id="the-thread-safe-issue">
 <h2>The thread safe issue<a class="headerlink" href="#the-thread-safe-issue" title="Permalink to this headline">¶</a></h2>
 <p>The interactive console being not thread safe, one must be conscious that <strong>any
@@ -108,48 +148,34 @@ But there is a price to pay: more safety, less interactivity
 </li>
 </ul>
 </div>
+<div class="section" id="the-workspace">
+<h2>The Workspace<a class="headerlink" href="#the-workspace" title="Permalink to this headline">¶</a></h2>
+<p>The workspace is a global variable browser for the interactive console with the
+features described below.</p>
+<img alt="_images/workspace1.png" src="_images/workspace1.png" />
+<p>The following screenshots show some interesting features such as editing
+lists, strings, dictionaries, NumPy arrays, or plotting/showing NumPy arrays
+data.</p>
+<img alt="_images/listeditor.png" src="_images/listeditor.png" />
+<img alt="_images/texteditor.png" src="_images/texteditor.png" />
+<img alt="_images/dicteditor.png" src="_images/dicteditor.png" />
+<img alt="_images/arrayeditor.png" src="_images/arrayeditor.png" />
+<img alt="_images/workspace-plot.png" src="_images/workspace-plot.png" />
+<img alt="_images/workspace-imshow.png" src="_images/workspace-imshow.png" />
+<p>The default Workspace configuration allows to browse global variables without
+slowing the interactive console even with very large NumPy arrays, lists or
+dictionaries. The trick is to truncate values, to hide collection contents
+(i.e. showing &#8216;&lt;list &#64; address&gt;&#8217; instead of list contents) and to show only
+mininum and maximum values for NumPy arrays (see context menu options on the
+screenshot at the top of this page).</p>
+<p>However, most of the time, choosing the opposite options won&#8217;t have too much
+effect on interactive console&#8217;s performance:</p>
+<img alt="_images/workspace2.png" src="_images/workspace2.png" />
+</div>
 </div>
 
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="">Interactive Console</a><ul>
-<li><a class="reference external" href="#related-plugins">Related plugins</a></li>
-<li><a class="reference external" href="#the-thread-safe-issue">The thread safe issue</a></li>
-<li><a class="reference external" href="#special-commands">Special commands</a></li>
-</ul>
-</li>
-</ul>
-
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="shortcuts.html"
-                                  title="previous chapter">Global shortcuts</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="workspace.html"
-                                  title="next chapter">Workspace</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/console.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -161,10 +187,10 @@ But there is a price to pay: more safety, less interactivity
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="workspace.html" title="Workspace"
+          <a href="docviewer.html" title="Documentation viewer"
              >next</a> |</li>
         <li class="right" >
-          <a href="shortcuts.html" title="Global shortcuts"
+          <a href="arguments.html" title="Command line options"
              >previous</a> |</li>
         <li><a href="index.html">Pydee v1.0 beta documentation</a> &raquo;</li> 
       </ul>

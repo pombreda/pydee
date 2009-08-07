@@ -1,9 +1,13 @@
 History log
 ===========
 
-XXX
+The history log plugin collects command histories of:
+    * the :doc:`console`
+    * the :doc:`extconsole` Python shells
+    * the :doc:`extconsole` terminal windows
 
-Related plugins
----------------
+.. image:: images/historylog.png
 
-:doc:`console`
+Related plugins:
+    * :doc:`console`
+    * :doc:`extconsole`

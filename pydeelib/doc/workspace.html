@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>Workspace &mdash; Pydee v1.0 beta documentation</title>
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -38,32 +38,14 @@
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">Pydee v1.0 beta documentation</a> &raquo;</li> 
       </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
-            
-  <div class="section" id="workspace">
-<h1>Workspace<a class="headerlink" href="#workspace" title="Permalink to this headline">¶</a></h1>
-<p>XXX</p>
-<div class="section" id="related-plugins">
-<h2>Related plugins<a class="headerlink" href="#related-plugins" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference external" href="console.html"><em>Interactive Console</em></a></p>
-</div>
-</div>
-
-
-          </div>
-        </div>
-      </div>
+    </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
 <li><a class="reference external" href="">Workspace</a><ul>
-<li><a class="reference external" href="#related-plugins">Related plugins</a></li>
+<li><a class="reference external" href="#main-features">Main features</a></li>
+<li><a class="reference external" href="#impact-on-interactive-console-s-performance">Impact on interactive console&#8217;s performance</a></li>
 </ul>
 </li>
 </ul>
@@ -92,6 +74,53 @@
               </p>
           </div>
           <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="workspace">
+<h1>Workspace<a class="headerlink" href="#workspace" title="Permalink to this headline">¶</a></h1>
+<p>The workspace is a global variable browser for the <a class="reference external" href="console.html"><em>Interactive Console</em></a> with the
+features described below.</p>
+<img alt="_images/workspace1.png" src="_images/workspace1.png" />
+<dl class="docutils">
+<dt>Related plugins:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="console.html"><em>Interactive Console</em></a></li>
+</ul>
+</dd>
+</dl>
+<div class="section" id="main-features">
+<h2>Main features<a class="headerlink" href="#main-features" title="Permalink to this headline">¶</a></h2>
+<p>The following screenshots show some interesting features such as editing lists,
+strings, dictionaries, NumPy arrays, or plotting/showing NumPy arrays data.</p>
+<img alt="_images/listeditor.png" src="_images/listeditor.png" />
+<img alt="_images/texteditor.png" src="_images/texteditor.png" />
+<img alt="_images/dicteditor.png" src="_images/dicteditor.png" />
+<img alt="_images/arrayeditor.png" src="_images/arrayeditor.png" />
+<img alt="_images/workspace-plot.png" src="_images/workspace-plot.png" />
+<img alt="_images/workspace-imshow.png" src="_images/workspace-imshow.png" />
+</div>
+<div class="section" id="impact-on-interactive-console-s-performance">
+<h2>Impact on interactive console&#8217;s performance<a class="headerlink" href="#impact-on-interactive-console-s-performance" title="Permalink to this headline">¶</a></h2>
+<p>The default Workspace configuration allows to browse global variables without
+slowing the interactive console even with very large NumPy arrays, lists or
+dictionaries. The trick is to truncate values, to hide collection contents
+(i.e. showing &#8216;&lt;list &#64; address&gt;&#8217; instead of list contents) and to show only
+mininum and maximum values for NumPy arrays (see context menu options on the
+screenshot at the top of this page).</p>
+<p>However, most of the time, choosing the opposite options won&#8217;t have too much
+effect on interactive console&#8217;s performance:</p>
+<img alt="_images/workspace2.png" src="_images/workspace2.png" />
+</div>
+</div>
+
+
+          </div>
         </div>
       </div>
       <div class="clearer"></div>
