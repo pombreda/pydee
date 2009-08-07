@@ -3,18 +3,15 @@ Interactive Console
 
 The interactive console is a Python interpreter executed in the *same thread* 
 as Pydee's graphical user interface, providing unique features such as
-``matplotlib`` figures integration or MATLAB-like workspace.
+``matplotlib`` figures integration or MATLAB-like Workspace.
 
 .. image:: images/intconsole.png
 
-Related plugins
----------------
-
-:doc:`workspace`
-:doc:`docviewer`
-:doc:`historylog`
-:doc:`editor`
-:doc:`explorer`
+Related plugins:
+    * :doc:`docviewer`
+    * :doc:`historylog`
+    * :doc:`editor`
+    * :doc:`explorer`
 
 The thread safe issue
 ---------------------
@@ -74,4 +71,41 @@ The following special commands are supported by the interactive console.
 
   ``oedit(object)`` will open an appropriate GUI-based editor to modify object
   ``object`` and will return the result.
+
+
+The Workspace
+-------------
+
+The workspace is a global variable browser for the interactive console with the 
+features described below.
+
+.. image:: images/workspace1.png
+
+The following screenshots show some interesting features such as editing 
+lists, strings, dictionaries, NumPy arrays, or plotting/showing NumPy arrays
+data.
+
+.. image:: images/listeditor.png
+
+.. image:: images/texteditor.png
+
+.. image:: images/dicteditor.png
+
+.. image:: images/arrayeditor.png
+
+.. image:: images/workspace-plot.png
+
+.. image:: images/workspace-imshow.png
+
+The default Workspace configuration allows to browse global variables without 
+slowing the interactive console even with very large NumPy arrays, lists or 
+dictionaries. The trick is to truncate values, to hide collection contents 
+(i.e. showing '<list @ address>' instead of list contents) and to show only 
+mininum and maximum values for NumPy arrays (see context menu options on the 
+screenshot at the top of this page).
+
+However, most of the time, choosing the opposite options won't have too much 
+effect on interactive console's performance:
+
+.. image:: images/workspace2.png
 

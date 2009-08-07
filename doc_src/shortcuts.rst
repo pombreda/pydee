@@ -15,7 +15,7 @@ The default Pydee global shortcuts are the following:
 
   Ctrl+Shift+C
   
-- Go to :doc:`workspace`:
+- Go to Workspace:
 
   Ctrl+Shift+W
   

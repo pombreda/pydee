@@ -1,9 +1,11 @@
 Find in files
 =============
 
-XXX
+The *Find in Files* plugin provides text search in whole directories or 
+`mercurial` repositories (or even in PYTHONPATH) with regular expression 
+support for maximum search customization.
 
-Related plugins
----------------
+.. image:: images/findinfiles.png
 
-:doc:`editor`
+Related plugins:
+    * :doc:`editor`
