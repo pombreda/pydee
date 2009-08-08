@@ -699,6 +699,7 @@ class MainWindow(QMainWindow):
         pos = self.pos()
         CONF.set('main', prefix+'position', (pos.x(), pos.y()))
         if not self.light:
+            self.maximize_dockwidget(restore=True)# Restore non-maximized layout
             qba = self.saveState()
             CONF.set('main', prefix+'state', str(qba.toHex()))
             CONF.set('main', prefix+'statusbar',
@@ -736,13 +737,13 @@ class MainWindow(QMainWindow):
         self.maximize_action.setIcon(get_icon(icon))
         self.maximize_action.setToolTip(tip)
         
-    def maximize_dockwidget(self):
+    def maximize_dockwidget(self, restore=False):
         """
         Shortcut: Ctrl+Alt+Shift+M
         First call: maximize current dockwidget
-        Second call: restore original window layout
+        Second call (or restore=True): restore original window layout
         """
-        if self.last_window_state is None:
+        if self.last_window_state is None and not restore:
             # No plugin is currently maximized: maximizing focus plugin
             self.last_window_state = self.saveState()
             focus_widget = QApplication.focusWidget()
