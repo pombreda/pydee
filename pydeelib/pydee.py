@@ -499,8 +499,7 @@ class MainWindow(QMainWindow):
             # View menu
             self.view_menu = self.createPopupMenu()
             self.view_menu.setTitle(self.tr("&View"))
-            add_actions(self.view_menu, (None, self.maximize_action,
-                                         self.xy_action))
+            add_actions(self.view_menu, (None, self.maximize_action))
             self.menuBar().addMenu(self.view_menu)
         
             # ? menu
@@ -587,6 +586,7 @@ class MainWindow(QMainWindow):
         add_actions(self.file_menu, [self.pydee_path_action])
         if self.winenv_action is not None:
             self.file_menu.addAction(self.winenv_action)
+        self.file_menu.addAction(self.xy_action)
         recent_files = []
         for fname in self.editor.recent_files:
             if not self.editor.is_file_opened(fname) and osp.isfile(fname):
