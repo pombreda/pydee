@@ -9,10 +9,7 @@
 ^pydee.egg-info/
 \pypi.txt
 splash2-orig.pdn
-\makepyqt.pyw
 \Thumbs.db
 \matlab_sn$
-\clone.
 syntax: glob
-Capture-Standard Platform Icons.png
-glob:qtbase.py
+capture-linux_std_icons.png
