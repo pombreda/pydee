@@ -789,17 +789,24 @@ class MainWindow(QMainWindow):
             qsci = ""
         QMessageBox.about(self,
             self.tr("About %1").arg("Pydee"),
-            self.tr("""<b>%1</b> v %2
+            self.tr("""<b>%1 %2</b>
             <br>PYthon Development EnvironmEnt
             <p>Copyright &copy; 2009 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
-            <p><i>Project manager and main developer:</i> Pierre Raybaut
-            <br><i>Contributors:</i> Christopher Brown, Alexandre Radicchi, Brian Clowers
-            <p>Python code analysis powered by <i>pyflakes</i>:
+            <p>Developed and maintained by %8Pierre Raybaut%9
+            <p>Many thanks to %8Christopher Brown%9 (beta-tester from the 
+            very beginning), 
+            %8Alexandre Radicchi%9 (especially for his contributions to the 
+            <i>Workspace</i> plugin and the <i>DictEditor</i> widget), 
+            %8Ludovic Aubry%9 (for his great ideas, suggestions and 
+            technical solutions - without him, the <i>external console</i> 
+            wouldn't have so many features)
+            and all the Pydee beta-testers and regular users.
+            <p>Integrated Python code analysis powered by %8pyflakes%9:
             <br>Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/
-            <p>Most of the icons are coming from the <i>Crystal Project</i>:
+            <p>Most of the icons are coming from the %8Crystal Project%9:
             <br>Copyright &copy; 2006-2007 Everaldo Coelho
-            <p>Pydee is based on pydeelib module v %2
+            <p>Pydee is based on pydeelib module v%2
             <br>Bug reports and feature requests: 
             <a href="http://code.google.com/p/pydee/">Google Code</a><br>
             Discussions around the project: 
@@ -809,7 +816,8 @@ class MainWindow(QMainWindow):
             <p>Python %3, Qt %4, PyQt %5%6 on %7""") \
             .arg("Pydee").arg(__version__) \
             .arg(platform.python_version()).arg(QT_VERSION_STR) \
-            .arg(PYQT_VERSION_STR).arg(qsci).arg(platform.system()))
+            .arg(PYQT_VERSION_STR).arg(qsci).arg(platform.system()) \
+            .arg("<span style=\'color: #444444\'><b>").arg("</b></span>"))
             
     def send_to_statusbar(self, message):
         """Show a message in the status bar"""
