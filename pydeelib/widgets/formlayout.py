@@ -33,7 +33,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.0.4'
+__version__ = '1.0.5'
 __license__ = __doc__
 
 DEBUG = False
@@ -50,7 +50,8 @@ from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox, QIcon,
                          QStyle, QDialogButtonBox, QHBoxLayout, QVBoxLayout,
                          QDialog, QColor, QPushButton, QCheckBox, QColorDialog,
                          QPixmap, QTabWidget, QApplication, QStackedWidget,
-                         QDateEdit, QDateTimeEdit)
+                         QDateEdit, QDateTimeEdit, QFont, QFontComboBox,
+                         QFontDatabase, QGridLayout)
 from PyQt4.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
                           pyqtSignature, pyqtProperty)
 from datetime import date
@@ -92,8 +93,10 @@ class ColorButton(QPushButton):
 
 
 def text_to_qcolor(text):
-    """Create a QColor from specified string
-    Avoid a warning from Qt when an invalid QColor is instantiated"""
+    """
+    Create a QColor from specified string
+    Avoid warning from Qt when an invalid QColor is instantiated
+    """
     color = QColor()
     if isinstance(text, QString):
         text = str(text)
@@ -108,6 +111,7 @@ def text_to_qcolor(text):
         return color
     color.setNamedColor(text)
     return color
+
 
 class ColorLayout(QHBoxLayout):
     """Color-specialized QLineEdit layout"""
@@ -134,6 +138,76 @@ class ColorLayout(QHBoxLayout):
         
     def text(self):
         return self.lineedit.text()
+    
+    
+def font_is_installed(font):
+    """Check if font is installed"""
+    return [fam for fam in QFontDatabase().families() if unicode(fam)==font]
+
+def tuple_to_qfont(tup):
+    """
+    Create a QFont from tuple:
+        (family [string], size [int], italic [bool], bold [bool])
+    """
+    if not isinstance(tup, tuple) or len(tup) != 4 \
+       or not font_is_installed(tup[0]) \
+       or not isinstance(tup[1], int) \
+       or not isinstance(tup[2], bool) \
+       or not isinstance(tup[3], bool):
+        return None
+    font = QFont()
+    family, size, italic, bold = tup
+    font.setFamily(family)
+    font.setPointSize(size)
+    font.setItalic(italic)
+    font.setBold(bold)
+    return font
+
+def qfont_to_tuple(font):
+    return (unicode(font.family()), int(font.pointSize()),
+            font.italic(), font.bold())
+
+
+class FontLayout(QGridLayout):
+    """Font selection"""
+    def __init__(self, value, parent=None):
+        QGridLayout.__init__(self)
+        font = tuple_to_qfont(value)
+        assert font is not None
+        
+        # Font family
+        self.family = QFontComboBox(parent)
+        self.family.setCurrentFont(font)
+        self.addWidget(self.family, 0, 0, 1, -1)
+        
+        # Font size
+        self.size = QComboBox(parent)
+        self.size.setEditable(True)
+        sizelist = range(6, 12) + range(12, 30, 2) + [36, 48, 72]
+        size = font.pointSize()
+        if size not in sizelist:
+            sizelist.append(size)
+            sizelist.sort()
+        self.size.addItems([str(s) for s in sizelist])
+        self.size.setCurrentIndex(sizelist.index(size))
+        self.addWidget(self.size, 1, 0)
+        
+        # Italic or not
+        self.italic = QCheckBox(self.tr("Italic"), parent)
+        self.italic.setChecked(font.italic())
+        self.addWidget(self.italic, 1, 1)
+        
+        # Bold or not
+        self.bold = QCheckBox(self.tr("Bold"), parent)
+        self.bold.setChecked(font.bold())
+        self.addWidget(self.bold, 1, 2)
+        
+    def get_font(self):
+        font = self.family.currentFont()
+        font.setItalic(self.italic.isChecked())
+        font.setBold(self.bold.isChecked())
+        font.setPointSize(int(self.size.currentText()))
+        return qfont_to_tuple(font)
 
 
 class FormWidget(QWidget):
@@ -168,6 +242,8 @@ class FormWidget(QWidget):
                 self.formlayout.addRow(QLabel(value))
                 self.widgets.append(None)
                 continue
+            elif tuple_to_qfont(value) is not None:
+                field = FontLayout(value, self)
             elif text_to_qcolor(value).isValid():
                 field = ColorLayout(QColor(value), self)
             elif isinstance(value, (str, unicode)):
@@ -186,7 +262,8 @@ class FormWidget(QWidget):
                 elif selindex in keys:
                     selindex = keys.index(selindex)
                 elif not isinstance(selindex, int):
-                    print >> STDERR, "Warning: '%s' index is invalid (label: %s, value: %s)" % (selindex, label, value)
+                    print >>STDERR, "Warning: '%s' index is invalid (label: " \
+                                    "%s, value: %s)" % (selindex, label, value)
                     selindex = 0
                 field.setCurrentIndex(selindex)
             elif isinstance(value, bool):
@@ -217,6 +294,8 @@ class FormWidget(QWidget):
             if label is None:
                 # Separator / Comment
                 continue
+            elif tuple_to_qfont(value) is not None:
+                value = field.get_font()
             elif isinstance(value, (str, unicode)):
                 value = unicode(field.text())
             elif isinstance(value, (list, tuple)):
@@ -266,7 +345,6 @@ class FormComboWidget(QWidget):
         return [ widget.get() for widget in self.widgetlist]
         
 
-
 class FormTabWidget(QWidget):
     def __init__(self, datalist, comment="", parent=None):
         super(FormTabWidget, self).__init__(parent)
@@ -296,11 +374,14 @@ class FormDialog(QDialog):
         
         # Form
         if isinstance(data[0][0], (list, tuple)):
-            self.formwidget = FormTabWidget(data, comment=comment, parent=self)
+            self.formwidget = FormTabWidget(data, comment=comment,
+                                            parent=self)
         elif len(data[0])==3:
-            self.formwidget = FormComboWidget(data, comment=comment, parent=self)
+            self.formwidget = FormComboWidget(data, comment=comment,
+                                              parent=self)
         else:
-            self.formwidget = FormWidget(data, comment=comment, parent=self)
+            self.formwidget = FormWidget(data, comment=comment, 
+                                         parent=self)
         layout = QVBoxLayout()
         layout.addWidget(self.formwidget)
         
@@ -366,7 +447,7 @@ def fedit(data, title="", comment="", icon=None, parent=None):
 
 
 if __name__ == "__main__":
-    
+
     def create_datalist_example():
         return [('str', 'this is a string'),
                 ('list', [0, '1', '3', '4']),
@@ -376,6 +457,7 @@ if __name__ == "__main__":
                 ('float', 1.2),
                 (None, 'Other:'),
                 ('int', 12),
+                ('font', ('Arial', 10, False, True)),
                 ('color', '#123409'),
                 ('bool', True),
                 ('datetime', date(2010, 10, 10)),
