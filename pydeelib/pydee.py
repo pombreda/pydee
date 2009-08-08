@@ -743,7 +743,9 @@ class MainWindow(QMainWindow):
         First call: maximize current dockwidget
         Second call (or restore=True): restore original window layout
         """
-        if self.last_window_state is None and not restore:
+        if self.last_window_state is None:
+            if restore:
+                return
             # No plugin is currently maximized: maximizing focus plugin
             self.last_window_state = self.saveState()
             focus_widget = QApplication.focusWidget()
