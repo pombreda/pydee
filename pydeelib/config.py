@@ -107,6 +107,7 @@ DEFAULTS = [
               'prompt_style/underline' : False,
               'calltips/font/family' : MONOSPACE,
               'calltips/font/size' : SMALL,
+              'calltips/font/italic' : False,
               'calltips/font/bold' : False,
               'calltips/size' : 600,
               }),
@@ -117,6 +118,7 @@ DEFAULTS = [
               'working_dir_adjusttocontents' : False,
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
+              'font/italic' : False,
               'font/bold' : False,
               'wrap' : False,
               'wrapflag' : True,
@@ -134,6 +136,7 @@ DEFAULTS = [
               'shortcut': "Ctrl+Shift+X",
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
+              'font/italic' : False,
               'font/bold' : False,
               'wrap' : False,
               'single_tab' : True,
@@ -159,6 +162,7 @@ DEFAULTS = [
               'shortcut': "Ctrl+Shift+E",
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
+              'font/italic' : False,
               'font/bold' : False,
               'wrap' : False,
               'wrapflag' : True,
@@ -176,6 +180,7 @@ DEFAULTS = [
               'max_entries' : 100,
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
+              'font/italic' : False,
               'font/bold' : False,
               'wrap' : True,
               }),
@@ -186,6 +191,7 @@ DEFAULTS = [
               'max_history_entries' : 20,
               'font/family' : MONOSPACE,
               'font/size' : SMALL,
+              'font/italic' : False,
               'font/bold' : False,
               'wrap' : True,
               }),
@@ -210,18 +216,21 @@ DEFAULTS = [
              {
               'font/family' : MONOSPACE,
               'font/size' : SMALL,
+              'font/italic' : False,
               'font/bold' : False,
               }),
             ('texteditor',
              {
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,
+              'font/italic' : False,
               'font/bold' : False,
               }),
             ('dicteditor',
              {
               'font/family' : MONOSPACE,
               'font/size' : SMALL,
+              'font/italic' : False,
               'font/bold' : False,
               }),
             ('figure',
@@ -230,6 +239,7 @@ DEFAULTS = [
               'font/size' : MEDIUM,
               'statusbar/font/family' : SANS_SERIF,
               'statusbar/font/size' : SMALL,
+              'statusbar/font/italic' : False,
               'statusbar/font/bold' : False,
               }),
             ('explorer',
@@ -336,10 +346,12 @@ def get_font(section, option=None):
             return QFont()
         family = get_family( families )
         weight = QFont.Normal
-        if CONF.get(section, option+'/bold'):
+        italic = CONF.get(section, option+'/italic', False)
+        if CONF.get(section, option+'/bold', False):
             weight = QFont.Bold
-        size = CONF.get(section, option+'/size')
+        size = CONF.get(section, option+'/size', 9)
         font = QFont(family, size, weight)
+        font.setItalic(italic)
         FONT_CACHE[(section, option)] = font
     return font
 
@@ -351,6 +363,7 @@ def set_font(font, section, option=None):
         option += '/font'
     CONF.set(section, option+'/family', unicode(font.family()))
     CONF.set(section, option+'/size', float(font.pointSize()))
+    CONF.set(section, option+'/italic', int(font.italic()))
     CONF.set(section, option+'/bold', int(font.bold()))
     FONT_CACHE[(section, option)] = font
     
