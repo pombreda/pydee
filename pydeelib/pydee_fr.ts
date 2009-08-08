@@ -263,32 +263,32 @@
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="738"/>
+        <location filename="widgets/dicteditor.py" line="741"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="677"/>
+        <location filename="widgets/dicteditor.py" line="680"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="679"/>
+        <location filename="widgets/dicteditor.py" line="682"/>
         <source>Do you want to remove selected item%1?</source>
         <translation>Souhaitez-vous supprimer l&apos;élément %1 ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="729"/>
+        <location filename="widgets/dicteditor.py" line="732"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="739"/>
+        <location filename="widgets/dicteditor.py" line="742"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="696"/>
+        <location filename="widgets/dicteditor.py" line="699"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
@@ -298,7 +298,7 @@
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="799"/>
+        <location filename="widgets/dicteditor.py" line="802"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
@@ -338,32 +338,32 @@
         <translation>Afficher les min/max des tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="889"/>
+        <location filename="widgets/dicteditor.py" line="892"/>
         <source>Empty clipboard</source>
         <translation>Presse-papiers vide</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="891"/>
+        <location filename="widgets/dicteditor.py" line="894"/>
         <source>Nothing to be imported from clipboard.</source>
         <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="873"/>
+        <location filename="widgets/dicteditor.py" line="876"/>
         <source>new</source>
         <translation>nouveau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="879"/>
+        <location filename="widgets/dicteditor.py" line="882"/>
         <source>Import from clipboard</source>
         <translation>Importer depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="881"/>
+        <location filename="widgets/dicteditor.py" line="884"/>
         <source>Clipboard contents</source>
         <translation>Contenu du presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="795"/>
+        <location filename="widgets/dicteditor.py" line="798"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
@@ -383,12 +383,12 @@
         <translation>Afficher l&apos;image</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="750"/>
+        <location filename="widgets/dicteditor.py" line="753"/>
         <source>Import error</source>
         <translation>Erreur d&apos;import</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="752"/>
+        <location filename="widgets/dicteditor.py" line="755"/>
         <source>Please install &lt;b&gt;matplotlib&lt;/b&gt;.</source>
         <translation>Merci d&apos;installer &lt;b&gt;matplotlib&lt;/b&gt;.</translation>
     </message>
@@ -2141,27 +2141,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Barre d&apos;outils</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="268"/>
+        <location filename="pydee.py" line="283"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="283"/>
+        <location filename="pydee.py" line="298"/>
         <source>&amp;Edit</source>
         <translation>&amp;Édition</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="486"/>
+        <location filename="pydee.py" line="501"/>
         <source>&amp;View</source>
         <translation>&amp;Affichage</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="293"/>
+        <location filename="pydee.py" line="308"/>
         <source>Welcome to Pydee!</source>
         <translation>Bienvenue dans Pydee !</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="297"/>
+        <location filename="pydee.py" line="312"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
@@ -2171,7 +2171,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Chargement de l&apos;éditeur...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="344"/>
+        <location filename="pydee.py" line="359"/>
         <source>&amp;Source</source>
         <translation>&amp;Source</translation>
     </message>
@@ -2191,27 +2191,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Chargement de l&apos;aide...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="493"/>
+        <location filename="pydee.py" line="508"/>
         <source>About %1...</source>
         <translation>À propos de %1...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="768"/>
+        <location filename="pydee.py" line="791"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="855"/>
+        <location filename="pydee.py" line="886"/>
         <source>Restart Python interpreter</source>
         <translation>Redémarrer l&apos;interpréteur Python</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="464"/>
+        <location filename="pydee.py" line="479"/>
         <source>Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another</source>
         <translation>Démarrer un nouvel interpréteur Python : les objets de la session en cours seront supprimés, à l&apos;exception des données de l&apos;espace du travail qui pourront être conservées</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="856"/>
+        <location filename="pydee.py" line="887"/>
         <source>Python interpreter will be restarted: all the objects created during this session will be lost (that includes imported modules which will have to be imported again).
 
 Do you want to continue?</source>
@@ -2220,12 +2220,12 @@ Do you want to continue?</source>
 Souhaitez-vous continuer ?</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="862"/>
+        <location filename="pydee.py" line="893"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="863"/>
+        <location filename="pydee.py" line="894"/>
         <source>Do you want to keep workspace data available?</source>
         <translation>Souhaitez-vous conserver les données de l&apos;espace de travail ?</translation>
     </message>
@@ -2254,7 +2254,7 @@ Souhaitez-vous continuer ?</translation>
             &lt;p&gt;This project is part of 
             &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;Python(x,y) distribution&lt;/a&gt;
             &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; v %2
+        <translation type="obsolete">&lt;b&gt;%1&lt;/b&gt; v %2
             &lt;br&gt;PYthon Development EnvironmEnt
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
             &lt;br&gt;Distribué selon les termes de la licence MIT
@@ -2283,7 +2283,7 @@ Souhaitez-vous continuer ?</translation>
         <translation>Rechercher une chaîne de caractères dans plusieurs fichiers à la fois</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="287"/>
+        <location filename="pydee.py" line="302"/>
         <source>&amp;Search</source>
         <translation>&amp;Recherche</translation>
     </message>
@@ -2298,12 +2298,12 @@ Souhaitez-vous continuer ?</translation>
         <translation>Ouvre le gestionnaire de chemin d&apos;accès de Pydee</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="501"/>
+        <location filename="pydee.py" line="516"/>
         <source>Python documentation</source>
         <translation>Documentation Python</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="510"/>
+        <location filename="pydee.py" line="525"/>
         <source>Qt Assistant</source>
         <translation>Qt Assistant (documentation Qt)</translation>
     </message>
@@ -2333,99 +2333,156 @@ Souhaitez-vous continuer ?</translation>
         <translation>Documentation Matplotlib</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="271"/>
+        <location filename="pydee.py" line="286"/>
         <source>Current user environment variables...</source>
         <translation>Variables d&apos;environnement de l&apos;utilisateur...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="275"/>
+        <location filename="pydee.py" line="290"/>
         <source>Show and edit current user environment variables in Windows registry (i.e. for all sessions)</source>
         <translation>Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire directement dans la base de registre)</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="498"/>
+        <location filename="pydee.py" line="513"/>
         <source>Pydee documentation</source>
         <translation>Documentation Pydee</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="711"/>
+        <location filename="pydee.py" line="728"/>
         <source>Maximize current plugin</source>
         <translation>Agrandir la fenêtre courante</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="713"/>
+        <location filename="pydee.py" line="730"/>
         <source>Maximize current plugin to fit the whole application window</source>
         <translation>Agrandir la fenêtre courante sur toute la surface de la fenêtre principale</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="716"/>
+        <location filename="pydee.py" line="733"/>
         <source>Restore current plugin</source>
         <translation>Réduire la fenêtre courante</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="718"/>
+        <location filename="pydee.py" line="735"/>
         <source>Restore current plugin to its original size and position within the application window</source>
         <translation>Réduire la fenêtre courante à sa taille et position d&apos;origine au sein de la fenêtre principale</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="263"/>
+        <location filename="pydee.py" line="259"/>
         <source>Main toolbar</source>
         <translation>Barre d&apos;outil principale</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="345"/>
+        <location filename="pydee.py" line="360"/>
         <source>File toolbar</source>
         <translation>Barre d&apos;outil fichiers</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="348"/>
+        <location filename="pydee.py" line="363"/>
         <source>Analysis toolbar</source>
         <translation>Barre d&apos;outil analyse</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="351"/>
+        <location filename="pydee.py" line="366"/>
         <source>Run toolbar</source>
         <translation>Barre d&apos;outil exécution</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="354"/>
+        <location filename="pydee.py" line="369"/>
         <source>Edit toolbar</source>
         <translation>Barre d&apos;outil édition</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="376"/>
+        <location filename="pydee.py" line="391"/>
         <source>Find toolbar</source>
         <translation>Barre d&apos;outil recherche</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="384"/>
+        <location filename="pydee.py" line="399"/>
         <source>Workspace toolbar</source>
         <translation>Barre d&apos;outil espace de travail</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="330"/>
+        <location filename="pydee.py" line="345"/>
         <source>Loading editor plugin...</source>
         <translation>Chargement de l&apos;éditeur...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="382"/>
+        <location filename="pydee.py" line="397"/>
         <source>Loading workspace plugin...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="431"/>
+        <location filename="pydee.py" line="446"/>
         <source>Loading history plugin...</source>
         <translation>Chargement du journal d&apos;historique...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="442"/>
+        <location filename="pydee.py" line="457"/>
         <source>Loading docviewer plugin...</source>
         <translation>Chargement du visualiseur d&apos;aide...</translation>
     </message>
     <message>
-        <location filename="pydee.py" line="451"/>
+        <location filename="pydee.py" line="466"/>
         <source>Loading pylint plugin...</source>
         <translation>Chargement de l&apos;extension pylint...</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="269"/>
+        <source>Run Python(x,y) launcher</source>
+        <translation>Fenêtre d&apos;accueil de Python(x,y)</translation>
+    </message>
+    <message>
+        <location filename="pydee.py" line="817"/>
+        <source>&lt;b&gt;%1 %2&lt;/b&gt;
+            &lt;br&gt;PYthon Development EnvironmEnt
+            &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
+            &lt;br&gt;Licensed under the terms of the MIT License
+            &lt;p&gt;Developed and maintained by %8Pierre Raybaut%9
+            &lt;p&gt;Many thanks to %8Christopher Brown%9 (beta-tester from the 
+            very beginning), 
+            %8Alexandre Radicchi%9 (especially for his contributions to the 
+            &lt;i&gt;Workspace&lt;/i&gt; plugin and the &lt;i&gt;DictEditor&lt;/i&gt; widget), 
+            %8Ludovic Aubry%9 (for his great ideas, suggestions and 
+            technical solutions - without him, the &lt;i&gt;external console&lt;/i&gt; 
+            wouldn&apos;t have so many features)
+            and all the Pydee beta-testers and regular users.
+            &lt;p&gt;Integrated Python code analysis powered by %8pyflakes%9:
+            &lt;br&gt;Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/
+            &lt;p&gt;Most of the icons are coming from the %8Crystal Project%9:
+            &lt;br&gt;Copyright &amp;copy; 2006-2007 Everaldo Coelho
+            &lt;p&gt;Pydee is based on pydeelib module v%2
+            &lt;br&gt;Bug reports and feature requests: 
+            &lt;a href=&quot;http://code.google.com/p/pydee/&quot;&gt;Google Code&lt;/a&gt;&lt;br&gt;
+            Discussions around the project: 
+            &lt;a href=&quot;http://groups.google.com/group/pydee&quot;&gt;Google Group&lt;/a&gt;
+            &lt;p&gt;This project is part of 
+            &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;Python(x,y) distribution&lt;/a&gt;
+            &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7</source>
+        <translation>&lt;b&gt;%1 %2&lt;/b&gt;
+            &lt;br&gt;PYthon Development EnvironmEnt
+            &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
+            &lt;br&gt;Distribué selon les termes de la licence MIT
+            &lt;p&gt;Développé et maintenu par %8Pierre Raybaut%9
+            &lt;p&gt;Remerciements à %8Christopher Brown%9 (beta-testeur de la première 
+            heure), 
+            %8Alexandre Radicchi%9 (en particulier pour ses contributions à l&apos;&lt;i&gt;espace de travail&lt;/i&gt; 
+            et au widget &lt;i&gt;DictEditor&lt;/i&gt;), 
+            %8Ludovic Aubry%9 (pour ses idées, ses suggestions et surtout ses solutions techniques 
+            sans lesquelles Pydee ne serait pas le même)
+            et à tous les beta-testeurs et utilisateurs de Pydee.
+            &lt;p&gt;L&apos;analyse de code intégrée est fournie par %8pyflakes%9:
+            &lt;br&gt;Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/
+            &lt;p&gt;La majorité des icônes provient du projet %8Crystal Project%9:
+            &lt;br&gt;Copyright &amp;copy; 2006-2007 Everaldo Coelho
+            &lt;p&gt;Pydee is based on pydeelib module v%2
+            &lt;br&gt;Signalement d&apos;anomalies et demandes de nouvelles fonctionnalités: 
+            &lt;a href=&quot;http://code.google.com/p/pydee/&quot;&gt;Google Code&lt;/a&gt;&lt;br&gt;
+            Discussions autour du projet: 
+            &lt;a href=&quot;http://groups.google.com/group/pydee&quot;&gt;Google Group&lt;/a&gt;
+            &lt;p&gt;Ce projet fait partie de la 
+            &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;distribution Python(x,y)&lt;/a&gt;
+            &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7</translation>
     </message>
 </context>
 <context>
